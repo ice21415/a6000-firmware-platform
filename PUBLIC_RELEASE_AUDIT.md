@@ -1,12 +1,12 @@
 ﻿# Public Release Audit
 
-狀態：**已完成本機公開前稽核，等待 GitHub 建立與 push**  
+狀態：**公開前稽核完成；GitHub 發布已完成**  
 稽核日期：2026-10-08  
 預計 Repository：`https://github.com/ice21415/a6000-firmware-platform`
 
 這份稽核針對 `a6000-firmware-platform-public` 這個獨立 allowlist 發布目錄。
-原始研究工作目錄、原廠韌體和私人資料沒有被複製到這個目錄。尚未建立 GitHub
-Repository、尚未 push、尚未建立 tag；本文件在 MIT 確認後更新。
+原始研究工作目錄、原廠韌體和私人資料沒有被複製到這個目錄。檔案先完成本機
+稽核，再以乾淨歷史建立 GitHub Repository；發布後核對結果見下方。
 
 ## 準備公開的檔案
 
@@ -100,12 +100,21 @@ records。這些結果是靜態研究證據，不代表 runtime 或可安全部�
 ## Git 工作樹與歷史
 
 發布目錄由 allowlist 重新初始化 Git，沒有承接原始研究目錄的 history。初始本機提交
-為 `fe6aa54 Prepare public release staging`；目前 working tree clean，且沒有 remote。
+為 `fe6aa54 Prepare public release staging`；發布前 working tree clean。現在的
+`origin` 指向預定公開 Repository，發布後 main 仍須保持 clean。
 
 歷史檢查只涵蓋這個新 staging history；上層私人工作目錄的 history 不會被發布。
 
-本機 `gh` 檢查：GitHub CLI 2.94.0，帳號 `ice21415` 已登入；這只代表本機具備後續
-操作條件，不代表 repository 已建立或任何檔案已上傳。
+本機 `gh` 檢查：GitHub CLI 2.94.0，帳號 `ice21415` 已登入。
+
+## 發布後核對
+
+- Repository：<https://github.com/ice21415/a6000-firmware-platform>
+- GitHub API：`private=false`、default branch `main`。
+- 發布 commit：`1b701284482719e5e8a6527af131d83d74dadf69`。
+- Tag：`v0.2.0-alpha` 指向上述 commit。
+- GitHub page HEAD request：HTTP 200。
+- 發布後未上傳任何原廠 firmware、私人 SQLite 或 runtime dump。
 
 ## 尚待人工確認的風險
 
@@ -113,7 +122,7 @@ records。這些結果是靜態研究證據，不代表 runtime 或可安全部�
 2. 確認 GitHub owner、repository visibility、tag 版本與發布說明。
 3. GitHub Actions、Ghidra 版本與外部依賴的供應鏈政策仍需由維護者決定。
 
-本稽核不宣稱任何未經實機驗證的韌體操作可安全使用；GitHub 遠端仍待建立與推送。
+本稽核不宣稱任何未經實機驗證的韌體操作可安全使用。
 
 
 
