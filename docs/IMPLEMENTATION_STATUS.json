@@ -1,6 +1,7 @@
 {
   "project": "a6000-firmware-platform",
   "public_release": "v0.2.0-alpha",
+  "development_version": "0.3.0-dev",
   "firmware_scope": "Sony ILCE-6000 firmware 3.21 research metadata only",
   "license_status": "MIT_CONFIRMED_BY_MAINTAINER",
   "components": [
@@ -11,9 +12,13 @@
     {"name": "ghidra_jsonl_import", "status": "IMPLEMENTED", "source": ["fwplatform/ghidra_importer.py"], "tests": ["test_ghidra_input_failure_is_recorded"], "limitations": ["semantic names remain unconfirmed"]},
     {"name": "cross_binary_linkage", "status": "PARTIAL", "source": ["fwplatform/linkage.py"], "tests": [], "blockers": ["ambiguous symbols remain unresolved", "two malformed ELF inputs" ]},
     {"name": "call_graph_cli", "status": "IMPLEMENTED_FOR_IMPORTED_CFG", "source": ["fwplatform/cli.py"], "tests": ["local callers/callees/callsite/xrefs/trace smoke"], "limitations": ["coverage depends on analyzed binaries"]},
+    {"name": "semantic_graph", "status": "IMPLEMENTED_SYNTHETIC", "source": ["database/migrations/005_semantic_graph.sql", "fwplatform/migration_v5.py", "fwplatform/semantic_graph.py"], "tests": ["test_event_namespaces_and_graph_depth_remain_distinct", "test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["populated private database is not shipped", "runtime semantics remain unknown"]},
+    {"name": "osal_protocol_analyzer", "status": "IMPLEMENTED_FIXTURE_ONLY", "source": ["fwplatform/osal.py"], "tests": ["test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["requires explicit producer/consumer/payload evidence", "no runtime queue capture"]},
+    {"name": "jni_java_analyzer", "status": "IMPLEMENTED_FIXTURE_ONLY", "source": ["fwplatform/jni.py", "analyzers/dex_analyzer.py"], "tests": ["test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["RegisterNatives/body recovery is incomplete", "missing methods remain UNKNOWN"]},
+    {"name": "phase3_cli", "status": "IMPLEMENTED", "source": ["fwplatform/cli.py"], "tests": ["test_cli_query_empty_database"], "limitations": ["query coverage depends on evidence imported into local database"]},
     {"name": "descriptive_sdk", "status": "PARTIAL", "source": ["sdk", "fwplatform/sdk.py"], "tests": [], "limitations": ["not a safe callable firmware API"]},
     {"name": "modding_framework", "status": "OFFLINE_MOCK_ONLY", "source": ["modding-framework/mock_runtime.py"], "tests": ["test_dependency_and_rollback"], "limitations": ["no NAND/WBI/bootloader/device writes"]},
     {"name": "runtime_validation", "status": "UNKNOWN", "source": ["docs/RESEARCH_STATUS.md"], "tests": [], "limitations": ["public CI has no camera connection"]}
   ],
-  "next_priority": ["synthetic CFG/linkage fixtures", "JNI/Java evidence model", "OSAL/message namespace model", "broaden analyzer coverage"]
+  "next_priority": ["real evidence-backed OSAL/JNI fixtures", "multi-ELF Ghidra checkpoints", "event/state semantic relations", "runtime validation model"]
 }

@@ -14,6 +14,7 @@ from .importer import import_existing
 from .inventory import build_manifest, export_manifest
 from .report import architecture_overview, coverage, unknowns, write_reports
 from .sdk import build_sdk_index
+from .semantic_graph import export_graph, sync_semantic_graph
 
 
 def _json_or_text(payload: Any, as_json: bool) -> None:
@@ -56,7 +57,29 @@ def _query(db: Database, kind: str, term: str) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
-def _trace(db: Database, term: str, depth: int = 3) -> dict[str, Any]:
+def _semantic_trace(db: Database, term: str, depth: int = 3) -> list[dict[str, Any]]:
+    starts = db.query("SELECT id FROM semantic_node WHERE label LIKE ? OR identity_key LIKE ? ORDER BY id LIMIT 100", [f"%{term}%", f"%{term}%"])
+    frontier = [int(row[0]) for row in starts]
+    visited = set(frontier)
+    paths: list[dict[str, Any]] = []
+    for level in range(max(0, depth)):
+        if not frontier:
+            break
+        placeholders = ",".join("?" for _ in frontier)
+        edges = db.query(f"""SELECT e.*,s.label AS source_label,t.label AS target_label,t.node_type AS target_type
+            FROM semantic_edge e JOIN semantic_node s ON s.id=e.source_node_id
+            LEFT JOIN semantic_node t ON t.id=e.target_node_id
+            WHERE e.source_node_id IN ({placeholders}) ORDER BY e.id""", frontier)
+        next_frontier: list[int] = []
+        for edge in edges:
+            item = dict(edge); item["depth"] = level + 1; paths.append(item)
+            if edge["target_node_id"] is not None and int(edge["target_node_id"]) not in visited:
+                visited.add(int(edge["target_node_id"])); next_frontier.append(int(edge["target_node_id"]))
+        frontier = next_frontier
+    return paths
+
+
+def _trace(db: Database, term: str, depth: int = 3, cross_module: bool = False) -> dict[str, Any]:
     rows = db.query("""SELECT m.name AS module,l.name AS callback,l.phase,l.status,f.name AS function,f.address
                       FROM lifecycle_callback l JOIN module m ON m.id=l.module_id
                       LEFT JOIN function f ON f.id=l.function_id
@@ -91,9 +114,44 @@ def _trace(db: Database, term: str, depth: int = 3) -> dict[str, Any]:
             if edge["callee_id"] is not None and int(edge["callee_id"]) not in visited:
                 visited.add(int(edge["callee_id"])); next_frontier.append(int(edge["callee_id"]))
         frontier = next_frontier
-    return {"lifecycle": [dict(row) for row in rows], "callgraph": [dict(row) for row in callgraph], "paths": paths, "dependencies": [dict(row) for row in db.query("""SELECT f.name AS from_module,t.name AS to_module,d.kind,d.status
+    result = {"lifecycle": [dict(row) for row in rows], "callgraph": [dict(row) for row in callgraph], "paths": paths, "dependencies": [dict(row) for row in db.query("""SELECT f.name AS from_module,t.name AS to_module,d.kind,d.status
                       FROM module_dependency d JOIN module f ON f.id=d.from_module_id JOIN module t ON t.id=d.to_module_id
                       WHERE f.name LIKE ? OR t.name LIKE ?""", [f"%{term}%", f"%{term}%"])]}
+    if cross_module:
+        sync_semantic_graph(db)
+        result["semantic_paths"] = _semantic_trace(db, term, depth)
+    return result
+
+
+def _protocol_queue(db: Database, value: str) -> list[dict[str, Any]]:
+    rows = db.query("""SELECT q.id AS queue_id,q.namespace,q.queue_value,q.name AS queue_name,q.semantics AS queue_semantics,q.status AS queue_status,
+        m.id AS message_id,m.direction,m.semantics,m.payload_layout,m.timeout_ms,m.status,m.source_evidence_id,
+        mi.namespace AS command_namespace,mi.value AS command_value,mi.name AS command_name,
+        pf.name AS producer,cf.name AS consumer,cb.name AS callback,
+        (SELECT GROUP_CONCAT(pm.name) FROM message_flow fp LEFT JOIN module pm ON pm.id=fp.module_id WHERE fp.osal_message_id=m.id AND fp.role='producer') AS producer_modules,
+        (SELECT GROUP_CONCAT(cm.name) FROM message_flow fc LEFT JOIN module cm ON cm.id=fc.module_id WHERE fc.osal_message_id=m.id AND fc.role='consumer') AS consumer_modules
+        FROM message_queue q LEFT JOIN osal_message m ON m.queue_id=q.id
+        LEFT JOIN message_id mi ON mi.id=m.message_id LEFT JOIN function pf ON pf.id=m.producer_function_id
+        LEFT JOIN function cf ON cf.id=m.consumer_function_id LEFT JOIN function cb ON cb.id=m.callback_function_id
+        WHERE q.queue_value LIKE ? OR q.address LIKE ? ORDER BY m.id""", [f"%{value}%", f"%{value}%"])
+    return [dict(row) for row in rows]
+
+
+def _state_query(db: Database, term: str) -> dict[str, Any]:
+    machines = db.query("SELECT sm.*,m.name AS module FROM state_machine sm LEFT JOIN module m ON m.id=sm.module_id WHERE sm.name LIKE ? OR m.name LIKE ?", [f"%{term}%", f"%{term}%"])
+    result = {"machines": [dict(row) for row in machines], "states": [], "transitions": []}
+    ids = [int(row["id"]) for row in machines]
+    if ids:
+        marks = ",".join("?" for _ in ids)
+        result["states"] = [dict(row) for row in db.query(f"SELECT * FROM state WHERE machine_id IN ({marks}) ORDER BY machine_id,id", ids)]
+        result["transitions"] = [dict(row) for row in db.query(f"SELECT st.*,fs.name AS from_state,ts.name AS to_state,e.namespace,e.value AS event_value,e.name AS event_name FROM state_transition st LEFT JOIN state fs ON fs.id=st.from_state_id LEFT JOIN state ts ON ts.id=st.to_state_id LEFT JOIN event_id e ON e.id=st.event_id WHERE st.machine_id IN ({marks}) ORDER BY st.id", ids)]
+    return result
+
+
+def _api_query(db: Database, term: str) -> list[dict[str, Any]]:
+    return [dict(row) for row in db.query("""SELECT s.*,m.name AS module,b.path AS binary,f.name AS function_name,f.address AS function_address
+        FROM sdk_interface s LEFT JOIN module m ON m.id=s.module_id LEFT JOIN binary b ON b.id=s.binary_id LEFT JOIN function f ON f.id=s.function_id
+        WHERE s.name LIKE ? OR s.domain LIKE ? OR m.name LIKE ? ORDER BY s.domain,s.name""", [f"%{term}%", f"%{term}%", f"%{term}%"])]
 
 
 def _callers(db: Database, term: str) -> list[dict[str, Any]]:
@@ -161,22 +219,30 @@ def build_parser() -> argparse.ArgumentParser:
     export = manifest_sub.add_parser("export"); export.add_argument("--output", type=Path, default=Path("reports/manifest.json")); export.add_argument("--json", action="store_true")
     imp = commands.add_parser("import"); imp_sub = imp.add_subparsers(dest="import_command", required=True)
     existing = imp_sub.add_parser("existing"); existing.add_argument("--root", type=Path, required=True); existing.add_argument("--json", action="store_true")
-    query = commands.add_parser("query"); query.add_argument("kind", choices=["function", "event", "module"]); query.add_argument("term"); query.add_argument("--json", action="store_true")
-    trace = commands.add_parser("trace"); trace.add_argument("term"); trace.add_argument("--depth", type=int, default=3); trace.add_argument("--json", action="store_true")
+    query = commands.add_parser("query"); query.add_argument("kind", choices=["function", "event", "module", "api"]); query.add_argument("term"); query.add_argument("--json", action="store_true")
+    trace = commands.add_parser("trace"); trace.add_argument("term"); trace.add_argument("--depth", type=int, default=3); trace.add_argument("--cross-module", action="store_true"); trace.add_argument("--json", action="store_true")
     callers = commands.add_parser("callers"); callers.add_argument("term"); callers.add_argument("--json", action="store_true")
     callees = commands.add_parser("callees"); callees.add_argument("term"); callees.add_argument("--json", action="store_true")
     callsite = commands.add_parser("callsite"); callsite.add_argument("term"); callsite.add_argument("--json", action="store_true")
     xrefs = commands.add_parser("xrefs"); xrefs.add_argument("address"); xrefs.add_argument("--json", action="store_true")
+    protocol = commands.add_parser("protocol"); protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
+    protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
+    state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
     domain = commands.add_parser("domain"); domain.add_argument("name"); domain.add_argument("--json", action="store_true")
     for name in ("coverage", "unknowns", "architecture"):
         command = commands.add_parser(name); command.add_argument("--json", action="store_true")
-    reports = commands.add_parser("reports"); reports.add_argument("--output-dir", type=Path, default=Path("reports")); reports.add_argument("--phase2", action="store_true"); reports.add_argument("--json", action="store_true")
+    reports = commands.add_parser("reports"); reports.add_argument("--output-dir", type=Path, default=Path("reports")); reports.add_argument("--phase2", action="store_true"); reports.add_argument("--phase3", action="store_true"); reports.add_argument("--json", action="store_true")
     sdk = commands.add_parser("sdk"); sdk_sub = sdk.add_subparsers(dest="sdk_command", required=True)
     sdk_build = sdk_sub.add_parser("build"); sdk_build.add_argument("--output", type=Path, default=Path("sdk/sdk-index.json")); sdk_build.add_argument("--json", action="store_true")
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
     linkage = analyze_sub.add_parser("linkage"); linkage.add_argument("--root", type=Path, required=True); linkage.add_argument("--limit", type=int); linkage.add_argument("--json", action="store_true")
+    osal = analyze_sub.add_parser("osal"); osal.add_argument("--fixture", type=Path, required=True); osal.add_argument("--json", action="store_true")
+    jni = analyze_sub.add_parser("jni"); jni.add_argument("--fixture", type=Path, required=True); jni.add_argument("--json", action="store_true")
+    semantic = analyze_sub.add_parser("semantic"); semantic.add_argument("--json", action="store_true")
+    graph = commands.add_parser("graph"); graph_sub = graph.add_subparsers(dest="graph_command", required=True)
+    graph_export = graph_sub.add_parser("export"); graph_export.add_argument("--format", choices=["json", "graphml"], default="json"); graph_export.add_argument("--output", type=Path, required=True); graph_export.add_argument("--json", action="store_true")
     return parser
 
 
@@ -194,9 +260,9 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "import" and args.import_command == "existing":
             result = import_existing(db, args.root); _json_or_text(result, args.json)
         elif args.command == "query":
-            _json_or_text(_query(db, args.kind, args.term), args.json)
+            _json_or_text(_api_query(db, args.term) if args.kind == "api" else _query(db, args.kind, args.term), args.json)
         elif args.command == "trace":
-            _json_or_text(_trace(db, args.term, args.depth), args.json)
+            _json_or_text(_trace(db, args.term, args.depth, args.cross_module), args.json)
         elif args.command == "callers":
             _json_or_text(_callers(db, args.term), args.json)
         elif args.command == "callees":
@@ -205,6 +271,10 @@ def main(argv: list[str] | None = None) -> int:
             _json_or_text(_callsites(db, args.term), args.json)
         elif args.command == "xrefs":
             _json_or_text(_xrefs(db, args.address), args.json)
+        elif args.command == "protocol" and args.protocol_command == "queue":
+            _json_or_text(_protocol_queue(db, args.value), args.json)
+        elif args.command == "state":
+            _json_or_text(_state_query(db, args.term), args.json)
         elif args.command == "domain":
             overview = architecture_overview(db); rows = overview["domains"].get(args.name, [])
             _json_or_text(rows, args.json)
@@ -220,6 +290,9 @@ def main(argv: list[str] | None = None) -> int:
             if args.phase2:
                 from .phase2_reports import write_phase2_reports
                 result.update(write_phase2_reports(db, args.output_dir))
+            if args.phase3:
+                from .phase3_reports import write_phase3_reports
+                result.update(write_phase3_reports(db, args.output_dir))
             _json_or_text(result, args.json)
         elif args.command == "sdk" and args.sdk_command == "build":
             _json_or_text(build_sdk_index(db, args.output), args.json)
@@ -232,6 +305,17 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "analyze" and args.analyze_command == "linkage":
             from .linkage import analyze_linkage
             _json_or_text(analyze_linkage(db, args.root, args.limit), args.json)
+        elif args.command == "analyze" and args.analyze_command == "osal":
+            from .osal import import_osal_fixture
+            _json_or_text(import_osal_fixture(db, args.fixture), args.json)
+        elif args.command == "analyze" and args.analyze_command == "jni":
+            from .jni import import_jni_fixture
+            _json_or_text(import_jni_fixture(db, args.fixture), args.json)
+        elif args.command == "analyze" and args.analyze_command == "semantic":
+            _json_or_text(sync_semantic_graph(db), args.json)
+        elif args.command == "graph" and args.graph_command == "export":
+            sync_semantic_graph(db)
+            _json_or_text(export_graph(db, args.output, args.format), args.json)
         return 0
     finally:
         db.close()

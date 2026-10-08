@@ -1,0 +1,57 @@
+{
+  "schema_version": 5,
+  "semantic_nodes": 175036,
+  "semantic_edges": 4838,
+  "semantic_verified_edges": 4838,
+  "cfg_edges": 0,
+  "osal_queues": 0,
+  "osal_messages": 0,
+  "osal_flows": 0,
+  "jni_bridges": 0,
+  "java_methods": 0,
+  "state_machines": 1,
+  "state_transitions": 17,
+  "sdk_documented": 0,
+  "sdk_runtime_verified": 0,
+  "unresolved_edges": 0,
+  "analysis_runs": [
+    {
+      "analyzer": "elf_linkage",
+      "status": "COMPLETE",
+      "rows": 707
+    },
+    {
+      "analyzer": "elf_linkage",
+      "status": "FAILED",
+      "rows": 2
+    },
+    {
+      "analyzer": "ghidra_headless",
+      "status": "COMPLETE",
+      "rows": 1
+    },
+    {
+      "analyzer": "manifest_inventory",
+      "status": "COMPLETE",
+      "rows": 37838
+    },
+    {
+      "analyzer": "python_elf_index",
+      "status": "COMPLETE",
+      "rows": 707
+    },
+    {
+      "analyzer": "python_elf_index",
+      "status": "FAILED",
+      "rows": 2
+    }
+  ],
+  "denominators": {
+    "semantic_nodes": "rows materialized from supported entity tables in the current database",
+    "semantic_edges": "typed relations materialized from supported relation tables",
+    "cfg_edges": "explicit Ghidra cfg_edge records; no estimate for unanalyzed binaries",
+    "osal_protocol": "explicit OSAL fixture/message rows only; unobserved queues are UNKNOWN",
+    "jni": "explicit Java/JNI inventory rows only; missing DEX/registration evidence is UNKNOWN",
+    "sdk_callable": "UNKNOWN until independent runtime validation exists"
+  }
+}

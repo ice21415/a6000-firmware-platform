@@ -14,8 +14,12 @@ synthetic tests 和文件；不要要求或提交私人 firmware。
 - `fwplatform/migration_v3.py`：identity、evidence merge、partition/module repair。
 - `fwplatform/migration_v4.py`：Ghidra provenance 欄位。
 - `fwplatform/ghidra_importer.py`：JSONL validation、CFG/XREF import、failure checkpoint。
-- `fwplatform/linkage.py`：DT_NEEDED、unique import/export graph。
-- `fwplatform/cli.py`：inventory、分析、查詢和報告命令。
+- `fwplatform/linkage.py`：SONAME、DT_NEEDED、loader search path、unique import/export graph 和 unresolved edges。
+- `fwplatform/semantic_graph.py`：typed node/edge materialization、cross-module traversal、JSON/GraphML export。
+- `fwplatform/osal.py`、`fwplatform/jni.py`：evidence-bound OSAL/JNI fixture import。
+- `analyzers/dex_analyzer.py`：保守 DEX header/string/class descriptor inventory。
+- `fwplatform/cli.py`：inventory、分析、protocol/state/API/semantic graph 查詢和報告命令。
+- `database/migrations/005_semantic_graph.sql`、`fwplatform/migration_v5.py`：Phase 3 schema。
 - `fwplatform/phase2_reports.py`：從 SQLite 產生 audit files。
 
 ## Ghidra pipeline
@@ -23,9 +27,9 @@ synthetic tests 和文件；不要要求或提交私人 firmware。
 1. Wrapper 計算 input SHA-256、讀取 Ghidra version、清除舊輸出。
 2. `analyzeHeadless` 使用 Auto Analysis 載入單一 ELF。
 3. `AnalyzeBinary.java` 輸出 metadata、functions、ARM/Thumb instructions、basic blocks、
-   callsites、XREF 和 symbols；輸出 JSONL 不追加舊 run。
-4. Importer 驗證 hash、program identity 和 JSONL metadata，寫入 `analysis_run`、
-   `evidence` 和 CFG tables。
+   CFG edges、callsites、XREF 和 symbols；輸出 JSONL 有 complete marker，不追加舊 run。
+4. Importer 驗證 binary hash、program identity、record count 和 complete marker，使用
+   transaction/savepoint 寫入 `analysis_run`、`evidence`、CFG tables；失敗會 rollback。
 5. 同一輸入與 analyzer version 可增量重跑；錯誤會保留 FAILED checkpoint。
 
 ## 已驗證成果
@@ -35,9 +39,9 @@ call graph query 和 repeated import。公開版只保留 sanitized report，不
 
 ## 未解決問題
 
-完整 JNI/Java、OSAL queue、message namespace、indirect-call resolution、ioctl layout、
-runtime validation 和任何 device deployment 都是 UNKNOWN 或 PARTIAL。不要從 function
-name、同值 numeric ID 或 symbol index 推導完整功能。
+完整 JNI/Java registration、OSAL queue semantics、message namespace、indirect-call
+resolution、ioctl layout、runtime validation 和任何 device deployment 都是 UNKNOWN 或
+PARTIAL。不要從 function name、同值 numeric ID 或 symbol index 推導完整功能。
 
 ## CLI
 
@@ -47,14 +51,22 @@ fw coverage --json
 fw analyze elf --root <private-workspace> --limit 1
 fw analyze ghidra --root <private-workspace> --binary <elf> --jsonl <output>
 fw analyze linkage --root <private-workspace>
+fw analyze osal --fixture <osal.json>
+fw analyze jni --fixture <jni.json>
+fw analyze semantic
 fw callers <function>
 fw callees <function>
 fw callsite <address>
 fw xrefs <binary>:<address>
 fw trace <function> --depth 3
+fw trace <function> --cross-module --depth 3
+fw protocol queue <queue-id>
+fw state <state-machine>
+fw query api <name>
+fw graph export --format graphml --output <graphml>
 ```
 
 ## 下一步
 
-優先新增 synthetic fixtures 和 schema tests，接著處理 Java/JNI、OSAL、event/message
-namespace 的 evidence model；任何實機研究都必須另行保留、不得自動同步到公開目錄。
+優先新增真實但可合法公開的 JNI、OSAL、event/message fixture，擴充 CFG multi-ELF
+checkpoint 和 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。

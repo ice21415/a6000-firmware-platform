@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -7,40 +7,53 @@ from typing import Any
 from .db import Database, utc_now
 
 
-def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") -> dict[str, Any]:
-    """Emit a descriptive SDK index; it never labels an unverified function safe to call."""
-    interfaces = {
-        "lifecycle_callbacks": {
-            "status": "VERIFIED_STATIC",
-            "names": ["init", "exit", "suspend", "resume", "inactivate", "activate"],
-            "calling_convention": "unknown",
-            "side_effects": "module-specific; recover from evidence before invocation",
-        },
-        "imdb_entry": {
-            "status": "VERIFIED_STATIC", "layout": "raw uint32 words",
-            "known_fields": ["index", "address", "phase", "entry_type", "flags", "target_mask", "id", "kind", "library"],
-            "unknown_fields": ["callback_fields semantics", "word[4..10] ABI"],
-            "source": "<private-research>/boot-static-analysis/imdb-entries.json",
-        },
-        "model_camera_selector_dispatch": {
-            "status": "VERIFIED_STATIC", "selector_namespace": "camera_selector",
-            "state_machine": "ModelCamera.selector_dispatch",
-            "runtime_safety": "descriptive only; no direct call wrapper",
-            "source": "<private-research>/boot-static-analysis/camera-state-transitions.json",
-        },
-        "vtable_methods": {
-            "status": "VERIFIED_STATIC", "dispatch": "candidate virtual dispatch slots",
-            "runtime_safety": "descriptive only; imported slots require ABI validation",
-            "source": ["view-boot-vtables.json", "model-camera-vtables.json"],
-        },
-    }
-    data = {"format": "a6000-unofficial-descriptive-sdk", "version": "0.1.0",
-            "firmware": {"model": "Sony ILCE-6000", "version": firmware_version},
-            "generated_at": utc_now(), "interfaces": interfaces,
-            "database_counts": {table: int(db.connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
-                                for table in ("module", "function", "vtable", "event_id", "lifecycle_callback")},
-            "rule": "Only VERIFIED_* evidence may be promoted to a callable API; all others remain descriptive or mock-only."}
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    return data
+def _count(db: Database, sql: str, args: list[Any] | None = None) -> int:
+    return int(db.connection.execute(sql, args or []).fetchone()[0])
 
+
+def _row_to_interface(row: Any) -> dict[str, Any]:
+    return {"name": row["name"], "domain": row["domain"], "module_id": row["module_id"],
+        "binary_id": row["binary_id"], "function_id": row["function_id"], "address": row["address"],
+        "abi": row["abi"], "calling_convention": row["calling_convention"],
+        "parameter_layout": row["parameter_layout"], "return_semantics": row["return_semantics"],
+        "preconditions": row["preconditions"], "thread_context": row["thread_context"],
+        "state_requirements": row["state_requirements"], "side_effects": row["side_effects"],
+        "event_dependencies": row["event_dependencies"], "firmware_version": row["firmware_version"],
+        "evidence_references": row["evidence_references"], "verification_status": row["verification_status"],
+        "runtime_safety": row["runtime_safety"], "mock_status": row["mock_status"],
+        "source_evidence_id": row["source_evidence_id"], "analyzer_version": row["analyzer_version"]}
+
+
+def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") -> dict[str, Any]:
+    """Build descriptive SDK metadata from current evidence-backed rows.
+
+    A function symbol is indexed by default; it becomes an SDK interface only
+    when an explicit sdk_interface row exists. Runtime safety is independent
+    from static confidence and remains descriptive unless separately verified.
+    """
+    indexed = _count(db, "SELECT COUNT(*) FROM function")
+    cfg = _count(db, "SELECT COUNT(DISTINCT function_id) FROM basic_block WHERE function_id IS NOT NULL")
+    semantic = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME','MOCK_TESTED')")
+    runtime = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status='VERIFIED_RUNTIME'")
+    protocol = _count(db, "SELECT COUNT(*) FROM semantic_edge WHERE relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON') AND status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')")
+    interfaces = [_row_to_interface(row) for row in db.query("SELECT * FROM sdk_interface ORDER BY domain,name")]
+    callable_validated = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE runtime_safety='CALLABLE_VALIDATED' AND verification_status='VERIFIED_RUNTIME'")
+    data = {"format": "a6000-unofficial-descriptive-sdk", "version": "0.3.0-dev", "generated_at": utc_now(),
+        "firmware": {"model": "Sony ILCE-6000", "version": firmware_version},
+        "generated_from": "local evidence database (private snapshot is not shipped)",
+        "database_snapshot_included": False,
+        "coverage": {"indexed_functions": indexed, "cfg_recovered_functions": cfg,
+                      "semantically_understood_functions": semantic, "runtime_verified_interfaces": runtime,
+                      "verified_protocol_edges": protocol, "sdk_documented_interfaces": len(interfaces),
+                      "callable_validated_interfaces": callable_validated if callable_validated else None,
+                      "denominators": {"indexed_functions": "all function rows in current database",
+                                       "cfg_recovered_functions": "distinct function_id with basic_block rows",
+                                       "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
+                                       "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
+                                       "verified_protocol_edges": "semantic edges of protocol relation types with VERIFIED_* status",
+                                       "callable_validated_interfaces": "UNKNOWN until an independent runtime validation exists"}},
+        "interfaces": interfaces,
+        "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists."}
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    return data

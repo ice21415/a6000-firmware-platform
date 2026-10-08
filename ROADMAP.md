@@ -1,15 +1,25 @@
 # Roadmap
 
-## Phase 2（目前）
+## Phase 2（已完成基礎版）
 
 - 完成 evidence identity、v3 integrity migration 和 v4 Ghidra provenance。
 - 建立單一 ARM/Thumb ELF 的 Ghidra CFG/XREF pipeline。
 - 建立 ELF DT_NEEDED 與唯一 symbol resolution linkage。
 - 提供可追溯的 CLI 與 audit reports。
 
+## Phase 3（目前分支：semantic-analysis）
+
+- migration v5 Semantic Graph、CFG edge、OSAL message、JNI bridge 和 SDK evidence schema。
+- 修正同名 ELF DT_NEEDED 解析和 Ghidra caller 歸屬，歧義保留 unresolved edge。
+- 提供 OSAL/JNI fixture analyzer、DEX inventory、跨模組 trace、state/protocol/API 查詢和 GraphML export。
+- 以 synthetic fixtures 驗證完整性、namespace 分離、idempotence 和 rollback。
+
+尚未宣稱完整還原 Sony 的 OSAL/JNI 協定或 Camera runtime 行為；需要更多有來源的
+fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status。
+
 ## 下一階段
 
-- 將 Java/DEX/JNI、OSAL queue、message/event namespace 匯入同一 provenance model。
+- 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
 - 增加 indirect call candidate、jump table、vtable slot 和 unresolved edge 的合成 fixture。
 - 強化跨 binary address-space、PLT/GOT、relocation 和 ABI 解析。
 - 為描述性 SDK 建立 schema 驗證、mock protocol tests 和版本相容性檢查。

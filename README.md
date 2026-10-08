@@ -10,19 +10,23 @@ NAND/WBI/bootloader 備份、私人 SQLite、原始反組譯 JSONL 或 runtime d
 
 目前已完成的公開功能包括：
 
-- SQLite migration v1–v4，以及 evidence identity、duplicate archive 和完整性檢查。
+- SQLite migration v1–v5，以及 evidence identity、duplicate archive、semantic graph 和完整性檢查。
 - 遞迴 inventory 與 ELF/DEX/ODEX/APK/script/resource/unknown classifier。
 - Python ELF symbol/import/export/relocation index。
 - Ghidra Headless Auto Analysis JSONL export；支援 ARM/Thumb、function、basic block、
   instruction、callsite、XREF、symbol、prototype 和 address-space provenance。
 - Ghidra JSONL 增量匯入與 `analysis_run` checkpoint。
 - ELF `DT_NEEDED` 和唯一 export/import resolution linkage。
+- Phase 3 semantic graph migration v5，保存 Binary、Module、Function、CFG、OSAL、JNI、Event、State 和 SDK interface 關係。
+- SONAME/DT_NEEDED 搜尋路徑解析；同名 ELF、symbol 和缺失 caller 會保留 unresolved edge，不任意配對。
+- OSAL protocol fixture analyzer、JNI/Java fixture analyzer、DEX 字串/class inventory 和 GraphML/JSON graph export。
 - `callers`、`callees`、`callsite`、`xrefs`、`trace --depth` 等 CLI 查詢。
 - 描述性 SDK 和不寫入硬體的 modding-framework mock。
 
 尚未完成的部分包括 runtime 驗證、完整 JNI/Java registration、OSAL queue producer/
 consumer、ioctl 參數結構、完整 indirect-call resolution，以及任何可部署到相機的
-modding adapter。Ghidra 名稱不等於已確認的功能語意。
+modding adapter。Phase 3 analyzer 需要明確 fixture 或本機證據，不能由名稱或同值 ID
+自動補出關係。Ghidra 名稱不等於已確認的功能語意。
 
 ## Windows 安裝
 
@@ -79,6 +83,20 @@ python -m fwplatform.cli --db database/firmware.db callees _init --json
 python -m fwplatform.cli --db database/firmware.db callsite 0x11250 --json
 python -m fwplatform.cli --db database/firmware.db xrefs libSample.so:0x11250 --json
 python -m fwplatform.cli --db database/firmware.db trace open --depth 3 --json
+python -m fwplatform.cli --db database/firmware.db trace SyncAndroid_act --cross-module --json
+python -m fwplatform.cli --db database/firmware.db protocol queue 0x01554466 --json
+python -m fwplatform.cli --db database/firmware.db state ModelCamera --json
+python -m fwplatform.cli --db database/firmware.db query api Camera --json
+python -m fwplatform.cli --db database/firmware.db analyze semantic --json
+python -m fwplatform.cli --db database/firmware.db graph export --format graphml --output reports/semantic.graphml --json
+```
+
+OSAL 和 JNI 關係使用帶有明確 status、source 和 binary identity 的離線 fixture 匯入：
+
+```powershell
+python -m fwplatform.cli --db database/firmware.db analyze osal --fixture C:\path\osal.json --json
+python -m fwplatform.cli --db database/firmware.db analyze jni --fixture C:\path\jni.json --json
+python -m fwplatform.cli --db database/firmware.db reports --phase3 --json
 ```
 
 ## 測試和報告
