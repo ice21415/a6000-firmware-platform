@@ -1,8 +1,8 @@
 {
   "project": "a6000-firmware-platform",
-  "public_release": "staging",
+  "public_release": "v0.2.0-alpha",
   "firmware_scope": "Sony ILCE-6000 firmware 3.21 research metadata only",
-  "license_status": "PENDING_MAINTAINER_CONFIRMATION",
+  "license_status": "MIT_CONFIRMED_BY_MAINTAINER",
   "components": [
     {"name": "sqlite_migrations", "status": "IMPLEMENTED", "source": ["database/migrations", "fwplatform/migration_v3.py", "fwplatform/migration_v4.py"], "tests": ["test_migrations_and_status_seed", "test_evidence_identity_is_idempotent_and_status_is_explicit"], "limitations": ["public release excludes populated SQLite"]},
     {"name": "firmware_inventory", "status": "IMPLEMENTED", "source": ["fwplatform/inventory.py"], "tests": ["test_classifier_and_elf", "test_manifest_checkpoint_reuses_hash"], "limitations": ["private input is required for real inventory"]},
@@ -15,5 +15,5 @@
     {"name": "modding_framework", "status": "OFFLINE_MOCK_ONLY", "source": ["modding-framework/mock_runtime.py"], "tests": ["test_dependency_and_rollback"], "limitations": ["no NAND/WBI/bootloader/device writes"]},
     {"name": "runtime_validation", "status": "UNKNOWN", "source": ["docs/RESEARCH_STATUS.md"], "tests": [], "limitations": ["public CI has no camera connection"]}
   ],
-  "next_priority": ["synthetic CFG/linkage fixtures", "JNI/Java evidence model", "OSAL/message namespace model", "license confirmation", "clean clone verification"]
+  "next_priority": ["synthetic CFG/linkage fixtures", "JNI/Java evidence model", "OSAL/message namespace model", "broaden analyzer coverage"]
 }

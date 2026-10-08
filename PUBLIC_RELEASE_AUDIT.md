@@ -1,12 +1,12 @@
 ﻿# Public Release Audit
 
-狀態：**STAGING，尚未公開**  
+狀態：**已完成本機公開前稽核，等待 GitHub 建立與 push**  
 稽核日期：2026-10-08  
-預計 Repository：`https://github.com/ice21415/a6000-firmware-platform`（尚未建立）
+預計 Repository：`https://github.com/ice21415/a6000-firmware-platform`
 
 這份稽核針對 `a6000-firmware-platform-public` 這個獨立 allowlist 發布目錄。
 原始研究工作目錄、原廠韌體和私人資料沒有被複製到這個目錄。尚未建立 GitHub
-Repository、尚未 push、尚未建立 tag。
+Repository、尚未 push、尚未建立 tag；本文件在 MIT 確認後更新。
 
 ## 準備公開的檔案
 
@@ -53,16 +53,12 @@ Repository、尚未 push、尚未建立 tag。
 這些是本機文字與檔名掃描，不是第三方商業 DLP 或法律意見；大型 binary 和未提交的
 上層工作目錄仍須由維護者在發布前再次人工確認。
 
-## 授權檢查與阻擋事項
+## 授權檢查
 
-目前 `LICENSE` 是明確的 pending placeholder，沒有授予複製、修改或重新散布權利。
-專案自有程式碼的作者/權利鏈尚未由維護者在此稽核中獨立確認，因此 MIT、Apache-2.0
-或其他授權仍是 **UNKNOWN / PENDING_MAINTAINER_CONFIRMATION**。`requirements.txt` 只有
+維護者已確認使用 MIT；`LICENSE` 現在包含完整 MIT License 文字。專案自有程式碼的
+作者/權利鏈仍應由維護者保留相關紀錄。`requirements.txt` 只有
 `pyelftools>=0.31,<1`；本機安裝套件 metadata 為 pyelftools 0.33、`Public domain`，
 但這不取代完整第三方授權稽核。Ghidra 是本機前置工具，不隨 repository 散布。
-
-在授權選擇及公開檔案清單獲得維護者明確確認前，公開程序停止於 staging，不會建立
-遠端 repository 或 push。
 
 ## 測試與可重現性
 
@@ -103,7 +99,8 @@ records。這些結果是靜態研究證據，不代表 runtime 或可安全部�
 
 ## Git 工作樹與歷史
 
-發布目錄由 allowlist 重新初始化 Git，沒有承接原始研究目錄的 history。初始本機提交`r`n為 `fe6aa54 Prepare public release staging`；目前最後本機提交包含本稽核檔與 CI/.gitignore hardening。`r`n稽核後 `git status --short --branch` 顯示 clean `main` working tree，且沒有 remote。
+發布目錄由 allowlist 重新初始化 Git，沒有承接原始研究目錄的 history。初始本機提交
+為 `fe6aa54 Prepare public release staging`；目前 working tree clean，且沒有 remote。
 
 歷史檢查只涵蓋這個新 staging history；上層私人工作目錄的 history 不會被發布。
 
@@ -112,14 +109,11 @@ records。這些結果是靜態研究證據，不代表 runtime 或可安全部�
 
 ## 尚待人工確認的風險
 
-1. 選定並填入正式 `LICENSE`（MIT、Apache-2.0 或其他相容授權）。
-2. 確認所有自有程式碼的作者與第三方授權鏈，以及是否允許公開清理後的研究摘要/SDK catalog。
-3. 最終人工複核 `sdk/sdk-index.json`、`reports/*.md` 是否沒有不應公開的研究細節。
-4. 確認 GitHub owner、repository visibility、tag 版本與發布說明。
-5. GitHub Actions、Ghidra 版本與外部依賴的供應鏈政策仍需由維護者決定。
+1. 最終人工複核 `sdk/sdk-index.json`、`reports/*.md` 是否沒有不應公開的研究細節。
+2. 確認 GitHub owner、repository visibility、tag 版本與發布說明。
+3. GitHub Actions、Ghidra 版本與外部依賴的供應鏈政策仍需由維護者決定。
 
-在上述項目獲得明確確認前，本專案不宣稱已完成公開發布，也不宣稱任何未經實機
-驗證的韌體操作可安全使用。
+本稽核不宣稱任何未經實機驗證的韌體操作可安全使用；GitHub 遠端仍待建立與推送。
 
 
 
