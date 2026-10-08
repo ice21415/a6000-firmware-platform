@@ -112,8 +112,13 @@ def import_osal_fixture(db: Database, fixture: Path) -> dict[str, Any]:
         counts["messages"] += 1
         for role, function_id in (("producer", producer_id), ("consumer", consumer_id), ("callback", callback_id)):
             ref = item.get(role)
+            # An omitted role is absence of a relationship, not a NULL
+            # endpoint.  Materialising it as a flow made every async message
+            # look as if it had three endpoints and polluted the graph.
+            if not ref:
+                continue
             module_id = _module(db, ref)
-            if function_id is None and ref:
+            if function_id is None and module_id is None:
                 counts["unresolved"] += 1
                 _unresolved(db, f"{identity}:{role}", f"osal_{role}", f"endpoint {role} is not uniquely identified", evidence_id)
                 continue

@@ -1,18 +1,19 @@
 {
   "project": "a6000-firmware-platform",
   "public_release": "v0.2.0-alpha",
-  "development_version": "0.3.0-dev",
+  "development_version": "0.3.1-dev",
   "firmware_scope": "Sony ILCE-6000 firmware 3.21 research metadata only",
   "license_status": "MIT_CONFIRMED_BY_MAINTAINER",
   "components": [
-    {"name": "sqlite_migrations", "status": "IMPLEMENTED", "source": ["database/migrations", "fwplatform/migration_v3.py", "fwplatform/migration_v4.py"], "tests": ["test_migrations_and_status_seed", "test_evidence_identity_is_idempotent_and_status_is_explicit"], "limitations": ["public release excludes populated SQLite"]},
+    {"name": "sqlite_migrations", "status": "IMPLEMENTED", "source": ["database/migrations", "fwplatform/migration_v3.py", "fwplatform/migration_v4.py", "fwplatform/migration_v6.py"], "tests": ["test_migrations_and_status_seed", "test_evidence_identity_is_idempotent_and_status_is_explicit"], "limitations": ["public release excludes populated SQLite"]},
     {"name": "firmware_inventory", "status": "IMPLEMENTED", "source": ["fwplatform/inventory.py"], "tests": ["test_classifier_and_elf", "test_manifest_checkpoint_reuses_hash"], "limitations": ["private input is required for real inventory"]},
     {"name": "python_elf_index", "status": "IMPLEMENTED", "source": ["analyzers/elf_analyzer.py", "analyzers/runner.py"], "tests": [], "limitations": ["symbol/linkage index is not semantic reverse engineering"]},
     {"name": "ghidra_headless_export", "status": "IMPLEMENTED_SINGLE_ELF", "source": ["ghidra-scripts/AnalyzeBinary.java", "tools/run-ghidra-headless.ps1"], "tests": ["local ARM/Thumb smoke run"], "limitations": ["Ghidra and a legally obtained ELF are local prerequisites", "not a CI requirement"]},
     {"name": "ghidra_jsonl_import", "status": "IMPLEMENTED", "source": ["fwplatform/ghidra_importer.py"], "tests": ["test_ghidra_input_failure_is_recorded"], "limitations": ["semantic names remain unconfirmed"]},
     {"name": "cross_binary_linkage", "status": "PARTIAL", "source": ["fwplatform/linkage.py"], "tests": [], "blockers": ["ambiguous symbols remain unresolved", "two malformed ELF inputs" ]},
     {"name": "call_graph_cli", "status": "IMPLEMENTED_FOR_IMPORTED_CFG", "source": ["fwplatform/cli.py"], "tests": ["local callers/callees/callsite/xrefs/trace smoke"], "limitations": ["coverage depends on analyzed binaries"]},
-    {"name": "semantic_graph", "status": "IMPLEMENTED_SYNTHETIC", "source": ["database/migrations/005_semantic_graph.sql", "fwplatform/migration_v5.py", "fwplatform/semantic_graph.py"], "tests": ["test_event_namespaces_and_graph_depth_remain_distinct", "test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["populated private database is not shipped", "runtime semantics remain unknown"]},
+    {"name": "semantic_graph", "status": "IMPLEMENTED_WITH_PROVENANCE_GAPS", "source": ["database/migrations/005_semantic_graph.sql", "database/migrations/006_ranges_evidence.sql", "fwplatform/semantic_graph.py"], "tests": ["test_event_namespaces_and_graph_depth_remain_distinct", "test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["populated private database is not shipped", "runtime semantics remain unknown", "provenance validator reports missing address space/unresolved targets"]},
+    {"name": "real_evidence_ingestion", "status": "IMPLEMENTED_PRIVATE_VALIDATION", "source": ["fwplatform/evidence_ingestion.py", "fwplatform/phase3_1_reports.py"], "tests": ["private DB copy migration/quick_check/foreign_key_check", "targeted adapter idempotence"], "limitations": ["allowlisted research files are private and excluded from release", "receiver and runtime completion remain unresolved"]},
     {"name": "osal_protocol_analyzer", "status": "IMPLEMENTED_FIXTURE_ONLY", "source": ["fwplatform/osal.py"], "tests": ["test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["requires explicit producer/consumer/payload evidence", "no runtime queue capture"]},
     {"name": "jni_java_analyzer", "status": "IMPLEMENTED_FIXTURE_ONLY", "source": ["fwplatform/jni.py", "analyzers/dex_analyzer.py"], "tests": ["test_osal_fixture_and_jni_fixture_are_evidence_bound"], "limitations": ["RegisterNatives/body recovery is incomplete", "missing methods remain UNKNOWN"]},
     {"name": "phase3_cli", "status": "IMPLEMENTED", "source": ["fwplatform/cli.py"], "tests": ["test_cli_query_empty_database"], "limitations": ["query coverage depends on evidence imported into local database"]},
@@ -20,5 +21,5 @@
     {"name": "modding_framework", "status": "OFFLINE_MOCK_ONLY", "source": ["modding-framework/mock_runtime.py"], "tests": ["test_dependency_and_rollback"], "limitations": ["no NAND/WBI/bootloader/device writes"]},
     {"name": "runtime_validation", "status": "UNKNOWN", "source": ["docs/RESEARCH_STATUS.md"], "tests": [], "limitations": ["public CI has no camera connection"]}
   ],
-  "next_priority": ["real evidence-backed OSAL/JNI fixtures", "multi-ELF Ghidra checkpoints", "event/state semantic relations", "runtime validation model"]
+  "next_priority": ["resolve native receiver function and message completion", "recover Java/RegisterNatives body relationships", "controlled multi-ELF Ghidra checkpoints", "runtime validation model"]
 }

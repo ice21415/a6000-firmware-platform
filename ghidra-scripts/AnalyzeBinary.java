@@ -1,6 +1,8 @@
 /* Stable, evidence-oriented Ghidra export for one imported program. */
 import ghidra.app.script.GhidraScript;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressRange;
+import ghidra.program.model.address.AddressRangeIterator;
 import ghidra.program.model.block.BasicBlockModel;
 import ghidra.program.model.block.CodeBlock;
 import ghidra.program.model.block.CodeBlockIterator;
@@ -103,6 +105,14 @@ public class AnalyzeBinary extends GhidraScript {
         emit("function", String.format("\"entry_vma\":%s,\"name\":%s,\"prototype\":%s,\"body_bytes\":%d,\"generated\":%s,\"confidence\":\"VERIFIED_STATIC\"",
             json(address(f.getEntryPoint())), json(f.getName()), json(prototype), f.getBody().getNumAddresses(),
             f.getSymbol().isDynamic() ? "true" : "false"));
+        AddressRangeIterator ranges = f.getBody().getAddressRanges();
+        while (ranges.hasNext()) {
+            AddressRange range = ranges.next();
+            emit("function_body_range", String.format("\"function_entry\":%s,\"start_vma\":%s,\"end_vma\":%s,\"address_space\":%s,\"status\":\"VERIFIED_STATIC\"",
+                json(address(f.getEntryPoint())), json(address(range.getMinAddress())),
+                json(address(range.getMaxAddress())),
+                json(currentProgram.getAddressFactory().getDefaultAddressSpace().getName())));
+        }
     }
 
     @Override
@@ -162,9 +172,10 @@ public class AnalyzeBinary extends GhidraScript {
                     CodeBlockReference destination = destinations.next();
                     CodeBlock targetBlock = destination.getDestinationBlock();
                     if (targetBlock == null) continue;
-                    emit("cfg_edge", String.format("\"function_entry\":%s,\"from_address\":%s,\"to_address\":%s,\"edge_kind\":%s,\"address_space\":%s,\"confidence\":\"VERIFIED_STATIC\"",
+                    emit("cfg_edge", String.format("\"function_entry\":%s,\"from_address\":%s,\"to_address\":%s,\"source_instruction\":%s,\"edge_kind\":%s,\"address_space\":%s,\"confidence\":\"VERIFIED_STATIC\"",
                         json(owner == null ? null : address(owner.getEntryPoint())),
                         json(address(block.getFirstStartAddress())), json(address(targetBlock.getFirstStartAddress())),
+                        json(address(destination.getSourceAddress())),
                         json(destination.getFlowType() == null ? "control_flow" : destination.getFlowType().toString()),
                         json(currentProgram.getAddressFactory().getDefaultAddressSpace().getName())));
                 }

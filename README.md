@@ -10,16 +10,17 @@ NAND/WBI/bootloader 備份、私人 SQLite、原始反組譯 JSONL 或 runtime d
 
 目前已完成的公開功能包括：
 
-- SQLite migration v1–v5，以及 evidence identity、duplicate archive、semantic graph 和完整性檢查。
+- SQLite migration v1–v6，以及 evidence identity、duplicate archive、semantic graph 和完整性檢查。
 - 遞迴 inventory 與 ELF/DEX/ODEX/APK/script/resource/unknown classifier。
 - Python ELF symbol/import/export/relocation index。
 - Ghidra Headless Auto Analysis JSONL export；支援 ARM/Thumb、function、basic block、
   instruction、callsite、XREF、symbol、prototype 和 address-space provenance。
 - Ghidra JSONL 增量匯入與 `analysis_run` checkpoint。
 - ELF `DT_NEEDED` 和唯一 export/import resolution linkage。
-- Phase 3 semantic graph migration v5，保存 Binary、Module、Function、CFG、OSAL、JNI、Event、State 和 SDK interface 關係。
+- Phase 3/3.1 semantic graph migrations v5–v6，保存 Binary、Module、Function、CFG、OSAL、JNI、Event、State、body ranges 和 SDK interface 關係。
 - SONAME/DT_NEEDED 搜尋路徑解析；同名 ELF、symbol 和缺失 caller 會保留 unresolved edge，不任意配對。
 - OSAL protocol fixture analyzer、JNI/Java fixture analyzer、DEX 字串/class inventory 和 GraphML/JSON graph export。
+- 私有研究資料的 allowlisted evidence adapter：可將 SyncAndroid OSAL/JNI 線索與 ModelCamera selector transitions 匯入副本資料庫；每筆資料保留來源 SHA-256、locator、原始 confidence 和 unresolved 缺口。
 - `callers`、`callees`、`callsite`、`xrefs`、`trace --depth` 等 CLI 查詢。
 - 描述性 SDK 和不寫入硬體的 modding-framework mock。
 
@@ -124,6 +125,15 @@ raw Ghidra export。
 不要在 issue、pull request、CI artifact 或 log 上傳 firmware binary、私人備份、序號、
 token、SSH key 或完整反編譯輸出。任何未經實機驗證的介面只能作為描述性研究資料，
 不可視為安全可呼叫 API。
+
+私有證據匯入（不會將檔案複製到 repository）可使用：
+
+```powershell
+python -m fwplatform.cli --db C:\path\private-copy.db analyze evidence --root C:\path\private-research --profile targeted --json
+python -m fwplatform.cli --db C:\path\private-copy.db protocol queue 0x01554466 --json
+python -m fwplatform.cli --db C:\path\private-copy.db evidence SyncAndroid --json
+python -m fwplatform.cli --db C:\path\private-copy.db reports --phase3-1 --json
+```
 
 ## 參與開發
 

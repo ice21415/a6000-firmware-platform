@@ -71,6 +71,9 @@ class Database:
                     elif version == 5:
                         from .migration_v5 import apply_v5
                         apply_v5(self.connection)
+                    elif version == 6:
+                        from .migration_v6 import apply_v6
+                        apply_v6(self.connection)
                     self.connection.execute(
                         "INSERT OR REPLACE INTO schema_migration(version, applied_at, tool_version) VALUES(?,?,?)",
                         (version, utc_now(), __version__),

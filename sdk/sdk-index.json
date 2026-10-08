@@ -1,17 +1,19 @@
 {
   "format": "a6000-unofficial-descriptive-sdk",
-  "version": "0.3.0-dev",
-  "generated_at": "2026-10-08T06:59:05.716046+00:00",
+  "version": "0.3.1-dev",
+  "generated_at": "2026-10-08T07:31:16.295806+00:00",
   "firmware": {
     "model": "Sony ILCE-6000",
     "version": "3.21"
   },
+  "generated_from": "local evidence database (private snapshot is not shipped)",
+  "database_snapshot_included": false,
   "coverage": {
     "indexed_functions": 135313,
     "cfg_recovered_functions": 98,
     "semantically_understood_functions": 0,
     "runtime_verified_interfaces": 0,
-    "verified_protocol_edges": 2084,
+    "verified_protocol_edges": 2087,
     "sdk_documented_interfaces": 0,
     "callable_validated_interfaces": null,
     "denominators": {
@@ -19,12 +21,10 @@
       "cfg_recovered_functions": "distinct function_id with basic_block rows",
       "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
       "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
-      "verified_protocol_edges": "semantic edges of protocol relation types with VERIFIED_* status",
+      "verified_protocol_edges": "semantic protocol edges whose edge and primary evidence statuses are VERIFIED_*",
       "callable_validated_interfaces": "UNKNOWN until an independent runtime validation exists"
     }
   },
   "interfaces": [],
-  "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists.",
-  "generated_from": "local evidence database (private snapshot is not shipped)",
-  "database_snapshot_included": false
+  "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists."
 }

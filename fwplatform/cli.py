@@ -14,7 +14,7 @@ from .importer import import_existing
 from .inventory import build_manifest, export_manifest
 from .report import architecture_overview, coverage, unknowns, write_reports
 from .sdk import build_sdk_index
-from .semantic_graph import export_graph, sync_semantic_graph
+from .semantic_graph import export_graph, sync_semantic_graph, validate_graph_provenance
 
 
 def _json_or_text(payload: Any, as_json: bool) -> None:
@@ -125,7 +125,8 @@ def _trace(db: Database, term: str, depth: int = 3, cross_module: bool = False) 
 
 def _protocol_queue(db: Database, value: str) -> list[dict[str, Any]]:
     rows = db.query("""SELECT q.id AS queue_id,q.namespace,q.queue_value,q.name AS queue_name,q.semantics AS queue_semantics,q.status AS queue_status,
-        m.id AS message_id,m.direction,m.semantics,m.payload_layout,m.timeout_ms,m.status,m.source_evidence_id,
+        m.id AS message_id,m.direction,m.semantics,m.payload_layout,m.timeout_ms,m.status,m.source_evidence_id,q.address_space,
+        e.source_path AS evidence_source,e.source_sha256,e.status AS evidence_status,
         mi.namespace AS command_namespace,mi.value AS command_value,mi.name AS command_name,
         pf.name AS producer,cf.name AS consumer,cb.name AS callback,
         (SELECT GROUP_CONCAT(pm.name) FROM message_flow fp LEFT JOIN module pm ON pm.id=fp.module_id WHERE fp.osal_message_id=m.id AND fp.role='producer') AS producer_modules,
@@ -133,8 +134,16 @@ def _protocol_queue(db: Database, value: str) -> list[dict[str, Any]]:
         FROM message_queue q LEFT JOIN osal_message m ON m.queue_id=q.id
         LEFT JOIN message_id mi ON mi.id=m.message_id LEFT JOIN function pf ON pf.id=m.producer_function_id
         LEFT JOIN function cf ON cf.id=m.consumer_function_id LEFT JOIN function cb ON cb.id=m.callback_function_id
+        LEFT JOIN evidence e ON e.id=m.source_evidence_id
         WHERE q.queue_value LIKE ? OR q.address LIKE ? ORDER BY m.id""", [f"%{value}%", f"%{value}%"])
-    return [dict(row) for row in rows]
+    output = []
+    for row in rows:
+        item = dict(row); missing = []
+        if row["consumer"] is None and row["consumer_modules"] is None: missing.append("consumer")
+        if row["callback"] is None and row["consumer_modules"] is None: missing.append("callback")
+        if row["source_evidence_id"] is None: missing.append("evidence")
+        item["missing_dependencies"] = missing; output.append(item)
+    return output
 
 
 def _state_query(db: Database, term: str) -> dict[str, Any]:
@@ -152,6 +161,30 @@ def _api_query(db: Database, term: str) -> list[dict[str, Any]]:
     return [dict(row) for row in db.query("""SELECT s.*,m.name AS module,b.path AS binary,f.name AS function_name,f.address AS function_address
         FROM sdk_interface s LEFT JOIN module m ON m.id=s.module_id LEFT JOIN binary b ON b.id=s.binary_id LEFT JOIN function f ON f.id=s.function_id
         WHERE s.name LIKE ? OR s.domain LIKE ? OR m.name LIKE ? ORDER BY s.domain,s.name""", [f"%{term}%", f"%{term}%", f"%{term}%"])]
+
+
+def _evidence_query(db: Database, term: str) -> list[dict[str, Any]]:
+    rows = db.query("""SELECT e.id,e.identity_key,e.relation_type,e.status,e.provenance_kind,e.address_space,
+        e.source_address,e.target_address,e.evidence_id,e.analyzer_version,
+        ev.source_path,ev.source_sha256,ev.status AS evidence_status,
+        s.label AS source,t.label AS target
+        FROM semantic_edge e LEFT JOIN evidence ev ON ev.id=e.evidence_id
+        LEFT JOIN semantic_node s ON s.id=e.source_node_id LEFT JOIN semantic_node t ON t.id=e.target_node_id
+        WHERE CAST(e.id AS TEXT)=? OR e.identity_key LIKE ? OR s.label LIKE ? OR t.label LIKE ? OR e.relation_type LIKE ?
+        ORDER BY e.id LIMIT 500""", [term, f"%{term}%", f"%{term}%", f"%{term}%", f"%{term}%"])
+    output = []
+    for row in rows:
+        item = dict(row); item["missing_dependencies"] = []
+        if row["evidence_id"] is None: item["missing_dependencies"].append("evidence")
+        if row["target"] is None: item["missing_dependencies"].append("target")
+        if row["source_address"] is not None and not row["address_space"]: item["missing_dependencies"].append("address_space")
+        output.append(item)
+    return output
+
+
+def _unresolved_query(db: Database) -> list[dict[str, Any]]:
+    return [dict(row) for row in db.query("""SELECT u.*,e.source_path,e.source_sha256 FROM unresolved_edge u
+        LEFT JOIN evidence e ON e.id=u.source_evidence_id ORDER BY u.id""")]
 
 
 def _callers(db: Database, term: str) -> list[dict[str, Any]]:
@@ -229,11 +262,15 @@ def build_parser() -> argparse.ArgumentParser:
     protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
     state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
     domain = commands.add_parser("domain"); domain.add_argument("name"); domain.add_argument("--json", action="store_true")
-    for name in ("coverage", "unknowns", "architecture"):
+    coverage_cmd = commands.add_parser("coverage"); coverage_cmd.add_argument("--domain"); coverage_cmd.add_argument("--json", action="store_true")
+    for name in ("unknowns", "architecture"):
         command = commands.add_parser(name); command.add_argument("--json", action="store_true")
-    reports = commands.add_parser("reports"); reports.add_argument("--output-dir", type=Path, default=Path("reports")); reports.add_argument("--phase2", action="store_true"); reports.add_argument("--phase3", action="store_true"); reports.add_argument("--json", action="store_true")
+    evidence = commands.add_parser("evidence"); evidence.add_argument("term"); evidence.add_argument("--json", action="store_true")
+    unresolved = commands.add_parser("unresolved"); unresolved.add_argument("--json", action="store_true")
+    reports = commands.add_parser("reports"); reports.add_argument("--output-dir", type=Path, default=Path("reports")); reports.add_argument("--phase2", action="store_true"); reports.add_argument("--phase3", action="store_true"); reports.add_argument("--phase3-1", action="store_true"); reports.add_argument("--json", action="store_true")
     sdk = commands.add_parser("sdk"); sdk_sub = sdk.add_subparsers(dest="sdk_command", required=True)
     sdk_build = sdk_sub.add_parser("build"); sdk_build.add_argument("--output", type=Path, default=Path("sdk/sdk-index.json")); sdk_build.add_argument("--json", action="store_true")
+    sdk_cov = sdk_sub.add_parser("coverage"); sdk_cov.add_argument("--json", action="store_true")
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
@@ -241,6 +278,7 @@ def build_parser() -> argparse.ArgumentParser:
     osal = analyze_sub.add_parser("osal"); osal.add_argument("--fixture", type=Path, required=True); osal.add_argument("--json", action="store_true")
     jni = analyze_sub.add_parser("jni"); jni.add_argument("--fixture", type=Path, required=True); jni.add_argument("--json", action="store_true")
     semantic = analyze_sub.add_parser("semantic"); semantic.add_argument("--json", action="store_true")
+    evidence_ingest = analyze_sub.add_parser("evidence"); evidence_ingest.add_argument("--root", type=Path, required=True); evidence_ingest.add_argument("--profile", default="targeted"); evidence_ingest.add_argument("--json", action="store_true")
     graph = commands.add_parser("graph"); graph_sub = graph.add_subparsers(dest="graph_command", required=True)
     graph_export = graph_sub.add_parser("export"); graph_export.add_argument("--format", choices=["json", "graphml"], default="json"); graph_export.add_argument("--output", type=Path, required=True); graph_export.add_argument("--json", action="store_true")
     return parser
@@ -279,11 +317,15 @@ def main(argv: list[str] | None = None) -> int:
             overview = architecture_overview(db); rows = overview["domains"].get(args.name, [])
             _json_or_text(rows, args.json)
         elif args.command == "coverage":
-            _json_or_text(coverage(db), args.json)
+            _json_or_text(coverage(db, args.domain), args.json)
         elif args.command == "unknowns":
             _json_or_text(unknowns(db), args.json)
         elif args.command == "architecture":
             _json_or_text(architecture_overview(db), args.json)
+        elif args.command == "evidence":
+            _json_or_text(_evidence_query(db, args.term), args.json)
+        elif args.command == "unresolved":
+            _json_or_text(_unresolved_query(db), args.json)
         elif args.command == "reports":
             write_reports(db, args.output_dir)
             result = {"output_dir": str(args.output_dir)}
@@ -293,9 +335,15 @@ def main(argv: list[str] | None = None) -> int:
             if args.phase3:
                 from .phase3_reports import write_phase3_reports
                 result.update(write_phase3_reports(db, args.output_dir))
+            if args.phase3_1:
+                from .phase3_1_reports import write_phase3_1_reports
+                result.update(write_phase3_1_reports(db, args.output_dir))
             _json_or_text(result, args.json)
         elif args.command == "sdk" and args.sdk_command == "build":
             _json_or_text(build_sdk_index(db, args.output), args.json)
+        elif args.command == "sdk" and args.sdk_command == "coverage":
+            rows = db.query("SELECT verification_status,COUNT(*) AS count FROM sdk_interface GROUP BY verification_status ORDER BY verification_status")
+            _json_or_text({"interfaces": [dict(row) for row in rows]}, args.json)
         elif args.command == "analyze" and args.analyze_command == "elf":
             from analyzers.runner import run_elf_batch
             _json_or_text(run_elf_batch(db, args.root, args.limit), args.json)
@@ -313,6 +361,9 @@ def main(argv: list[str] | None = None) -> int:
             _json_or_text(import_jni_fixture(db, args.fixture), args.json)
         elif args.command == "analyze" and args.analyze_command == "semantic":
             _json_or_text(sync_semantic_graph(db), args.json)
+        elif args.command == "analyze" and args.analyze_command == "evidence":
+            from .evidence_ingestion import ingest_research_evidence
+            _json_or_text(ingest_research_evidence(db, args.root, args.profile), args.json)
         elif args.command == "graph" and args.graph_command == "export":
             sync_semantic_graph(db)
             _json_or_text(export_graph(db, args.output, args.format), args.json)

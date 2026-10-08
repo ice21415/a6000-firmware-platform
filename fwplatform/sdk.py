@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from . import __version__
 from .db import Database, utc_now
 
 
@@ -35,10 +36,12 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
     cfg = _count(db, "SELECT COUNT(DISTINCT function_id) FROM basic_block WHERE function_id IS NOT NULL")
     semantic = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME','MOCK_TESTED')")
     runtime = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status='VERIFIED_RUNTIME'")
-    protocol = _count(db, "SELECT COUNT(*) FROM semantic_edge WHERE relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON') AND status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')")
+    protocol = _count(db, """SELECT COUNT(*) FROM semantic_edge e JOIN evidence v ON v.id=e.evidence_id
+        WHERE e.relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON')
+        AND e.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME') AND v.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')""")
     interfaces = [_row_to_interface(row) for row in db.query("SELECT * FROM sdk_interface ORDER BY domain,name")]
     callable_validated = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE runtime_safety='CALLABLE_VALIDATED' AND verification_status='VERIFIED_RUNTIME'")
-    data = {"format": "a6000-unofficial-descriptive-sdk", "version": "0.3.0-dev", "generated_at": utc_now(),
+    data = {"format": "a6000-unofficial-descriptive-sdk", "version": __version__, "generated_at": utc_now(),
         "firmware": {"model": "Sony ILCE-6000", "version": firmware_version},
         "generated_from": "local evidence database (private snapshot is not shipped)",
         "database_snapshot_included": False,
@@ -50,7 +53,7 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
                                        "cfg_recovered_functions": "distinct function_id with basic_block rows",
                                        "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
                                        "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
-                                       "verified_protocol_edges": "semantic edges of protocol relation types with VERIFIED_* status",
+                                       "verified_protocol_edges": "semantic protocol edges whose edge and primary evidence statuses are VERIFIED_*",
                                        "callable_validated_interfaces": "UNKNOWN until an independent runtime validation exists"}},
         "interfaces": interfaces,
         "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists."}

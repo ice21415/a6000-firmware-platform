@@ -4,6 +4,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,14 +14,15 @@ from fwplatform.ghidra_importer import import_ghidra_jsonl
 from fwplatform.jni import import_jni_fixture
 from fwplatform.linkage import ElfMetadata, analyze_linkage
 from fwplatform.osal import import_osal_fixture
-from fwplatform.semantic_graph import export_graph, sync_semantic_graph
+from fwplatform.evidence_ingestion import ingest_research_evidence
+from fwplatform.semantic_graph import export_graph, sync_semantic_graph, validate_graph_provenance
 from fwplatform.sdk import build_sdk_index
 
 
 class Phase3Tests(unittest.TestCase):
     def _db(self, root: Path) -> Database:
         db = Database(root / "test.db")
-        self.assertEqual(db.migrate(), 5)
+        self.assertEqual(db.migrate(), 6)
         return db
 
     def test_ghidra_explicit_caller_and_cfg_are_idempotent(self) -> None:
@@ -31,8 +33,12 @@ class Phase3Tests(unittest.TestCase):
                 {"kind": "metadata", "run_id": "run-1", "binary_sha256": digest, "analyzer_version": "12.1.3", "program_identity": {"image_base": "0x10000", "address_space": "ram"}},
                 {"kind": "function", "entry_vma": "0x100", "name": "caller", "prototype": "void caller(void)", "body_bytes": 32},
                 {"kind": "function", "entry_vma": "0x300", "name": "callee", "prototype": "void callee(void)", "body_bytes": 16},
+                {"kind": "function_body_range", "function_entry": "0x100", "start_vma": "0x100", "end_vma": "0x110", "address_space": "ram"},
+                {"kind": "function_body_range", "function_entry": "0x100", "start_vma": "0x180", "end_vma": "0x190", "address_space": "ram"},
+                {"kind": "function_body_range", "function_entry": "0x300", "start_vma": "0x300", "end_vma": "0x310", "address_space": "ram"},
                 {"kind": "instruction", "function_entry": "0x100", "address": "0x102", "mnemonic": "bl", "mode": "Thumb"},
                 {"kind": "callsite", "function_entry": "0x100", "from_address": "0x102", "to_address": "0x300", "callee_entry": "0x300", "relation_kind": "direct_call", "status": "VERIFIED_STATIC"},
+                {"kind": "callsite", "function_entry": "0x100", "from_address": "0x185", "to_address": "0x300", "callee_entry": "0x300", "relation_kind": "direct_call", "status": "VERIFIED_STATIC"},
                 {"kind": "callsite", "from_address": "0x250", "to_address": "0x300", "callee_entry": "0x300", "relation_kind": "indirect_call", "status": "CANDIDATE"},
                 {"kind": "basic_block", "function_entry": "0x100", "start_vma": "0x100", "end_vma": "0x110"},
                 {"kind": "basic_block", "function_entry": "0x100", "start_vma": "0x110", "end_vma": "0x120"},
@@ -45,10 +51,12 @@ class Phase3Tests(unittest.TestCase):
             db.commit()
             first = import_ghidra_jsonl(db, root, binary, jsonl)
             second = import_ghidra_jsonl(db, root, binary, jsonl)
-            self.assertEqual(first["callsites"], 2); self.assertEqual(second["callsites"], 2)
+            self.assertEqual(first["callsites"], 3); self.assertEqual(second["callsites"], 3)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM cfg_edge").fetchone()[0], 1)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM function_body_range").fetchone()[0], 3)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM callsite WHERE caller_id IS NULL").fetchone()[0], 1)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM unresolved_edge WHERE relation='callsite_caller'").fetchone()[0], 1)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM callsite WHERE caller_id IS NOT NULL AND address='0x185'").fetchone()[0], 1)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM analysis_run WHERE status='COMPLETE'").fetchone()[0], 1)
             db.close()
 
@@ -93,10 +101,14 @@ class Phase3Tests(unittest.TestCase):
             osal = root / "osal.json"; osal.write_text(json.dumps({"schema": 1, "status": "VERIFIED_STATIC", "queue": {"namespace": "osal", "value": "0x01554466", "name": "SyncAndroid", "module": {"name": binary.name, "binary_sha256": digest}}, "messages": [{"command": {"namespace": "syncandroid", "value": "0x72", "name": "Resume", "status": "VERIFIED_STATIC"}, "producer": {"binary_sha256": digest, "address": "0x100", "name": "SyncAndroid_act"}, "direction": "async", "semantics": "resume", "status": "VERIFIED_STATIC"}]}), encoding="utf-8")
             first = import_osal_fixture(db, osal); second = import_osal_fixture(db, osal)
             self.assertEqual(first["messages"], 1); self.assertEqual(second["messages"], 1); self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM osal_message").fetchone()[0], 1)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM message_flow WHERE function_id IS NULL AND module_id IS NULL").fetchone()[0], 0)
             jni = root / "jni.json"; jni.write_text(json.dumps({"status": "VERIFIED_STATIC", "java_methods": [{"class_name": "com.android.server.SyncAndroidService", "method_name": "Resume", "signature": "(I)V", "dex_path": "classes.dex", "status": "VERIFIED_STATIC"}], "jni_methods": [{"class_name": "com.android.server.SyncAndroidService", "method_name": "Resume", "signature": "(I)V", "dex_path": "classes.dex", "native": {"binary_sha256": digest, "address": "0x100", "name": "SyncAndroid_act"}, "status": "VERIFIED_STATIC"}]}), encoding="utf-8")
             result = import_jni_fixture(db, jni); self.assertEqual(result["resolved_native"], 1); self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM jni_bridge").fetchone()[0], 1)
             graph = sync_semantic_graph(db); self.assertGreaterEqual(graph["nodes"], 5); self.assertGreaterEqual(graph["edges"], 1)
             out = root / "graph.graphml"; exported = export_graph(db, out, "graphml"); self.assertGreater(exported["nodes"], 0); self.assertTrue(out.read_text(encoding="utf-8").startswith("<?xml"))
+            xml = ET.parse(out); ns = {"g": "http://graphml.graphdrawing.org/xmlns"}
+            self.assertGreater(len(xml.findall("g:key", ns)), 0); self.assertGreater(len(xml.findall(".//g:data", ns)), 0)
+            self.assertEqual(validate_graph_provenance(db)["counts"]["missing_evidence"], 0)
             sdk = build_sdk_index(db, root / "sdk.json"); self.assertIsNone(sdk["coverage"]["callable_validated_interfaces"]); self.assertEqual(sdk["coverage"]["sdk_documented_interfaces"], 0)
             db.close()
 
@@ -122,6 +134,19 @@ class Phase3Tests(unittest.TestCase):
             relations = {row[0] for row in db.connection.execute("SELECT relation FROM unresolved_edge")}
             self.assertIn("JNI_BRIDGE", relations)
             self.assertIn("JNI_NATIVE_ENTRY", relations)
+            db.close()
+
+    def test_research_adapter_is_idempotent_and_preserves_status(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); research = root / "firmware-analysis" / "boot-static-analysis"; research.mkdir(parents=True)
+            (research / "sync-android-queue-constant-hits.json").write_text(json.dumps({"constant": "0x01554466", "hits": [{"path": "libSyncAndroid.so", "file_offset": "0x2208"}]}), encoding="utf-8")
+            (research / "camera-state-transitions.json").write_text(json.dumps({"status": "STATIC SELECTOR EVALUATION; NO CAMERA EXECUTION", "sha256": "a" * 64, "transitions_and_focus_actions": [{"state": 0, "selector": "0x1", "next_state": 1}]}), encoding="utf-8")
+            db = self._db(root)
+            first = ingest_research_evidence(db, root); count1 = db.connection.execute("SELECT COUNT(*) FROM research_observation").fetchone()[0]
+            second = ingest_research_evidence(db, root); count2 = db.connection.execute("SELECT COUNT(*) FROM research_observation").fetchone()[0]
+            self.assertEqual(first["adapters"]["camera-state"]["status"], "COMPLETE"); self.assertEqual(second["adapters"]["camera-state"]["status"], "COMPLETE")
+            self.assertEqual(count1, count2); self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0], 2)
+            self.assertEqual(db.connection.execute("SELECT status FROM research_observation WHERE observation_type='state_transition'").fetchone()[0], "VERIFIED_STATIC")
             db.close()
 
     def test_dex_inventory_is_conservative(self) -> None:

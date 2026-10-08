@@ -161,7 +161,7 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
     block_ids: dict[str, int] = {}
     counts = {"metadata": 1, "functions": 0, "basic_blocks": 0, "instructions": 0,
               "cfg_edges": 0, "callsites": 0, "cross_references": 0, "symbols": 0, "vtable_candidates": 0,
-              "unresolved_edges": 0}
+              "body_ranges": 0, "unresolved_edges": 0}
     try:
         # Function boundaries are loaded first so all later observations can
         # resolve caller/callee IDs without assuming a semantic name.
@@ -195,6 +195,28 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
             function_ids[entry] = function_id
             counts["functions"] += 1
 
+        # Function bodies can be discontiguous (for example after a
+        # compiler-generated split block).  Persist the exact AddressSet
+        # ranges emitted by the exporter and use those ranges for ownership.
+        body_ranges: dict[int, list[tuple[int, int, str]]] = {}
+        for record in records:
+            if record.get("kind") != "function_body_range":
+                continue
+            function_id = function_ids.get(_address(record.get("function_entry")))
+            start = _address_int(record.get("start_vma")); end = _address_int(record.get("end_vma"))
+            if function_id is None or start is None or end is None or end < start:
+                continue
+            address_space = str(record.get("address_space") or identity.get("address_space") or "")
+            key = f"body-range:{binary_id}:{function_id}:{address_space}:{hex(start)}:{hex(end)}"
+            db.upsert("function_body_range", {"function_id": function_id, "binary_id": binary_id,
+                "start_vma": hex(start), "end_vma": hex(end), "address_space": address_space,
+                "source_evidence_id": evidence_id, "analysis_run_id": run_id,
+                "identity_key": key, "status": record.get("status") or "VERIFIED_STATIC",
+                "confidence_id": db.confidence_id(record.get("status") or "VERIFIED_STATIC"),
+                "metadata_json": json.dumps(record, sort_keys=True)}, ("identity_key",))
+            body_ranges.setdefault(function_id, []).append((start, end, address_space))
+            counts["body_ranges"] += 1
+
         # Load the complete block set before resolving CFG edges.  A CFG edge
         # is never inferred from address proximity; both block identities must
         # be present in this run and address space.
@@ -221,9 +243,17 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                 if not from_address or not to_address or source_block is None or target_block is None:
                     continue
                 key = f"cfg:{binary_id}:{identity.get('address_space') or ''}:{from_address}:{to_address}:{record.get('edge_kind') or 'control_flow'}"
+                source_instruction_address = _address(record.get("source_instruction")) or from_address
+                source_instruction = db.connection.execute("SELECT id FROM instruction WHERE binary_id=? AND address=? ORDER BY id LIMIT 1",
+                                                            (binary_id, source_instruction_address)).fetchone()
+                target_instruction = db.connection.execute("SELECT id FROM instruction WHERE binary_id=? AND address=? ORDER BY id LIMIT 1",
+                                                           (binary_id, to_address)).fetchone()
                 db.upsert("cfg_edge", {"binary_id": binary_id, "function_id": function_ids.get(_address(record.get("function_entry"))),
                     "from_block_id": source_block, "to_block_id": target_block, "from_address": from_address,
                     "to_address": to_address, "address_space": identity.get("address_space"),
+                    "source_instruction_id": source_instruction[0] if source_instruction else None,
+                    "target_instruction_id": target_instruction[0] if target_instruction else None,
+                    "source_instruction_address": source_instruction_address,
                     "edge_kind": record.get("edge_kind") or "control_flow", "status": "VERIFIED_STATIC",
                     "confidence_id": db.confidence_id("VERIFIED_STATIC"), "source_evidence_id": evidence_id,
                     "analysis_run_id": run_id, "identity_key": key, "metadata_json": json.dumps(record, sort_keys=True)},
@@ -244,23 +274,41 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                 from_address = _address(record.get("from_address")); target = _address(record.get("to_address"))
                 caller_entry = _address(record.get("function_entry"))
                 caller = function_ids.get(caller_entry or "")
-                caller_row = db.connection.execute("SELECT id,size,address FROM function WHERE id=?", (caller,)).fetchone() if caller is not None else None
-                from_number = _address_int(from_address); entry_number = _address_int(caller_entry)
-                caller_resolution = "EXPLICIT_AND_RANGE_VALID"
-                if caller_row is None or from_number is None or entry_number is None or int(caller_row[1] or 0) <= 0 or not (entry_number <= from_number < entry_number + int(caller_row[1])):
-                    caller_resolution = "UNRESOLVED_OUT_OF_RANGE" if caller_row is not None else "UNRESOLVED_MISSING_ENTRY"
+                from_number = _address_int(from_address)
+                caller_resolution = "EXPLICIT_AND_BODY_RANGE_VALID"
+                ranges = body_ranges.get(caller) if caller is not None else None
+                space = str(record.get("address_space") or identity.get("address_space") or "")
+                if caller is None:
+                    caller_resolution = "UNRESOLVED_MISSING_ENTRY"
+                elif from_number is None or not ranges:
+                    caller_resolution = "UNRESOLVED_NO_BODY_RANGES"
+                    caller = None
+                elif not any(start <= from_number <= end and (not rspace or rspace == space) for start, end, rspace in ranges):
+                    caller_resolution = "UNRESOLVED_OUT_OF_BODY_RANGES"
                     caller = None
                 callee = function_ids.get(_address(record.get("callee_entry")))
                 relation = str(record.get("relation_kind") or "call")
                 key = f"callsite:{binary_id}:{caller_entry or ''}:{from_address or ''}:{target or ''}:{relation}"
                 if not from_address:
                     continue
-                db.upsert("callsite", {"caller_id": caller, "callee_id": callee, "address": from_address,
+                callsite_values = {"caller_id": caller, "callee_id": callee, "address": from_address,
                     "target": target, "kind": relation, "identity_key": key, "status": record.get("status") or ("VERIFIED_STATIC" if callee else "CANDIDATE"),
                     "source_evidence_id": evidence_id, "address_space": identity.get("address_space"),
                     "target_address_space": identity.get("address_space"), "analysis_run_id": run_id,
                     "caller_entry": caller_entry, "caller_resolution": caller_resolution,
-                    "analyzer_version": analyzer_version}, ("identity_key",))
+                    "analyzer_version": analyzer_version}
+                # Legacy schema has an additional nullable-unsafe unique key
+                # on (caller,address,target). Reuse that row when an older
+                # export used a different identity key.
+                existing_callsite = db.connection.execute(
+                    "SELECT id FROM callsite WHERE caller_id IS ? AND address=? AND target IS ? LIMIT 1",
+                    (caller, from_address, target)).fetchone()
+                if existing_callsite:
+                    assignments = ",".join(f"{key_name}=?" for key_name in callsite_values if key_name != "identity_key")
+                    db.connection.execute(f"UPDATE callsite SET {assignments} WHERE id=?",
+                                          [callsite_values[key_name] for key_name in callsite_values if key_name != "identity_key"] + [existing_callsite[0]])
+                else:
+                    db.upsert("callsite", callsite_values, ("identity_key",))
                 counts["callsites"] += 1
                 if callee is None or caller is None:
                     db.upsert("unresolved_edge", {"identity_key": f"indirect:{key}", "from_type": "function", "from_id": caller,

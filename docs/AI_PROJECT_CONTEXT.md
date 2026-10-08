@@ -12,14 +12,16 @@ synthetic tests 和文件；不要要求或提交私人 firmware。
 - `fwplatform/inventory.py`：格式辨識、SHA-256、manifest checkpoint。
 - `fwplatform/importer.py`：既有研究 JSON 的保守匯入。
 - `fwplatform/migration_v3.py`：identity、evidence merge、partition/module repair。
-- `fwplatform/migration_v4.py`：Ghidra provenance 欄位。
+- `fwplatform/migration_v4.py`、`fwplatform/migration_v6.py`：Ghidra provenance、函式 body range、研究證據 adapter schema。
 - `fwplatform/ghidra_importer.py`：JSONL validation、CFG/XREF import、failure checkpoint。
 - `fwplatform/linkage.py`：SONAME、DT_NEEDED、loader search path、unique import/export graph 和 unresolved edges。
 - `fwplatform/semantic_graph.py`：typed node/edge materialization、cross-module traversal、JSON/GraphML export。
 - `fwplatform/osal.py`、`fwplatform/jni.py`：evidence-bound OSAL/JNI fixture import。
+- `fwplatform/evidence_ingestion.py`：allowlisted、可重跑的 SyncAndroid/Camera historical evidence adapters；來源 hash、locator 和原始 status 會保留。
+- `fwplatform/phase3_1_reports.py`：從 SQLite 產生 Phase 3.1 稽核與 coverage 報告。
 - `analyzers/dex_analyzer.py`：保守 DEX header/string/class descriptor inventory。
 - `fwplatform/cli.py`：inventory、分析、protocol/state/API/semantic graph 查詢和報告命令。
-- `database/migrations/005_semantic_graph.sql`、`fwplatform/migration_v5.py`：Phase 3 schema。
+- `database/migrations/005_semantic_graph.sql`、`006_ranges_evidence.sql`、`fwplatform/migration_v5.py`、`migration_v6.py`：Phase 3/3.1 schema。
 - `fwplatform/phase2_reports.py`：從 SQLite 產生 audit files。
 
 ## Ghidra pipeline
@@ -39,9 +41,10 @@ call graph query 和 repeated import。公開版只保留 sanitized report，不
 
 ## 未解決問題
 
-完整 JNI/Java registration、OSAL queue semantics、message namespace、indirect-call
-resolution、ioctl layout、runtime validation 和任何 device deployment 都是 UNKNOWN 或
-PARTIAL。不要從 function name、同值 numeric ID 或 symbol index 推導完整功能。
+Phase 3.1 已可在私有 DB 副本匯入 SyncAndroid/ModelCamera 的選定研究檔案；receiver
+function identity、Java body 的執行期含義、message completion、camera ready/first-shot
+條件仍是 UNKNOWN 或 CANDIDATE。不要從 function name、同值 numeric ID 或 symbol index
+推導完整功能。
 
 ## CLI
 
@@ -63,10 +66,15 @@ fw trace <function> --cross-module --depth 3
 fw protocol queue <queue-id>
 fw state <state-machine>
 fw query api <name>
+fw evidence <relation-or-id> --json
+fw unresolved --json
+fw coverage --domain camera_core --json
+fw sdk coverage --json
+fw analyze evidence --root <private-research-root> --profile targeted --json
 fw graph export --format graphml --output <graphml>
 ```
 
 ## 下一步
 
-優先新增真實但可合法公開的 JNI、OSAL、event/message fixture，擴充 CFG multi-ELF
-checkpoint 和 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。
+優先擴充真實證據 adapter 的 locator/ABI 驗證、受控 multi-ELF Ghidra checkpoint、事件
+與狀態機關係及 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。

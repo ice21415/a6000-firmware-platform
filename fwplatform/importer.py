@@ -49,8 +49,13 @@ def _binary_id(db: Database, path: str | None, root: Path) -> int | None:
     row = db.connection.execute("SELECT id FROM binary WHERE path=?", (normalized,)).fetchone()
     if row:
         return int(row[0])
-    row = db.connection.execute("SELECT id FROM binary WHERE path LIKE ? ORDER BY length(path) LIMIT 1", (f"%{Path(normalized).as_posix()}",)).fetchone()
-    return int(row[0]) if row else None
+    rows = db.connection.execute("SELECT id FROM binary WHERE path LIKE ? ORDER BY length(path)", (f"%{Path(normalized).as_posix()}",)).fetchall()
+    return int(rows[0][0]) if len(rows) == 1 else None
+
+
+def _evidence_status(db: Database, evidence_id: int) -> str:
+    row = db.connection.execute("SELECT status FROM evidence WHERE id=?", (evidence_id,)).fetchone()
+    return str(row[0]) if row and row[0] in STATUSES else "UNKNOWN"
 
 
 def _module(db: Database, name: str, binary_id: int | None = None, domain: str | None = None,
@@ -118,11 +123,12 @@ def _evidence_for(db: Database, path: Path, root: Path, payload: Any) -> int:
 
 def _import_imdb(db: Database, payload: list[Any], evidence_id: int) -> int:
     count = 0
+    status = _evidence_status(db, evidence_id)
     for entry in payload:
         if not isinstance(entry, dict):
             continue
         name = str(entry.get("library") or f"IMDB:{entry.get('index', count)}")
-        module_id = _module(db, name, None, "camera_core", "VERIFIED_STATIC", evidence_id)
+        module_id = _module(db, name, None, "camera_core", status, evidence_id)
         callbacks = entry.get("lifecycle_callbacks") or {}
         for phase in ("init", "exit", "suspend", "resume", "inactivate", "activate"):
             callback = callbacks.get(phase) or ""
@@ -130,14 +136,14 @@ def _import_imdb(db: Database, payload: list[Any], evidence_id: int) -> int:
             callback_key = f"{module_id}|{phase}|{function_id or 0}"
             db.upsert("lifecycle_callback", {"module_id": module_id, "name": phase,
                 "callback_key": callback_key,
-                "function_id": function_id, "phase": phase, "status": "VERIFIED_STATIC",
+                "function_id": function_id, "phase": phase, "status": status,
                 "source_evidence_id": evidence_id}, ("callback_key",))
         identity_key = f"imdb:{entry.get('index', count)}:{entry.get('address')}"
         db.upsert("data_structure", {"binary_id": None, "name": f"IMDBEntry[{entry.get('index', count)}]",
             "identity_key": identity_key,
             "base_address": entry.get("address"), "field_offset": None, "field_name": "raw_words",
             "field_type": "uint32[]", "width": len(entry.get("words") or []) * 4,
-            "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id}, ("identity_key",))
+            "status": status, "source_evidence_id": evidence_id}, ("identity_key",))
         count += 1
     return count
 
@@ -146,7 +152,8 @@ def _import_vtables(db: Database, path: Path, root: Path, payload: dict[str, Any
     binary_id = _binary_id(db, payload.get("input"), root)
     module_name = Path(str(payload.get("input") or path.stem)).name
     domain = "display_ui" if "view" in path.name.lower() else "camera_core"
-    module_id = _module(db, module_name, binary_id, domain, "VERIFIED_STATIC", evidence_id)
+    status = _evidence_status(db, evidence_id)
+    module_id = _module(db, module_name, binary_id, domain, status, evidence_id)
     count = 0
     for cls in payload.get("classes", []):
         class_name = str(cls.get("rtti_name") or cls.get("name") or "unknown")
@@ -157,65 +164,66 @@ def _import_vtables(db: Database, path: Path, root: Path, payload: dict[str, Any
             db.upsert("vtable", {"binary_id": binary_id, "class_name": class_name,
                 "address": table_address, "slot": method.get("slot"), "slot_address": method.get("slot_address"),
                 "target_address": address, "symbol": symbol, "imported": int(bool(method.get("imported"))),
-                "status": "VERIFIED_STATIC", "confidence_id": db.confidence_id("VERIFIED_STATIC"),
+                "status": status, "confidence_id": db.confidence_id(status),
                 "source_evidence_id": evidence_id}, ("binary_id", "class_name", "slot_address"))
             if address and not method.get("imported"):
                 _function(db, binary_id, module_id, symbol or f"{class_name}::slot_{method.get('slot')}", address,
-                          evidence_id=evidence_id, origin="vtable_candidate")
+                          evidence_id=evidence_id, status=status, origin="vtable_candidate")
             count += 1
     return count
 
 
 def _import_elf_inventory(db: Database, payload: list[Any], root: Path, evidence_id: int) -> int:
     count = 0
+    status = _evidence_status(db, evidence_id)
     for entry in payload:
         if not isinstance(entry, dict):
             continue
         binary_id = _binary_id(db, entry.get("path"), root)
         module_name = Path(str(entry.get("path") or "unknown")).name
-        module_id = _module(db, module_name, binary_id, None, "VERIFIED_STATIC", evidence_id)
+        module_id = _module(db, module_name, binary_id, None, status, evidence_id)
         for symbol in entry.get("symbols", []):
             if not isinstance(symbol, dict) or not symbol.get("name"):
                 continue
             address = symbol.get("address")
             db.upsert("symbol", {"binary_id": binary_id, "name": symbol["name"], "address": str(address) if address is not None else None,
                 "size": symbol.get("size"), "type": symbol.get("type"), "binding": None,
-                "section": symbol.get("section"), "status": "VERIFIED_STATIC"}, ("binary_id", "name", "address"))
+                "section": symbol.get("section"), "status": status}, ("binary_id", "name", "address"))
             if symbol.get("type") == "STT_FUNC" and address not in (None, "0x0", "0"):
-                _function(db, binary_id, module_id, symbol["name"], address, symbol.get("size"), evidence_id, origin="symbol_index")
+                _function(db, binary_id, module_id, symbol["name"], address, symbol.get("size"), evidence_id, status, "symbol_index")
                 count += 1
         for string in entry.get("strings", []):
             if isinstance(string, dict) and string.get("text"):
                 db.upsert("resource", {"binary_id": binary_id, "path": f"{string.get('address')}:{string.get('text')}",
-                    "resource_type": "string", "description": string.get("text"), "status": "VERIFIED_STATIC",
+                    "resource_type": "string", "description": string.get("text"), "status": status,
                     "source_evidence_id": evidence_id}, ("binary_id", "path"))
     return count
 
 
 def _import_state_transitions(db: Database, payload: dict[str, Any], root: Path, evidence_id: int) -> int:
     binary_id = _binary_id(db, payload.get("input"), root)
-    module_id = _module(db, Path(str(payload.get("input") or "libObj.so")).name, binary_id, "camera_core",
-                        "VERIFIED_STATIC", evidence_id)
+    status = _evidence_status(db, evidence_id)
+    module_id = _module(db, Path(str(payload.get("input") or "libObj.so")).name, binary_id, "camera_core", status, evidence_id)
     machine_id = db.upsert("state_machine", {"name": "ModelCamera.selector_dispatch", "module_id": module_id,
-        "description": "Static selector evaluation from camera-state-transitions.json", "status": "VERIFIED_STATIC",
+        "description": "Static selector evaluation from camera-state-transitions.json", "status": status,
         "source_evidence_id": evidence_id}, ("name",))
     states: dict[str, int] = {}
     for value in payload.get("states", []):
         states[str(value)] = db.upsert("state", {"machine_id": machine_id, "value": str(value), "name": f"state_{value}",
-            "description": None, "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id}, ("machine_id", "value", "name"))
+            "description": None, "status": status, "source_evidence_id": evidence_id}, ("machine_id", "value", "name"))
     count = 0
     for transition in payload.get("transitions_and_focus_actions", []):
         selector = str(transition.get("selector"))
         event_identity = f"camera_selector|{selector}|selector_{selector}"
         event_id = db.upsert("event_id", {"namespace": "camera_selector", "value": selector, "name": f"selector_{selector}",
             "identity_key": event_identity,
-            "description": "Selector observed in static state dispatcher", "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id},
+            "description": "Selector observed in static state dispatcher", "status": status, "source_evidence_id": evidence_id},
             ("identity_key",))
         transition_identity = f"{machine_id}|{states.get(str(transition.get('state'))) or 0}|{event_id}|{states.get(str(transition.get('next_state'))) or 0}|{transition.get('action')}"
         db.upsert("state_transition", {"machine_id": machine_id, "from_state_id": states.get(str(transition.get("state"))),
             "identity_key": transition_identity,
             "event_id": event_id, "to_state_id": states.get(str(transition.get("next_state"))), "action": str(transition.get("action")),
-            "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id},
+            "status": status, "source_evidence_id": evidence_id},
             ("identity_key",))
         count += 1
     return count

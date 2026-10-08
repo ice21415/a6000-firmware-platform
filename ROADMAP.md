@@ -9,13 +9,19 @@
 
 ## Phase 3（目前分支：semantic-analysis）
 
-- migration v5 Semantic Graph、CFG edge、OSAL message、JNI bridge 和 SDK evidence schema。
+- migration v5–v6 Semantic Graph、CFG edge、OSAL message、JNI bridge、body ranges 和 SDK evidence schema。
 - 修正同名 ELF DT_NEEDED 解析和 Ghidra caller 歸屬，歧義保留 unresolved edge。
 - 提供 OSAL/JNI fixture analyzer、DEX inventory、跨模組 trace、state/protocol/API 查詢和 GraphML export。
 - 以 synthetic fixtures 驗證完整性、namespace 分離、idempotence 和 rollback。
 
 尚未宣稱完整還原 Sony 的 OSAL/JNI 協定或 Camera runtime 行為；需要更多有來源的
 fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status。
+
+## Phase 3.1（目前開發中）
+
+- 使用 migration v6 保存 Ghidra 不連續 body range、normalized research observation 和 adapter checkpoint。
+- 已在私有 DB 副本驗證 targeted SyncAndroid/ModelCamera evidence ingestion、OSAL queue/message、JNI registration lookup、state transitions 和 provenance gaps。
+- Receiver canonical function、message completion、Java native implementation、camera ready/first-shot 和 runtime verification 保持 UNKNOWN/CANDIDATE。
 
 ## 下一階段
 

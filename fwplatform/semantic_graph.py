@@ -25,19 +25,38 @@ def _status(row: Any) -> str:
     return value if value in {"VERIFIED_STATIC", "VERIFIED_RUNTIME", "INFERRED", "CANDIDATE", "UNKNOWN", "DISPROVEN"} else "UNKNOWN"
 
 
+def _provenance(db: Database, evidence_id: int | None, default: str = "NO_PRIMARY_EVIDENCE") -> str:
+    if evidence_id is None:
+        return default
+    row = db.connection.execute("SELECT evidence_type,kind,source_path FROM evidence WHERE id=?", (evidence_id,)).fetchone()
+    if not row:
+        return "MISSING_EVIDENCE"
+    text = " ".join(str(v or "").lower() for v in row)
+    if "synthetic" in text or "fixture" in text or "test" in text:
+        return "SYNTHETIC_FIXTURE"
+    if "ghidra" in text:
+        return "GHIDRA_DERIVED"
+    if "elf" in text or "linkage" in text:
+        return "ELF_DEPENDENCY"
+    if any(token in text for token in ("research", "osal", "jni", "camera", "imdb", "vtable", "rea")):
+        return "IMPORTED_RESEARCH"
+    return "FILE_EVIDENCE"
+
+
 def _node(db: Database, *, node_type: str, identity_key: str, entity_table: str | None,
           entity_id: int | None, label: str | None, namespace: str | None = None,
           binary_id: int | None = None, address: str | None = None,
           address_space: str | None = None, status: str = "UNKNOWN",
           evidence_id: int | None = None, analyzer_version: str | None = None,
-          metadata: dict[str, Any] | None = None) -> int:
+          metadata: dict[str, Any] | None = None, provenance_kind: str | None = None) -> int:
     status = status if status in {"VERIFIED_STATIC", "VERIFIED_RUNTIME", "INFERRED", "CANDIDATE", "UNKNOWN", "DISPROVEN"} else "UNKNOWN"
     return db.upsert("semantic_node", {"node_type": node_type, "identity_key": identity_key,
         "entity_table": entity_table, "entity_id": entity_id, "label": label,
         "namespace": namespace, "binary_id": binary_id, "address": address,
         "address_space": address_space, "status": status,
         "confidence_id": db.confidence_id(status), "source_evidence_id": evidence_id,
-        "analyzer_version": analyzer_version, "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
+        "analyzer_version": analyzer_version, "provenance_kind": provenance_kind or _provenance(db, evidence_id),
+        "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
         ("identity_key",))
 
 
@@ -45,7 +64,8 @@ def _edge(db: Database, *, source_id: int, target_id: int | None, relation: str,
           status: str, source_binary_id: int | None = None, target_binary_id: int | None = None,
           address_space: str | None = None, source_address: str | None = None,
           target_address: str | None = None, evidence_id: int | None = None,
-          analyzer_version: str | None = None, metadata: dict[str, Any] | None = None) -> int:
+          analyzer_version: str | None = None, metadata: dict[str, Any] | None = None,
+          provenance_kind: str | None = None) -> int:
     if relation not in RELATION_TYPES:
         raise ValueError(f"unsupported semantic relation: {relation}")
     status = status if status in {"VERIFIED_STATIC", "VERIFIED_RUNTIME", "INFERRED", "CANDIDATE", "UNKNOWN", "DISPROVEN"} else "UNKNOWN"
@@ -57,7 +77,8 @@ def _edge(db: Database, *, source_id: int, target_id: int | None, relation: str,
         "target_binary_id": target_binary_id, "address_space": address_space,
         "source_address": source_address, "target_address": target_address,
         "evidence_id": evidence_id, "status": status, "confidence_id": db.confidence_id(status),
-        "analyzer_version": analyzer_version, "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
+        "analyzer_version": analyzer_version, "provenance_kind": provenance_kind or _provenance(db, evidence_id),
+        "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
         ("identity_key",))
 
 
@@ -177,6 +198,13 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
             source = nodes.get(("jni_bridge", row["id"]))
             target = java_nodes.get((str(row["class_name"] or ""), str(row["method_name"] or ""), str(row["signature"] or "")))
             native = nodes.get(("function", row["native_function_id"])) if row["native_function_id"] else None
+            registration = nodes.get(("function", row["registration_function_id"])) if "registration_function_id" in row.keys() and row["registration_function_id"] else None
+            if registration and source:
+                edge_count += 1
+                _edge(db, source_id=registration, target_id=source, relation="REGISTERS_CALLBACK", status=_status(row),
+                      source_binary_id=row["module_id"], source_address=row["method_lookup_address"],
+                      evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version,
+                      metadata={"direction": row["direction"] if "direction" in row.keys() else "unknown", "role": "jni_registration"})
             if native and source:
                 edge_count += 1
                 _edge(db, source_id=native, target_id=source, relation="JNI_BRIDGE", status=_status(row), evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version, metadata={"direction": "native_to_jni"})
@@ -201,16 +229,60 @@ def export_graph(db: Database, output: Path, graph_format: str = "json") -> dict
     output.parent.mkdir(parents=True, exist_ok=True)
     if graph_format == "graphml":
         graph = ET.Element("graphml", {"xmlns": "http://graphml.graphdrawing.org/xmlns"})
+        keys = {
+            "node_label": ("node", "label", "string"), "node_type": ("node", "type", "string"),
+            "node_status": ("node", "status", "string"), "node_evidence": ("node", "evidence", "int"),
+            "node_address": ("node", "address", "string"), "node_address_space": ("node", "address_space", "string"),
+            "node_provenance": ("node", "provenance", "string"), "edge_relation": ("edge", "relation", "string"),
+            "edge_status": ("edge", "status", "string"), "edge_evidence": ("edge", "evidence", "int"),
+            "edge_address_space": ("edge", "address_space", "string"), "edge_provenance": ("edge", "provenance", "string"),
+        }
+        for key_id, (scope, name, kind) in keys.items():
+            ET.SubElement(graph, "key", {"id": key_id, "for": scope, "attr.name": name, "attr.type": kind})
         graph_node = ET.SubElement(graph, "graph", {"id": "semantic", "edgedefault": "directed"})
         for node in nodes:
-            ET.SubElement(graph_node, "node", {"id": f"n{node['id']}", "label": str(node.get("label") or ""), "type": str(node["node_type"])})
+            element = ET.SubElement(graph_node, "node", {"id": f"n{node['id']}"})
+            values = {"node_label": node.get("label") or "", "node_type": node.get("node_type") or "",
+                      "node_status": node.get("status") or "UNKNOWN", "node_evidence": node.get("source_evidence_id") or "",
+                      "node_address": node.get("address") or "", "node_address_space": node.get("address_space") or "",
+                      "node_provenance": node.get("provenance_kind") or "NO_PRIMARY_EVIDENCE"}
+            for key, value in values.items(): ET.SubElement(element, "data", {"key": key}).text = str(value)
         for edge in edges:
             target = f"n{edge['target_node_id']}" if edge.get("target_node_id") else f"u{edge['id']}"
             if not edge.get("target_node_id"):
-                ET.SubElement(graph_node, "node", {"id": target, "label": "UNRESOLVED", "type": "UnresolvedTarget"})
-            attrs = {"id": f"e{edge['id']}", "source": f"n{edge['source_node_id']}", "target": target, "relation": str(edge["relation_type"]), "status": str(edge["status"])}
-            ET.SubElement(graph_node, "edge", attrs)
+                unresolved = ET.SubElement(graph_node, "node", {"id": target})
+                ET.SubElement(unresolved, "data", {"key": "node_label"}).text = "UNRESOLVED"
+                ET.SubElement(unresolved, "data", {"key": "node_type"}).text = "UnresolvedTarget"
+            element = ET.SubElement(graph_node, "edge", {"id": f"e{edge['id']}", "source": f"n{edge['source_node_id']}", "target": target})
+            values = {"edge_relation": edge.get("relation_type") or "", "edge_status": edge.get("status") or "UNKNOWN",
+                      "edge_evidence": edge.get("evidence_id") or "", "edge_address_space": edge.get("address_space") or "",
+                      "edge_provenance": edge.get("provenance_kind") or "NO_PRIMARY_EVIDENCE"}
+            for key, value in values.items(): ET.SubElement(element, "data", {"key": key}).text = str(value)
         ET.ElementTree(graph).write(output, encoding="utf-8", xml_declaration=True)
     else:
         output.write_text(json.dumps({"schema": 1, "nodes": nodes, "edges": edges}, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     return {"output": str(output), "format": graph_format, "nodes": len(nodes), "edges": len(edges)}
+
+
+def validate_graph_provenance(db: Database, limit: int = 20) -> dict[str, Any]:
+    rows = db.query("SELECT e.*,s.entity_table,s.entity_id FROM semantic_edge e LEFT JOIN semantic_node s ON s.id=e.source_node_id ORDER BY e.id")
+    gaps: list[dict[str, Any]] = []
+    counts = {"missing_evidence": 0, "missing_address_space": 0, "unresolved_target": 0, "status_mismatch": 0}
+    for row in rows:
+        issues: list[str] = []
+        evidence_row = None
+        if row["evidence_id"] is None:
+            issues.append("missing_evidence"); counts["missing_evidence"] += 1
+        else:
+            evidence_row = db.connection.execute("SELECT status FROM evidence WHERE id=?", (row["evidence_id"],)).fetchone()
+        if row["evidence_id"] is not None and not evidence_row:
+            issues.append("missing_evidence"); counts["missing_evidence"] += 1
+        elif evidence_row and row["status"] in ("VERIFIED_STATIC", "VERIFIED_RUNTIME") and evidence_row[0] not in ("VERIFIED_STATIC", "VERIFIED_RUNTIME"):
+            issues.append("status_evidence_mismatch"); counts["status_mismatch"] += 1
+        if row["source_address"] is not None and not row["address_space"]:
+            issues.append("missing_address_space"); counts["missing_address_space"] += 1
+        if row["target_node_id"] is None:
+            issues.append("unresolved_target"); counts["unresolved_target"] += 1
+        if issues:
+            gaps.append({"edge_id": row["id"], "relation": row["relation_type"], "status": row["status"], "issues": issues})
+    return {"total_edges": len(rows), "gaps": sum(counts.values()), "counts": counts, "samples": gaps[:limit]}

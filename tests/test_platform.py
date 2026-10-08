@@ -19,9 +19,9 @@ class PlatformTests(unittest.TestCase):
     def test_migrations_and_status_seed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             db = Database(Path(directory) / "test.db")
-            self.assertEqual(db.migrate(), 5)
+            self.assertEqual(db.migrate(), 6)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM confidence").fetchone()[0], 6)
-            self.assertEqual(db.connection.execute("PRAGMA user_version").fetchone()[0], 5)
+            self.assertEqual(db.connection.execute("PRAGMA user_version").fetchone()[0], 6)
             self.assertEqual(db.connection.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(len(db.connection.execute("PRAGMA foreign_key_check").fetchall()), 0)
             db.close()
