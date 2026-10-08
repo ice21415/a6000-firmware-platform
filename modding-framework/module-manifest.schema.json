@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["module_id", "version", "firmware_sha256"],
+  "properties": {
+    "module_id": {"type": "string"},
+    "version": {"type": "string"},
+    "firmware_sha256": {"type": "string", "pattern": "^[0-9a-fA-F]{64}$"},
+    "dependencies": {"type": "array", "items": {"type": "string"}},
+    "conflicts": {"type": "array", "items": {"type": "string"}}
+  }
+}
+

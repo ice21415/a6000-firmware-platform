@@ -1,0 +1,77 @@
+# Python/build/editor output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.idea/
+.vscode/
+
+# Local databases and Ghidra projects
+database/*.db
+database/*.sqlite
+database/*.sqlite-*
+database/backups/
+database/ghidra-projects/
+*.db-wal
+*.db-shm
+*.sqlite-wal
+*.sqlite-shm
+
+# Private firmware, extracted images and runtime captures
+firmware/
+firmware-analysis/
+originals/
+runtime-evidence/private/
+private-workspace/
+*.upd
+*.fwr
+*.bin
+*.img
+*.mtd
+*.nand
+*.wbi
+*.wbin
+*.snapshot
+*.dump
+*.core
+*.mem
+*.raw
+*.elf
+*.so
+*.ko
+*.dex
+*.odex
+*.apk
+*.jar
+
+# Raw/local analysis products
+reports/manifest.json
+reports/repository-inventory.json
+reports/architecture-overview.json
+reports/ghidra-*.jsonl
+reports/phase2-tests.txt
+reports/*.sqlite
+
+# Secrets and private machine metadata
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+credentials.json
+secrets.json
+token*
+*.log
+
+# Keep the public migration directory even though local database output is ignored
+!database/migrations/
+!database/migrations/*.sql
