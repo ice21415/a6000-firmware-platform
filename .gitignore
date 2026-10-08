@@ -1,4 +1,4 @@
-# Python/build/editor output
+﻿# Python/build/editor output
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -16,6 +16,9 @@ build/
 database/*.db
 database/*.sqlite
 database/*.sqlite-*
+*.db
+*.sqlite
+*.sqlite-*
 database/backups/
 database/ghidra-projects/
 *.db-wal
@@ -75,3 +78,4 @@ token*
 # Keep the public migration directory even though local database output is ignored
 !database/migrations/
 !database/migrations/*.sql
+
