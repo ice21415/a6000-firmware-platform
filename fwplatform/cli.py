@@ -281,6 +281,7 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_cov = sdk_sub.add_parser("coverage"); sdk_cov.add_argument("--json", action="store_true")
     sdk_import = sdk_sub.add_parser("import"); sdk_import.add_argument("--fixture", type=Path, required=True); sdk_import.add_argument("--json", action="store_true")
     sdk_audit = sdk_sub.add_parser("audit"); sdk_audit.add_argument("--json", action="store_true")
+    sdk_mock = sdk_sub.add_parser("mock"); sdk_mock.add_argument("--scenario", type=Path, required=True); sdk_mock.add_argument("--json", action="store_true")
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
@@ -366,6 +367,11 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "sdk" and args.sdk_command == "audit":
             from .sdk_contracts import audit_sdk_contracts
             _json_or_text(audit_sdk_contracts(db), args.json)
+        elif args.command == "sdk" and args.sdk_command == "mock":
+            from .sdk_mock import simulate_protocol
+            result = simulate_protocol(args.scenario)
+            _json_or_text(result, args.json)
+            return 0 if result["status"] == "PASS" else 2
         elif args.command == "analyze" and args.analyze_command == "elf":
             from analyzers.runner import run_elf_batch
             _json_or_text(run_elf_batch(db, args.root, args.limit), args.json)
