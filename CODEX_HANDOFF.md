@@ -623,3 +623,47 @@ callable API counts remain zero.
 Validation after this checkpoint: the ParamSet tests and complete local suite
 pass **321 tests**. Next target is a uniquely typed/cross-module caller for
 `PrmSet::getSet`, followed by exception and owner-release coverage.
+
+## Continuation checkpoint — cross-ELF PrmSet caller (2026-10-10)
+
+The private library-set scan found one dependent ELF with both exact undefined
+imports: `libScalarDaemon.so` (SHA-256
+`ca28cbf4c5c6402160ad80f6ad9f5e99052f42c3fabc382c557fcded18addc29`). The
+authenticated `libObj.so` exports the two provider symbols at Thumb-tagged ELF
+VMAs `0x7efae9` (`getSet`) and `0x7efaf1` (`GET`). No other scanned library
+was promoted by basename or same-name coincidence.
+
+`ghidra-scripts/ImportedSymbolReferences.java` is now a reusable
+metadata-only exporter. It preserves Ghidra image base `0x10000`, Ghidra
+addresses, ELF VMAs, address spaces, symbol namespaces, reference kinds and
+caller entries. The latest private metadata export is SHA-256
+`c3244eed2f746ae43e63b294681be3c590707b411ff16d7a1fa1cb650cf2dfac`.
+`fwplatform/paramset_cross_elf.py` validates complete JSONL,
+resolves `.rel.plt` `R_ARM_JUMP_SLOT` entries and ARM PLT instructions, then
+uses Capstone to validate each application callsite. The private Ghidra 12.1.3
+auto-analysis run succeeded; its raw project/export remain private.
+
+The recovered chain is:
+
+`EventDispatcher::dispatchSystemEvent` entry `0xd5b5c` (Thumb symbol value
+`0xd5b5d`) → `PrmSet::GET` PLT callsite `0xd5b7a` with `r1=0x19` → `CBZ r0`
+at `0xd5b7e` → `PrmSet::getSet` PLT callsite `0xd5b80`, with `r0` carrying the
+non-null `GET` result. Both callsites are `PRIMARY_ELF_VERIFIED` by Ghidra
+references plus Capstone Thumb `BLX`; the contract keeps the observed chain
+status at `PRIMARY_ELF_VERIFIED` but records its composed C++ return/ownership
+meaning separately as `chain_semantic_status=STATIC_INFERRED`. Ghidra
+references inside the PLT stubs are excluded as `PLT_SELF_REFERENCE`.
+
+The descriptive public record is `sdk/paramset_cross_elf_3_21.json`, and the
+CLI is `fw sdk parameter-set-cross-elf` (private ELF/export mode or checked-in
+contract mode). The header adds non-callable cross-ELF evidence constants.
+`runtime_verified=false`, `callable=false`, loader load bias, ownership,
+concurrency and exact source-level return types remain UNKNOWN. Synthetic
+cross-ELF parser/validator/CLI tests pass (7 targeted; 328 full-suite tests);
+no original bytes or private export were added to the repository.
+
+Next targets: recover ParamSet exception/owner-release paths and determine the
+source element alias without promoting the observed one-word comparator to an
+exact typedef. Continue to use `sdk/param_set_3_21.json` and the separate
+cross-ELF contract rather than treating the generic `0xffe70` helper as the
+mutation caller.

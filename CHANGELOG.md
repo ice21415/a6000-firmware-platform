@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — cross-ELF ParamSet caller evidence
+
+- Added the generic metadata-only `ImportedSymbolReferences.java` exporter and
+  `fwplatform.paramset_cross_elf` importer. They preserve Ghidra image-base
+  addresses separately from ELF VMAs, validate complete JSONL exports, resolve
+  undefined imports through relocation-bound ARM PLT entries and cross-check
+  application callsites with Capstone.
+- Integrated the private, SHA-identified `libScalarDaemon.so` evidence. The
+  recovered Thumb chain is `dispatchSystemEvent` → `PrmSet::GET(0x19)` → null
+  guard → `PrmSet::getSet`; the two call edges are primary static evidence and
+  the composed C++ return/ownership interpretation remains static-inferred.
+- Added `sdk/paramset_cross_elf_3_21.json`, descriptive cross-ELF header
+  constants, CLI contract/probe support and seven synthetic fail-closed tests.
+  Imported references are accepted only when their exact ELF VMA matches the
+  relocation-bound PLT, so same-name `GET` symbols from other ParamBase
+  families are not promoted.
+  Runtime verification and callable SDK counts remain zero; private ELF,
+  Ghidra project and raw JSONL export remain excluded.
+
 ## Unreleased — PrmSet tree/lifetime evidence checkpoint
 
 - Extended the SHA-pinned `PrmSet` probe with bounded node destruction,

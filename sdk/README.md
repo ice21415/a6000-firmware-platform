@@ -981,6 +981,29 @@ Element type, comparator, allocator, alias invalidation, synchronization,
 runtime binding and source-level return types remain UNKNOWN. Contract:
 `sdk/param_set_3_21.json`; runtime and callable flags remain false.
 
+### PrmSet cross-ELF usage checkpoint
+
+The generic cross-ELF path consumes a private metadata-only Ghidra export and
+the dependent ELF. It does not need to publish the dependent binary:
+
+```powershell
+python -m fwplatform.cli sdk parameter-set-cross-elf `
+  --elf C:\private\libScalarDaemon.so `
+  --ghidra-export C:\private\paramset-symbol-refs.jsonl `
+  --provider-elf C:\private\libObj.so --json
+```
+
+The first static result identifies `libScalarDaemon.so` as the only scanned
+dependent ELF importing both exact `PrmSet` symbols. Ghidra and Capstone agree
+on the Thumb callsites in `EventDispatcher::dispatchSystemEvent`: `GET` at
+`0xd5b7a` with `r1=0x19`, a null guard at `0xd5b7e`, then `getSet` at
+`0xd5b80`. The exact call edges are `PRIMARY_ELF_VERIFIED`; the composed
+source-level return and ownership interpretation is exposed separately as
+`chain_semantic_status=STATIC_INFERRED`.
+The sanitized contract is `sdk/paramset_cross_elf_3_21.json` and keeps
+`runtime_verified=false` and `callable=false`. With no private arguments, the
+same command validates and displays that checked-in contract.
+
 ## PrmPoint / PrmDimension inline-word checkpoint
 
 The reusable `parameter-pair` probe covers the two stripped families with the

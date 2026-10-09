@@ -1000,3 +1000,57 @@ uniquely typed caller for `PrmSet::getSet`, identify the exact source element
 alias/comparator, and account for all constructor/destructor exception and
 owner-release paths. Null safety, concurrent access and runtime ABI behavior
 remain UNKNOWN.
+
+## Cross-ELF PrmSet caller — 2026-10-10
+
+The private unpacked 3.21 library set was scanned by dynamic symbol identity,
+not basename.  Of 157 `.so` candidates, `libScalarDaemon.so` was the only
+dependent ELF with undefined imports for both `_ZN6PrmSet6getSetEv` and
+`_ZN6PrmSet3GETEPK9ParamListm`.  Its private SHA-256 is
+`ca28cbf4c5c6402160ad80f6ad9f5e99052f42c3fabc382c557fcded18addc29`; the
+provider `libObj.so` remains the authenticated
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+
+The reusable `fwplatform.paramset_cross_elf` analyzer resolves the two
+undefined symbols through unique `R_ARM_JUMP_SLOT` relocations and an ARM PLT
+instruction scan:
+
+| Imported symbol | GOT relocation | PLT ELF VMA | Provider ELF VMA |
+|---|---:|---:|---:|
+| `PrmSet::getSet()` | `0x1c5858` | `0xcb224` | `0x7efae9` (Thumb-tagged) |
+| `PrmSet::GET(ParamList const*, unsigned long)` | `0x1c8150` | `0xd30b8` | `0x7efaf1` (Thumb-tagged) |
+
+The private Ghidra 12.1.3 project used `ARM:LE:32:v8`, Ghidra image base
+`0x10000`, and completed Auto Analysis successfully.  The metadata-only
+`ImportedSymbolReferences.java` exporter then located both application
+references (private export SHA-256
+`c3244eed2f746ae43e63b294681be3c590707b411ff16d7a1fa1cb650cf2dfac`) in the
+Thumb function whose exact ELF symbol is
+`_ZN12SCALARDAEMON15EventDispatcher19dispatchSystemEventER5Event` (entry
+`0xd5b5c`, symbol Thumb value `0xd5b5d`, size `0xd0`):
+
+* `0xd5b7a` is a Thumb `BLX` to the `GET` PLT.  The preceding instructions
+  copy the preceding helper result through `r4` and set `r1` to the literal
+  `0x19`.
+* `0xd5b7e` performs `CBZ r0`; the following `0xd5b80` is a Thumb `BLX` to
+  the `getSet` PLT.  Thus the non-null result of `GET` is used as the
+  `getSet` receiver on this path.
+
+The two exact callsites are `PRIMARY_ELF_VERIFIED` by independent Ghidra
+reference and Capstone instruction evidence.  The composition
+`ParamList/event helper → PrmSet::GET(0x19) → null guard → PrmSet::getSet()` is
+recorded with `chain_status=PRIMARY_ELF_VERIFIED` for its observed instruction
+shape and `chain_semantic_status=STATIC_INFERRED` for the composed C++ meaning:
+the mangled symbols and bounded instructions do not encode a source-level
+return type, ownership transfer, loader load bias, or runtime thread-safety
+guarantee.  Ghidra's references inside the PLT stubs are retained as
+`PLT_SELF_REFERENCE` exclusions rather than counted as application callers.
+
+The public descriptive contract is `sdk/paramset_cross_elf_3_21.json`; the
+private metadata export and all original bytes remain outside the repository.
+`fw sdk parameter-set-cross-elf --elf <private-dependent-elf>
+--ghidra-export <private-jsonl> --provider-elf <private-libObj.so>` reruns the
+same checks.  `runtime_verified=false` and `callable=false` remain mandatory.
+Seven synthetic parser/validator/CLI regression tests and the complete local
+suite (328 tests) pass after this checkpoint.  This test result validates the
+public evidence handling only; it is not runtime verification of the camera.

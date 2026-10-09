@@ -7,7 +7,8 @@
   "type": "PrmSet",
   "discriminator": 7,
   "allocation_size_bytes": 36,
-  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, and ELF-local tree-helper facts; source container alias remains UNKNOWN",
+  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, ELF-local tree-helper facts, and the separate libScalarDaemon cross-ELF call chain; source container alias remains UNKNOWN",
+  "cross_module_usage_contract": "sdk/paramset_cross_elf_3_21.json",
   "layout": {
     "+0x00": "ParamBase vptr address point",
     "+0x04": "ParamBase discriminator candidate, initialized to 7 through ParamBaseC2",
@@ -56,7 +57,7 @@
         ],
         "direct_callsite_count": 3,
         "prmset_mutator_entry": "UNKNOWN",
-        "prmset_relation": "UNKNOWN; no callsite is proven to consume PrmSet::getSet() in this ELF-only scan",
+        "prmset_relation": "UNKNOWN within libObj.so; the separate cross-ELF contract proves a libScalarDaemon caller but does not identify this generic insertion helper as its mutator",
         "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics"
       },
       "value_copy_evidence": {
@@ -86,6 +87,7 @@
       "machine_return": "r0 + 0x0c",
       "source_return_type": "UNKNOWN",
       "ownership": "borrowed pointer candidate; no retain operation observed",
+      "cross_module_callsite_contract": "sdk/paramset_cross_elf_3_21.json",
       "safe_to_call": false
     },
     "GET": {
@@ -98,6 +100,7 @@
       "lookup_discriminator": 7,
       "target": "ParamList::get via interworking veneer",
       "return_semantics": "delegated result; source return and ownership UNKNOWN",
+      "cross_module_callsite_contract": "sdk/paramset_cross_elf_3_21.json",
       "safe_to_call": false
     },
     "constructor": {
@@ -215,7 +218,7 @@
     "No source-level proof that the payload is std::set or another named container",
     "payload +0x00 is not written by the bounded default initializer",
     "The helper copies and compares one 32-bit word, but the exact PrmSet element typedef and source comparator remain UNKNOWN",
-    "No unique PrmSet mutation caller for 0xffe70 is proven; direct Thumb callsites are preserved as helper evidence only",
+    "No unique PrmSet mutation caller for 0xffe70 is proven; direct Thumb callsites are preserved as helper evidence only. A separate libScalarDaemon caller now consumes GET followed by getSet, but its mutation relationship is unknown",
     "Allocator pairing, exception paths, runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
     "No runtime execution or device validation",
     "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
@@ -223,7 +226,7 @@
   ],
   "runtime_verified": false,
   "callable": false,
-  "evidence_revision": "param-set-tree-value-helpers-2026-10-10",
+  "evidence_revision": "param-set-tree-value-helpers-cross-elf-2026-10-10",
   "inheritance": {
     "status": "PRIMARY_ELF_VERIFIED",
     "base_type": "ParamBase",

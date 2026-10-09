@@ -97,6 +97,19 @@ static_assert(offsetof(PrmSetPayloadTreeWords, header_word_04) == 4);
 static_assert(offsetof(PrmSetPayloadTreeWords, node_count_14) == 20);
 static_assert(sizeof(PrmSetPayloadTreeWords) == 24);
 
+// Cross-ELF static evidence from libScalarDaemon.so.  These are callsite
+// locators in the dependent ELF and are not function pointers.  The chain is
+// descriptive: runtime loader binding, returned C++ types, ownership and
+// thread safety remain unknown.
+struct PrmSetCrossElfEvidenceConstants {
+    static constexpr std::uint32_t caller_dispatch_system_event_vma = 0x000d5b5c;
+    static constexpr std::uint32_t get_callsite_vma = 0x000d5b7a;
+    static constexpr std::uint32_t get_set_callsite_vma = 0x000d5b80;
+    static constexpr std::uint32_t parameter_id = 0x19;
+    static constexpr std::uint32_t get_set_plt_vma = 0x000cb224;
+    static constexpr std::uint32_t get_plt_vma = 0x000d30b8;
+};
+
 // Additional static layouts recovered from the 3.21 ParamBase family.  The
 // collection members are deliberately named storage/words: their allocator,
 // iterator and ownership ABI has not been proven and these are not live views.

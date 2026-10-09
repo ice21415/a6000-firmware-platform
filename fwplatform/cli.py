@@ -406,6 +406,16 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_param_set.add_argument("--elf", type=Path, required=True)
     sdk_param_set.add_argument("--expected-sha256", default=None)
     sdk_param_set.add_argument("--json", action="store_true")
+    sdk_param_set_cross = sdk_sub.add_parser("parameter-set-cross-elf")
+    sdk_param_set_cross.add_argument("--elf", type=Path)
+    sdk_param_set_cross.add_argument("--ghidra-export", type=Path)
+    sdk_param_set_cross.add_argument("--provider-elf", type=Path)
+    sdk_param_set_cross.add_argument("--expected-dependent-sha256", default=None)
+    sdk_param_set_cross.add_argument("--expected-provider-sha256", default=None)
+    sdk_param_set_cross.add_argument(
+        "--fixture", type=Path, default=Path("sdk/paramset_cross_elf_3_21.json")
+    )
+    sdk_param_set_cross.add_argument("--json", action="store_true")
     sdk_param_pair = sdk_sub.add_parser("parameter-pair")
     sdk_param_pair.add_argument("--elf", type=Path, required=True)
     sdk_param_pair.add_argument("--expected-sha256", default=None)
@@ -696,6 +706,29 @@ def main(argv: list[str] | None = None) -> int:
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-set-cross-elf":
+        from .paramset_cross_elf import (
+            EXPECTED_LIBOBJ_SHA,
+            probe_paramset_cross_elf,
+            validate_paramset_cross_elf,
+        )
+        if args.elf is not None or args.ghidra_export is not None:
+            if args.elf is None or args.ghidra_export is None:
+                raise ValueError("--elf and --ghidra-export must be supplied together")
+            result = probe_paramset_cross_elf(
+                args.elf,
+                args.ghidra_export,
+                expected_dependent_sha256=args.expected_dependent_sha256,
+                provider_elf=args.provider_elf,
+                expected_provider_sha256=args.expected_provider_sha256 or EXPECTED_LIBOBJ_SHA,
+            )
+        else:
+            result = json.loads(args.fixture.read_text(encoding="utf-8"))
+            validation = validate_paramset_cross_elf(result)
+            if not validation["valid"]:
+                raise ValueError("Invalid ParamSet cross-ELF contract: " + ",".join(validation["errors"]))
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "parameter-pair":

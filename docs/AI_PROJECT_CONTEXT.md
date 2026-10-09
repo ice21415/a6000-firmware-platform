@@ -433,3 +433,49 @@ used `ARM:LE:32:v8`, image base `0x10000`, and exited 0 with four targets, 31
 instruction rows, four blocks and two CFG edges. This is targeted static
 evidence only. Ownership, copy/assignment, exception handling, locking,
 runtime binding and callable SDK status remain unknown/false.
+
+## Cross-ELF ParamSet caller checkpoint (2026-10-10)
+
+`fwplatform/paramset_cross_elf.py` is the reusable cross-ELF importer for
+metadata-only Ghidra symbol-reference exports. It validates the complete
+JSONL marker and record count, keeps Ghidra image-base addresses separate from
+ELF VMAs, resolves undefined dynamic symbols through `.rel.plt` and ARM PLT
+instructions, and validates each application call instruction with Capstone.
+It never executes firmware and never emits instruction bytes or decompiler
+text. It resolves Ghidra references by exact relocation-bound PLT VMA rather
+than by a demangled name, preventing same-name `GET` symbols from other
+ParamBase families from being treated as `PrmSet` calls.
+
+`ghidra-scripts/ImportedSymbolReferences.java` accepts an output path and one
+or more exact or wildcard symbol names. It records symbol namespace, Ghidra
+address, ELF VMA, reference type, callsite, caller entry, address space and
+program SHA. PLT self references stay visible in private export data but are
+excluded from application caller relations by the Python analyzer.
+
+The first real dependent-ELF contract is
+`sdk/paramset_cross_elf_3_21.json`. The private 3.21 library scan found
+`libScalarDaemon.so` as the only scanned ELF importing both `PrmSet::GET` and
+`PrmSet::getSet`; the contract records its SHA, the authenticated `libObj.so`
+provider exports, relocation/GOT/PLT identities and the two application
+callsites. The static chain is:
+
+`EventDispatcher::dispatchSystemEvent` (`0xd5b5c`) → `GET` (`0xd5b7a`,
+`r1=0x19`) → null guard (`0xd5b7e`) → `getSet` (`0xd5b80`).
+
+The exact call edges are `PRIMARY_ELF_VERIFIED` through Ghidra plus Capstone;
+the contract exposes this as `chain_status=PRIMARY_ELF_VERIFIED` together with
+`chain_semantic_status=STATIC_INFERRED` for the composed source-level
+return/ownership interpretation. `runtime_verified=false` and `callable=false`
+are required.
+Run the private evidence path with:
+
+```text
+fw sdk parameter-set-cross-elf --elf <private-libScalarDaemon.so> \
+  --ghidra-export <private-imported-symbols.jsonl> \
+  --provider-elf <private-libObj.so> --json
+```
+
+Without private inputs, `fw sdk parameter-set-cross-elf --json` validates and
+prints the sanitized checked-in contract. Seven targeted parser/validator/CLI
+tests and the 328-test local suite pass. Raw firmware, Ghidra projects, JSONL
+exports and private paths stay outside the public checkout.
