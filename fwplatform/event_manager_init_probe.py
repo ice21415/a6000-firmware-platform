@@ -44,15 +44,19 @@ def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
     return data
 
 
-def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+def _decode_at(fp: Any, elf: ELFFile, entry: int, size: int, label: str) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
     rows = list(decoder.disasm(
-        _read_exec_range(fp, elf, TARGET["entry"], TARGET["size"]), TARGET["entry"]
+        _read_exec_range(fp, elf, entry, size), entry
     ))
     if not rows:
-        raise ValueError("EventManager initializer candidate did not decode")
+        raise ValueError(f"{label} did not decode")
     return {int(row.address): row for row in rows}
+
+
+def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+    return _decode_at(fp, elf, TARGET["entry"], TARGET["size"], "EventManager initializer candidate")
 
 
 def _immediates(ins: Any) -> list[int]:
@@ -82,7 +86,46 @@ def _binding(fp: Any, elf: ELFFile, entry: int) -> dict[str, Any]:
     return result
 
 
-def _observe(rows: dict[int, Any], mutex_init: dict[str, Any], array_alloc: dict[str, Any], word_alloc: dict[str, Any]) -> dict[str, Any]:
+def _observe_state_helpers(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    """Verify the local bounded state-object initialization chain."""
+    helper = _decode_at(fp, elf, 0x7F09BE, 0x14, "state helper")
+    clear_and_link = _decode_at(fp, elf, 0x1111B8, 0x14, "state clear/link helper")
+    zero = _decode_at(fp, elf, 0x1111AC, 0x0C, "state zero helper")
+    self_link = _decode_at(fp, elf, 0x1111A2, 0x0C, "state self-link helper")
+    wrapper = _decode_at(fp, elf, 0x1111CC, 0x0E, "state initialization wrapper")
+    clear_path = _decode_at(fp, elf, 0x1114B0, 0x14, "state clear path")
+    _require(helper, 0x7F09C4, "bl", target=0x1111CC)
+    _require(helper, 0x7F09CA, "bl", target=0x1114B0)
+    _require(wrapper, 0x1111D2, "bl", target=0x1111B8)
+    _require(clear_and_link, 0x1111BE, "bl", target=0x1111AC)
+    _require(clear_and_link, 0x1111C4, "bl", target=0x1111A2)
+    _require(zero, 0x1111AC, "movs", operands="r2, #0")
+    _require(zero, 0x1111AE, "str", operands="r2, [r0]")
+    _require(zero, 0x1111B4, "str", operands="r2, [r0, #4]")
+    _require(self_link, 0x1111A6, "str", operands="r0, [r0]")
+    _require(self_link, 0x1111A8, "str", operands="r0, [r0, #4]")
+    _require(clear_path, 0x1114B6, "bl", target=0x111438)
+    _require(clear_path, 0x1114C0, "b.w", target=0x1111A2)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_level": "STATIC_INFERRED",
+        "helper_entry": "0x7f09be",
+        "helper_chain": ["0x1111cc", "0x1111b8", "0x1111ac", "0x1111a2", "0x1114b0"],
+        "state_object_size": 8,
+        "state_object_layout": {
+            "+0x00": "link word; exact self-link store is [object] = object",
+            "+0x04": "link word; exact self-link store is [object + 4] = object",
+        },
+        "initialization": "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link",
+        "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
+        "ownership": "UNKNOWN; allocation/deallocation pairing is not established by this helper chain",
+    }
+
+
+def _observe(
+    rows: dict[int, Any], mutex_init: dict[str, Any], array_alloc: dict[str, Any],
+    word_alloc: dict[str, Any], state_helpers: dict[str, Any],
+) -> dict[str, Any]:
     _require(rows, 0x7EF894, "push")
     _require(rows, 0x7EF896, "mov", operands="r6, r2")
     _require(rows, 0x7EF89A, "mov", operands="r4, r0")
@@ -123,6 +166,7 @@ def _observe(rows: dict[int, Any], mutex_init: dict[str, Any], array_alloc: dict
             "state_+0": "8-byte allocation from _Znwj initialized by local 0x7f09be",
             "state_+4": "second 8-byte allocation from _Znwj initialized by local 0x7f09be",
         },
+        "state_initialization": state_helpers,
         "bindings": {"mutex_init": mutex_init, "state_array_alloc": array_alloc, "state_word_alloc": word_alloc},
         "runtime_verified": False,
         "callable": False,
@@ -150,6 +194,7 @@ def probe_event_manager_init(
             _binding(fp, elf, 0xE2AA0),
             _binding(fp, elf, 0xE0E00),
             _binding(fp, elf, 0xDC100),
+            _observe_state_helpers(fp, elf),
         )
     return {
         "status": "LOCAL_PRIMARY_ELF_EVENT_MANAGER_INIT_EVIDENCE_ONLY",
@@ -179,4 +224,32 @@ def validate_event_manager_init(report: dict[str, Any]) -> dict[str, Any]:
     for key in ("mutex_init", "state_array_alloc", "state_word_alloc"):
         if observation.get("bindings", {}).get(key, {}).get("status") != "VERIFIED_STATIC":
             errors.append(f"binding:{key}")
+    state = observation.get("state_initialization", {})
+    if state.get("status") != "PRIMARY_ELF_VERIFIED":
+        errors.append("state_initialization_status")
+    if state.get("semantic_level") != "STATIC_INFERRED":
+        errors.append("state_initialization_semantics")
+    if state.get("helper_entry") != "0x7f09be":
+        errors.append("state_initialization_helper")
+    if state.get("state_object_size") != 8:
+        errors.append("state_object_size")
+    if state.get("helper_chain") != ["0x1111cc", "0x1111b8", "0x1111ac", "0x1111a2", "0x1114b0"]:
+        errors.append("state_helper_chain")
+    if state.get("state_object_layout") != {
+        "+0x00": "link word; exact self-link store is [object] = object",
+        "+0x04": "link word; exact self-link store is [object + 4] = object",
+    }:
+        errors.append("state_object_layout")
+    if state.get("initialization") != (
+        "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link"
+    ):
+        errors.append("state_initialization_scope")
+    if state.get("source_container_type") != (
+        "UNKNOWN; no source-level class or standard-container identity is proven"
+    ):
+        errors.append("state_container_scope")
+    if state.get("ownership") != (
+        "UNKNOWN; allocation/deallocation pairing is not established by this helper chain"
+    ):
+        errors.append("state_ownership_scope")
     return {"valid": not errors, "errors": sorted(set(errors))}

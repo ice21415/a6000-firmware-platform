@@ -1312,7 +1312,7 @@ subtracting the image base. The private export/project remains outside the
 repository.
 
 The current full local `python -m unittest discover -s tests -v` run passes
-**364 tests**. These are synthetic/public evidence-gate tests; runtime
+**366 tests**. These are synthetic/public evidence-gate tests; runtime
 verification and callable API counts remain 0.
 
 ## EventManager helper-chain and mutex binding refinement — 2026-10-10
@@ -1334,3 +1334,18 @@ have unique static ARM/Thumb veneer bindings to `pthread_mutex_lock` at
 unknown. The updated private Ghidra export completed with 12 targets, 100
 instructions, 15 blocks and 18 edges. Runtime-verified and callable counts
 remain 0.
+
+## EventManager state-link initialization refinement — 2026-10-10
+
+The initializer candidate at `0x7ef894` allocates an 8-byte state array and
+two 8-byte state objects. The newly bounded helper probe confirms the local
+chain `0x7f09be -> 0x1111cc/0x1114b0`: `0x1111b8` writes zero to the two words
+before invoking `0x1111a2`, and `0x1111a2` stores the object pointer at both
+`+0x00` and `+0x04`. The second path calls a clear traversal and ends with the
+same self-link routine. These are `PRIMARY_ELF_VERIFIED` instruction facts;
+the composed two-word link-object interpretation is `STATIC_INFERRED`.
+
+No source-level container, constructor identity, allocation/deallocation
+pairing, ownership, cycle/termination guarantee or runtime safety is claimed.
+The private Ghidra cross-check exited 0 with 8 targets, 83 instruction rows,
+11 blocks and 18 edges. Runtime-verified and callable counts remain 0.

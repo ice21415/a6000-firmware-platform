@@ -940,3 +940,23 @@ runtime-verified and callable API counts remain 0.
 
 Next target: trace the EventManager state allocation/sentinel ownership path
 without promoting the forward-link candidate to a source-level container API.
+
+## Latest continuation checkpoint — EventManager state-link initialization (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was rechecked at initializer candidate
+`0x7ef894`. Its two `_Znwj` allocations each request 8 bytes and pass through
+`0x7f09be`. The bounded helper chain calls `0x1111cc` and `0x1114b0`; the
+`0x1111b8` path writes zero to `[object]` and `[object+4]` before calling
+`0x1111a2`, whose exact stores set both words to the object pointer. The second
+path calls `0x111438` and tail-branches to the same self-link helper. This
+supports an 8-byte two-word link-object candidate and explains the empty-chain
+shape observed by `EventManager::count`, but it does not identify a C++ class
+or standard container. Allocation/deallocation pairing, ownership,
+termination/cycle invariants and runtime behavior remain UNKNOWN.
+
+The private ASCII-path Ghidra 12.1.3 `event-manager-init` profile exited 0
+with `COMPLETE_TARGET_EXPORT`: 8 targets, 83 instruction rows, 11 blocks and
+18 edges. The local full suite is now 366 tests passed; runtime-verified and
+callable API counts remain 0. Next target: locate the destruction/ownership
+path for the two state objects without treating the static link layout as a
+safe callable API.

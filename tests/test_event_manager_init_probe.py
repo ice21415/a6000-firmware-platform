@@ -16,6 +16,20 @@ def _report():
         "observation": {
             "status": "PRIMARY_ELF_VERIFIED",
             "bindings": {"mutex_init": binding, "state_array_alloc": binding, "state_word_alloc": binding},
+            "state_initialization": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "semantic_level": "STATIC_INFERRED",
+                "helper_entry": "0x7f09be",
+                "helper_chain": ["0x1111cc", "0x1111b8", "0x1111ac", "0x1111a2", "0x1114b0"],
+                "state_object_size": 8,
+                "state_object_layout": {
+                    "+0x00": "link word; exact self-link store is [object] = object",
+                    "+0x04": "link word; exact self-link store is [object + 4] = object",
+                },
+                "initialization": "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link",
+                "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
+                "ownership": "UNKNOWN; allocation/deallocation pairing is not established by this helper chain",
+            },
         },
     }
 
@@ -46,6 +60,20 @@ class EventManagerInitProbeTests(unittest.TestCase):
         result = validate_event_manager_init(report)
         self.assertFalse(result["valid"])
         self.assertIn("runtime_or_callable_claim", result["errors"])
+
+    def test_state_semantic_promotion_is_rejected(self):
+        report = _report()
+        report["observation"]["state_initialization"]["semantic_level"] = "PRIMARY_ELF_VERIFIED"
+        result = validate_event_manager_init(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("state_initialization_semantics", result["errors"])
+
+    def test_missing_state_evidence_is_rejected(self):
+        report = _report()
+        report["observation"].pop("state_initialization")
+        result = validate_event_manager_init(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("state_initialization_status", result["errors"])
 
 
 if __name__ == "__main__":

@@ -850,7 +850,7 @@ used `ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`. It exited 0 with
 edges. Ghidra's mapped body `0x7ff9fc..0x7ffa1d` agrees with Capstone after
 subtracting the image base. The private project/export is not checked in.
 
-The full local `python -m unittest discover -s tests -v` run passed **364
+The full local `python -m unittest discover -s tests -v` run passed **366
 tests** after this addition; this is synthetic/public evidence-gate coverage,
 not runtime verification or a callable-API count.
 
@@ -881,3 +881,21 @@ The updated private ASCII-path Ghidra 12.1.3 profile used
 edges. The private project/export remains outside the repository. The
 contract is `sdk/event_manager_count_3_21.json`; runtime verification and
 callability remain false.
+
+## Phase 3.30 — EventManager state-link initialization evidence
+
+The initializer probe now expands the two state-word allocations made at
+`0x7ef8b6` and `0x7ef8ce`. The local helper `0x7f09be` calls `0x1111cc` and
+`0x1114b0`; the bounded chain verifies `0x1111b8` first clears `[object]` and
+`[object+4]`, then calls `0x1111a2`, whose two stores set both words to the
+object address. The second path traverses a clear helper and ends at the same
+self-link routine. This establishes an 8-byte two-word link-object candidate
+used for the two state slots, marked `PRIMARY_ELF_VERIFIED` for instruction
+facts and `STATIC_INFERRED` for the composed structure.
+
+The source-level container class, EventManager constructor identity, allocation
+and destruction pairing, ownership, cycle/termination invariant and runtime
+behavior remain UNKNOWN. The corrected private ASCII-path Ghidra 12.1.3
+initializer profile exited 0 with `COMPLETE_TARGET_EXPORT`: 8 targets, 83
+instruction rows, 11 blocks and 18 edges. The private project/export remains
+outside the repository; runtime verification and callability remain false.

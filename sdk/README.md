@@ -942,7 +942,10 @@ The SHA-pinned instructions store the incoming `r1` candidate at receiver
 result into `+0x08`, and allocate two eight-byte state words through the
 unique `_Znaj`/`_Znwj` PLT bindings. The layout is only a
 `STATIC_INFERRED` relation to `EventManager::push`; no constructor symbol
-proves the class identity. Helper `0x7f09be`, ownership, synchronization,
+proves the class identity. The bounded `0x7f09be` chain calls `0x1111b8`,
+whose zeroing path writes both words, and `0x1111a2`, whose stores make both
+words self-links. This confirms an 8-byte two-word link-object candidate;
+source-level container type, ownership, destruction, synchronization,
 exception behavior and runtime binding remain UNKNOWN. The contract is
 `sdk/event_manager_init_3_21.json`, and both runtime verification and
 callability remain false.

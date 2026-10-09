@@ -226,18 +226,23 @@ candidate, `pthread_mutex_init(receiver +0x0c, 0)`, provider vtable slot
 `+0x30` result at `+0x08`, and two eight-byte state allocations initialized
 through local `0x7f09be`. PLT bindings for `pthread_mutex_init`, `_Znaj` and
 `_Znwj` are unique static evidence. The association with EventManager is
-`STATIC_INFERRED` because no constructor symbol was proven. Ownership,
-helper semantics, destructor, exception behavior, runtime binding and
-callability remain unknown/false. Four fail-closed synthetic tests accompany
-`fw sdk event-manager-init`; the private firmware is never committed.
+`STATIC_INFERRED` because no constructor symbol was proven. The bounded helper
+chain now verifies that `0x1111b8` clears the two words and `0x1111a2` writes
+the two self-links at `+0x00` and `+0x04`; this is a structural observation,
+not a source-level container name. Ownership, destruction, exception behavior,
+runtime binding and callability remain unknown/false. Six fail-closed synthetic
+tests accompany `fw sdk event-manager-init`; the private firmware is never
+committed.
 
 The private Ghidra cross-check for the initializer uses the ASCII Ghidra
 12.1.3 installation and a dedicated `event-manager-init` target profile in
 `ghidra-scripts/ParamListTargets.java`. With `-noanalysis`, headless execution
 exited 0 and reproduced the 78-byte body at image-base-mapped address
 `0x7ff894` (original `ELF_VMA 0x7ef894`), all 27 instruction boundaries and
-six call edges. The decompiler leaves parameters undefined, so Capstone and
-Ghidra agree on instruction/layout facts only. A separate full Auto Analysis
+six call edges. The updated profile also exports the bounded helper chain as
+8 targets, 83 instruction rows, 11 blocks and 18 edges. The decompiler leaves
+parameters undefined, so Capstone and Ghidra agree on instruction/layout facts
+only. A separate full Auto Analysis
 attempt was intentionally stopped before completion; it is not counted as a
 successful analysis.
 

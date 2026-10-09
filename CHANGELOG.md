@@ -13,8 +13,14 @@
 - A corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
   exited 0 with `COMPLETE_TARGET_EXPORT`, 13 instruction rows, 1 block and
   3 call edges. The private project/export remains outside this repository.
-- The full local regression suite passes 364 tests; runtime-verified and
+- The full local regression suite passes 366 tests; runtime-verified and
   callable API counts remain 0.
+- Refined the private-only `event-manager-init` probe through `0x7f09be`:
+  `0x1111b8` zeroes the two words and `0x1111a2` writes the two self-links;
+  the source-level container, ownership and destruction path remain UNKNOWN.
+- The updated private initializer Ghidra profile exited 0 with
+  `COMPLETE_TARGET_EXPORT`: 8 targets, 83 instruction rows, 11 blocks and
+  18 edges. The export remains outside the repository.
 - Extended the probe with the bounded `0x7f0aa0` forward-link distance chain
   and unique static PLT bindings for `pthread_mutex_lock` and
   `pthread_mutex_unlock` at the receiver `+0x0c` field. The source-level
