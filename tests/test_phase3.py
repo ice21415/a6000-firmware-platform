@@ -22,7 +22,7 @@ from fwplatform.sdk import build_sdk_index
 class Phase3Tests(unittest.TestCase):
     def _db(self, root: Path) -> Database:
         db = Database(root / "test.db")
-        self.assertEqual(db.migrate(), 6)
+        self.assertEqual(db.migrate(), 7)
         return db
 
     def test_ghidra_explicit_caller_and_cfg_are_idempotent(self) -> None:
