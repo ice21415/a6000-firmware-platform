@@ -128,6 +128,13 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 新增 `sdk/ui_camera_3_21_rea_bridge.json` 及 `fw sdk rea-bridge`，從私人保存的兩種原始分析產物唯讀重核 UI request／地址偏移／Thumb MOVW 與 BL，另有 synthetic 測試。跨 ELF 訊息轉換、事件隊列與接收映射未證實，所有 ABI／runtime callable 保留 UNKNOWN。
 - 目前 ChatGPT session 的可列出 Skill 中沒有可即時執行的 REA/Ghidra 功能；本階段使用先前保存的成功 REA evidence 與已連線 Codex 工作區，並未重新啟動 live Ghidra session。
 
+## Phase 3.14（UI→Camera 事件封裝層已定位，消費端仍未知）
+
+- 新增 `sdk/camera_3_21_model_execute_envelope.json` 與 `fw sdk event-envelope`：用既有原始 ELF 的靜態組語報告，定位 `libObj.so` 中 `ViewBase::requestModelExecute` (`0x12106e`) 對 `IdGenerator::Get`、未知 `0x12d780` selector 轉換、`createRequestModelExecuteEvent` 與 `View::requestApplicationExecute` 的連續呼叫。
+- 另定位同名 `AbstractUtilityManager::createRequestModelExecuteEvent` 實作入口候選 `0x7f0b0c`：建立事件 ID `0x11004003`、可選 `ParamList`、寫入 parameter keys `7`（model identifier）與 `8`（helper 轉換輸出）。這是有保存來源的 **event envelope 靜態線索**，不是完整 wire protocol／ABI。
+- `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
+- 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
