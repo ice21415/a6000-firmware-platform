@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.13：利用已保存的 REA/Ghidra UI 反編譯與獨立 Camera raw ELF/Capstone 區段，建立 `sdk rea-bridge` 跨 ELF selector 研究核對；區分 UI 地址 `0x1b2504→0x1a2504`、兩端 `0x0f01`、事件投遞未證實，以及靜態呼叫位置不等於 runtime 次數。
+- 新增 REA metadata fixture、嚴格 saved UI pseudocode count 和 Thumb MOVW/BL byte decoder 的 synthetic 測試。沒有執行任何韌體、接觸設備或聲稱 Sony ABI 已完成。
+
+
 - Phase 3.12：新增 `fw sdk research --verify-elf`，只讀原始私有 ELF，驗證 SHA-256、ELF32 ARM executable segment VMA、Thumb BL/B.W 直接分支與 LDRB.W/STRB.W byte displacement；失配非零退出，不執行任何 firmware code。另將 ModelCamera byte instruction immediate 與研究推論 object-root 調整量分開保存。
 - 增加純合成 ELF32/Thumb 負位移和欄位立即數回歸測試；沒有假定報告可直接提供 Sony ABI、parameters、return values 或 runtime callability。
 
