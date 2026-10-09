@@ -416,3 +416,18 @@ UNKNOWN. Runtime-verified and callable counts remain zero.
 Private ASCII Ghidra 12.1.3 targeted output exited 0 with 4 targets, 54
 instructions, 4 blocks and 9 edges. Five synthetic validator tests were
 added; no firmware bytes or private analysis exports were committed.
+
+## Phase 3.32 — PrmCntInfoList collection growth evidence
+
+The SHA-pinned private probe now covers the CntInfoList indexing helper at
+`0x11d47e`, length forwarding at `0xe77a2`, full-capacity append at `0x11d8b0`,
+and the 32-bit word copy helper at `0xecd7a`. These observations support
+only a word-width candidate and two 0x28-byte collection regions; the C++
+container, allocator, bounds, exception and synchronization contracts remain
+unknown. The targeted private Ghidra profile exited 0 with 18 targets, 237
+instruction rows, 22 blocks and 47 CFG edges. Runtime-verified and callable
+SDK counts remain zero.
+The CntInfoList lifecycle extension now includes clone target `0x11da18` and
+the deleting destructor target `0x11d590`; both remain static-only and
+non-callable. The current targeted Ghidra run is 18 targets, 237 instructions,
+22 blocks and 47 edges, exit 0.

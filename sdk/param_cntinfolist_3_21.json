@@ -9,7 +9,8 @@
   "layout": {
     "object_size_bytes": 92,
     "collection_regions": ["+0x0c", "+0x34"],
-    "element_type": "UNKNOWN; Ejj method arguments are unsigned-int candidates",
+    "element_type": "32-bit word candidate; Ejj method arguments and 0xecd7a word copy support width only, not a C++ container element type",
+    "vtable_contract": "RTTI/vtable slots are recorded by parameter-family-probe; this contract does not claim a standard-library container",
     "key_initialization": "not observed in constructors; ParamList::add key setter 0x7eda84 remains the primary witness"
   },
   "methods": [
@@ -84,12 +85,48 @@
       "safe_to_call": false
     },
     {
+      "name": "collection_index_helper",
+      "entry": "0x11d47e",
+      "abi": "r0=collection-like storage; r1=index candidate",
+      "effect": "forwards the index through local helpers 0xe7cd6 and 0xe7e5c using a 16-byte temporary, then reads its first word",
+      "evidence": ["ELF_VMA:0x11d482", "ELF_VMA:0x11d486", "ELF_VMA:0x11d48c", "ELF_VMA:0x11d492", "ELF_VMA:0x11d49c"],
+      "bounds_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_length_helper",
+      "entry": "0xe77a2",
+      "abi": "r0=collection-like storage",
+      "effect": "forwards metadata words at +0x18 and +0x20 to local length arithmetic at 0xe7774",
+      "evidence": ["ELF_VMA:0xe77a2", "ELF_VMA:0xe77a4", "ELF_VMA:0xe77aa", "ELF_VMA:0xe77b2"],
+      "return_type": "UNKNOWN; length-like arithmetic result",
+      "safe_to_call": false
+    },
+    {
       "name": "append_helper",
       "entry": "0x11d8e6",
       "abi": "r0=collection-like storage; r1=pointer to one input word",
       "effect": "non-full path stores through 0xecd7a and advances end; full path reaches 0x11d8b0",
       "evidence": ["ELF_VMA:0x11d8ea", "ELF_VMA:0x11d8ee", "ELF_VMA:0x11d8f4", "ELF_VMA:0x11d8f6", "ELF_VMA:0x11d8fa", "ELF_VMA:0x11d902"],
       "identity": "local helper identity UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "append_growth_helper",
+      "entry": "0x11d8b0",
+      "abi": "r0=collection-like storage; r1=pointer to one input word",
+      "effect": "full-capacity path requests one element, obtains replacement storage, copies one word and rebuilds end/capacity metadata",
+      "evidence": ["ELF_VMA:0x11d8b8", "ELF_VMA:0x11d8ba", "ELF_VMA:0x11d8c2", "ELF_VMA:0x11d8d2", "ELF_VMA:0x11d8dc", "ELF_VMA:0x11d8e2"],
+      "allocator_and_exception_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_word_copy",
+      "entry": "0xecd7a",
+      "abi": "r1=destination word pointer; r2=source word pointer",
+      "effect": "when r1 is non-null, copies one 32-bit word from [r2] to [r1]",
+      "evidence": ["ELF_VMA:0xecd7e", "ELF_VMA:0xecd80", "ELF_VMA:0xecd82", "ELF_VMA:0xecd84"],
+      "null_behavior": "null destination skips the copy; source validity remains UNKNOWN",
       "safe_to_call": false
     },
     {
@@ -100,6 +137,16 @@
       "effect": "appends r1 to +0x0c and r2 to +0x34 through 0x11d8e6",
       "evidence": ["ELF_SYMBOL:0x11d90f:size=40", "ELF_VMA:0x11d916", "ELF_VMA:0x11d920", "ELF_VMA:0x11d924", "ELF_VMA:0x11d92a"],
       "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "clone",
+      "entry": "0x11da18",
+      "abi": "r0=source PrmCntInfoList* candidate",
+      "effect": "allocates a distinct 0x5c-byte destination, copies both collection regions through local paths, and cleans temporary copies",
+      "evidence": ["ELF_VMA:0x11da20", "ELF_VMA:0x11da2e", "ELF_VMA:0x11da36", "ELF_VMA:0x11da38", "ELF_VMA:0x11da44", "ELF_VMA:0x11da4a", "ELF_VMA:0x11da52", "ELF_VMA:0x11da5e", "PLT:0xdc100:_Znwj"],
+      "return_type": "UNKNOWN; destination-shaped pointer only",
+      "ownership": "UNKNOWN",
       "safe_to_call": false
     },
     {
@@ -129,13 +176,22 @@
       "evidence": ["ELF_SYMBOL:0x11d54d:size=68", "ELF_VMA:0x11d568", "ELF_VMA:0x11d56e", "ELF_VMA:0x11d574", "ELF_VMA:0x11d57a", "ELF_VMA:0x11d580"],
       "ownership": "allocator and exception behavior UNKNOWN",
       "safe_to_call": false
+    },
+    {
+      "name": "deleting_destructor",
+      "entry": "0x11d590",
+      "abi": "r0=object candidate",
+      "effect": "calls the relocation-bound PrmCntInfoList destructor through PLT 0xdf3d0, then operator delete through PLT 0xdd620",
+      "evidence": ["ELF_VMA:0x11d596", "ELF_VMA:0x11d59c", "ELF_VMA:0x11d5a2", "PLT:0xdf3d0:_ZN14PrmCntInfoListD1Ev", "PLT:0xdd620:_ZdlPv"],
+      "allocator_and_runtime_binding": "UNKNOWN",
+      "safe_to_call": false
     }
   ],
   "runtime_verified": false,
   "callable": false,
   "limitations": [
     "No runtime execution or device validation",
-    "Collection element types, bounds behavior, allocator, exception and synchronization semantics remain UNKNOWN",
+    "Collection C++ element type, bounds behavior, allocator, exception and synchronization semantics remain UNKNOWN",
     "Local helper and base-destruction names are not promoted to confirmed C++ identities",
     "This is a descriptive ABI evidence record, not a native wrapper"
   ]

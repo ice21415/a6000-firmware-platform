@@ -47,6 +47,21 @@ class ParamCntInfoListProbeTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("runtime_or_callable_claim", result["errors"])
 
+    def test_collection_growth_observation_is_required(self):
+        report = _report()
+        del report["observations"]["append_growth_helper"]
+        result = validate_param_cntinfolist(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("missing_observations", result["errors"])
+
+    def test_unknown_collection_semantics_are_not_promoted(self):
+        report = _report()
+        report["payload_layout"] = {"element_type": "std::vector<unsigned int>"}
+        # The validator deliberately checks provenance-bearing observations only;
+        # callers must not treat a free-form layout label as a verified ABI.
+        result = validate_param_cntinfolist(report)
+        self.assertTrue(result["valid"])
+
 
 if __name__ == "__main__":
     unittest.main()

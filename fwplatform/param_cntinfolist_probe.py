@@ -15,6 +15,7 @@ from capstone import CS_ARCH_ARM, CS_MODE_THUMB, Cs
 from capstone.arm import ARM_OP_IMM
 from elftools.elf.elffile import ELFFile
 
+from .elf_plt import resolve_plt_binding
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -32,15 +33,21 @@ TARGETS: tuple[dict[str, Any], ...] = (
      "symbol": "_ZN14PrmCntInfoList7getItemEj"},
     {"name": "get_group", "entry": 0x11D4DA, "size": 14,
      "symbol": "_ZN14PrmCntInfoList8getGroupEj"},
+    {"name": "collection_index_helper", "entry": 0x11D47E, "size": 32},
+    {"name": "collection_length_helper", "entry": 0xE77A2, "size": 20},
     {"name": "append_helper", "entry": 0x11D8E6, "size": 40},
+    {"name": "append_growth_helper", "entry": 0x11D8B0, "size": 54},
+    {"name": "collection_word_copy", "entry": 0xECD7A, "size": 12},
     {"name": "add", "entry": 0x11D90E, "size": 40,
      "symbol": "_ZN14PrmCntInfoList3addEjj"},
+    {"name": "clone", "entry": 0x11DA18, "size": 100},
     {"name": "default_constructor", "entry": 0x11D680, "size": 84,
      "symbol": "_ZN14PrmCntInfoListC1Ev"},
     {"name": "argument_constructor", "entry": 0x11D938, "size": 120,
      "symbol": "_ZN14PrmCntInfoListC1Ejj"},
     {"name": "destructor", "entry": 0x11D54C, "size": 68,
      "symbol": "_ZN14PrmCntInfoListD1Ev"},
+    {"name": "deleting_destructor", "entry": 0x11D590, "size": 20},
 )
 
 
@@ -199,6 +206,65 @@ def _observe_append(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_collection_index(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the bounded index-to-word helper without naming its container."""
+    _require(rows, 0x11D482, "mov", operands="r3, r0")
+    _require(rows, 0x11D486, "mov", operands="r2, r1")
+    _require(rows, 0x11D48C, "bl", target=0xE7CD6)
+    _require(rows, 0x11D492, "bl", target=0xE7E5C)
+    _require(rows, 0x11D49C, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "collection-like storage in r0",
+        "index": "value forwarded from r1 into the local collection helper chain",
+        "temporary": "16-byte stack temporary is populated by 0xe7cd6 and reduced by 0xe7e5c",
+        "return": "first word loaded from the temporary; element bounds and invalid-index behavior UNKNOWN",
+    }
+
+
+def _observe_collection_length(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0xE77A2, "mov", operands="r1, r0")
+    _require(rows, 0xE77A4, "add.w", operands="r0, r0, #0x18")
+    _require(rows, 0xE77AA, "adds", operands="r1, #8")
+    _require(rows, 0xE77B2, "b.w", target=0xE7774)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "collection-like storage in r0",
+        "metadata": "forwards storage metadata at +0x18 and +0x20 through local arithmetic helper 0xe7774",
+        "return": "length-like arithmetic result; exact container type and signedness UNKNOWN",
+    }
+
+
+def _observe_append_growth(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0x11D8B8, "movs", operands="r1, #1")
+    _require(rows, 0x11D8BA, "bl", target=0xE8672)
+    _require(rows, 0x11D8C2, "bl", target=0xE7AA0)
+    _require(rows, 0x11D8D2, "bl", target=0xECD7A)
+    _require(rows, 0x11D8DC, "bl", target=0xE77F6)
+    _require(rows, 0x11D8E2, "str", operands="r3, [r4, #0x18]")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "path": "full-capacity append path",
+        "capacity": "requests one additional element through local capacity helper 0xe8672",
+        "storage": "obtains replacement storage through local helper 0xe7aa0",
+        "value": "copies one input word through 0xecd7a, then rebuilds end/capacity metadata via 0xe77f6",
+        "allocator_and_exception_behavior": "UNKNOWN",
+    }
+
+
+def _observe_word_copy(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0xECD7E, "cbz", target=0xECD84)
+    _require(rows, 0xECD80, "ldr", operands="r3, [r2]")
+    _require(rows, 0xECD82, "str", operands="r3, [r1]")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "destination": "r1, when non-null",
+        "source": "r2 points to one readable 32-bit word",
+        "effect": "copies one 32-bit word; no destination allocation or source ownership change observed",
+        "null_behavior": "null destination skips the load/store; source validity remains UNKNOWN",
+    }
+
+
 def _observe_add(rows: dict[int, Any]) -> dict[str, Any]:
     _require(rows, 0x11D916, "add.w", operands="r0, r0, #0xc")
     _require(rows, 0x11D920, "bl", target=0x11D8E6)
@@ -210,6 +276,26 @@ def _observe_add(rows: dict[int, Any]) -> dict[str, Any]:
         "arguments": "r1/r2 are unsigned int candidates from _ZN14PrmCntInfoList3addEjj",
         "effect": "appends r1 to collection +0x0c and r2 to collection +0x34",
         "return_type": "UNKNOWN",
+    }
+
+
+def _observe_clone(rows: dict[int, Any], allocation_binding: dict[str, Any]) -> dict[str, Any]:
+    _require(rows, 0x11DA20, "add.w", operands="r1, r4, #0xc")
+    _require(rows, 0x11DA2E, "add.w", operands="r1, r4, #0x34")
+    _require(rows, 0x11DA36, "movs", operands="r0, #0x5c")
+    _require(rows, 0x11DA38, "blx", target=0xDC100)
+    _require(rows, 0x11DA44, "bl", target=0x11D9B0)
+    _require(rows, 0x11DA4A, "bl", target=0xE7A5E)
+    _require(rows, 0x11DA52, "bl", target=0xE7A5E)
+    _require(rows, 0x11DA5E, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "source PrmCntInfoList* in r0",
+        "allocation": "allocates a distinct 0x5c-byte destination through 0xdc100",
+        "copy": "materializes both source collection regions into stack temporaries, then forwards them to local copy path 0x11d9b0",
+        "cleanup": "cleans both temporary regions through 0xe7a5e on the normal path",
+        "return": "destination-shaped pointer observed in r0; source-level clone return type and ownership remain UNKNOWN",
+        "operator_new_binding": allocation_binding,
     }
 
 
@@ -244,6 +330,21 @@ def _observe_destructor(rows: dict[int, Any]) -> dict[str, Any]:
         "effect": "cleans both embedded collection regions then calls local ParamBase destruction path 0xe4734",
         "collection_cleanup": "0x11d52a and 0xe7a5e",
         "allocator_and_exception_behavior": "UNKNOWN",
+    }
+
+
+def _observe_deleting_destructor(
+    rows: dict[int, Any], destructor_binding: dict[str, Any], delete_binding: dict[str, Any],
+) -> dict[str, Any]:
+    _require(rows, 0x11D596, "blx", target=0xDF3D0)
+    _require(rows, 0x11D59C, "blx", target=0xDD620)
+    _require(rows, 0x11D5A2, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "nondeleting_call": "dispatches to the PrmCntInfoList destructor PLT before operator delete",
+        "destructor_binding": destructor_binding,
+        "operator_delete_binding": delete_binding,
+        "return": "receiver-shaped r0 after deletion path; runtime allocator and callable safety UNKNOWN",
     }
 
 
@@ -287,16 +388,35 @@ def probe_param_cntinfolist(
                 facts = _observe_getter(rows, 0x34, 0x11D49E)
             elif name == "get_group":
                 facts = _observe_getter(rows, 0x0C, 0x11D49E)
+            elif name == "collection_index_helper":
+                facts = _observe_collection_index(rows)
+            elif name == "collection_length_helper":
+                facts = _observe_collection_length(rows)
             elif name == "append_helper":
                 facts = _observe_append(rows)
+            elif name == "append_growth_helper":
+                facts = _observe_append_growth(rows)
+            elif name == "collection_word_copy":
+                facts = _observe_word_copy(rows)
             elif name == "add":
                 facts = _observe_add(rows)
+            elif name == "clone":
+                facts = _observe_clone(
+                    rows,
+                    resolve_plt_binding(fp, elf, 0xDC100, thumb_stub=False),
+                )
             elif name == "default_constructor":
                 facts = _observe_constructor(rows, False)
             elif name == "argument_constructor":
                 facts = _observe_constructor(rows, True)
-            else:
+            elif name == "destructor":
                 facts = _observe_destructor(rows)
+            else:
+                facts = _observe_deleting_destructor(
+                    rows,
+                    resolve_plt_binding(fp, elf, 0xDF3D0, thumb_stub=False),
+                    resolve_plt_binding(fp, elf, 0xDD620, thumb_stub=False),
+                )
             observations[name] = {
                 "entry_vma": hex(int(target["entry"])),
                 "size_bytes": int(target["size"]),
@@ -312,7 +432,8 @@ def probe_param_cntinfolist(
         "payload_layout": {
             "object_size_bytes": 92,
             "collection_regions": ["+0x0c", "+0x34"],
-            "element_type": "UNKNOWN; method arguments are unsigned int candidates",
+            "element_type": "32-bit word candidate; C++ element type and allocator remain UNKNOWN",
+            "vtable_contract": "see parameter-family probe for RTTI/vtable slots; this probe does not reclassify vtable names",
         },
         "observations": observations,
         "runtime_verified": False,

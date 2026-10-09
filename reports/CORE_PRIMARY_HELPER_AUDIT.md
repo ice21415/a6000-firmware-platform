@@ -642,3 +642,43 @@ The private ASCII Ghidra 12.1.3 targeted `param-struct` profile exited 0 with
 external libraries and undefined decompiler types are supporting evidence,
 not complete C++ recovery. Five fail-closed synthetic tests cover identity,
 discriminator, observation completeness and non-callable metadata.
+
+## PrmCntInfoList collection helper and word-copy checkpoint — 2026-10-10
+
+The CntInfoList probe now covers eighteen bounded regions rather than only the
+exported wrappers. The additional primary-ELF observations are:
+
+| Region | Confirmed machine fact | Still unknown |
+|---|---|---|
+| `0x11d47e` | forwards the receiver/index through `0xe7cd6` and `0xe7e5c` using a 16-byte temporary, then reads its first word | bounds checking, iterator and source-level container type |
+| `0xe77a2` | adjusts collection metadata addresses and tail-branches to `0xe7774` for length-like arithmetic | signedness, exact fields and container identity |
+| `0x11d8b0` | full-capacity append requests one element, obtains replacement storage, copies one word, and rebuilds end/capacity metadata | allocator pairing, exception behavior, relocation safety and synchronization |
+| `0xecd7a` | conditionally copies one 32-bit word from `[r2]` to `[r1]` | source validity, element type beyond width, ownership |
+
+The existing `0x11d8e6` fast path and `PrmCntInfoList::add(unsigned,unsigned)`
+now have a directly observed growth branch and copy helper. This supports a
+**32-bit word element candidate** and two 0x28-byte collection regions at
+object `+0x0c` and `+0x34`; it does not establish `std::vector`, a standard
+allocator, or a callable C++ ABI. The public header represents both regions
+as ten unnamed words each so that the offsets are queryable without inventing
+field semantics.
+
+The private ASCII-path Ghidra 12.1.3 targeted `param-cntinfolist` profile
+exited 0 with 18 targets, 237 instruction rows, 22 blocks and 47 CFG edges.
+The export is private and contains no firmware bytes in the repository. The
+RTTI/vtable identity remains provided by the separate parameter-family probe:
+it confirms the `PrmCntInfoList` RTTI/vtable relation and destructor slots, but
+does not convert the collection into a named standard-library type.
+
+The contract is `sdk/param_cntinfolist_3_21.json`; runtime verification,
+thread-safety, null-input safety and callable SDK counts remain zero. The
+synthetic validator now requires the growth helper observation and continues
+to reject runtime/callable promotion.
+
+The same profile now also includes the vtable clone target `0x11da18` and
+non-deleting/destructor-delete target `0x11d590`. The clone allocates a new
+0x5c-byte object and copies both collection regions through a local copy path;
+the deleting path calls the relocation-bound `PrmCntInfoListD1` PLT then
+`_ZdlPv`. These are lifetime/control-flow facts only: source-level clone
+return type, ownership transfer, allocator pairing, exception paths and
+runtime safety remain UNKNOWN.

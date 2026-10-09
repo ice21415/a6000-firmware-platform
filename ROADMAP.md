@@ -208,3 +208,10 @@ The two handoff target bodies have now been read from the authenticated private
 ELF. See `reports/CORE_PRIMARY_HELPER_AUDIT.md`. Next review ParamList::get
 at ELF VMA 0x7edaca, recover wrapper class identity, and repair targeted Ghidra
 tail-call decompilation/logging. Runtime-safe SDK API count remains zero.
+
+### ParamBase follow-up: CntInfoList collection helpers
+
+The next static milestone is to map the newly confirmed word-width collection
+helpers to construction/use sites while preserving unknown allocator, bounds,
+exception and synchronization semantics. Any future SDK declaration remains
+read-only and descriptive until caller and runtime evidence exist.

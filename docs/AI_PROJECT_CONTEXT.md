@@ -301,3 +301,14 @@ Contract: `sdk/param_string_3_21.json`. Five fail-closed synthetic tests are
 included. Private Ghidra targeted cross-check: exit 0, 4 targets, 60
 instructions, 6 blocks and 14 edges. Runtime verification and callability
 remain false.
+
+## Phase 3.32 — PrmCntInfoList collection growth evidence
+
+The new bounded probe regions are available through
+`fw sdk parameter-cntinfolist --elf <private-libObj.so> --json`. It records the
+index helper, length arithmetic, full-capacity append branch and guarded
+32-bit word copy. The public header exposes two ten-word storage candidates at
+`+0x0c` and `+0x34` without naming a standard container. Private targeted
+Ghidra exited 0 with 18 targets, 237 instructions, 22 blocks and 47 edges.
+This remains PRIMARY_ELF_VERIFIED static evidence only; runtime verification,
+thread safety, null safety and callable ABI remain UNKNOWN/false.

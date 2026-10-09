@@ -241,3 +241,10 @@
   `0x7ef960`. It records the AAPCS32 candidates, status branch, `[this+8]`
   dispatch, optional `[this+4]` completion callback and zero return while
   preserving indirect target and runtime semantics as unknown.
+
+## 2026-10-10 — PrmCntInfoList collection growth evidence
+
+Extended the private-only CntInfoList probe and Ghidra target profile with
+index, length, growth and word-copy helpers. Updated the descriptive contract
+and public snapshot header. No firmware bytes, raw disassembly or private
+Ghidra output were added; runtime and callable API counts remain zero.

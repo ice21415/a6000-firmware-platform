@@ -78,11 +78,16 @@ static_assert(sizeof(PrmNumberListSnapshotWords) == 24);
 
 struct PrmCntInfoListSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
-    // +0x0c..+0x5b contains two dynamic collection regions.  Their complete
-    // element/allocator representation is not yet a verified public ABI.
-    std::uint32_t unknown_collection_storage[20];
+    // Each region occupies 0x28 bytes in the object.  The word-level fields
+    // are intentionally unnamed: the private helper bodies prove 32-bit
+    // loads/stores and metadata updates, but do not prove std::vector,
+    // allocator, iterator, or ownership semantics.
+    struct CollectionWords {
+        std::uint32_t unknown_word[10];
+    } collection_0c, collection_34;
 };
-static_assert(offsetof(PrmCntInfoListSnapshotWords, unknown_collection_storage) == 12);
+static_assert(offsetof(PrmCntInfoListSnapshotWords, collection_0c) == 12);
+static_assert(offsetof(PrmCntInfoListSnapshotWords, collection_34) == 52);
 static_assert(sizeof(PrmCntInfoListSnapshotWords) == 92);
 
 struct PrmObjMsgSnapshotWords {
