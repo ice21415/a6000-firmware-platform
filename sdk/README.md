@@ -189,7 +189,13 @@ python -m fwplatform.cli --db C:\private\firmware-copy.db sdk audit --json
 `sdk research` verifies *internal consistency* of ELF digests, candidate
 entry ownership, reported direct-branch targets, field observation and
 selector metadata. It rejects forged VERIFIED_STATIC/runtime/ABI assertions,
-numeric entry alias collisions and raw private source paths. It **cannot**
+numeric entry alias collisions and raw private source paths. A supplied `--compare-db` opens the SQLite research index read-only,
+does not migrate it, and checks whether the exact ELF SHA, normalized
+function-entry VMA, and direct caller/callee IDs are present. Missing,
+ambiguous and mismatching entries remain explicit; successful index
+matches **do not** promote API/ABI status.
+
+It **cannot**
 revalidate instruction bytes without the private original ELF, prove ABI,
 trace runtime execution or authorize callable Camera APIs. The private
 `libObj.so` reverse-engineering results were generated before this PR and
