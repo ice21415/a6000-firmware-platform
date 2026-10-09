@@ -45,11 +45,30 @@ def _verify_saved_movw(raw: bytes, immediate: int) -> bool:
         return False
     h1 = int.from_bytes(raw[:2], "little")
     h2 = int.from_bytes(raw[2:4], "little")
-    if (h1 & 0xFBF0) != 0xF240 or (h2 & 0x8000):
+    if (h1 & 0xFBF0) != 0xF240 or (h2 & 0x8000) or ((h2 >> 8) & 15) != 3:
         return False
     imm16 = ((h1 & 15) << 12) | (((h1 >> 10) & 1) << 11) | (
         ((h2 >> 12) & 7) << 8) | (h2 & 255)
     return imm16 == immediate
+
+
+def _selector_eq_guard(raw: bytes) -> bool:
+    """Bounded check for CMP r0,r3 followed by conditional BNE.W.
+
+    This proves two opcode forms only, not complete branch reachability
+    or any external message-routing semantics.
+    """
+    if len(raw) != 6:
+        return False
+    cmp16 = int.from_bytes(raw[:2], "little")
+    bne1 = int.from_bytes(raw[2:4], "little")
+    bne2 = int.from_bytes(raw[4:6], "little")
+    return (
+        cmp16 == 0x4298
+        and (bne1 & 0xF800) == 0xF000
+        and ((bne1 >> 6) & 15) == 1
+        and (bne2 & 0xD000) == 0x8000
+    )
 
 
 def _load_object(path: Path, max_size: int) -> dict[str, Any]:
@@ -153,6 +172,10 @@ def audit_rea_ui_camera_bridge(
             raise ValueError("reported Camera opcode sites outside saved byte slice")
         if not _verify_saved_movw(raw[mi:mi + 4], selector):
             raise ValueError("Camera raw Thumb MOVW selector operand differs")
+        if mi + 10 > len(raw) or not _selector_eq_guard(raw[mi + 4:mi + 10]):
+            raise ValueError("Camera raw selector CMP/BNE.W equality guard differs")
+        if bi < mi + 10:
+            raise ValueError("Camera BL overlaps selector equality guard")
         call = _thumb_imm_branch(raw[bi:bi + 4], branch_vma)
         target = _number(camera.get("callee_elf_vma"), "Camera callee")
         if call != ("bl", target):
@@ -166,7 +189,7 @@ def audit_rea_ui_camera_bridge(
         if ((hex(movw_vma), "movw", f"r3, #{hex(selector)}") not in pairs
                 or (hex(branch_vma), "bl", f"#{hex(target)}") not in pairs):
             raise ValueError("saved Capstone metadata does not agree with raw byte decoder")
-        checks["camera_saved_raw_instruction_slice"] = "THUMB_MOVW_SELECTOR_AND_BL_TARGET_MATCH"
+        checks["camera_saved_raw_instruction_slice"] = "THUMB_MOVW_CMP_BNE_GUARD_AND_BL_TARGET_MATCH"
     status = ("BOTH_SAVED_ENDPOINTS_RECHECKED_MESSAGE_ROUTE_UNVERIFIED"
               if all(v != "NOT_PROVIDED" for v in checks.values())
               else "SAVED_ENDPOINTS_PARTIALLY_RECHECKED_MESSAGE_ROUTE_UNVERIFIED")
