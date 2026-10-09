@@ -159,6 +159,48 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.11: static ModelCamera reverse-engineering bundle (no device access)
+
+The private Sony ILCE-6000 3.21 ELF was located in the connected research
+workspace. Previously saved disassembly reports identify a conservative set of
+**14** `libObj.so` Camera function-entry candidates including
+`ActionGpSetSetting`, `pvt_ActionSetInit`, `pvt_ExeEENeutralCmd`,
+`PrepChk`, `PrepON`, `PrepOFF`, the common prepare setter, ACTIVE
+completion helper and state selector dispatch. The candidate review fixture
+`sdk/camera_3_21_static_candidates.json` is importable into a **private
+copied** SQLite database and intentionally leaves ABI/arguments/returns NULL.
+
+`sdk/camera_3_21_static_callgraph.json` records nine *reported* static
+call/tail branches, six model byte-field observations, four bounded normalized
+selector transitions and one unresolved indirect dispatch. It is a manually
+transcribed summary of saved, private instruction-level research, **not**
+primary instruction or ABI evidence redistributed in this repository.
+
+Review it without opening SQLite, executing an ELF or contacting hardware:
+
+```powershell
+python -m fwplatform.cli sdk research --json
+python -m fwplatform.cli sdk research --focus "ModelCamera::ActionGpSetSetting" --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk import --fixture sdk/camera_3_21_static_candidates.json --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk audit --json
+```
+
+`sdk research` verifies *internal consistency* of ELF digests, candidate
+entry ownership, reported direct-branch targets, field observation and
+selector metadata. It rejects forged VERIFIED_STATIC/runtime/ABI assertions,
+numeric entry alias collisions and raw private source paths. It **cannot**
+revalidate instruction bytes without the private original ELF, prove ABI,
+trace runtime execution or authorize callable Camera APIs. The private
+`libObj.so` reverse-engineering results were generated before this PR and
+their detailed provenance remains in local research artifacts.
+
+Known blockers include the asynchronous EE-neutral command's concrete
+implementation and completion producer, EventFilter normalization, complete
+state/action coverage, calling conventions/return layouts, and physical
+first-shot readiness. Static `camera-ready` labels are not interchangeable
+with hardware ready. Lens/Sensor/Media analysis still requires separate
+direct ELF/ABI evidence.
+
 ## Phase 3.10: inspect Camera, Lens, Sensor and adjacent core API candidates
 
 For a generated or stripped entry whose name does not contain a domain keyword,
