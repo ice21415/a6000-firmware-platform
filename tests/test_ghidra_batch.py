@@ -64,11 +64,11 @@ class GhidraBatchTests(unittest.TestCase):
 
     def test_plan_ignores_traversal_and_missing_paths(self) -> None:
         self.db.upsert("binary", {
-            "path": "../escape.so", "sha256": "a" * 64,
+            "path": "../escape.so", "sha256": "a" * 64, "size": 0,
             "format": "elf_executable_or_shared_library",
         }, ("path",))
         self.db.upsert("binary", {
-            "path": "missing.so", "sha256": "b" * 64,
+            "path": "missing.so", "sha256": "b" * 64, "size": 0,
             "format": "elf_executable_or_shared_library",
         }, ("path",))
         self.db.commit()
