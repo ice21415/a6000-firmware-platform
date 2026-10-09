@@ -316,6 +316,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_payload_abi.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_action_payload_leads.json"))
     sdk_payload_abi.add_argument("--saved-libobj", type=Path)
     sdk_payload_abi.add_argument("--json", action="store_true")
+    sdk_param_lookup = sdk_sub.add_parser("param-lookup")
+    sdk_param_lookup.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_param_lookup_abi.json"))
+    sdk_param_lookup.add_argument("--saved-libobj", type=Path)
+    sdk_param_lookup.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -410,6 +414,13 @@ def main(argv: list[str] | None = None) -> int:
         result = trace_private_selector_elf(
             args.elf, max_region_bytes=args.region_bytes, entries=entries,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "param-lookup":
+        from .param_lookup_abi import audit_parameter_lookup_abi
+        result = audit_parameter_lookup_abi(
+            args.fixture, saved_libobj=args.saved_libobj,
         )
         _json_or_text(result, args.json)
         return 0
