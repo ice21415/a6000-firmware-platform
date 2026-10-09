@@ -159,6 +159,44 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.16: Appframework event-queue and dispatch boundary
+
+A saved original-firmware `libObj.so` disassembly identifies
+`application_thread_body=0x7eeee8`, which calls a queue state/guard
+`0x7eeec8` and the candidate dispatch thunk `0x7eecac`
+(at `0x7ef0d4` and `0x7ef16e`). The dispatch thunk loads
+from object offset `+0x18` and tail-branches to
+**unresolved** `0x7f21e8`. A separate cleanup path at
+`0x7eecec` also calls the dispatch candidate. A related
+helper at `0x7f2210` uses semaphore ID `0x830451`
+around `0x7f099c`.
+
+The saved report contains **overlapping bounded disassembly windows**
+for `app_event_pop`, `app_event_dispatch` and
+`app_event_cleanup`. These are not interchangeable full-function
+bodies. `sdk event-loop` audits **26 exact saved opcode-text sites**
+across **six named function windows** and rejects altered branches,
+missing function labels and fabricated event-consumer/ABI assertions:
+
+```powershell
+python -m fwplatform.cli sdk event-loop --json
+python -m fwplatform.cli sdk event-loop --saved-disassembly C:\private\boot-static-analysis\app-event-functions.txt --json
+```
+
+The first invocation returns candidate status only; the second
+checks previously saved textual evidence, **not** original ELF
+instruction bytes. The connected workspace interface cannot read
+the private binary stream, so no fresh Sony opcode scan or firmware
+execution happened in this session. To examine still-unknown
+`0x7f21e8`/`0x7f099c` locally, the existing SHA-pinned
+`sdk trace-selector --elf <private-libObj.so> --entry 0x7f21e8
+--entry 0x7f099c --json` is read-only and bounded.
+
+**Critical gap:** the `0x11004003` event factory has not been
+linked to this particular queue or consumer; the loop is not
+proven to decode event keys 7/8 or invoke ModelCamera.
+Do not treat this evidence as a callable camera API.
+
 ## Phase 3.15: two shared model-request frontends, separate dispatch boundaries
 
 The preserved private `libObj.so` instruction report additionally records a
