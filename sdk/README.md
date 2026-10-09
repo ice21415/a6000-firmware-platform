@@ -181,6 +181,7 @@ Review it without opening SQLite, executing an ELF or contacting hardware:
 ```powershell
 python -m fwplatform.cli sdk research --json
 python -m fwplatform.cli sdk research --focus "ModelCamera::ActionGpSetSetting" --json
+python -m fwplatform.cli sdk research --compare-db C:\private\firmware-copy.db --json
 python -m fwplatform.cli --db C:\private\firmware-copy.db sdk import --fixture sdk/camera_3_21_static_candidates.json --json
 python -m fwplatform.cli --db C:\private\firmware-copy.db sdk audit --json
 ```
