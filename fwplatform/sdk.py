@@ -6,6 +6,7 @@ from typing import Any
 
 from . import __version__
 from .db import Database, utc_now
+from .sdk_contracts import audit_sdk_contracts
 
 
 def _count(db: Database, sql: str, args: list[Any] | None = None) -> int:
@@ -40,7 +41,8 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
         WHERE e.relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON')
         AND e.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME') AND v.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')""")
     interfaces = [_row_to_interface(row) for row in db.query("SELECT * FROM sdk_interface ORDER BY domain,name")]
-    callable_validated = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE runtime_safety='CALLABLE_VALIDATED' AND verification_status='VERIFIED_RUNTIME'")
+    # A database flag is not sufficient evidence that direct camera calls are safe.
+    audit = audit_sdk_contracts(db)
     data = {"format": "a6000-unofficial-descriptive-sdk", "version": __version__, "generated_at": utc_now(),
         "firmware": {"model": "Sony ILCE-6000", "version": firmware_version},
         "generated_from": "local evidence database (private snapshot is not shipped)",
@@ -48,15 +50,18 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
         "coverage": {"indexed_functions": indexed, "cfg_recovered_functions": cfg,
                       "semantically_understood_functions": semantic, "runtime_verified_interfaces": runtime,
                       "verified_protocol_edges": protocol, "sdk_documented_interfaces": len(interfaces),
-                      "callable_validated_interfaces": callable_validated if callable_validated else None,
+                      "callable_validated_interfaces": None,
+                      "static_contract_complete": audit["static_contract_complete"],
                       "denominators": {"indexed_functions": "all function rows in current database",
                                        "cfg_recovered_functions": "distinct function_id with basic_block rows",
                                        "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
                                        "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
                                        "verified_protocol_edges": "semantic protocol edges whose edge and primary evidence statuses are VERIFIED_*",
-                                       "callable_validated_interfaces": "UNKNOWN until an independent runtime validation exists"}},
+                                       "callable_validated_interfaces": "UNKNOWN: no offline database flag authorizes runtime invocation",
+                                       "static_contract_complete": "explicit ABI/parameters/evidence and unique binary/function ownership"}},
         "interfaces": interfaces,
-        "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists."}
+        "contract_audit": audit,
+        "rule": "Indexed symbols and names are not callable APIs. Offline SDK export is descriptive only; runtime safety cannot be inferred from database status flags, even VERIFIED_RUNTIME."}
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(data, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     return data
