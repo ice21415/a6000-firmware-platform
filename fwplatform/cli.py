@@ -289,6 +289,11 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_research.add_argument("--compare-db", type=Path)
     sdk_research.add_argument("--verify-elf", type=Path)
     sdk_research.add_argument("--json", action="store_true")
+    sdk_rea_bridge = sdk_sub.add_parser("rea-bridge")
+    sdk_rea_bridge.add_argument("--fixture", type=Path, default=Path("sdk/ui_camera_3_21_rea_bridge.json"))
+    sdk_rea_bridge.add_argument("--ui-decompile", type=Path)
+    sdk_rea_bridge.add_argument("--camera-audit", type=Path)
+    sdk_rea_bridge.add_argument("--json", action="store_true")
     sdk_discover = sdk_sub.add_parser("discover")
     sdk_discover.add_argument("--name", default="")
     sdk_discover.add_argument("--binary-sha256", default="")
@@ -353,6 +358,14 @@ def main(argv: list[str] | None = None) -> int:
         result = simulate_protocol(args.scenario)
         _json_or_text(result, args.json)
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "sdk" and args.sdk_command == "rea-bridge":
+        from .rea_bridge import audit_rea_ui_camera_bridge
+        result = audit_rea_ui_camera_bridge(
+            args.fixture, ui_decompile=args.ui_decompile,
+            camera_audit=args.camera_audit,
+        )
+        _json_or_text(result, args.json)
+        return 0
     if args.command == "sdk" and args.sdk_command == "research":
         # Pure report validator: do not open/migrate any SQLite or firmware ELF.
         from .camera_research import inspect_camera_research
