@@ -2,6 +2,8 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.21：重點回到原始 ELF 函式本體，新增 `sdk probe-core-abi --elf <private-libObj.so>`，預設只針對 `0x13200a` 與 `0x42ac00` 做 SHA 鎖定的局部 Thumb 反組譯、入口暫存器讀寫線索、返回點及機器碼指紋。以合成 ARM ELF 測試雜湊拒絕、唯一可執行段、指令變化指紋、return sites、CLI 不寫入 SQLite；未宣稱已實際分析私人 Sony ELF 或完成任何可呼叫核心 ABI。
+
 - Phase 3.20：從兩個獨立 Camera action 追回 `0x42ac00` 的穩定 AAPCS32 呼叫時 `r0` view、`r1` 參數 ID、`r2` output pointer，以及返回零後讀取輸出／跳過 `Invalid ParamList` 的控制流；`r3`、實際 C++ 型別及完整錯誤 ABI 保持未知。
 - 另將 SetInit 的 `0x42abdc` `0x12000005` EasyMode lookup 列為另一候選，沒有假定和 `0x42ac00` 等價；新增 `sdk param-lookup`、39 處來源指令位址稽核及 synthetic tests。
 
