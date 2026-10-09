@@ -52,6 +52,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 核心逆向 SDK 的功能實作與實際 Sony camera firmware API 還原是兩個不同目標；
 在沒有獨立實機/韌體原始證據時，不宣稱 Camera/Lens/Sensor/Media/OSAL 的真實 ABI 或 runtime readiness。
 
+## Phase 3.5（SDK ABI 證據、模擬協定與交易安全）
+
+- SDK `VERIFIED_STATIC` 現在需 ELF SHA-256、函式位址，以及 ABI、parameter/return layout 的同源獨立證據吻合；僅有函式位置不足以證明簽章。
+- `fw sdk mock --scenario` 提供不接觸實機的明確 mock transition table、namespace-aware step replay 和非零錯誤退出碼。
+- OSAL 與 JNI fixture 匯入用 SQLite savepoint 回滾，失敗不留下部分 queue、message、Java method、bridge 或證據列。
+- native 函式解析需 binary SHA-256，不以全域 name/address 推斷關係；合成測試涵蓋重名 ELF。
+- 本階段的協定 mock 是測試替身，並非已完成 Sony camera runtime SDK；真實核心介面驗證仍需合法且可追溯的二進位與行為證據。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
