@@ -209,8 +209,23 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
             "static_contract_complete": static_ready,
             "callable_validated": False, "issues": issues,
         })
+    # Never derive firmware reverse-engineering completeness from a symbol
+    # inventory: the true number of core APIs is not known in public data.
+    domain_matrix = {}
+    for domain in DOMAINS:
+        matching = [row for row in records if row["domain"] == domain]
+        complete = sum(1 for row in matching if row["static_contract_complete"])
+        domain_matrix[domain] = {
+            "documented": len(matching),
+            "static_contract_complete": complete,
+            "unresolved_or_incomplete": len(matching) - complete,
+            "runtime_callable_validated": None,
+            "core_reverse_engineering_complete": None,
+            "required_api_denominator": None,
+        }
     return {
         "status": "AUDITED", "interfaces": len(records), "static_contract_complete": complete_static,
+        "domain_matrix": domain_matrix,
         "runtime_callable_validated": None,
         "unresolved_or_incomplete": len(records) - complete_static,
         "records": records,
