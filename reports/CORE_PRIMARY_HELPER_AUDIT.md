@@ -544,3 +544,38 @@ ordinary undefined-type warnings for stripped code; this run is a static
 cross-check, not a complete source-level recovery. Runtime-verified and
 callable SDK counts remain zero. Four new fail-closed validator tests and the
 full public suite (275 tests) pass locally.
+
+## PrmPoint / PrmDimension inline-word checkpoint — 2026-10-10
+
+The reusable `fwplatform/param_pair_probe.py` profile now validates the two
+stripped inline-word families directly from the authenticated ELF:
+`PrmPoint` (discriminator 3, vtable `0xfe9610`) and `PrmDimension`
+(discriminator 4, vtable `0xfe6e48`). Their constructors are not exported with
+source-level symbols, so the report does not invent C++ names for them.
+
+For both families, the bounded constructor receives `r0` as the destination,
+preserves `r1` and `r2`, calls the relocation-bound `_ZN9ParamBaseC2Em` with
+the family discriminator, stores the two words at object `+0x0c` and
+`+0x10`, and writes the relocated vtable address point at object `+0x00`.
+Object `+0x08` is not written by either constructor. The object-size witness
+and clone allocation are `0x14` bytes. Each clone reloads source `+0x0c` and
+`+0x10`, calls its family constructor and returns a destination-shaped value.
+
+The destructors restore the family vptr and call local ParamBase destruction
+path `0xe4734`; the deleting wrappers then call `_ZdlPv`. Point uses a direct
+call to its local destructor body. Dimension uses the unique PLT binding at
+`0xdfb30` to `_ZN12PrmDimensionD1Ev` before the delete call. This distinction
+is preserved as an ABI fact rather than normalized away.
+
+The two payload words are intentionally described as **word candidates**.
+Coordinate, width/height, unit, range, hardware meaning, external aliases,
+exception paths, synchronization and runtime loader behavior remain UNKNOWN.
+The probe also directly checks each vtable's offset-to-top word, RTTI pointer,
+clone slot `+0x08` and deleting-destructor slot `+0x10`; the Dimension
+destructor slot is preserved as a distinct relocation-bound witness.
+The private ASCII Ghidra 12.1.3 `param-pair` profile exited 0 with 8 targets,
+96 instruction rows, 8 blocks and 12 edges; undefined-type warnings from the
+stripped program are supporting evidence only. Runtime-verified and callable
+SDK counts remain zero.
+
+The pair-family validator adds four synthetic regression cases; the complete local suite now passes 279 tests.

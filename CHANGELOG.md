@@ -2,6 +2,12 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the reusable private-only `parameter-pair` probe and contract for
+  `PrmPoint` and `PrmDimension`. It verifies discriminator-specific
+  constructors, two inline payload words, vptr/base destruction and clone
+  paths. Word meanings, allocator/runtime behavior and callability remain
+  unknown; the Dimension destructor PLT binding is preserved separately.
+
 - Added the private-only `parameter-set` primary-ELF probe and descriptive
   contract. It verifies the discriminator-7 getter/GET wrapper, 36-byte
   construction and clone paths, embedded 24-byte payload initialization with

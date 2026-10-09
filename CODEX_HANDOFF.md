@@ -367,3 +367,20 @@ project and instruction export remain private.
 The four new synthetic PrmSet validator tests and the complete local suite
 (275 tests) pass; this does not change the runtime-verified/callable count of
 zero.
+
+## Latest checkpoint: PrmPoint / PrmDimension inline words (2026-10-10)
+
+`fwplatform/param_pair_probe.py` and `sdk/param_pair_3_21.json` add a reusable
+SHA-pinned profile for `PrmPoint` (discriminator 3, vtable 0xfe9610) and
+`PrmDimension` (discriminator 4, vtable 0xfe6e48). Both constructors take two
+word candidates in r1/r2, store them at object +0x0c/+0x10, initialize the
+vptr and allocate 0x14-byte objects through their clone paths. Destructors
+call ParamBase destruction; Dimension's deleting wrapper resolves its named
+D1 PLT separately from Point's direct call.
+
+No coordinate, size, unit, hardware, exception, synchronization, runtime or
+callable claim is made. Private Ghidra cross-check: 8 targets, 96 instructions,
+8 blocks, 12 edges, exit 0. The full public test count is updated by the next
+checkpoint after this change; raw firmware and Ghidra exports remain private.
+
+After the pair-family checkpoint, the complete local suite passes 279 tests; runtime-verified and callable counts remain zero.

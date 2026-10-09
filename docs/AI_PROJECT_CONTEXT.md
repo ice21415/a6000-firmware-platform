@@ -261,3 +261,13 @@ allocator, alias and synchronization semantics remain UNKNOWN. The private
 ASCII Ghidra `param-set` profile exits 0 with 13 targets, 161 instruction rows,
 17 blocks and 33 CFG edges. Runtime verification and callable SDK counts remain
 zero.
+
+## Phase 3.29 — PrmPoint / PrmDimension inline-word evidence
+
+`fwplatform/param_pair_probe.py` adds the reusable `fw sdk parameter-pair`
+profile and `sdk/param_pair_3_21.json`. It verifies `PrmPoint` discriminator 3
+and `PrmDimension` discriminator 4, their 20-byte constructors, inline words
+at object `+0x0c/+0x10`, vptr/base destruction and clone paths. The two words
+remain semantic UNKNOWN; no coordinate, dimension or hardware unit is inferred.
+The private Ghidra profile exits 0 with 8 targets, 96 instruction rows, 8
+blocks and 12 edges. Runtime verification and callable SDK counts remain zero.

@@ -980,3 +980,22 @@ unknown. The payload is documented as an ordered-container-like candidate.
 Element type, comparator, allocator, alias invalidation, synchronization,
 runtime binding and source-level return types remain UNKNOWN. Contract:
 `sdk/param_set_3_21.json`; runtime and callable flags remain false.
+
+## PrmPoint / PrmDimension inline-word checkpoint
+
+The reusable `parameter-pair` probe covers the two stripped families with the
+same machine-level layout:
+
+```powershell
+python -m fwplatform.cli sdk parameter-pair --elf C:\private\libObj.so --json
+```
+
+It verifies `PrmPoint` discriminator 3 and `PrmDimension` discriminator 4,
+their 20-byte constructors, two word stores at object `+0x0c/+0x10`, vptr
+initialization, clone paths, ParamBase destruction and deleting wrappers. The
+words remain unnamed candidates; no coordinate, dimension, unit or hardware
+meaning is inferred. The Dimension deleting wrapper's PLT binding to
+`_ZN12PrmDimensionD1Ev` is retained separately from Point's direct destructor
+call. The probe also checks each vtable's RTTI pointer, clone slot and
+deleting-destructor slot. Contract: `sdk/param_pair_3_21.json`; runtime and
+callable flags remain false.
