@@ -135,8 +135,42 @@
     "Meaning and exact transformation of helper at 0x12d780",
     "View::requestApplicationExecute dispatch queue and consumer of event 0x11004003",
     "Extraction of event parameter keys 7 and 8 and mapping to ModelCamera::ActionGpSetSetting",
-    "Error semantics, ParamList ownership, threading, lifetime and runtime safe callability"
+    "Error semantics, ParamList ownership, threading, lifetime and runtime safe callability",
+    "At viewManagerIf alternative entry, original r0 and eventual tail target 0x125084 semantics remain unverified; only shared helper and factory-stub callsites are shown"
   ],
   "complete_abi_count": 0,
-  "confirmed_runtime_camera_apis": 0
+  "confirmed_runtime_camera_apis": 0,
+  "alternative_request_frontend": {
+    "name": "viewManagerIf::requestModelExecute",
+    "entry_vma": "0x1250c0",
+    "observed_sites": [
+      {
+        "site": "0x1250d8",
+        "target": "0xdffb8",
+        "symbol": "IdGenerator::Get"
+      },
+      {
+        "site": "0x1250e2",
+        "target": "0x12d780",
+        "symbol": "unresolved_selector_transform"
+      },
+      {
+        "site": "0x1250ee",
+        "target": "0xdfbdc",
+        "symbol": "AbstractUtilityManager::createRequestModelExecuteEvent"
+      },
+      {
+        "site": "0x1250f6",
+        "target": "0x125084",
+        "symbol": null,
+        "kind": "TAIL_BRANCH_TARGET_UNRESOLVED"
+      }
+    ],
+    "same_local_direct_transform_helper_as_ViewBase": true,
+    "same_factory_import_stub_address_as_ViewBase": true,
+    "this_pointer_or_original_r0_meaning": "UNKNOWN",
+    "final_application_dispatch_verified": false,
+    "source_artifact_basename": "model-camera-methods.txt",
+    "proof_scope": "STATIC_REPORTED_INSTRUCTION_CODEPATH_NOT_VERIFIED_RUNTIME"
+  }
 }
