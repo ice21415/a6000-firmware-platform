@@ -15,6 +15,11 @@
   append/capacity behavior, construction and destruction. Bounds, allocator,
   synchronization, exceptions and runtime callability remain unknown.
 
+- Added the SHA-pinned `parameter-cntinfolist` probe and descriptive contract.
+  Twelve primary-ELF regions cover the discriminator initializer, dual
+  collection accessors, append path, constructors and destruction while
+  preserving unknown element, bounds, allocator and synchronization semantics.
+
 - ParamList factory caller checkpoint: added the private SHA-pinned
   `parameter-factory` probe. Four factory callsites now have bounded register
   provenance, null-result guards and success-path calls to the relocation-

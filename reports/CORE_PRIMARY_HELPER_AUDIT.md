@@ -242,6 +242,29 @@ observations, wrong discriminator/type identity and runtime promotion.
 After adding the NumberList fixtures, the full public synthetic suite passes
 238 tests (process exit 0).
 
+### PrmCntInfoList method and dual-collection checkpoint — 2026-10-09
+
+The new `fwplatform.param_cntinfolist_probe` (`fw sdk parameter-cntinfolist
+--elf <private-libObj.so>`) revalidated the pinned ELF and checked twelve
+bounded regions. All twelve observations validate as `PRIMARY_ELF_VERIFIED`:
+
+| Region | Primary machine fact | Remaining unknown |
+|---|---|---|
+| `0x11d42c` | stores vptr and discriminator 9 | source-level initializer identity |
+| `0x11d44c` / `0x11d45a` | type-specific lookup tail-call and first-collection length forwarding | return type and lookup ownership |
+| `0x11d4ac..0x11d4e6` | get/set accessors select collection `+0x0c` or `+0x34`, then read/write one word | element type, bounds and helper semantics |
+| `0x11d8e6` / `0x11d90e` | append helper checks end/capacity; `addEjj` appends r1 and r2 to the two regions | growth allocator, exceptions and synchronization |
+| `0x11d680` / `0x11d938` | default and two-argument constructors initialize both regions; argument constructor appends inputs | exact collection ABI and key initialization |
+| `0x11d54c` | destructor cleans both regions then calls local base-destruction path `0xe4734` | ownership and allocator pairing |
+
+The descriptive contract is `sdk/param_cntinfolist_3_21.json`; it keeps
+`safe_to_call=false`, `runtime_verified=false` and `callable=false`. The
+collection element type is intentionally `UNKNOWN`; the `Ejj` symbols only
+support unsigned-int argument candidates. No runtime or device behavior was
+executed.
+After adding the CntInfoList fixtures, the full public synthetic suite passes
+242 tests (process exit 0).
+
 ## ParamList continuation — latest checkpoint
 
 The installation was copied to an ASCII path and the new

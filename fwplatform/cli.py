@@ -350,6 +350,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_numberlist.add_argument("--elf", type=Path, required=True)
     sdk_numberlist.add_argument("--expected-sha256", default=None)
     sdk_numberlist.add_argument("--json", action="store_true")
+    sdk_cntlist = sdk_sub.add_parser("parameter-cntinfolist")
+    sdk_cntlist.add_argument("--elf", type=Path, required=True)
+    sdk_cntlist.add_argument("--expected-sha256", default=None)
+    sdk_cntlist.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -493,6 +497,15 @@ def main(argv: list[str] | None = None) -> int:
         from .param_numberlist_probe import probe_param_numberlist
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_param_numberlist(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-cntinfolist":
+        from .param_cntinfolist_probe import probe_param_cntinfolist
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_cntinfolist(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

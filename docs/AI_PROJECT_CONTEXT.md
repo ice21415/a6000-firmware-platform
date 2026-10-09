@@ -138,6 +138,11 @@ The `parameter-numberlist` probe then validates nine primary-ELF regions for
 capacity handling, default/copy constructors and destruction. Its contract is
 `sdk/param_numberlist_3_21.json`; allocator, bounds, synchronization,
 exception and runtime behavior remain unknown.
+The `parameter-cntinfolist` probe then validates twelve primary-ELF regions for
+`PrmCntInfoList`, including discriminator initialization, both collection
+regions, accessors, append, constructors and destruction. Its contract is
+`sdk/param_cntinfolist_3_21.json`; collection element types and safety remain
+unknown.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved

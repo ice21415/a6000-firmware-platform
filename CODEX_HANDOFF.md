@@ -41,6 +41,14 @@ unknown.
 The latest full public synthetic suite passes 238 tests after the NumberList
 probe fixtures were added.
 
+The next checkpoint adds `fwplatform/param_cntinfolist_probe.py` and
+`fw sdk parameter-cntinfolist --elf <private-libObj.so>`. Twelve primary-ELF
+regions cover discriminator initialization, dual collection get/set/append,
+constructors and destruction. The contract is descriptive only; collection
+element types, bounds, allocator, exception and synchronization behavior stay
+UNKNOWN.
+The full public synthetic suite now passes 242 tests after these fixtures.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current
