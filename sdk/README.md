@@ -69,6 +69,32 @@ values appear separately as `reported_verification_status` and
 `reported_runtime_safety` for transparency. Mock tests and status flags are
 never evidence of live device compatibility.
 
+## Phase 3.6: reverse-engineering candidate review queue
+
+To review functions exported by the actual inventoried ELF binaries, run:
+
+```powershell
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk discover --domain Camera --limit 100 --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk discover --name Lens --include-internal --limit 100 --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk draft --name Camera --output C:\private\camera-review.json --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk import --fixture C:\private\camera-review.json --json
+```
+
+Discovery defaults to **exported, nongenerated functions**; internal functions
+and generated names must be explicitly opted in. The `--binary-sha256`
+argument scopes candidates to one exact ELF identity. Lexical domain matches
+are search hints, not confirmed camera semantics. The output separates a
+verified function **location** from UNKNOWN function behavior, ABI, arguments,
+JNI/OSAL protocol, and runtime callability.
+
+The draft always uses `domain=Other`, `verification_status=CANDIDATE`,
+`runtime_safety=DESCRIPTIVE_ONLY`, and NULL ABI/parameter/return layouts.
+It is structurally importable but never verified without independent
+semantic/ABI evidence; review metadata records lexical suggestions and raw
+Ghidra prototype text. Keep generated review JSON and any populated SQLite
+database **private**. Per-function Ghidra evidence is created only from a
+validated JSONL input and proves an address/location, *not* the function ABI.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
