@@ -33,12 +33,14 @@ DEFAULT_REGION_BYTES = 384
 MAX_RETURN_SITES = 32
 MAX_SAMPLED_ROWS = 96
 MAX_REGISTER_SITES = 64
+MAX_MEMORY_SITES = 96
 ARG_REGISTERS = ("r0", "r1", "r2", "r3")
 
 
 def _reg_observations(fp: Any, elf: ELFFile, region: dict[str, Any]) -> dict[str, Any]:
     """Inspect only locally reached instructions, not static symbol contracts."""
-    from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB, CS_GRP_JUMP, CS_GRP_CALL, CS_GRP_RET
+    from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB, CS_GRP_JUMP, CS_GRP_CALL, CS_GRP_RET, CS_AC_READ, CS_AC_WRITE
+    from capstone.arm import ARM_OP_MEM
 
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
@@ -49,6 +51,7 @@ def _reg_observations(fp: Any, elf: ELFFile, region: dict[str, Any]) -> dict[str
     prefix_rows: list[dict[str, Any]] = []
     r0_writes: list[str] = []
     return_sites: list[str] = []
+    memory_accesses: list[dict[str, Any]] = []
     fingerprints = 0
     decoded: dict[int, Any] = {}
 
@@ -71,6 +74,38 @@ def _reg_observations(fp: Any, elf: ELFFile, region: dict[str, Any]) -> dict[str
         write = {ins.reg_name(x) for x in write_regs}
         if "r0" in write and len(r0_writes) < MAX_REGISTER_SITES:
             r0_writes.append(row["vma"])
+        # Only actual decoded memory operands count. A base of 'r2'
+        # is a promising out-pointer use, but r2 might have been
+        # redefined since entry, so never promote this to ABI proof.
+        if len(memory_accesses) < MAX_MEMORY_SITES:
+            for operand in ins.operands:
+                if operand.type != ARM_OP_MEM:
+                    continue
+                access = getattr(operand, "access", 0)
+                if not access:
+                    # Capstone ARM operand metadata may omit access flags
+                    # for some encodings, so use mnemonic only as a
+                    # conservative local load/store direction hint.
+                    mnemonic = ins.mnemonic.lower()
+                    if mnemonic.startswith(("str", "stm", "push")):
+                        access = CS_AC_WRITE
+                    elif mnemonic.startswith(("ldr", "ldm", "pop")):
+                        access = CS_AC_READ
+                direction = ("READ_WRITE" if access & CS_AC_READ and access & CS_AC_WRITE
+                             else "WRITE" if access & CS_AC_WRITE
+                             else "READ" if access & CS_AC_READ
+                             else "UNKNOWN")
+                memory_accesses.append({
+                    "site": row["vma"],
+                    "mnemonic": ins.mnemonic,
+                    "memory_base_register": ins.reg_name(operand.mem.base),
+                    "memory_index_register": (
+                        ins.reg_name(operand.mem.index) if operand.mem.index else None
+                    ),
+                    "displacement": int(operand.mem.disp),
+                    "operation_direction_hint": direction,
+                    "memory_access_width_cpp_type_verified": False,
+                })
         # Returns may be "bx lr", "pop {...,pc}", or a Capstone RET group.
         if (ins.group(CS_GRP_RET)
             or (ins.mnemonic.lower() in ("bx", "bx.w") and ins.op_str.strip() == "lr")
@@ -114,6 +149,13 @@ def _reg_observations(fp: Any, elf: ELFFile, region: dict[str, Any]) -> dict[str
         "entry_prefix_register_read_before_write_sites": reads_before_writes,
         "entry_prefix_register_initially_written": sorted(writes_seen),
         "visited_r0_write_sites_capped": r0_writes,
+        "visited_memory_access_sites_capped": memory_accesses,
+        "r2_based_memory_write_sites_capped": [
+            item["site"] for item in memory_accesses
+            if item["memory_base_register"] == "r2"
+            and item["operation_direction_hint"] in ("WRITE", "READ_WRITE")
+        ],
+        "r2_based_store_is_proven_output_parameter": False,
         "observed_return_sites_capped": sorted(return_sites, key=lambda x: int(x, 16)),
         "register_read_before_write_is_proven_abi": False,
         "return_cpp_type_verified": False,
