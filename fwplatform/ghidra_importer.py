@@ -84,6 +84,14 @@ def _load(path: Path) -> list[dict[str, Any]]:
     expected = records[-1].get("record_count")
     if not isinstance(expected, int) or expected != len(records) - 1:
         raise ValueError(f"Ghidra JSONL record count mismatch: expected={expected} actual={len(records) - 1}")
+    metadata, marker = records[0], records[-1]
+    for field in ("run_id", "binary_sha256"):
+        first = metadata.get(field)
+        last = marker.get(field)
+        if not isinstance(first, str) or not first or not isinstance(last, str) or not last:
+            raise ValueError(f"Ghidra JSONL {field} must be present in metadata and complete marker")
+        if (first.lower() if field == "binary_sha256" else first) != (last.lower() if field == "binary_sha256" else last):
+            raise ValueError(f"Ghidra JSONL {field} differs between metadata and complete marker")
     return records
 
 
