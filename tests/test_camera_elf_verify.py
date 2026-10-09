@@ -151,6 +151,8 @@ class CameraELFVerifierTests(unittest.TestCase):
         self.assertFalse(no_db.exists())
         report = json.loads(output.getvalue())
         self.assertTrue(report["independent_elf_check"]["all_checked_instruction_sites_match"])
+        self.assertTrue(report["validation"]["independent_instruction_bytes_checked"])
+        self.assertTrue(report["validation"]["independent_instruction_sites_match"])
         self.assertFalse(report["validation"]["independent_abi_verified"])
         self.sha = tiny_arm_elf(self.elf, {0x1010: thumb_branch(0x1010, 0x1050, "bl")})
         catalog["interfaces"][0]["binary_sha256"] = self.sha
@@ -164,7 +166,10 @@ class CameraELFVerifierTests(unittest.TestCase):
                          str(catpath), "--graph", str(graphpath),
                          "--verify-elf", str(self.elf), "--json"])
         self.assertEqual(code, 2)
-        self.assertFalse(json.loads(output.getvalue())["independent_elf_check"]["all_checked_instruction_sites_match"])
+        incomplete = json.loads(output.getvalue())
+        self.assertFalse(incomplete["independent_elf_check"]["all_checked_instruction_sites_match"])
+        self.assertTrue(incomplete["validation"]["independent_instruction_bytes_checked"])
+        self.assertFalse(incomplete["validation"]["independent_instruction_sites_match"])
 
 
 if __name__ == "__main__":
