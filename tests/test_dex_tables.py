@@ -102,6 +102,26 @@ class DexStructureTests(unittest.TestCase):
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0], 0)
             db.close()
 
+    def test_source_change_between_parse_and_index_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dex = root / "classes.dex"
+            synthetic_structured_dex(dex)
+            db = Database(root / "study.sqlite")
+            db.migrate()
+
+            def replace_after_parsing(path: Path):
+                result = analyze_dex(path)
+                path.write_bytes(b"changed after parse")
+                return result
+
+            with patch("fwplatform.dex_index.analyze_dex", side_effect=replace_after_parsing):
+                with self.assertRaisesRegex(ValueError, "DEX input changed during analysis"):
+                    index_dex(db, dex)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0], 0)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM research_observation").fetchone()[0], 0)
+            db.close()
+
     def test_index_transaction_rolls_back_partial_observations(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
