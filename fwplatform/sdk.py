@@ -13,7 +13,13 @@ def _count(db: Database, sql: str, args: list[Any] | None = None) -> int:
     return int(db.connection.execute(sql, args or []).fetchone()[0])
 
 
-def _row_to_interface(row: Any) -> dict[str, Any]:
+def _row_to_interface(row: Any, audited: bool) -> dict[str, Any]:
+    claimed = row["verification_status"]
+    # Sanitized SDK exports never pass through unaudited static/runtime claims.
+    # Preserve original database flags separately so researchers can inspect them.
+    published = ("VERIFIED_STATIC" if claimed == "VERIFIED_STATIC" and audited
+                 else "CANDIDATE" if claimed == "VERIFIED_STATIC"
+                 else "UNKNOWN" if claimed == "VERIFIED_RUNTIME" else claimed)
     return {"name": row["name"], "domain": row["domain"], "module_id": row["module_id"],
         "binary_id": row["binary_id"], "function_id": row["function_id"], "address": row["address"],
         "abi": row["abi"], "calling_convention": row["calling_convention"],
@@ -21,8 +27,11 @@ def _row_to_interface(row: Any) -> dict[str, Any]:
         "preconditions": row["preconditions"], "thread_context": row["thread_context"],
         "state_requirements": row["state_requirements"], "side_effects": row["side_effects"],
         "event_dependencies": row["event_dependencies"], "firmware_version": row["firmware_version"],
-        "evidence_references": row["evidence_references"], "verification_status": row["verification_status"],
-        "runtime_safety": row["runtime_safety"], "mock_status": row["mock_status"],
+        "evidence_references": row["evidence_references"], "verification_status": published,
+        "reported_verification_status": claimed, "static_contract_complete": audited,
+        "runtime_safety": "DESCRIPTIVE_ONLY",
+        "reported_runtime_safety": row["runtime_safety"],
+        "runtime_callable_verified": False, "mock_status": row["mock_status"],
         "source_evidence_id": row["source_evidence_id"], "analyzer_version": row["analyzer_version"]}
 
 
@@ -40,9 +49,11 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
     protocol = _count(db, """SELECT COUNT(*) FROM semantic_edge e JOIN evidence v ON v.id=e.evidence_id
         WHERE e.relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON')
         AND e.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME') AND v.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')""")
-    interfaces = [_row_to_interface(row) for row in db.query("SELECT * FROM sdk_interface ORDER BY domain,name")]
     # A database flag is not sufficient evidence that direct camera calls are safe.
     audit = audit_sdk_contracts(db)
+    static_ids = {int(item["id"]) for item in audit["records"] if item["static_contract_complete"]}
+    interfaces = [_row_to_interface(row, int(row["id"]) in static_ids)
+                  for row in db.query("SELECT * FROM sdk_interface ORDER BY domain,name")]
     data = {"format": "a6000-unofficial-descriptive-sdk", "version": __version__, "generated_at": utc_now(),
         "firmware": {"model": "Sony ILCE-6000", "version": firmware_version},
         "generated_from": "local evidence database (private snapshot is not shipped)",
