@@ -124,6 +124,8 @@ def run_ghidra_batch(
     # This also prevents unintended manifest self-ingestion on later scans.
     if output_dir.is_relative_to(Path(plan["input_root"])):
         raise ValueError("Ghidra output directory must be outside the input root")
+    if project_dir.is_relative_to(Path(plan["input_root"])):
+        raise ValueError("Ghidra project directory must be outside the input root")
     output_dir.mkdir(parents=True, exist_ok=True)
     project_dir.mkdir(parents=True, exist_ok=True)
     results: list[dict[str, Any]] = []
@@ -147,7 +149,9 @@ def run_ghidra_batch(
                 "binary_id": item["binary_id"], "relative_path": item["relative_path"],
                 "status": "COMPLETE", "counts": stats,
             })
-        except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+        except Exception as exc:
+            # Keep batch jobs isolated: a malformed file or importer exception
+            # must not cause later unrelated ELF analyses to be skipped.
             results.append({
                 "binary_id": item["binary_id"], "relative_path": item["relative_path"],
                 "status": "FAILED", "error_type": type(exc).__name__,
