@@ -29,10 +29,13 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "prmset_get", "entry": 0x7EFAF0, "size": 14,
      "symbol": "_ZN6PrmSet3GETEPK9ParamListm"},
     {"name": "prmset_constructor", "entry": 0x7EFB00, "size": 0x24},
-    {"name": "prmset_payload_helper", "entry": 0x7EFB6C, "size": 0x30},
+    # Include the compiler-generated landing-pad-shaped cleanup after the
+    # normal copy path.  It is bounded to this primary ELF region and is not
+    # treated as a source-level exception contract.
+    {"name": "prmset_payload_helper", "entry": 0x7EFB6C, "size": 0x40},
     {"name": "prmset_destructor", "entry": 0x7EFB2C, "size": 0x20},
     {"name": "prmset_deleting_destructor", "entry": 0x7EFB58, "size": 0x14},
-    {"name": "prmset_clone", "entry": 0x7EFBB4, "size": 0x1C},
+    {"name": "prmset_clone", "entry": 0x7EFBB4, "size": 0x24},
     {"name": "payload_default_init", "entry": 0xFFD22, "size": 0x0E},
     {"name": "payload_header_accessors", "entry": 0xFFC40, "size": 0xA0},
     {"name": "payload_init", "entry": 0xFFCF6, "size": 0x30},
@@ -154,6 +157,63 @@ def _binding(fp: Any, elf: ELFFile, entry: int, symbol: str) -> dict[str, Any]:
     if len(candidates) != 1 or candidates[0].get("symbol") != symbol:
         raise ValueError(f"unexpected PLT symbol at 0x{entry:x}")
     return result
+
+
+def _prel31(place: int, word: int) -> int:
+    """Resolve an ARM EHABI PREL31 word without exposing raw bytes."""
+    value = word & 0x7FFFFFFF
+    if value & 0x40000000:
+        value -= 0x80000000
+    return (place + value) & 0xFFFFFFFF
+
+
+def _exception_index_entry(elf: ELFFile, target: int) -> dict[str, Any]:
+    """Find the exact ``.ARM.exidx`` metadata for one target VMA.
+
+    Only section/address metadata and compact-vs-extab classification are
+    returned.  Encoded unwind words and firmware bytes stay private.  A
+    missing or ambiguous entry is an error for the SHA-pinned primary ELF,
+    rather than a guessed exception relationship.
+    """
+    section = elf.get_section_by_name(".ARM.exidx")
+    if section is None:
+        raise ValueError("primary ELF has no .ARM.exidx section")
+    data = section.data()
+    if len(data) == 0 or len(data) % 8:
+        raise ValueError("truncated or malformed .ARM.exidx section")
+    base = int(section["sh_addr"])
+    matches: list[dict[str, Any]] = []
+    for offset in range(0, len(data), 8):
+        function_vma = _prel31(
+            base + offset,
+            int.from_bytes(data[offset:offset + 4], "little"),
+        )
+        if function_vma != target:
+            continue
+        unwind_word = int.from_bytes(data[offset + 4:offset + 8], "little")
+        if unwind_word & 0x80000000:
+            unwind = {"kind": "COMPACT", "extab_vma": None}
+        else:
+            unwind = {
+                "kind": "EXTAB",
+                "extab_vma": f"0x{_prel31(base + offset + 4, unwind_word):x}",
+            }
+        matches.append({
+            "section": ".ARM.exidx",
+            "entry_vma": f"0x{function_vma:x}",
+            "entry_offset": f"0x{base + offset:x}",
+            "exidx_entry_vma": f"0x{base + offset:x}",
+            "extab_vma": unwind["extab_vma"],
+            "unwind_kind": unwind["kind"],
+            "unwind": unwind,
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA",
+        })
+    if len(matches) != 1:
+        raise ValueError(
+            f"expected one .ARM.exidx entry for 0x{target:x}, found {len(matches)}"
+        )
+    return matches[0]
 
 
 def _observe_get_set(rows: dict[int, Any]) -> dict[str, Any]:
@@ -343,17 +403,33 @@ def _observe_payload_header_accessors(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
-def _observe_payload_helper(rows: dict[int, Any], bindings: dict[str, Any]) -> dict[str, Any]:
+def _observe_payload_helper(
+    rows: dict[int, Any], bindings: dict[str, Any], exception_index: dict[str, Any]
+) -> dict[str, Any]:
     _require(rows, 0x7EFB72, "movs", immediate=7)
     _require(rows, 0x7EFB78, "blx", target=0xE11A4)
     _require(rows, 0x7EFB86, "str")
     _require(rows, 0x7EFB8C, "bl", target=0xFFD22)
     _require(rows, 0x7EFB94, "bl", target=0x63E8A6)
+    _require(rows, 0x7EFB9C, "mov")
+    _require(rows, 0x7EFB9E, "bl", target=0xFFE0C)
+    _require(rows, 0x7EFBA2, "mov")
+    _require(rows, 0x7EFBA4, "bl", target=0xE4734)
+    _require(rows, 0x7EFBA8, "blx", target=0xDD4F8)
     return {
         "status": "PRIMARY_ELF_VERIFIED",
         "inputs": {"r0": "destination PrmSet-like object", "r1": "source payload pointer candidate"},
         "operation": "initialize destination base/payload, then copy source payload through 0x63e8a6",
         "payload_source": "source r1 is preserved in the local helper and passed to payload copy",
+        "exception_cleanup": {
+            "status": "STATIC_INFERRED",
+            "landing_pad_candidate": "0x7efb9c",
+            "operation": "release partially initialized payload, restore ParamBase destruction path, then end the active EH cleanup",
+            "calls": ["0xffe0c", "0xe4734", "0xdd4f8"],
+            "end_cleanup_binding": bindings["end_cleanup"],
+            "ehabi_index": exception_index,
+            "limitation": "direct cleanup calls and EHABI coverage are observed; the complete throw edge and allocation/constructor exception contract remain UNKNOWN",
+        },
         "bindings": bindings,
     }
 
@@ -369,18 +445,34 @@ def _observe_copy_wrapper(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
-def _observe_clone(rows: dict[int, Any]) -> dict[str, Any]:
+def _observe_clone(
+    rows: dict[int, Any], delete_binding: dict[str, Any], exception_index: dict[str, Any],
+    end_cleanup_binding: dict[str, Any],
+) -> dict[str, Any]:
     _require(rows, 0x7EFBB4, "push")
     _require(rows, 0x7EFBBA, "movs", immediate=0x24)
     _require(rows, 0x7EFBBC, "blx", target=0xDC100)
     _require(rows, 0x7EFBC0, "add.w")
     _require(rows, 0x7EFBC6, "bl", target=0x7EFB6C)
     _require(rows, 0x7EFBCA, "mov", operands="r0, r4")
+    _require(rows, 0x7EFBCE, "mov")
+    _require(rows, 0x7EFBD0, "blx", target=0xDD620)
+    _require(rows, 0x7EFBD4, "blx", target=0xDD4F8)
     return {
         "status": "PRIMARY_ELF_VERIFIED",
         "allocation": "0x24-byte destination allocation through 0xdc100",
         "source_payload": "source receiver +0x0c passed to the helper",
         "return": "destination pointer remains in r0 on the success path; source-level clone return UNKNOWN",
+        "exception_cleanup": {
+            "status": "STATIC_INFERRED",
+            "landing_pad_candidate": "0x7efbce",
+            "operation": "release the newly allocated destination through operator-delete, then end the active EH cleanup",
+            "calls": ["0xdd620", "0xdd4f8"],
+            "delete_binding": delete_binding,
+            "end_cleanup_binding": end_cleanup_binding,
+            "ehabi_index": exception_index,
+            "limitation": "the cleanup is associated with the copy-constructor failure region; exact throw source and exception object semantics remain UNKNOWN",
+        },
     }
 
 
@@ -679,6 +771,7 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "memset": _binding(fp, elf, 0xDE37C, "memset"),
             "allocator": _binding(fp, elf, 0xDC100, "_Znwj"),
             "delete": _binding(fp, elf, 0xDD620, "_ZdlPv"),
+            "end_cleanup": _binding(fp, elf, 0xDD4F8, "__cxa_end_cleanup"),
             "paramlist_get": _binding(fp, elf, 0xE2894, "_ZNK9ParamList3getEmm"),
             "rb_tree_increment_const": _binding(
                 fp, elf, 0xDBB6C, "_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base",
@@ -709,14 +802,21 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
                 {"param_base_constructor": bindings["param_base_constructor"]},
             ),
             "prmset_payload_helper": _observe_payload_helper(
-                _decode(fp, elf, 0x7EFB6C, 0x30),
-                {"param_base_constructor": bindings["param_base_constructor"]},
+                _decode(fp, elf, 0x7EFB6C, 0x40),
+                {"param_base_constructor": bindings["param_base_constructor"],
+                 "end_cleanup": bindings["end_cleanup"]},
+                _exception_index_entry(elf, 0x7EFB6C),
             ),
             "prmset_destructor": _observe_destructor(_decode(fp, elf, 0x7EFB2C, 0x20)),
             "prmset_deleting_destructor": _observe_deleting_destructor(
                 _decode(fp, elf, 0x7EFB58, 0x14), bindings["delete"],
             ),
-            "prmset_clone": _observe_clone(_decode(fp, elf, 0x7EFBB4, 0x1C)),
+            "prmset_clone": _observe_clone(
+                _decode(fp, elf, 0x7EFBB4, 0x24),
+                bindings["delete"],
+                _exception_index_entry(elf, 0x7EFBB4),
+                bindings["end_cleanup"],
+            ),
             "payload_default_init": _observe_payload_default_init(
                 _decode(fp, elf, 0xFFD22, 0x0E),
             ),
@@ -760,6 +860,15 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
         "type": "PrmSet",
         "discriminator": 7,
         "allocation_size_bytes": 0x24,
+        "exception_unwind": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "format": "ARM EHABI .ARM.exidx metadata",
+            "targets": {
+                "copy_constructor_candidate": observations["prmset_payload_helper"]["exception_cleanup"]["ehabi_index"],
+                "clone_candidate": observations["prmset_clone"]["exception_cleanup"]["ehabi_index"],
+            },
+            "semantic_limit": "EHABI coverage and bounded cleanup calls do not prove every throw edge, exception object type or allocator contract",
+        },
         "inheritance": {
             "status": "PRIMARY_ELF_VERIFIED",
             "base_type": "ParamBase",
@@ -886,6 +995,45 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
         errors.append("allocation_size")
     if report.get("runtime_verified") is not False or report.get("callable") is not False:
         errors.append("runtime_or_callable_claim")
+    exception_unwind = report.get("exception_unwind")
+    if not isinstance(exception_unwind, dict):
+        errors.append("missing_exception_unwind")
+    else:
+        if exception_unwind.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("exception_unwind_status")
+        if exception_unwind.get("format") != "ARM EHABI .ARM.exidx metadata":
+            errors.append("exception_unwind_format")
+        targets = exception_unwind.get("targets")
+        if not isinstance(targets, dict):
+            errors.append("exception_unwind_targets")
+        else:
+            expected_unwind = {
+                "copy_constructor_candidate": ("0x7efb6c", "0xfb2a74", "0xf19718"),
+                "clone_candidate": ("0x7efbb4", "0xfb2a7c", "0xf19730"),
+            }
+            for name, (entry_vma, exidx_vma, extab_vma) in expected_unwind.items():
+                item = targets.get(name)
+                if not isinstance(item, dict) or item.get("status") != "PRIMARY_ELF_VERIFIED":
+                    errors.append(f"exception_unwind_target:{name}")
+                    continue
+                if item.get("address_space") != "ELF_VMA":
+                    errors.append(f"exception_unwind_space:{name}")
+                if item.get("entry_vma") != entry_vma:
+                    errors.append(f"exception_unwind_entry:{name}")
+                if item.get("exidx_entry_vma") != exidx_vma:
+                    errors.append(f"exception_unwind_exidx:{name}")
+                if item.get("extab_vma") != extab_vma or item.get("unwind_kind") != "EXTAB":
+                    errors.append(f"exception_unwind_extab:{name}")
+    bindings = report.get("bindings")
+    end_cleanup = bindings.get("end_cleanup") if isinstance(bindings, dict) else None
+    if not isinstance(end_cleanup, dict) or end_cleanup.get("status") != "VERIFIED_STATIC":
+        errors.append("end_cleanup_binding")
+    else:
+        if end_cleanup.get("entry_vma") != "0xdd4f8" or end_cleanup.get("got_slot") != "0x102d660":
+            errors.append("end_cleanup_locator")
+        candidates = end_cleanup.get("candidates")
+        if not isinstance(candidates, list) or len(candidates) != 1 or candidates[0].get("symbol") != "__cxa_end_cleanup":
+            errors.append("end_cleanup_symbol")
     inheritance = report.get("inheritance")
     if not isinstance(inheritance, dict):
         errors.append("missing_inheritance_evidence")
@@ -1018,4 +1166,19 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
         for name in expected:
             if observations[name].get("status") != "PRIMARY_ELF_VERIFIED":
                 errors.append(f"observation:{name}")
+        for name in ("prmset_payload_helper", "prmset_clone"):
+            cleanup = observations[name].get("exception_cleanup")
+            if not isinstance(cleanup, dict) or cleanup.get("status") != "STATIC_INFERRED":
+                errors.append(f"exception_cleanup:{name}")
+        expected_cleanup = {
+            "prmset_payload_helper": ("0x7efb9c", ["0xffe0c", "0xe4734", "0xdd4f8"]),
+            "prmset_clone": ("0x7efbce", ["0xdd620", "0xdd4f8"]),
+        }
+        for name, (landing_pad, calls) in expected_cleanup.items():
+            cleanup = observations[name].get("exception_cleanup")
+            if isinstance(cleanup, dict):
+                if cleanup.get("landing_pad_candidate") != landing_pad:
+                    errors.append(f"exception_cleanup_locator:{name}")
+                if cleanup.get("calls") != calls:
+                    errors.append(f"exception_cleanup_calls:{name}")
     return {"valid": not errors, "errors": sorted(set(errors))}

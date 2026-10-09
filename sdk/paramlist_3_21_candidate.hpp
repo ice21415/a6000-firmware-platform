@@ -87,6 +87,18 @@ struct PrmSetEvidenceConstants {
     static constexpr std::uint32_t deleting_destructor_raw_thumb = 0x007efb59;
 };
 
+// ARM EHABI and bounded cleanup locators for the PrmSet copy/clone paths.
+// These are static-analysis metadata only: they are not exception tables,
+// host function pointers, or proof that an external caller may construct or
+// destroy a live firmware object.
+struct PrmSetExceptionEvidenceConstants {
+    static constexpr std::uint32_t copy_constructor_candidate_vma = 0x007efb6c;
+    static constexpr std::uint32_t copy_cleanup_landing_pad_vma = 0x007efb9c;
+    static constexpr std::uint32_t clone_candidate_vma = 0x007efbb4;
+    static constexpr std::uint32_t clone_cleanup_landing_pad_vma = 0x007efbce;
+    static constexpr std::uint32_t cxa_end_cleanup_plt_vma = 0x000dd4f8;
+};
+
 // The following words describe the bounded ELF-local tree evidence inside a
 // PrmSet payload.  They are not a std::set declaration and must not be used
 // as host pointers or live camera objects.  The source alias, comparator,

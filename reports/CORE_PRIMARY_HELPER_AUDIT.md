@@ -1207,3 +1207,17 @@ The contract also records bounded null-guard observations, borrowed-pointer
 invalidation, invalid-node behavior and concurrency as separate safety fields;
 only the first two bounded no-guard observations are primary/static facts and
 none is a runtime-safety guarantee.
+
+## PrmSet copy/clone 例外清理與 ARM EHABI 交叉驗證 — 2026-10-10
+
+本輪沒有重做 `ParamList::get`。在 SHA-pinned `libObj.so` 上，Capstone 重新讀取了 PrmSet 複製 helper `0x7efb6c` 和 clone candidate `0x7efbb4` 的正常與清理區段，並以 ELF `.ARM.exidx` 直接索引例外 unwind metadata。兩個 entry 各自只有一筆 `PRIMARY_ELF_VERIFIED` EHABI record：`0x7efb6c` 對應 `.ARM.exidx` entry `0xfb2a74` / EXTAB `0xf19718`，`0x7efbb4` 對應 `0xfb2a7c` / EXTAB `0xf19730`。這些是 ELF VMA metadata；沒有發布 unwind 編碼或韌體 bytes。
+
+`0x7efb6c` 的正常路徑完成 ParamBase/payload 初始化並呼叫 payload copy `0x63e8a6`。同一 bounded region 的清理候選 `0x7efb9c` 依序呼叫 payload destroy `0xffe0c`、ParamBase destruction path `0xe4734`，再經 PLT `0xdd4f8`；該 PLT 的唯一 `.rel.plt` binding 是 `__cxa_end_cleanup`，GOT `0x102d660`。這支持「部分初始化 copy 路徑的 compiler-generated cleanup candidate」的描述，cleanup 語意保持 `STATIC_INFERRED`。
+
+`0x7efbb4` 先配置 0x24 bytes、呼叫 `0x7efb6c`，正常返回新物件。其 bounded cleanup candidate `0x7efbce` 呼叫 `_ZdlPv` PLT `0xdd620`，再呼叫同一 `__cxa_end_cleanup` PLT。這支持「copy construction 失敗時釋放新配置物件」的靜態候選；不證明所有 throw edge、exception object、allocator pairing 或 source-level clone return type。
+
+獨立 ASCII-path Ghidra 12.1.3 `param-set-exceptions` profile（ARM:LE:32:v8、image base `0x10000`、`-noanalysis`）exit `0`，寫出 `COMPLETE_TARGET_EXPORT`；四個 non-overlapping bounded targets、39 instruction rows、4 blocks、11 edges。Ghidra 與 Capstone 對 `0x7efb9c`／`0x7efbce` 的 direct call targets 一致；因 landing pad 在正常 CFG 外，Ghidra decompiler 的 bounded body 可能把相鄰資料／函式解讀成額外 flow，不能把該段 pseudo-C 當成語意證明。原始 export/project 仍只存於本機。
+
+公開 `fwplatform/param_set_probe.py` 現在要求唯一 `.ARM.exidx` entry、唯一 `__cxa_end_cleanup` relocation binding，並把 exception cleanup status 固定在 `STATIC_INFERRED`；validator 會拒絕把 cleanup 或 runtime/callable 狀態提升。`sdk/param_set_3_21.json` 與 `sdk/paramlist_3_21_candidate.hpp` 加入描述性 EHABI/cleanup metadata；仍然不是可呼叫 wrapper。runtime verification 與 callable API counts 維持 **0**。本輪 targeted PrmSet regression tests：**22 passed**。 Full local regression suite: **347 tests passed in 16.666s**。
+
+仍未解決：PrmSet 真實 source element typedef/comparator、唯一 mutation owner/caller、完整 EHABI throw-edge/exception-object semantics、allocator pairing、concurrency、runtime ABI 與可呼叫性。下一步應在不把 generic ordered-tree helper 誤標為 PrmSet mutator 的前提下，繼續追蹤 owner-release 與具體 construction/use sites。

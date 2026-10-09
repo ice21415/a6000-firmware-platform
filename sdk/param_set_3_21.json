@@ -7,7 +7,7 @@
   "type": "PrmSet",
   "discriminator": 7,
   "allocation_size_bytes": 36,
-  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, ELF-local tree-helper facts, and the separate libScalarDaemon cross-ELF call chain; source container alias remains UNKNOWN",
+  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, ELF-local tree-helper facts, ARM EHABI cleanup metadata, and the separate libScalarDaemon cross-ELF call chain; source container alias remains UNKNOWN",
   "cross_module_usage_contract": "sdk/paramset_cross_elf_3_21.json",
   "layout": {
     "+0x00": "ParamBase vptr address point",
@@ -144,7 +144,19 @@
       "entry": "0x7efbb4",
       "effects": "allocates 0x24-byte object and copies source payload through 0x63e8a6",
       "source_return_type": "UNKNOWN",
-      "safe_to_call": false
+      "safe_to_call": false,
+      "exception_cleanup": {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efbce",
+        "calls": [
+          "0xdd620",
+          "0xdd4f8"
+        ],
+        "delete_symbol": "_ZdlPv",
+        "end_cleanup_symbol": "__cxa_end_cleanup",
+        "ehabi_target": "exception_unwind.targets.clone_candidate",
+        "limitation": "copy-constructor throw source and exception object semantics UNKNOWN"
+      }
     },
     "payload_tree_helpers": {
       "entries": {
@@ -163,6 +175,23 @@
       "insert_scope": "generic ELF-local helper; direct PrmSet method identity UNKNOWN",
       "safe_to_call": false,
       "value_semantics": "The bounded node construction/copy path transfers one 32-bit word at node +0x10; the local comparator orders two such words with an unsigned comparison. Header/link accessors observe payload +0x04, +0x08, +0x0c and +0x10, compatible with the imported _Rb_tree node-base ABI. The exact PrmSet source element type remains UNKNOWN."
+    },
+    "copy_constructor_candidate": {
+      "entry": "0x7efb6c",
+      "normal_path": "initializes ParamBase/payload and copies the source payload through 0x63e8a6",
+      "exception_cleanup": {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efb9c",
+        "calls": [
+          "0xffe0c",
+          "0xe4734",
+          "0xdd4f8"
+        ],
+        "end_cleanup_symbol": "__cxa_end_cleanup",
+        "ehabi_target": "exception_unwind.targets.copy_constructor_candidate",
+        "limitation": "complete throw edge, exception object and allocator contract UNKNOWN"
+      },
+      "safe_to_call": false
     }
   },
   "bindings": {
@@ -230,6 +259,12 @@
       "plt": "0xe186c",
       "got": "0x102eba8",
       "symbol": "_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "end_cleanup": {
+      "plt": "0xdd4f8",
+      "got": "0x102d660",
+      "symbol": "__cxa_end_cleanup",
       "runtime_binding": "UNKNOWN"
     }
   },
@@ -331,5 +366,28 @@
       },
       "source_level_semantics": "slot positions and target bodies are statically observed; exact source virtual declarations and runtime dispatch remain UNKNOWN"
     }
+  },
+  "exception_unwind": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "format": "ARM EHABI .ARM.exidx metadata",
+    "targets": {
+      "copy_constructor_candidate": {
+        "entry_vma": "0x7efb6c",
+        "exidx_entry_vma": "0xfb2a74",
+        "extab_vma": "0xf19718",
+        "unwind_kind": "EXTAB",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA"
+      },
+      "clone_candidate": {
+        "entry_vma": "0x7efbb4",
+        "exidx_entry_vma": "0xfb2a7c",
+        "extab_vma": "0xf19730",
+        "unwind_kind": "EXTAB",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA"
+      }
+    },
+    "semantic_limit": "EHABI coverage and bounded cleanup calls do not prove every throw edge, exception object type or allocator contract"
   }
 }

@@ -385,3 +385,13 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
 - Full synthetic regression suite: 330 tests passed. Runtime verification and
   callable SDK counts remain zero; private firmware/Ghidra exports remain
   excluded.
+
+- Added SHA-pinned PrmSet ARM EHABI metadata and bounded copy/clone cleanup
+  observations. `__cxa_end_cleanup` PLT binding, copy cleanup and clone
+  allocation cleanup remain static/inferred evidence; runtime/callable counts
+  remain zero.
+- Added the private-only `param-set-exceptions` Ghidra profile. The validated
+  run exited 0 with 4 target bodies, 39 instructions, 4 blocks and 11 edges;
+  raw export and private projects remain excluded.
+- Added fail-closed validator coverage for missing or promoted exception
+  evidence. Targeted PrmSet tests pass 22/22; the full local suite passes 347 tests.

@@ -14,14 +14,44 @@ def _report():
             "symbol": "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
         }],
     }
-    return {
+    report = {
         "binary_file_sha256": EXPECTED_LIBOBJ_SHA,
         "address_space": "ELF_VMA",
         "type": "PrmSet",
         "discriminator": 7,
         "allocation_size_bytes": 0x24,
+        "exception_unwind": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "format": "ARM EHABI .ARM.exidx metadata",
+            "targets": {
+                "copy_constructor_candidate": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "address_space": "ELF_VMA",
+                    "entry_vma": "0x7efb6c",
+                    "exidx_entry_vma": "0xfb2a74",
+                    "extab_vma": "0xf19718",
+                    "unwind_kind": "EXTAB",
+                },
+                "clone_candidate": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "address_space": "ELF_VMA",
+                    "entry_vma": "0x7efbb4",
+                    "exidx_entry_vma": "0xfb2a7c",
+                    "extab_vma": "0xf19730",
+                    "unwind_kind": "EXTAB",
+                },
+            },
+        },
         "runtime_verified": False,
         "callable": False,
+        "bindings": {
+            "end_cleanup": {
+                "status": "VERIFIED_STATIC",
+                "entry_vma": "0xdd4f8",
+                "got_slot": "0x102d660",
+                "candidates": [{"symbol": "__cxa_end_cleanup"}],
+            },
+        },
         "inheritance": {
             "status": "PRIMARY_ELF_VERIFIED",
             "base_type": "ParamBase",
@@ -115,6 +145,17 @@ def _report():
             for target in TARGETS
         },
     }
+    report["observations"]["prmset_payload_helper"]["exception_cleanup"] = {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efb9c",
+        "calls": ["0xffe0c", "0xe4734", "0xdd4f8"],
+    }
+    report["observations"]["prmset_clone"]["exception_cleanup"] = {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efbce",
+        "calls": ["0xdd620", "0xdd4f8"],
+    }
+    return report
 
 
 class ParamSetProbeTests(unittest.TestCase):
@@ -154,6 +195,19 @@ class ParamSetProbeTests(unittest.TestCase):
         self.assertFalse(contract["callable"])
         self.assertFalse(contract["safety_boundaries"]["runtime_safe"])
         self.assertEqual(contract["safety_boundaries"]["concurrency"]["status"], "UNKNOWN")
+        unwind = contract["exception_unwind"]
+        self.assertEqual(unwind["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(unwind["format"], "ARM EHABI .ARM.exidx metadata")
+        self.assertEqual(unwind["targets"]["copy_constructor_candidate"]["extab_vma"], "0xf19718")
+        self.assertEqual(unwind["targets"]["clone_candidate"]["extab_vma"], "0xf19730")
+        self.assertEqual(
+            contract["methods"]["copy_constructor_candidate"]["exception_cleanup"]["status"],
+            "STATIC_INFERRED",
+        )
+        self.assertEqual(
+            contract["methods"]["clone_candidate"]["exception_cleanup"]["landing_pad_candidate"],
+            "0x7efbce",
+        )
 
     def test_static_report_is_valid(self):
         result = validate_param_set(_report())
@@ -271,6 +325,34 @@ class ParamSetProbeTests(unittest.TestCase):
         result = validate_param_set(report)
         self.assertFalse(result["valid"])
         self.assertIn("tree_mutator_promotion", result["errors"])
+
+    def test_exception_cleanup_promotion_is_rejected(self):
+        report = _report()
+        report["observations"]["prmset_clone"]["exception_cleanup"]["status"] = "PRIMARY_ELF_VERIFIED"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("exception_cleanup:prmset_clone", result["errors"])
+
+    def test_missing_exception_unwind_is_rejected(self):
+        report = _report()
+        del report["exception_unwind"]
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("missing_exception_unwind", result["errors"])
+
+    def test_exception_target_locator_is_rejected(self):
+        report = _report()
+        report["exception_unwind"]["targets"]["clone_candidate"]["extab_vma"] = "0x0"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("exception_unwind_extab:clone_candidate", result["errors"])
+
+    def test_end_cleanup_binding_is_rejected(self):
+        report = _report()
+        report["bindings"]["end_cleanup"]["candidates"][0]["symbol"] = "_ZdlPv"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("end_cleanup_symbol", result["errors"])
 
 
 if __name__ == "__main__":

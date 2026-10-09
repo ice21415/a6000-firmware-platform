@@ -541,3 +541,26 @@ invalid-node, alias-invalidation and concurrency behavior. Runtime verification
 and callable API counts remain zero. A fresh private ASCII-path Ghidra
 `ParamListTargets.java param-set` run exited 0 with 28 target bodies, 375
 instruction rows, 55 blocks and 96 CFG edges; its export remains private.
+
+
+## PrmSet exception-boundary checkpoint (2026-10-10)
+
+The primary-ELF-only `fwplatform.param_set_probe` now indexes ARM EHABI
+`.ARM.exidx` records for the PrmSet copy helper (`0x7efb6c`) and clone
+candidate (`0x7efbb4`). Capstone verifies cleanup-shaped calls at `0x7efb9c`
+and `0x7efbce`; the unique PLT binding at `0xdd4f8` is
+`__cxa_end_cleanup`. The public contract is `sdk/param_set_3_21.json` and
+the descriptive constants are in `sdk/paramlist_3_21_candidate.hpp`.
+
+These records distinguish direct instruction/relocation facts
+(`PRIMARY_ELF_VERIFIED`) from exception relationship interpretation
+(`STATIC_INFERRED`). The bounded cleanup path does not prove all throw edges,
+exception-object semantics, allocator pairing, source-level clone return type,
+owner identity or runtime safety. `runtime_verified=false` and
+`callable=false` remain required.
+
+The private `ParamListTargets.java param-set-exceptions` profile uses
+non-overlapping cleanup ranges and completed with Ghidra 12.1.3,
+`ARM:LE:32:v8`, image base `0x10000`, exit 0, `COMPLETE_TARGET_EXPORT`,
+4 targets, 39 instructions, 4 blocks and 11 edges. Raw exports and projects
+remain private.

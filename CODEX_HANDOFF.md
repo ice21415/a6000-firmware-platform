@@ -781,3 +781,36 @@ tests. Runtime verification and callable API counts remain zero.
 The contract also keeps bounded null-guard observations separate from unknown
 invalid-node, alias-invalidation and concurrency behavior; none is a runtime
 safety guarantee.
+
+## Latest checkpoint — PrmSet exception/owner boundary work (2026-10-10)
+
+The pinned primary ELF was revalidated. This round did not repeat `ParamList::get`.
+`fwplatform/param_set_probe.py` now includes the compiler-generated cleanup-shaped
+regions after the PrmSet copy helper (`0x7efb9c`) and clone candidate (`0x7efbce`).
+Capstone verifies the bounded calls; `.ARM.exidx` has one EXTAB record for each
+entry (`0xfb2a74 -> 0xf19718` and `0xfb2a7c -> 0xf19730`). The PLT at `0xdd4f8`
+resolves uniquely to `__cxa_end_cleanup` through GOT `0x102d660`.
+
+The copy-helper cleanup candidate calls `0xffe0c`, `0xe4734` and
+`__cxa_end_cleanup`. The clone cleanup candidate calls `_ZdlPv` at `0xdd620`
+and then `__cxa_end_cleanup`. Direct machine/relocation facts are
+`PRIMARY_ELF_VERIFIED`; the exception relationship remains `STATIC_INFERRED`.
+EHABI coverage does not prove every throw edge, exception object, allocator
+pairing or source-level clone return type.
+
+A private ASCII-path Ghidra 12.1.3 `param-set-exceptions` profile (ARM:LE:32:v8,
+image base `0x10000`, `-noanalysis`) exited 0 with
+`COMPLETE_TARGET_EXPORT`: 4 bounded targets, 39 instructions, 4 blocks and
+11 edges. Ghidra and Capstone agree on the cleanup call targets. Raw export and
+private projects remain outside the repository.
+
+Public SDK metadata/header and the validator now record this EHABI evidence and
+reject cleanup/runtime/callable status promotion. Runtime verification and
+callable SDK counts remain zero. Targeted tests pass 22/22; the full local
+suite passes 347 tests. The source element
+typedef, unique PrmSet mutator, complete exception object semantics, owner
+identity, allocator pairing, locking and runtime ABI remain unknown.
+
+Next target: owner-release and concrete construction/use evidence, without
+promoting the generic ordered-tree helper or generated Ghidra names to a
+PrmSet API.
