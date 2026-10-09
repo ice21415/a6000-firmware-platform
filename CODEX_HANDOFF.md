@@ -464,3 +464,20 @@ The synthetic ObjMsg validator now has six fail-closed tests. Continue next by
 mapping verified ParamBase construction sites and source-level ownership uses;
 do not treat the destructor sequence as proof that arbitrary external pointers
 are safe to pass.
+
+## Current continuation checkpoint (2026-10-10) — PrmObjMsg usage xrefs
+
+`ghidra-scripts/ParamObjMsgUsage.java` is a metadata-only private Ghidra
+profile. On the existing SHA-pinned `libObj.so` project it exited 0 with
+language `ARM:LE:32:v8` and eight xrefs. The only internal PrmObjMsg payload
+family callsites observed were in clone entry `0x12c784`: constructor PLT
+`0xe2080` at `0x12c7a6`, getter PLT `0xddee4` at `0x12c788`, and ObjMsg copy
+constructor PLT `0xe0388` at `0x12c798`; destructor entry `0x12c700` calls
+ObjMsg D1 PLT `0xddd94` at `0x12c718`. The local constructor has external/data
+references but no additional internal caller in this targeted export.
+
+This is targeted Ghidra xref metadata (`STATIC_INFERRED`), not an exhaustive
+whole-firmware call graph. Generated labels are not semantic names, and the
+result does not prove that arbitrary external pointers are safely transferable.
+The normalized usage observations are recorded in
+`sdk/param_objmsg_3_21.json`; raw output remains private.

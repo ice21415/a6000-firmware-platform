@@ -342,3 +342,17 @@ The descriptive contract is `sdk/param_objmsg_3_21.json`, and the probe's six
 synthetic fail-closed tests do not require private firmware. A private ASCII
 Ghidra 12.1.3 targeted run exited 0 with 5 targets, 62 instructions, 7 blocks
 and 14 edges. No firmware bytes or raw Ghidra output is part of the public tree.
+
+## Latest usage-xref checkpoint: PrmObjMsg clone/lifetime path (2026-10-10)
+
+The new metadata-only `ghidra-scripts/ParamObjMsgUsage.java` profile validates
+against the pinned ELF SHA and exports only target/reference/function-entry
+metadata. Its private `-noanalysis` run exits 0 with eight xrefs. Four direct
+internal relations are observed: clone `0x12c784` calls the constructor PLT at
+`0x12c7a6`, getter PLT at `0x12c788`, and ObjMsg copy constructor PLT at
+`0x12c798`; destructor `0x12c700` calls ObjMsg D1 at `0x12c718`. The local
+constructor has only external/data references in this targeted program.
+
+The SDK contract stores these observations as `STATIC_INFERRED` usage evidence.
+They narrow the observed libObj-only path but are not an exhaustive whole
+firmware call graph, ownership proof, or runtime validation.

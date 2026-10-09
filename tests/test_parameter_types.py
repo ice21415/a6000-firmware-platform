@@ -83,5 +83,9 @@ class ParameterTypeTests(unittest.TestCase):
                          '_ZN3MWF6ObjMsgD1Ev')
         self.assertEqual(doc['bindings']['payload_copy_constructor']['symbol'],
                          '_ZN3MWF6ObjMsgC1ERKS0_')
+        self.assertEqual(doc['usage_evidence']['status'], 'STATIC_INFERRED')
+        self.assertEqual(doc['usage_evidence']['xrefs_total'], 8)
+        self.assertEqual(doc['usage_evidence']['observed_callers'][0]['caller_entry'],
+                         '0x12c784')
         self.assertFalse(doc['abi']['runtime_verified'])
         self.assertFalse(doc['abi']['callable'])

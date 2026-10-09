@@ -12,6 +12,11 @@
   edges. Six fail-closed ObjMsg tests and the 295-test public suite pass; no
   firmware bytes or private Ghidra output are published.
 
+- Added the metadata-only `ParamObjMsgUsage.java` Ghidra profile. The private
+  targeted run records the clone constructor/getter/copy-constructor callsites
+  and the ObjMsg destructor callsite, while keeping generated labels,
+  ownership and whole-firmware usage explicitly unverified.
+
 - Added the private-only `parameter-struct` probe and descriptive contract for
   the discriminator-6 PrmStruct family. Primary ELF evidence verifies the
   vtable/RTTI, `malloc`/`memcpy` pointer-plus-length payload construction,

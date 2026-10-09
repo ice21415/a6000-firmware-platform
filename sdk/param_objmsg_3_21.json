@@ -36,6 +36,20 @@
     "slot_plus_16_deleting_destructor": "0x12c740",
     "verification": "PRIMARY_ELF_VERIFIED"
   },
+  "usage_evidence": {
+    "source": "private targeted Ghidra 12.1.3 metadata export, -noanalysis, SHA-pinned libObj.so",
+    "status": "STATIC_INFERRED",
+    "scope": "xref metadata from the imported libObj.so program; not a proof of exhaustive whole-firmware usage",
+    "observed_callers": [
+      {"target": "0xe2080", "target_symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE", "caller_entry": "0x12c784", "callsite": "0x12c7a6", "relation": "CALLS"},
+      {"target": "0xddee4", "target_symbol": "_ZNK9PrmObjMsg18getParamTypeObjMsgEv", "caller_entry": "0x12c784", "callsite": "0x12c788", "relation": "CALLS"},
+      {"target": "0xe0388", "target_symbol": "_ZN3MWF6ObjMsgC1ERKS0_", "caller_entry": "0x12c784", "callsite": "0x12c798", "relation": "CALLS"},
+      {"target": "0xddd94", "target_symbol": "_ZN3MWF6ObjMsgD1Ev", "caller_entry": "0x12c700", "callsite": "0x12c718", "relation": "CALLS"}
+    ],
+    "local_constructor_internal_callers": "NONE_OBSERVED_IN_TARGETED_GHIDRA_XREF_EXPORT; external/data references to the local symbol remain",
+    "xrefs_total": 8,
+    "limitations": ["-noanalysis targeted metadata is not an exhaustive whole-program call graph", "generated Ghidra function labels are not semantic names"]
+  },
   "bindings": {
     "param_base_constructor": {"entry": "0xe11a4", "symbol": "_ZN9ParamBaseC2Em", "got_slot": "0x102e984", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
     "payload_destructor": {"entry": "0xddd94", "symbol": "_ZN3MWF6ObjMsgD1Ev", "got_slot": "0x102d910", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},

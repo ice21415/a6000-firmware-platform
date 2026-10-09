@@ -754,3 +754,19 @@ explicit static PLT bindings and enforces vtable/RTTI completeness in its
 validator. Six synthetic fail-closed tests cover identity, vtable, binding,
 target and non-callable promotion checks. The complete public regression suite
 passes **295 tests**; no test executes the Sony ELF or requires a camera.
+
+### Targeted usage xrefs
+
+The private Ghidra metadata-only usage export (`ParamObjMsgUsage.java`, exit 0)
+found four direct internal callsites relevant to the family: the clone body
+at `0x12c784` calls the PrmObjMsg constructor PLT at `0x12c7a6`, the getter
+PLT at `0x12c788`, and the ObjMsg copy constructor PLT at `0x12c798`; the
+non-deleting destructor calls ObjMsg D1 at `0x12c718`. The local constructor
+symbol has only external/data references in this targeted export and no
+additional internal constructor caller was observed. The export contains eight
+xrefs total, including those external/data references.
+
+This narrows the observed `libObj.so` usage to the clone/lifetime path, but it
+does not prove that no other ELF or dynamically resolved caller exists. The
+contract records this as `STATIC_INFERRED`, keeps generated Ghidra labels out
+of semantic names, and does not promote ownership or runtime safety.
