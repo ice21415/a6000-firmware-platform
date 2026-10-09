@@ -30,6 +30,17 @@ unnamed shared-assignment body:
 python -m fwplatform.cli sdk parameter-mutation --elf C:\private\libObj.so --json
 ```
 
+The bounded `parameter-numberlist` probe records primary-ELF evidence for
+`PrmNumberList`'s uint32 vector layout, indexed access, length calculation,
+append path and constructors/destructors:
+
+```powershell
+python -m fwplatform.cli sdk parameter-numberlist --elf C:\private\libObj.so --json
+```
+
+Its output is descriptive only (`safe_to_call=false`, with runtime and
+allocator behavior unknown); it must not be used as a live camera wrapper.
+
 It reports element deletion, counter-zero cleanup and allocator relocation
 evidence. The assignment identity, copy-on-write behavior, locking and
 exception contract remain unknown by design.

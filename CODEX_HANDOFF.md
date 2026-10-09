@@ -31,6 +31,16 @@ Ghidra rerun exits 0 with 21 targets, 343 instruction rows, 79 blocks and 135
 edges. The descriptive contract now has 17 interfaces; callable/runtime count
 remains zero. The full public synthetic suite now passes 234 tests.
 
+The next primary-ELF checkpoint adds `fwplatform/param_numberlist_probe.py`
+and `fw sdk parameter-numberlist --elf <private-libObj.so>`. It validates nine
+PrmNumberList regions: indexed uint32 access, length, append/capacity branch,
+default/copy construction and both destruction paths. The result is a
+descriptive `sdk/param_numberlist_3_21.json`; runtime/callable counts remain
+zero and vector allocator, bounds, synchronization and exception behavior are
+unknown.
+The latest full public synthetic suite passes 238 tests after the NumberList
+probe fixtures were added.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current

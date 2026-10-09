@@ -10,6 +10,11 @@
   private Ghidra export now covers 21 bounded targets; the full public suite
   passes 234 tests; no firmware bytes are published.
 
+- Added the SHA-pinned `parameter-numberlist` probe and descriptive contract.
+  Nine primary-ELF regions cover `PrmNumberList` indexed access, length,
+  append/capacity behavior, construction and destruction. Bounds, allocator,
+  synchronization, exceptions and runtime callability remain unknown.
+
 - ParamList factory caller checkpoint: added the private SHA-pinned
   `parameter-factory` probe. Four factory callsites now have bounded register
   provenance, null-result guards and success-path calls to the relocation-

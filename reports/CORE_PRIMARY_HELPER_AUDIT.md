@@ -217,6 +217,31 @@ all four targets. A targeted private ASCII Ghidra `-noanalysis` rerun exited
 edges; the new clear/assignment/destructor bodies were included. Raw output
 and project data remain private.
 
+### PrmNumberList method and vector checkpoint — 2026-10-09
+
+The new `fwplatform.param_numberlist_probe` (`fw sdk parameter-numberlist
+--elf <private-libObj.so>`) revalidated the pinned ELF and independently
+checked nine bounded regions. The probe records only metadata and returned a
+valid report with all nine observations marked `PRIMARY_ELF_VERIFIED`:
+
+| Region | Primary machine fact | Remaining unknown |
+|---|---|---|
+| `0xeccf4` `getList` | returns `this + 0x0c`, the embedded vector-like storage address | source return type and ownership |
+| `0xecd26` `getNumberEj` | indexes `begin + index * 4` and loads one word | no local bounds check; invalid-index behavior |
+| `0xecd42` `getLength` | computes `(end - begin) >> 2` | source return type and vector invariants |
+| `0xed1a2` `addNumberEj` / `0xed174` | forwards a uint value; non-full path stores and advances end; full path branches to growth code | allocator, exception, and synchronization behavior |
+| `0xecdb8` / `0xed35c` | initializes discriminator 10/vector storage; copy constructor forwards to local copy path `0xed29a` | exact base/helper C++ identities and argument reference ABI |
+| `0xece64` / `0xece98` | destroys vector-like storage, invokes base path, and deleting path reaches PLT `0xdd620` | allocator interposition and callable destructor ABI |
+
+The descriptive contract is `sdk/param_numberlist_3_21.json`; it keeps
+`safe_to_call=false`, `runtime_verified=false` and `callable=false`. The
+`uint32_t` element description is supported by the `Ej` symbols and word
+loads/stores, while the public object layout remains a snapshot description,
+not a live C++ wrapper. The probe's synthetic validator rejects missing
+observations, wrong discriminator/type identity and runtime promotion.
+After adding the NumberList fixtures, the full public synthetic suite passes
+238 tests (process exit 0).
+
 ## ParamList continuation — latest checkpoint
 
 The installation was copied to an ASCII path and the new

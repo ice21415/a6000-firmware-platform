@@ -133,6 +133,11 @@ destructor delete PLT resolves to `_ZdlPv` at GOT `0x102d6bc`; copy-on-write,
 locks, exception behavior and runtime safety remain unknown. A private
 `-noanalysis` Ghidra rerun exits 0 with 21 targets, 343 instructions, 79 blocks
 and 135 edges.
+The `parameter-numberlist` probe then validates nine primary-ELF regions for
+`PrmNumberList`: vector layout at `+0x0c`, indexed access, length, append
+capacity handling, default/copy constructors and destruction. Its contract is
+`sdk/param_numberlist_3_21.json`; allocator, bounds, synchronization,
+exception and runtime behavior remain unknown.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved
