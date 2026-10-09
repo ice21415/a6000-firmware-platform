@@ -31,6 +31,39 @@ def _optional_text(value: Any, field: str) -> str | None:
     raise ValueError(f"SDK {field} must be a string, object, list, or null")
 
 
+def _proves_function_location(evidence: Any, sha256: str, address: str) -> bool:
+    """Require an independent source locator matching BOTH binary and function.
+
+    A generic VERIFIED_STATIC row from a different binary must not promote an
+    unrelated SDK contract. Metadata-only Ghidra exports also are not proof
+    of a function's ABI or semantic behavior.
+    """
+    if evidence is None or not sha256 or not address:
+        return False
+    try:
+        excerpt = json.loads(evidence["excerpt"] or "{}")
+        metadata = json.loads(evidence["metadata_json"] or "{}")
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(excerpt, dict):
+        excerpt = {}
+    if not isinstance(metadata, dict):
+        metadata = {}
+    referenced_digest = (excerpt.get("binary_sha256") or metadata.get("binary_sha256")
+                         or evidence["source_sha256"] or "")
+    if str(referenced_digest).lower() != sha256.lower():
+        return False
+    reference_address = (excerpt.get("function_entry") or excerpt.get("entry_vma")
+                         or excerpt.get("function_address") or excerpt.get("address")
+                         or metadata.get("function_entry") or metadata.get("function_address"))
+    if reference_address is None:
+        return False
+    try:
+        return int(str(reference_address), 0) == int(address, 0)
+    except ValueError:
+        return False
+
+
 def _lookup_function(db: Database, binary_sha: str, address: str) -> tuple[int | None, int | None, int | None]:
     binaries = db.query("SELECT id FROM binary WHERE lower(sha256)=?", (binary_sha,))
     if len(binaries) != 1:
@@ -120,14 +153,18 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
                 if item["binary_sha"] and item["address"] else (None, None, None)
             )
             source_id = item["primary_evidence"]
-            source = (db.connection.execute("SELECT status FROM evidence WHERE id=?", (source_id,)).fetchone()
+            source = (db.connection.execute(
+                "SELECT status,source_sha256,excerpt,metadata_json FROM evidence WHERE id=?",
+                (source_id,)).fetchone()
                       if source_id is not None else None)
             if source_id is not None and source is None:
                 raise ValueError(f"SDK {item['name']}: source_evidence_id does not exist")
             # A self-describing fixture is not primary proof of the ABI.
             eligible_static = bool(
                 function_id is not None and source is not None
-                and source[0] == "VERIFIED_STATIC" and item["requested"] == "VERIFIED_STATIC"
+                and source["status"] == "VERIFIED_STATIC"
+                and _proves_function_location(source, item["binary_sha"], item["address"])
+                and item["requested"] == "VERIFIED_STATIC"
             )
             status = "VERIFIED_STATIC" if eligible_static else (
                 "CANDIDATE" if item["requested"] == "VERIFIED_STATIC" else item["requested"]
@@ -175,14 +212,23 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
     complete_static = 0
     for row in db.query("""SELECT s.*,e.status AS evidence_status,e.kind AS evidence_kind,
-            f.binary_id AS function_binary_id,f.address AS function_address
+            e.source_sha256 AS evidence_sha256,e.excerpt AS evidence_excerpt,
+            e.metadata_json AS evidence_metadata_json,
+            f.binary_id AS function_binary_id,f.address AS function_address,
+            b.sha256 AS binary_sha256
             FROM sdk_interface s LEFT JOIN evidence e ON e.id=s.source_evidence_id
-            LEFT JOIN function f ON f.id=s.function_id ORDER BY s.domain,s.name,s.id"""):
+            LEFT JOIN function f ON f.id=s.function_id
+            LEFT JOIN binary b ON b.id=s.binary_id ORDER BY s.domain,s.name,s.id"""):
         issues: list[str] = []
         if row["source_evidence_id"] is None or row["evidence_status"] is None:
             issues.append("MISSING_PRIMARY_EVIDENCE")
         elif row["verification_status"] == "VERIFIED_STATIC" and row["evidence_status"] != "VERIFIED_STATIC":
             issues.append("STATIC_STATUS_WITHOUT_STATIC_EVIDENCE")
+        if row["verification_status"] == "VERIFIED_STATIC" and row["evidence_status"] == "VERIFIED_STATIC":
+            proof = {"source_sha256": row["evidence_sha256"], "excerpt": row["evidence_excerpt"],
+                     "metadata_json": row["evidence_metadata_json"]}
+            if not _proves_function_location(proof, str(row["binary_sha256"] or ""), str(row["address"] or "")):
+                issues.append("PRIMARY_EVIDENCE_NOT_BOUND_TO_FUNCTION")
         if row["binary_id"] is None:
             issues.append("UNRESOLVED_BINARY")
         if row["function_id"] is None or row["function_binary_id"] is None:
