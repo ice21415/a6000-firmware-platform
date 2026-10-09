@@ -63,3 +63,51 @@ For each interface proposed as core SDK work, independently gather and verify:
   or firmware write operations are implemented here.
 - **Full core API denominator:** **UNKNOWN**; there is no justified completion
   percentage and no published complete executable Sony SDK.
+
+
+## Phase 3.11 research update (2026-10-09)
+
+The connected private research workspace **does contain** an extracted Sony
+3.21 `libObj.so` (17,436,172 bytes) and Lens, Camera Profile, Media,
+OSAL and other ELF libraries. Therefore the next blocker is **not** the
+absence of firmware files: it is that the indexed symbols and saved static
+disassembly reports do not independently prove complete calling conventions,
+parameter/return layouts or safe firmware runtime invocation. A prior
+full-`libObj` Ghidra provider import timed out; the preserved Camera
+instruction-level notes were analyzed via other offline tooling and are
+not represented as successful new Ghidra pseudocode evidence.
+
+The backed-up notes identify the 3.21 `libObj.so` ELF SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+The descriptive candidate catalog now covers 14 Camera function-entry
+research aliases, while the report-only graph transcribes 9 direct
+branch/call relations, 6 ModelCamera byte-field observations, 4
+normalized-selector research results, and an unresolved
+`ObjIf::IssueCommandAsync` indirect dispatch.
+
+The particularly useful reported static chains are:
+
+- `ActionGpSetSetting (0x4cfb9c)` reaches `pvt_ActionSetInit (0x4cf7a8)`
+  on the **normalized** `0x0f01` selector branch.
+- `pvt_ActionSetInit` invokes the EE-neutral helper at `0x4b1a20`
+  and the preparation check at `0x4b096c`. The neutral helper invokes
+  a sender at `0x443d14`, while the asynchronous message's concrete
+  delivery/completion and synchronous status meaning remain unresolved.
+- `PrepON`, `PrepOFF` and `PrepChk` branch to common setter
+  `0x132028`, which can defer publishing the model's prepared flag.
+  Publishing a boolean is **not** proof that sensor/lens/first-shot
+  hardware prerequisites have completed.
+
+`fw sdk research --json` audits internal consistency of these
+**report-level** claims without SQLite or ELF execution;
+`--compare-db <private-copy.sqlite>` reads an existing SQLite index
+strictly in read-only mode to report which exact binary hashes, entry
+VMAs and direct callsite foreign keys exist. An indexed callsite never
+automatically turns into verified ABI or safe camera control.
+
+Separate Lens/Camera Profile lifecycle leads are in
+`sdk/core_3_21_lifecycle_research_leads.json`. IMDb phase-8 registration
+record 131 names `LensCommunicator_Init/Exit`; record 125 names
+`infra_cameraProfile_init/exit`. The record offsets `0xd76c` and
+`0xd664` are *not function-entry VMAs*. Actual Lens focus, aperture,
+sensor-imager, media pipeline and OSAL API signatures remain unknown.
