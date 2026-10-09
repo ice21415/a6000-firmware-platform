@@ -10,10 +10,10 @@
 | Ghidra single-ELF pipeline | IMPLEMENTED | ARM/Thumb sample、JSONL、CFG/XREF、增量匯入 |
 | Cross-ELF linkage | PARTIAL | SONAME/search path 與唯一 export/import match；ambiguous match 保留 |
 | Function semantics | UNKNOWN/PARTIAL | 名稱和 prototype 不能代替語意證明 |
-| Semantic graph | IMPLEMENTED_WITH_GAPS | migration v5–v6、typed nodes/edges、GraphML key/data、provenance validator、unresolved edges |
+| Semantic graph | IMPLEMENTED_WITH_GAPS | migration v5–v7、typed nodes/edges、GraphML、provenance validator；JNI 配對需精確 DEX path 與 evidence ID |
 | JNI/Java bridge | PARTIAL | explicit fixture import；缺失 registration/body 保留 UNKNOWN |
 | OSAL queue/message | PARTIAL | explicit fixture import；需要更多原始 producer/consumer 證據 |
-| DEX inventory | INDEXED ONLY | header/string/class descriptor inventory，不宣稱 method semantics |
+| DEX inventory | INDEXED ONLY | header/string/type/proto/class_def/method_id 靜態結構；method_id 為引用，不宣稱 method body 或 JNI 實作 |
 | Runtime behavior | UNKNOWN | 公開 CI 不連接相機 |
 | Modding adapter | MOCK ONLY | 沒有 NAND/WBI/bootloader/device write path |
 
