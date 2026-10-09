@@ -35,7 +35,10 @@ public class ParamListTargets extends GhidraScript {
    } else if(args[1].equals("event-manager-init")) {
     targets=new long[][]{{0x7ef894,0x4e}};
    } else if(args[1].equals("event-manager-count")) {
-    targets=new long[][]{{0x7ef9fc,0x22}};
+    targets=new long[][]{{0x7ef8f4,0x0e},{0x7ef902,0x0e},{0x7ef9fc,0x22},
+      {0x7f0962,0x08},{0x7f096a,0x1a},{0x7f0984,0x18},
+      {0x7f0a32,0x10},{0x7f0a42,0x0c},{0x7f0a4e,0x2c},
+      {0x7f0a7a,0x0a},{0x7f0a84,0x1c},{0x7f0aa0,0x0c}};
    } else if(args[1].equals("request-event-factory")) {
     targets=new long[][]{{0x7f0b0c,0x6c}};
    } else if(args[1].equals("event-core")) {

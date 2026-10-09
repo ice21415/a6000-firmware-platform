@@ -7,14 +7,20 @@
   `0x7ef9fc`, the `unsigned int` index from the mangled symbol, the indexed
   32-bit state-word load, and the helper/cleanup sequence without exposing
   Sony bytes or providing a callable wrapper.
-- Added `sdk/event_manager_count_3_21.json` and five fail-closed tests. The
+- Added `sdk/event_manager_count_3_21.json` and seven fail-closed tests. The
   bounded body has no local index-bound check; the valid state allocation,
   index range, helper meaning, ownership and runtime safety remain UNKNOWN.
 - A corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
   exited 0 with `COMPLETE_TARGET_EXPORT`, 13 instruction rows, 1 block and
   3 call edges. The private project/export remains outside this repository.
-- The full local regression suite passes 362 tests; runtime-verified and
+- The full local regression suite passes 364 tests; runtime-verified and
   callable API counts remain 0.
+- Extended the probe with the bounded `0x7f0aa0` forward-link distance chain
+  and unique static PLT bindings for `pthread_mutex_lock` and
+  `pthread_mutex_unlock` at the receiver `+0x0c` field. The source-level
+  container type, terminating-chain invariant and index range remain unknown.
+- The updated private ASCII-path Ghidra profile exported 12 targets, 100
+  instruction rows, 15 blocks and 18 edges with `COMPLETE_TARGET_EXPORT`.
 
 ## Unreleased — ParamList::add replacement and borrowed-lifetime evidence
 

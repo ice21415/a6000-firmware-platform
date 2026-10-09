@@ -1312,5 +1312,25 @@ subtracting the image base. The private export/project remains outside the
 repository.
 
 The current full local `python -m unittest discover -s tests -v` run passes
-**362 tests**. These are synthetic/public evidence-gate tests; runtime
+**364 tests**. These are synthetic/public evidence-gate tests; runtime
 verification and callable API counts remain 0.
+
+## EventManager helper-chain and mutex binding refinement — 2026-10-10
+
+The SHA-pinned probe now checks the bounded helper chain behind
+`EventManager::count`: `0x7f0a32` compares the current pointer with a
+sentinel, `0x7f0a42` follows the current node's first word, and
+`0x7f0a4e` increments a counter until the pointers compare equal. Wrappers
+`0x7f096a` and `0x7f0984` respectively load the input's first word and return
+the original input pointer; `0x7f0aa0` tail-branches into this chain. The
+result supports a forward-link distance candidate (`STATIC_INFERRED`) while
+the source-level container, ownership, cycle/termination invariant and index
+range remain `UNKNOWN`.
+
+The count method's `0x7ef8f4`/`0x7ef902` wrappers use receiver `+0x0c` and
+have unique static ARM/Thumb veneer bindings to `pthread_mutex_lock` at
+`0xdcc70` / GOT `0x102d3ac` and `pthread_mutex_unlock` at `0xe29e8` / GOT
+`0x102f130`. Runtime loader binding and full concurrency correctness remain
+unknown. The updated private Ghidra export completed with 12 targets, 100
+instructions, 15 blocks and 18 edges. Runtime-verified and callable counts
+remain 0.

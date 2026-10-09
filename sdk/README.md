@@ -962,8 +962,14 @@ unsigned index. The body loads a state pointer from `[receiver]`, reads one
 `0x7f0aa0`, then performs the receiver cleanup path through `0x7ef902` before
 returning the helper result. No conditional index-bound check appears in this
 bounded body, so the valid state allocation and index range remain UNKNOWN.
-The C++ return type, helper semantics, ownership, loader binding, runtime
-safety and callability remain UNKNOWN/false. The descriptive contract is
+The helper's bounded chain compares a current pointer with a sentinel,
+follows the current node's first word and counts forward-link steps. This is a
+`STATIC_INFERRED` structural operation; it does not prove a source-level
+container type or a terminating-chain invariant. The lock/unlock wrappers at
+`0x7ef8f4`/`0x7ef902` have unique static PLT bindings to
+`pthread_mutex_lock`/`pthread_mutex_unlock` on receiver `+0x0c`, but runtime
+loader binding, C++ return type, ownership, index validity, runtime safety and
+callability remain UNKNOWN/false. The descriptive contract is
 `sdk/event_manager_count_3_21.json`.
 
 ## Request-model Event factory checkpoint

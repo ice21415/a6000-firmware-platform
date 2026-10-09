@@ -914,5 +914,29 @@ investigation target is resolving the helper/state ownership boundary without
 turning the indexed access into a safe callable API.
 
 The current full local `python -m unittest discover -s tests -v` run passed
-**362 tests**. This is public evidence-gate coverage only; it does not add
+**364 tests**. This is public evidence-gate coverage only; it does not add
 runtime-verified or callable APIs.
+
+## Latest continuation checkpoint — EventManager helper/mutex refinement (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was rechecked with the existing count target,
+without repeating `ParamList::get`. The new bounded helper evidence verifies
+the chain `0x7f0aa0 -> 0x7f0a84 -> 0x7f0a7a -> 0x7f0a4e`: `0x7f0a32`
+compares current and sentinel pointers, `0x7f0a42` follows the current
+node's first word, and `0x7f0a4e` returns the number of forward-link steps.
+`0x7f096a` supplies the input object's first word and `0x7f0984` preserves
+the input as the sentinel. This is a `STATIC_INFERRED` structural operation,
+not a source-level `std::list` or other container identification; termination,
+ownership and valid index range remain UNKNOWN.
+
+The count lock/unlock wrappers at `0x7ef8f4` and `0x7ef902` operate on
+receiver `+0x0c` and resolve uniquely through ARM/Thumb veneers to
+`pthread_mutex_lock` (`0xdcc70`, GOT `0x102d3ac`) and
+`pthread_mutex_unlock` (`0xe29e8`, GOT `0x102f130`). Runtime loader binding
+and complete concurrency safety remain unknown. The corrected private Ghidra
+profile exited 0 with `COMPLETE_TARGET_EXPORT`: 12 targets, 100 instruction
+rows, 15 blocks and 18 edges. The local full suite remains 364 tests passed;
+runtime-verified and callable API counts remain 0.
+
+Next target: trace the EventManager state allocation/sentinel ownership path
+without promoting the forward-link candidate to a source-level container API.

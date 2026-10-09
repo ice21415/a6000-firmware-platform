@@ -850,6 +850,34 @@ used `ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`. It exited 0 with
 edges. Ghidra's mapped body `0x7ff9fc..0x7ffa1d` agrees with Capstone after
 subtracting the image base. The private project/export is not checked in.
 
-The full local `python -m unittest discover -s tests -v` run passed **362
+The full local `python -m unittest discover -s tests -v` run passed **364
 tests** after this addition; this is synthetic/public evidence-gate coverage,
 not runtime verification or a callable-API count.
+
+## Phase 3.29 — EventManager count helper and mutex veneer evidence
+
+The follow-up primary-ELF probe expands the `EventManager::count` evidence
+without changing its static-only status. The helper chain at `0x7f0aa0`
+tail-branches through `0x7f0a84` and `0x7f0a7a` to `0x7f0a4e`. Its bounded
+instructions compare a current pointer against a sentinel (`0x7f0a32`),
+replace the current pointer with the first word of the current node
+(`0x7f0a42`), and increment a word counter until equality. The two helper
+wrappers show that the first word of the input object supplies the initial
+pointer (`0x7f096a`) while the original input supplies the sentinel
+(`0x7f0984`). The composed operation is therefore a forward-link distance
+candidate, marked `STATIC_INFERRED`; no source-level container class or
+terminating-chain invariant is claimed.
+
+The count method's lock wrapper `0x7ef8f4` adds `0x0c` to the receiver and
+enters ARM/Thumb veneer `0xdcc70`, whose unique `.rel.plt` binding is
+`pthread_mutex_lock` (GOT `0x102d3ac`). Its cleanup wrapper `0x7ef902` enters
+veneer `0xe29e8`, uniquely bound to `pthread_mutex_unlock` (GOT `0x102f130`).
+These are static linkage facts; runtime loader resolution and complete
+concurrency safety remain `UNKNOWN`.
+
+The updated private ASCII-path Ghidra 12.1.3 profile used
+`ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`, then exited 0 with
+`COMPLETE_TARGET_EXPORT`: 12 targets, 100 instruction rows, 15 blocks and 18
+edges. The private project/export remains outside the repository. The
+contract is `sdk/event_manager_count_3_21.json`; runtime verification and
+callability remain false.

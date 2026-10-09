@@ -22,9 +22,32 @@ def _report() -> dict:
         "target": {"entry": TARGET["entry"], "size": TARGET["size"]},
         "observation": {
             "status": "PRIMARY_ELF_VERIFIED",
+            "helper": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "semantic_level": "STATIC_INFERRED",
+            },
+            "synchronization": {
+                "lock_wrapper": {
+                    "entry": "0x7ef8f4",
+                    "receiver_field": "+0x0c",
+                    "binding": {
+                        "status": "VERIFIED_STATIC",
+                        "candidates": [{"symbol": "pthread_mutex_lock"}],
+                    },
+                },
+                "unlock_wrapper": {
+                    "entry": "0x7ef902",
+                    "receiver_field": "+0x0c",
+                    "binding": {
+                        "status": "VERIFIED_STATIC",
+                        "candidates": [{"symbol": "pthread_mutex_unlock"}],
+                    },
+                },
+            },
             "safety": {
                 "local_bounds_check": "no conditional index-bound check observed in this bounded body",
                 "global_invariant": "UNKNOWN; state allocation and valid index range are not proven",
+                "container_validity": "UNKNOWN; helper assumes a terminating forward-link chain",
             },
         },
     }
@@ -65,6 +88,20 @@ class EventManagerCountProbeTests(unittest.TestCase):
         result = validate_event_manager_count(report)
         self.assertFalse(result["valid"])
         self.assertIn("bounds_scope", result["errors"])
+
+    def test_mutex_binding_promotion_is_rejected(self):
+        report = _report()
+        report["observation"]["synchronization"]["lock_wrapper"]["binding"]["candidates"][0]["symbol"] = "pthread_mutex_trylock"
+        result = validate_event_manager_count(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("synchronization:lock_wrapper:binding", result["errors"])
+
+    def test_helper_semantic_promotion_is_rejected(self):
+        report = _report()
+        report["observation"]["helper"]["semantic_level"] = "PRIMARY_ELF_VERIFIED"
+        result = validate_event_manager_count(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("helper_evidence", result["errors"])
 
 
 if __name__ == "__main__":

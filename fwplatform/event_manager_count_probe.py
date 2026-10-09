@@ -16,6 +16,7 @@ from capstone import CS_ARCH_ARM, CS_MODE_THUMB, Cs
 from capstone.arm import ARM_OP_IMM
 from elftools.elf.elffile import ELFFile
 
+from .elf_plt import resolve_plt_binding
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -68,14 +69,18 @@ def _symbols(elf: ELFFile) -> dict[str, tuple[int, int]]:
 
 
 def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+    return _decode_at(fp, elf, TARGET["entry"], TARGET["size"], "EventManager::count")
+
+
+def _decode_at(fp: Any, elf: ELFFile, entry: int, size: int, label: str) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
     rows = list(decoder.disasm(
-        _read_exec_range(fp, elf, TARGET["entry"], TARGET["size"]),
-        TARGET["entry"],
+        _read_exec_range(fp, elf, entry, size),
+        entry,
     ))
     if not rows:
-        raise ValueError("EventManager::count did not decode")
+        raise ValueError(f"{label} did not decode")
     return {int(row.address): row for row in rows}
 
 
@@ -97,7 +102,65 @@ def _require(
     return instruction
 
 
-def _observe(rows: dict[int, Any]) -> dict[str, Any]:
+def _binding(fp: Any, elf: ELFFile, entry: int) -> dict[str, Any]:
+    result = resolve_plt_binding(fp, elf, entry, thumb_stub=True)
+    if result.get("status") != "VERIFIED_STATIC":
+        raise ValueError(f"PLT binding at 0x{entry:x} is not unique")
+    return result
+
+
+def _observe_link_helpers(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    """Verify the bounded forward-link distance helper without naming a source type."""
+    compare = _decode_at(fp, elf, 0x7F0A32, 0x10, "link compare helper")
+    advance = _decode_at(fp, elf, 0x7F0A42, 0x0C, "link advance helper")
+    distance = _decode_at(fp, elf, 0x7F0A4E, 0x2C, "link distance helper")
+    distance_forwarder = _decode_at(fp, elf, 0x7F0A7A, 0x0A, "link distance forwarder")
+    distance_core = _decode_at(fp, elf, 0x7F0A84, 0x1C, "link distance core")
+    distance_entry = _decode_at(fp, elf, 0x7F0AA0, 0x0C, "link distance entry")
+    first_word = _decode_at(fp, elf, 0x7F096A, 0x1A, "first-word helper")
+    identity = _decode_at(fp, elf, 0x7F0984, 0x18, "identity helper")
+
+    _require(compare, 0x7F0A32, "ldr", operands="r3, [r0]")
+    _require(compare, 0x7F0A34, "ldr", operands="r0, [r1]")
+    _require(compare, 0x7F0A38, "subs", operands="r0, r3, r0")
+    _require(compare, 0x7F0A3E, "movne", operands="r0, #1")
+    _require(advance, 0x7F0A42, "ldr", operands="r2, [r0]")
+    _require(advance, 0x7F0A48, "ldr", operands="r2, [r2]")
+    _require(advance, 0x7F0A4A, "str", operands="r2, [r0]")
+    _require(distance, 0x7F0A56, "str", operands="r0, [r7, #4]")
+    _require(distance, 0x7F0A58, "str", operands="r1, [r7]")
+    _require(distance, 0x7F0A60, "bl", target=0x7F0A42)
+    _require(distance, 0x7F0A68, "bl", target=0x7F0A32)
+    _require(distance, 0x7F0A6E, "bne", target=0x7F0A5C)
+    _require(distance, 0x7F0A70, "mov", operands="r0, r4")
+    _require(distance_forwarder, 0x7F0A7E, "bl", target=0x7F0A4E)
+    _require(distance_core, 0x7F0A8A, "bl", target=0x7F096A)
+    _require(distance_core, 0x7F0A92, "bl", target=0x7F0984)
+    _require(distance_core, 0x7F0A9A, "bl", target=0x7F0A7A)
+    _require(distance_entry, 0x7F0AA8, "b.w", target=0x7F0A84)
+    _require(first_word, 0x7F0974, "ldr", operands="r1, [r3]")
+    _require(first_word, 0x7F0976, "bl", target=0x7F0962)
+    _require(identity, 0x7F098E, "bl", target=0x7F0962)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_level": "STATIC_INFERRED",
+        "operation": (
+            "counts forward-link steps from the first word of the input object "
+            "to the input object used as the sentinel"
+        ),
+        "link_layout": {
+            "node_next_word": "the current node pointer is replaced with [current_node]",
+            "sentinel_compare": "the current pointer is compared with the sentinel pointer",
+            "empty_chain": "equal initial pointers return zero",
+        },
+        "entry": "0x7f0aa0 tail-branches to 0x7f0a84",
+        "first_word_helper": "0x7f096a returns [input]",
+        "identity_helper": "0x7f0984 returns its input pointer",
+        "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
+    }
+
+
+def _observe(rows: dict[int, Any], synchronization: dict[str, Any], link_helpers: dict[str, Any]) -> dict[str, Any]:
     checks = (
         (TARGET["entry"], "push", None, None),
         (0x7EF9FE, "mov", "r4, r0", None),
@@ -118,7 +181,7 @@ def _observe(rows: dict[int, Any]) -> dict[str, Any]:
         "abi": {
             "r0": "EventManager receiver candidate",
             "r1": "unsigned index, preserved in r5 by the symbol-bound method",
-            "return": "result returned by post-load helper 0x7f0aa0; C++ return type is not encoded",
+            "return": "machine-level link-count result from 0x7f0aa0; C++ return type is not encoded",
         },
         "control_flow": {
             "pre_access": "calls local 0x7ef8f4 with the receiver",
@@ -127,10 +190,14 @@ def _observe(rows: dict[int, Any]) -> dict[str, Any]:
             "post_access": "passes the loaded word through local 0x7f0aa0",
             "receiver_cleanup": "calls local 0x7ef902 with the receiver before returning",
         },
+        "helper": link_helpers,
+        "synchronization": synchronization,
         "safety": {
             "local_bounds_check": "no conditional index-bound check observed in this bounded body",
             "global_invariant": "UNKNOWN; state allocation and valid index range are not proven",
             "null_receiver": "UNKNOWN; no runtime execution or general receiver guard is established",
+            "container_validity": "UNKNOWN; helper assumes a terminating forward-link chain",
+            "concurrency": "lock/unlock calls are statically present, but complete shared-state safety is UNKNOWN",
         },
         "address_space": "ELF_VMA",
         "runtime_verified": False,
@@ -157,7 +224,22 @@ def probe_event_manager_count(
         value, size = _symbols(elf).get(TARGET["symbol"], (0, 0))
         if (value & ~1) != TARGET["entry"] or size != TARGET["size"]:
             raise ValueError("EventManager::count symbol identity/size mismatch")
-        observation = _observe(_decode(fp, elf))
+        synchronization = {
+            "lock_wrapper": {
+                "entry": "0x7ef8f4",
+                "receiver_field": "+0x0c",
+                "tail_target": "0xdcc70",
+                "binding": _binding(fp, elf, 0xDCC70),
+            },
+            "unlock_wrapper": {
+                "entry": "0x7ef902",
+                "receiver_field": "+0x0c",
+                "tail_target": "0xe29e8",
+                "binding": _binding(fp, elf, 0xE29E8),
+            },
+        }
+        link_helpers = _observe_link_helpers(fp, elf)
+        observation = _observe(_decode(fp, elf), synchronization, link_helpers)
     return {
         "schema_version": 1,
         "status": "LOCAL_PRIMARY_ELF_EVENT_MANAGER_COUNT_EVIDENCE_ONLY",
@@ -197,4 +279,27 @@ def validate_event_manager_count(report: dict[str, Any]) -> dict[str, Any]:
         "UNKNOWN; state allocation and valid index range are not proven"
     ):
         errors.append("global_invariant_scope")
+    if safety.get("container_validity") != (
+        "UNKNOWN; helper assumes a terminating forward-link chain"
+    ):
+        errors.append("container_validity_scope")
+    synchronization = observation.get("synchronization") or {}
+    for role, entry, symbol in (
+        ("lock_wrapper", "0x7ef8f4", "pthread_mutex_lock"),
+        ("unlock_wrapper", "0x7ef902", "pthread_mutex_unlock"),
+    ):
+        wrapper = synchronization.get(role) or {}
+        if wrapper.get("entry") != entry or wrapper.get("receiver_field") != "+0x0c":
+            errors.append(f"synchronization:{role}:wrapper")
+        binding = wrapper.get("binding") or {}
+        candidates = binding.get("candidates") or []
+        if (
+            binding.get("status") != "VERIFIED_STATIC"
+            or len(candidates) != 1
+            or candidates[0].get("symbol") != symbol
+        ):
+            errors.append(f"synchronization:{role}:binding")
+    helper = observation.get("helper") or {}
+    if helper.get("status") != "PRIMARY_ELF_VERIFIED" or helper.get("semantic_level") != "STATIC_INFERRED":
+        errors.append("helper_evidence")
     return {"valid": not errors, "errors": sorted(set(errors))}

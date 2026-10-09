@@ -260,6 +260,17 @@ complete marker, 13 instruction rows, one block and three call edges. The
 export is private; generated Ghidra names are not semantic API names. Runtime
 verification and callable SDK status remain false.
 
+The follow-up probe also verifies the bounded helper chain at `0x7f0a32`,
+`0x7f0a42`, `0x7f0a4e`, `0x7f0a7a`, `0x7f0a84` and `0x7f0aa0`: it compares a
+current pointer with a sentinel, follows the current node's first word and
+counts forward-link steps. This is a `STATIC_INFERRED` structural operation;
+it does not identify a source-level standard container or prove a terminating
+chain. The lock/unlock wrappers at `0x7ef8f4` and `0x7ef902` have unique static
+PLT bindings to `pthread_mutex_lock` and `pthread_mutex_unlock`, respectively,
+while runtime loader binding and complete concurrency safety remain unknown.
+The corrected private Ghidra export contains 12 targets, 100 instructions,
+15 blocks and 18 edges.
+
 ## Phase 3.26 — request-model Event factory
 
 `fwplatform/camera_request_event_probe.py` verifies the symbol-bound primary
