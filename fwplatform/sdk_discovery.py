@@ -9,7 +9,7 @@ import re
 from typing import Any
 
 from .db import Database
-from .sdk_contracts import DOMAINS, _proves_function_location
+from .sdk_contracts import DOMAINS, _proves_function_location, _address_value, _function_index
 
 
 # These are strictly search hints; they do not assign a semantic SDK domain.
@@ -67,9 +67,9 @@ def discover_sdk_candidates(
     if binary_sha256:
         filters.append("lower(b.sha256)=?")
         args.append(binary_sha256)
-    # Domain filters are applied after parsing lexical hints; cap scan for a
-    # bounded and reproducible review queue when many functions are indexed.
-    scan_limit = MAX_RESULTS * 10 if domain else limit + 1
+    # Lexical-domain and export-address filters are applied after SQL.
+    # Bound scanning but do not stop at limit+1 wrong-address names.
+    scan_limit = MAX_RESULTS * 10
     sql = f"""SELECT f.id AS function_id,f.binary_id,f.module_id,f.name,f.address,f.prototype,
             f.status AS function_status,f.source_evidence_id,f.generated_name,
             b.sha256 AS binary_sha256,b.path AS binary_path,m.name AS module_name,
@@ -81,10 +81,26 @@ def discover_sdk_candidates(
         WHERE {" AND ".join(filters)}
         ORDER BY lower(b.sha256),lower(f.name),f.address,f.id LIMIT ?"""
     candidates: list[dict[str, Any]] = []
+    export_cache: dict[tuple[int, str], set[int]] = {}
+    function_cache: dict[int, dict[int, list[Any]]] = {}
     examined = 0
     saturated = False
     for row in db.query(sql, [*args, scan_limit]):
         examined += 1
+        # An export with the same *name* but a different ELF VMA is not
+        # evidence that this function entry is exported.
+        if not include_internal:
+            export_key = (int(row["binary_id"]), str(row["name"]))
+            if export_key not in export_cache:
+                export_cache[export_key] = {
+                    parsed for record in db.query(
+                        "SELECT address FROM import_export WHERE binary_id=? AND name=? AND direction='export'",
+                        export_key,
+                    )
+                    if (parsed := _address_value(record["address"])) is not None
+                }
+            if _address_value(row["address"]) not in export_cache[export_key]:
+                continue
         hints = _domain_hints(str(row["name"]))
         if domain and domain != "Other" and domain not in hints:
             continue
@@ -95,7 +111,11 @@ def discover_sdk_candidates(
             "excerpt": row["evidence_excerpt"], "source_sha256": row["evidence_sha256"],
             "metadata_json": row["evidence_metadata_json"],
         }
-        location_bound = (row["evidence_status"] == "VERIFIED_STATIC"
+        numeric_address = _address_value(row["address"])
+        unique_function_entry = (numeric_address is not None and len(
+            _function_index(db, int(row["binary_id"]), function_cache).get(numeric_address, [])
+        ) == 1)
+        location_bound = (unique_function_entry and row["evidence_status"] == "VERIFIED_STATIC"
                           and _proves_function_location(
                               evidence, str(row["binary_sha256"]), str(row["address"])))
         hints_value = hints or ["Other"]
@@ -109,6 +129,7 @@ def discover_sdk_candidates(
             "domain_confirmed": False,
             "identity_evidence_id": row["source_evidence_id"] if location_bound else None,
             "entry_location_evidence_valid": location_bound,
+            "unique_function_entry": unique_function_entry,
             "api_status": "UNVERIFIED_CANDIDATE",
             "abi_status": "UNKNOWN",
             "parameter_layout_verified": False,
