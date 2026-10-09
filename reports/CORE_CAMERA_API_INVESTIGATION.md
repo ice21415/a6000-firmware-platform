@@ -369,6 +369,86 @@ coverage and makes the precise next piece of real private-file
 reverse-engineering reproducible without another whole-Ghidra run.
 
 
+## Phase 3.18: typed request-bridge arguments and first ModelCamera internal argument shape
+
+This phase prioritizes ABI reconstruction over additional broad
+research inventory. The preserved `libObj.so` C++ Itanium
+mangled symbols have reliable **explicit argument** types,
+while normal return types and static-vs-instance method form
+are not encoded. Saved ARM AAPCS32 register-flow observations
+disambiguate method form:
+
+| Entry | Explicit C++ arguments | Static evidence for physical argument mapping |
+|---|---|---|
+| `0x12106e` `ViewBase::requestModelExecute` | `char const*, unsigned long, ParamList*` | `r0=this`, `r1=name`, `r2=selector`, `r3=ParamList*`; `[r0+0x7c]` context load |
+| `0x1250c0` `viewManagerIf::requestModelExecute` | same | **static-form candidate**: `r0=name`, `r1=selector`, `r2=ParamList*`; original `r3` overwritten with GOT/literal setup before use |
+| `0x7f0b0c` `AbstractUtilityManager::createRequestModelExecuteEvent` | `int, unsigned long, ParamList*` | instance/context form: `r0=context`, `r1=model ID`, `r2=helper-transformed selector`, `r3=ParamList*` |
+
+Both frontends pass the **original model name and selector**
+to the **same** unknown helper `0x12d780`:
+`ViewBase` moves original `r1,r2` into helper
+`r0,r1`; `viewManagerIf` uses original `r0,r1`.
+Their common factory stub at `0xdfbdc` receives the
+helper's `r0` result as factory `r2`, the original
+ParamList pointer as factory `r3`, and the
+`IdGenerator::Get` result as factory `r1`.
+This resolves an earlier superficial difference in caller
+register identities without pretending the helper's
+transformation algorithm has been recovered.
+
+The candidate factory implementation at `0x7f0b0c`
+allocates `0x10` bytes, constructs an `Event` in
+the allocated memory, retains that pointer in `r4`,
+and returns that same pointer in `r0` at
+`0x7f0b64–66`. Thus `Event*` is a strong
+**static return-object inference**, but not an
+Itanium-declared return-type proof or verified ownership
+and exception/error ABI. Return types for the other two
+request entrypoints remain unknown.
+
+Independently, a saved `viewUnified2.so` callsite at
+ELF VMA `0x1a26e6` calls the named import with
+`r1='model/CAMERA'`, `r2=0x0f01`
+and candidate `ParamList*` in `r3`.
+As before, that matches a source caller but does not
+prove complete dynamic link resolution to ModelCamera.
+
+**Closer to the real Camera core**, the un-mangled
+`ActionGpSetSetting` research entry at
+`0x4cfb9c` preserves entry `r0` in `r5`,
+calls `0x13200a` and stores its returned `r0`
+in `r4`, then calls `0x131fd2` to recover a
+selector value. At `0x4cfe8a–0x4cfe98`
+the dispatch checks `0x0f01` and invokes
+`pvt_ActionSetInit=0x4cf7a8` with
+**`r0=saved Camera object candidate`** and
+**`r1=0x13200a return value`**.
+The callee saves `r0→r4` and `r1→sl`,
+later passes `sl` to `0x42abcc`,
+then calls the previously identified EE-neutral
+sender and `PrepChk` helpers.
+This recovers an internal **two-argument register
+shape**, but the actual second-argument C++ type,
+return/error semantics and safe runtime call order
+are not established. It is not yet a completed ABI.
+
+The new read-only command validates these exact observations
+against optional previous offline text reports:
+
+```powershell
+python -m fwplatform.cli sdk request-abi --json
+python -m fwplatform.cli sdk request-abi --saved-libobj C:\private\boot-static-analysis\model-camera-methods.txt --saved-view C:\private\boot-static-analysis\view-boot-methods.txt --json
+```
+
+This command enforces encoded argument types, non-encoded
+return type, per-ELF SHA metadata, strict entrypoint
+and register-source matches, ModelCamera selector guard
+and the external UI `0x0f01` callsite. Missing private
+source reports produce a **candidate-only** status.
+It does not load or execute original Sony ELF bytes,
+commit Sony instruction bytes, claim an Event consumer
+or mark any core Camera function callable.
+ 
 ## Phase 3.17: app status gate exact local Boolean semantics and semaphore wait leads
 
 Private original-`libObj.so` saved static ARM report
