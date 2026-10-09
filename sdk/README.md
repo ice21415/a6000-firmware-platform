@@ -159,6 +159,54 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.20: query output-pointer ABI shape for Camera payload reads
+
+A *new, caller-grounded register constraint* is recovered for
+`libObj.so` function `0x42ac00` from two different
+`ModelCamera` action entries. Under ARM AAPCS32, immediately
+before this call the saved instructions consistently show:
+
+| Register | Observed role | Proof boundary |
+|---|---|---|
+| `r0` | pointer to a stack-local payload view initialized by `0x42abcc` | observed in both action sources |
+| `r1` | numeric parameter identifier | `0x3fe` / `0x3ff` and `0x1b8` / `0x1b9` |
+| `r2` | address of a caller-allocated output slot | stack addresses `[r7+0x34]`, `[r7+0x30]`, `[r7+0x14]` |
+| `r3` | **UNKNOWN** | cannot establish a stable semantic input |
+
+The `ActionExeAfRangeLimitDrive` caller branches around
+**`Invalid ParamList`** when the lookup returns zero,
+then loads the previously supplied output slot.
+The `ActionObjectFocusPosDisplayEvent` caller also
+reads a four-byte output slot only on the zero-result
+branch and stores the result to its own Camera field
+(`+0x200`, `+0x204`). Thus we can now infer a
+**query-with-output-pointer and zero-accepted-result
+register convention**; we still cannot assert its
+complete C++ prototype, type encoding, exception behavior,
+or lifetime.
+
+`pvt_ActionSetInit` separately calls **`0x42abdc`**,
+not `0x42ac00`, with a `0x12000005` key and a
+separate stack output address. The zero-result branch reads
+the output and logs `EasyMode ON` when it equals one.
+These are useful converging observations, **not proof
+that the two nearby functions are identical or
+interchangeable APIs**.
+
+```powershell
+python -m fwplatform.cli sdk param-lookup --json
+python -m fwplatform.cli sdk param-lookup --saved-libobj C:\private\boot-static-analysis\model-camera-methods.txt --json
+```
+
+The source-gated report requires 39 exact opcode-text
+observations across these three caller regions, and returns
+CANDIDATE_ONLY if private source is absent. The linked
+workspace's previously saved text matched **39/39** requested
+sites. Synthetic tests enforce branch/argument provenance
+and reject hypothetical `r3` or callable ABI claims.
+No new primary proprietary ELF bytes were disassembled
+or executed in this session.
+
 ## Phase 3.19: constrain the Camera action payload ABI at `0x13200a`
 
 The next core ABI analysis traced the **same** opaque
