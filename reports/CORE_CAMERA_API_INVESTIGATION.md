@@ -268,3 +268,51 @@ event `0x11004003`, determine the extraction of parameter keys
 complete the independent ABI/return/error review. Until those steps
 are proven, `requestModelExecute` is not a general-purpose verified
 camera-control API and the core SDK is not complete.
+
+
+## Phase 3.15: independently found two request-model frontend code paths
+
+The preserved private `libObj.so` source investigation has another important
+request path besides the earlier documented `ViewBase` wrapper:
+
+| Caller (libObj ELF VMA) | model-ID import | selector helper | factory PLT | submission tail |
+|---|---|---|---|---|
+| `ViewBase::requestModelExecute` `0x12106e` | `0x121082 → 0xdffb8` | `0x12108c → 0x12d780` | `0x121098 → 0xdfbdc` | `0x1210a4 → 0xdb578` imported `View::requestApplicationExecute` |
+| `viewManagerIf::requestModelExecute` `0x1250c0` | `0x1250d8 → 0xdffb8` | `0x1250e2 → 0x12d780` | `0x1250ee → 0xdfbdc` | `0x1250f6 → 0x125084` **unnamed local candidate** |
+
+In the ARM register sequences for both callers, the ID generator result is
+saved separately from the selector helper's result. Before the same named
+factory import, the saved report moves the model ID into `r1`, the helper
+output into `r2`, and `ParamList*` into `r3`. The receiver in `r0`
+comes from different indirections: `this+0x7c` in the ViewBase wrapper
+and a global-linked manager pointer in viewManagerIf. The evidence
+**does not reveal the body of `0x12d780`** and **does not equate the
+runtime event destination of `0x125084` with the imported View method**.
+In particular, two callers of the same helper cannot establish the
+selector's transformed numeric value or the real ABI.
+
+The saved `model-camera-methods.txt` first 58 lines were directly read
+from the connected private research workspace. The public validator's
+instruction expectations were checked **33/33 against saved disassembly
+text**, not against an independently read fresh Sony ELF.
+
+The bounded, read-only fixture `sdk/camera_3_21_model_request_frontends.json`
+and `fwplatform/model_request_frontends.py` implement:
+
+```powershell
+python -m fwplatform.cli sdk request-frontends --json
+python -m fwplatform.cli sdk request-frontends --saved-disassembly C:\private\boot-static-analysis\model-camera-methods.txt --event-envelope sdk/camera_3_21_model_execute_envelope.json --json
+```
+
+The second command checks exact named region boundaries, first and second
+call sites, symbol annotations, register provenance, and **different
+submission tail targets**. It refuses to promote undocumented selector,
+loader relocation, event consumption or calling-convention claims.
+Tests exercise swapped registers, changed PLT targets, duplicate entries,
+incorrect ELF SHA and no-SQLite behavior using artificial text.
+
+This resolves an additional, repeated **event creation envelope upstream
+dependency**. The immediate next target is the code body of
+`0x12d780`, plus downstream local `0x125084`, App/Event delivery,
+and the parser of Event keys 7/8. Until these are independently checked
+there is no proven end-to-end UI→ModelCamera route or executable API.
