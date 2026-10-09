@@ -198,7 +198,7 @@ def probe_private_core_abi(
             raise ValueError("core ABI probe requires executable/shared-library ELF")
         for label, entry in targets:
             # Fail closed on non-code entries, ambiguous PT_LOAD mappings.
-            _read_vma(fp, elf, entry, 4, executable=True)
+            _read_vma(fp, elf, entry, 2, executable=True)
             region = _trace_thumb(fp, elf, entry, region_bytes)
             observations = _reg_observations(fp, elf, region)
             reports.append({
