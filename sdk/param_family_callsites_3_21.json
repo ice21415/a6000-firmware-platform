@@ -1,0 +1,436 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "observations": [
+    {
+      "family": "PrmBool",
+      "constructor_vma": "0xe50e8",
+      "address_space": "ELF_VMA",
+      "constructor_call": {
+        "callsite_vma": "0xfddd2",
+        "mnemonic": "bl",
+        "target_vma": "0xe50e8",
+        "expected_target_vma": "0xe50e8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "arguments": {
+        "r0": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r3": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r1": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0xfddce",
+            "mnemonic": "mov",
+            "operands": "r1, r4",
+            "destination": "r1",
+            "source": {
+              "kind": "REGISTER",
+              "register": "r4"
+            }
+          }
+        },
+        "r2": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        }
+      },
+      "allocation": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocator_vma": "0xdc100",
+        "size_assignment": {
+          "instruction_vma": "0xfddc8",
+          "mnemonic": "movs",
+          "operands": "r0, #0x10",
+          "destination": "r0",
+          "source": {
+            "kind": "IMMEDIATE",
+            "value": 16
+          }
+        },
+        "allocation_size": 16
+      },
+      "provenance_scope": "bounded_linear_pre_call_window; branch joins and interprocedural values remain UNKNOWN",
+      "post_dispatch": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "dispatch_vma": "0xfdddc",
+        "target_vma": "0xdd194",
+        "arguments": {
+          "r0": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xfddd6",
+              "mnemonic": "mov",
+              "operands": "r0, r6",
+              "destination": "r0",
+              "source": {
+                "kind": "REGISTER",
+                "register": "r6"
+              }
+            }
+          },
+          "r3": {
+            "status": "UNKNOWN",
+            "reason": "no visible definition in bounded window"
+          },
+          "r1": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xfddd8",
+              "mnemonic": "movs",
+              "operands": "r1, #0xa",
+              "destination": "r1",
+              "source": {
+                "kind": "IMMEDIATE",
+                "value": 10
+              }
+            }
+          },
+          "r2": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xfddda",
+              "mnemonic": "mov",
+              "operands": "r2, r8",
+              "destination": "r2",
+              "source": {
+                "kind": "REGISTER",
+                "register": "r8"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "family": "PrmNumber",
+      "constructor_vma": "0xf0fb0",
+      "address_space": "ELF_VMA",
+      "constructor_call": {
+        "callsite_vma": "0x111b96",
+        "mnemonic": "bl",
+        "target_vma": "0xf0fb0",
+        "expected_target_vma": "0xf0fb0",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "arguments": {
+        "r0": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r3": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r1": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0x111b92",
+            "mnemonic": "mov",
+            "operands": "r1, r5",
+            "destination": "r1",
+            "source": {
+              "kind": "REGISTER",
+              "register": "r5"
+            }
+          }
+        },
+        "r2": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        }
+      },
+      "allocation": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocator_vma": "0xdc100",
+        "size_assignment": {
+          "instruction_vma": "0x111b8c",
+          "mnemonic": "movs",
+          "operands": "r0, #0x10",
+          "destination": "r0",
+          "source": {
+            "kind": "IMMEDIATE",
+            "value": 16
+          }
+        },
+        "allocation_size": 16
+      },
+      "provenance_scope": "bounded_linear_pre_call_window; branch joins and interprocedural values remain UNKNOWN"
+    },
+    {
+      "family": "PrmString",
+      "constructor_vma": "0xff9c8",
+      "address_space": "ELF_VMA",
+      "constructor_call": {
+        "callsite_vma": "0x10288c",
+        "mnemonic": "bl",
+        "target_vma": "0xff9c8",
+        "expected_target_vma": "0xff9c8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "arguments": {
+        "r0": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r3": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r1": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0x102888",
+            "mnemonic": "mov",
+            "operands": "r1, sb",
+            "destination": "r1",
+            "source": {
+              "kind": "REGISTER",
+              "register": "sb"
+            }
+          }
+        },
+        "r2": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        }
+      },
+      "allocation": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocator_vma": "0xdc100",
+        "size_assignment": {
+          "instruction_vma": "0x102882",
+          "mnemonic": "movs",
+          "operands": "r0, #0x10",
+          "destination": "r0",
+          "source": {
+            "kind": "IMMEDIATE",
+            "value": 16
+          }
+        },
+        "allocation_size": 16
+      },
+      "provenance_scope": "bounded_linear_pre_call_window; branch joins and interprocedural values remain UNKNOWN"
+    },
+    {
+      "family": "PrmPoint",
+      "constructor_vma": "0xffa3c",
+      "address_space": "ELF_VMA",
+      "constructor_call": {
+        "callsite_vma": "0x113e8e",
+        "mnemonic": "bl",
+        "target_vma": "0xffa3c",
+        "expected_target_vma": "0xffa3c",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "arguments": {
+        "r0": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r3": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r1": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0x113e88",
+            "mnemonic": "ldrsh.w",
+            "operands": "r1, [r7, #0x26]",
+            "destination": "r1",
+            "source": {
+              "kind": "MEMORY",
+              "base": "r7",
+              "index": "NONE",
+              "displacement": 38
+            }
+          }
+        },
+        "r2": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0x113e84",
+            "mnemonic": "ldrsh.w",
+            "operands": "r2, [r7, #0x24]",
+            "destination": "r2",
+            "source": {
+              "kind": "MEMORY",
+              "base": "r7",
+              "index": "NONE",
+              "displacement": 36
+            }
+          }
+        }
+      },
+      "allocation": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocator_vma": "0xdc100",
+        "size_assignment": {
+          "instruction_vma": "0x113e7e",
+          "mnemonic": "movs",
+          "operands": "r0, #0x14",
+          "destination": "r0",
+          "source": {
+            "kind": "IMMEDIATE",
+            "value": 20
+          }
+        },
+        "allocation_size": 20
+      },
+      "provenance_scope": "bounded_linear_pre_call_window; branch joins and interprocedural values remain UNKNOWN"
+    },
+    {
+      "family": "PrmStruct",
+      "constructor_vma": "0xe7260",
+      "address_space": "ELF_VMA",
+      "constructor_call": {
+        "callsite_vma": "0xe73d6",
+        "mnemonic": "bl",
+        "target_vma": "0xe7260",
+        "expected_target_vma": "0xe7260",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "arguments": {
+        "r0": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r3": {
+          "status": "UNKNOWN",
+          "reason": "interprocedural call may clobber register",
+          "call_target_vma": "0xdc100"
+        },
+        "r1": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0xe73ce",
+            "mnemonic": "ldr.w",
+            "operands": "r1, [r4, #0x17c]",
+            "destination": "r1",
+            "source": {
+              "kind": "MEMORY",
+              "base": "r4",
+              "index": "NONE",
+              "displacement": 380
+            }
+          }
+        },
+        "r2": {
+          "status": "STATIC_INFERRED",
+          "assignment": {
+            "instruction_vma": "0xe73d2",
+            "mnemonic": "movs",
+            "operands": "r2, #8",
+            "destination": "r2",
+            "source": {
+              "kind": "IMMEDIATE",
+              "value": 8
+            }
+          }
+        }
+      },
+      "allocation": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocator_vma": "0xdc100",
+        "size_assignment": {
+          "instruction_vma": "0xe73c8",
+          "mnemonic": "movs",
+          "operands": "r0, #0x14",
+          "destination": "r0",
+          "source": {
+            "kind": "IMMEDIATE",
+            "value": 20
+          }
+        },
+        "allocation_size": 20
+      },
+      "provenance_scope": "bounded_linear_pre_call_window; branch joins and interprocedural values remain UNKNOWN",
+      "post_dispatch": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "dispatch_vma": "0xe73e0",
+        "target_vma": "0xdfdc0",
+        "arguments": {
+          "r0": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xe73da",
+              "mnemonic": "mov",
+              "operands": "r0, r5",
+              "destination": "r0",
+              "source": {
+                "kind": "REGISTER",
+                "register": "r5"
+              }
+            }
+          },
+          "r3": {
+            "status": "UNKNOWN",
+            "reason": "no visible definition in bounded window"
+          },
+          "r1": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xe73dc",
+              "mnemonic": "movs",
+              "operands": "r1, #8",
+              "destination": "r1",
+              "source": {
+                "kind": "IMMEDIATE",
+                "value": 8
+              }
+            }
+          },
+          "r2": {
+            "status": "STATIC_INFERRED",
+            "assignment": {
+              "instruction_vma": "0xe73de",
+              "mnemonic": "mov",
+              "operands": "r2, r6",
+              "destination": "r2",
+              "source": {
+                "kind": "REGISTER",
+                "register": "r6"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "raw_instruction_bytes_published": false,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Only direct constructor callsites in bounded Thumb windows are checked",
+    "Linear last-definition summaries do not resolve branches, loops or interprocedural calls",
+    "Register values loaded from memory or another register remain source candidates, not types",
+    "Post-dispatch relations do not prove event delivery or key ownership",
+    "No runtime execution, C++ exception, allocator, locking or thread-safety claim"
+  ],
+  "analysis": {
+    "analyzer": "fwplatform.param_family_callsite_probe",
+    "method": "Capstone ARM/Thumb bounded direct-call and linear pre-call register observation",
+    "source_scope": "five representative constructor callsites selected from private Ghidra xref metadata",
+    "raw_instruction_bytes_published": false
+  }
+}

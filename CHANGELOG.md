@@ -17,6 +17,20 @@
   and the ObjMsg destructor callsite, while keeping generated labels,
   ownership and whole-firmware usage explicitly unverified.
 
+- Added the reusable `ParamFamilyUsage.java` metadata profile and its strict
+  Python normalizer/validator. A bounded private Ghidra 12.1.3 pass indexed
+  ten constructor targets and 858 observed references before the 300-second
+  Auto Analysis timeout; the public contract records `PARTIAL_TIMEOUT`, keeps
+  raw export private, and does not promote usage observations to ownership,
+  runtime or callable ABI claims. `fw sdk parameter-family-usage` provides a
+  read-only contract query with synthetic regression coverage.
+
+- Added the bounded `param_family_callsite_probe` Capstone layer for five
+  representative direct constructors. It verifies branch targets and
+  allocation-size witnesses, preserves visible AAPCS32 register provenance,
+  and keeps branch/interprocedural values, ownership and runtime safety
+  unknown. The separate contract and CLI query are descriptive only.
+
 - Added the private-only `parameter-struct` probe and descriptive contract for
   the discriminator-6 PrmStruct family. Primary ELF evidence verifies the
   vtable/RTTI, `malloc`/`memcpy` pointer-plus-length payload construction,

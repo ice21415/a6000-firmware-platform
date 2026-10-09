@@ -1063,3 +1063,36 @@ object-layout details remain UNKNOWN.
 The targeted private ASCII Ghidra profile `param-objmsg` exits 0 with 5 target
 bodies, 62 instruction rows, 7 blocks and 14 edges. Its output is kept outside
 this repository.
+
+### ParamBase constructor usage index
+
+The metadata-only Ghidra profile indexes constructor-target references for all
+ten known ParamBase families without publishing firmware bytes:
+
+```powershell
+python -m fwplatform.cli sdk parameter-family-usage --json
+python -m fwplatform.cli sdk parameter-family-usage --family PrmObjMsg --json
+```
+
+The checked-in contract is `sdk/parameter_family_usage_3_21.json`. The current
+private Ghidra pass is explicitly `PARTIAL_TIMEOUT`: it observed 858 xrefs
+before the bounded Auto Analysis timeout. Counts are useful for locating
+follow-up callers, but are not exhaustive usage, ownership, lifetime,
+thread-safety or callable-ABI evidence. The raw export and project remain
+private; runtime and callable flags remain false.
+
+For five representative direct constructor callsites, the bounded Capstone
+cross-check is available as a separate descriptive contract:
+
+```powershell
+python -m fwplatform.cli sdk parameter-family-callsites --json
+python -m fwplatform.cli sdk parameter-family-callsites --family PrmStruct --json
+```
+
+`fwplatform/param_family_callsite_probe.py` verifies the direct Thumb branch,
+the nearest allocator-size witness and visible AAPCS32 register definitions.
+Memory/register sources are retained as candidates, and branch joins,
+interprocedural values, ownership and runtime safety remain unknown.
+
+To reproduce the private read-only probe against an authorized, SHA-matching
+ELF, use `python -m fwplatform.cli sdk parameter-family-callsite-probe --elf <private-libObj.so> --json`.

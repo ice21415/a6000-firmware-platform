@@ -356,3 +356,37 @@ constructor has only external/data references in this targeted program.
 The SDK contract stores these observations as `STATIC_INFERRED` usage evidence.
 They narrow the observed libObj-only path but are not an exhaustive whole
 firmware call graph, ownership proof, or runtime validation.
+
+## ParamBase family constructor usage checkpoint (2026-10-10)
+
+`ghidra-scripts/ParamFamilyUsage.java` is the reusable metadata-only xref
+profile for the ten family constructor targets. It validates the pinned
+`libObj.so` SHA and exports only target/callsite/reference/caller-entry
+metadata. `fwplatform/param_family_usage.py` rejects truncated or mismatched
+exports, normalizes reference kinds and produces a fail-closed public summary.
+The read-only query is `fw sdk parameter-family-usage`.
+
+A private Ghidra 12.1.3 ARM:LE:32:v8 project with image base `0x10000` was
+bounded to 300 seconds. Auto Analysis timed out, although the post-script
+completed; the checked-in contract therefore marks `PARTIAL_TIMEOUT`. It has
+10 family records and 858 observed xrefs: Bool 95, Number 628, String 21,
+Point 10, Dimension 13, Struct 82, Set 0, NumberList 3, CntInfoList 3 and
+ObjMsg 3. These are partial observations, not exhaustive usage counts. The
+three symbol records have one computed-call relation plus external/data
+references; a computed PrmObjMsg constructor call at `0xf2088` is kept
+separate from its earlier direct PLT clone callsites. No runtime or callable
+claim is made, and no raw export is committed.
+
+The export keeps `FROM_ELF_VMA`/`FROM_GHIDRA` and caller-entry addresses
+separate, together with the Ghidra address space, so the image-base mapping is
+explicit rather than mixed into the original ELF VMA.
+
+`fwplatform/param_family_callsite_probe.py` adds a second, independent static
+layer for five direct constructor callsites. It verifies the direct Thumb
+branch and nearest allocator-size witness, then reports visible pre-call
+AAPCS32 register definitions without treating them as complete data-flow. The
+public contract is `sdk/param_family_callsites_3_21.json`; Point's signed
+halfword pair and Struct's pointer-plus-length candidate are recorded as
+memory-source observations, while Bool/Struct post-dispatch numeric keys are
+scoped to their callsites. Allocator calls clobber unknown registers in the
+summary. No runtime or callable API claim is made.

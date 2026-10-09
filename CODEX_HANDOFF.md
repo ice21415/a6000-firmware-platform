@@ -481,3 +481,43 @@ whole-firmware call graph. Generated labels are not semantic names, and the
 result does not prove that arbitrary external pointers are safely transferable.
 The normalized usage observations are recorded in
 `sdk/param_objmsg_3_21.json`; raw output remains private.
+
+## Current continuation checkpoint (2026-10-10) — ParamBase family usage index
+
+`ghidra-scripts/ParamFamilyUsage.java` now indexes constructor-target
+references for all ten ParamBase family records. Its symbol lookup uses the
+Ghidra 12.1.3 `List<Symbol>` API, and the export includes the program SHA,
+language, image base, address-space metadata, completion marker, reference
+kind, callsite and caller entry. `fwplatform/param_family_usage.py` provides a
+strict parser, public count summarizer and fail-closed validator; the read-only
+CLI view is `fw sdk parameter-family-usage`.
+
+The xref export keeps `FROM_ELF_VMA`/`FROM_GHIDRA` and caller-entry addresses
+separate and records the Ghidra address space. This prevents the `0x10000`
+Ghidra image base from being silently mixed into the original ELF VMA.
+
+The private ASCII Ghidra project used `ARM:LE:32:v8`, image base `0x10000` and
+a 300-second Auto Analysis bound. Auto Analysis timed out; the post-script
+still completed with exit 0. The resulting public contract
+`sdk/parameter_family_usage_3_21.json` therefore records
+`analysis_status=PARTIAL_TIMEOUT`, ten target records and 858 observed xrefs,
+not exhaustive usage. Counts are: PrmBool 95, PrmNumber 628, PrmString 21,
+PrmPoint 10, PrmDimension 13, PrmStruct 82, PrmSet 0, PrmNumberList 3,
+PrmCntInfoList 3 and PrmObjMsg 3. The three symbol-resolved records each have
+one computed call plus external/data references. `PrmSet`'s zero is a coverage
+gap, not an unused proof. Runtime verification and callable SDK counts remain
+zero; generated labels, ownership, locking and source-level caller types are
+not promoted.
+
+## Current continuation checkpoint (2026-10-10) — constructor argument provenance
+
+`fwplatform/param_family_callsite_probe.py` performs a SHA-pinned, bounded
+Capstone Thumb check over five direct constructor callsites selected from the
+private Ghidra xref export. `sdk/param_family_callsites_3_21.json` records
+verified branch targets and nearest `_Znwj` size witnesses (0x10 for Bool,
+Number and String; 0x14 for Point and Struct), plus only the visible AAPCS32
+register definitions. Point's two signed-halfword loads and Struct's
+pointer-plus-length candidate are preserved as memory-source observations; the
+Bool and Struct post-dispatch key values are candidates tied to their specific
+callsite, not a global key rule. Register values after allocator calls are
+reset to UNKNOWN. Runtime, ownership, locking and callable status remain false.

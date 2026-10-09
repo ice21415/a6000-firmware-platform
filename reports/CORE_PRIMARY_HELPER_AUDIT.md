@@ -770,3 +770,85 @@ This narrows the observed `libObj.so` usage to the clone/lifetime path, but it
 does not prove that no other ELF or dynamically resolved caller exists. The
 contract records this as `STATIC_INFERRED`, keeps generated Ghidra labels out
 of semantic names, and does not promote ownership or runtime safety.
+
+## ParamBase family construction/use index — 2026-10-10
+
+`ghidra-scripts/ParamFamilyUsage.java` is now a reusable metadata-only profile
+for the ten ParamBase-derived constructor targets already established by the
+SHA-pinned family probe. The script records the target ELF VMA, reference kind,
+callsite and containing function entry; it does not assign meaning to
+Ghidra-generated names. `fwplatform/param_family_usage.py` validates the
+completion marker, binary identity, family/xref counts and fail-closed runtime
+flags before producing the public summary contract
+`sdk/parameter_family_usage_3_21.json`. The CLI exposes this read-only record
+as `fw sdk parameter-family-usage`. Each xref now stores separate
+`FROM_ELF_VMA`/`FROM_GHIDRA` and caller-entry fields with the Ghidra address
+space, so the image-base mapping is not silently mixed.
+
+The private ASCII-path Ghidra 12.1.3 project used language `ARM:LE:32:v8` and
+image base `0x10000`. Auto Analysis was deliberately bounded to 300 seconds;
+Ghidra reported an analysis timeout, then the metadata post-script completed
+with process exit 0. Therefore the following are **observed partial-export
+counts**, not exhaustive constructor usage counts:
+
+| Family | Target | Observed xrefs | Direct/ computed call xrefs | Unique caller entries | Unknown caller entries |
+|---|---:|---:|---:|---:|---:|
+| PrmBool | `0xe50e8` | 95 | 95 | 30 | 3 |
+| PrmNumber | `0xf0fb0` | 628 | 628 | 149 | 17 |
+| PrmString | `0xff9c8` | 21 | 21 | 13 | 0 |
+| PrmPoint | `0xffa3c` | 10 | 10 | 8 | 1 |
+| PrmDimension | `0xe5128` | 13 | 13 | 7 | 3 |
+| PrmStruct | `0xe7260` | 82 | 82 | 42 | 14 |
+| PrmSet | `0x7efb00` | 0 | 0 | 0 | 0 |
+| PrmNumberList | `0xecdb8` | 3 | 1 computed | 1 | 0 |
+| PrmCntInfoList | `0x11d680` | 3 | 1 computed | 1 | 0 |
+| PrmObjMsg | `0x12c754` | 3 | 1 computed | 1 | 0 |
+| **Total** | | **858** | **852** | | |
+
+The three symbol-resolved constructor records each contain one `COMPUTED_CALL`
+plus one external and one data reference. The six local VMA records with
+observed calls are `UNCONDITIONAL_CALL` references. `PrmSet` has no reference in
+this bounded export; that is an unresolved coverage gap, not evidence that the
+constructor is unused. A computed call into the PrmObjMsg constructor at
+`0xf2088` is retained as a callsite observation; it is not merged with the
+earlier clone-body PLT callsites.
+
+The contract explicitly records `analysis_status=PARTIAL_TIMEOUT`, keeps the
+raw export private, and leaves `runtime_verified=false` and `callable=false`.
+The counts support locating follow-up callers and lifecycle paths; they do not
+prove source-level parameter types, ownership transfer, destructor pairing,
+thread safety, runtime binding or safe invocation.
+
+The added parser/contract/CLI tests pass with the current **305-test** public
+suite; these synthetic tests do not execute the Sony ELF or connect to a
+camera.
+
+## Representative constructor argument cross-check — 2026-10-10
+
+`fwplatform/param_family_callsite_probe.py` adds a bounded Capstone check for
+five direct constructor callsites selected from the private Ghidra usage
+metadata. The checked-in descriptive record is
+`sdk/param_family_callsites_3_21.json`; raw bytes and disassembly remain
+private. All five direct Thumb branches match their expected constructor VMA,
+and the nearest `_Znwj` witness matches the object-size evidence: 0x10 bytes
+for PrmBool, PrmNumber and PrmString, and 0x14 bytes for PrmPoint and
+PrmStruct.
+
+The visible pre-call register sources are:
+
+| Family / callsite | Register source observed | Boundary |
+|---|---|---|
+| PrmBool / `0xfddd2` | `r1` copied from `r4` | source value/type unresolved; post-call `0xfdddc` passes `r1=0xa` and `r2` from `r8` to the existing Event add-parameter PLT target |
+| PrmNumber / `0x111b96` | `r1` copied from `r5` | source value/type unresolved |
+| PrmString / `0x10288c` | `r1` copied from `sb` | pointer/string encoding unresolved |
+| PrmPoint / `0x113e8e` | `r1=[r7+0x26]`, `r2=[r7+0x24]` via signed halfword loads | field meaning and caller object type unresolved |
+| PrmStruct / `0xe73d6` | `r1=[r4+0x17c]`, `r2=8` | pointer/length candidate only; schema unresolved; post-call `0xe73e0` passes key candidate 8 to the ParamList add PLT target |
+
+The analyzer intentionally treats the allocator call as clobbering `r0-r3`:
+the allocation-size witness is separate from the constructor's destination
+pointer, and no register is promoted merely because an earlier instruction
+loaded an immediate. It is a linear bounded observation, not complete
+reaching-definitions analysis; branch joins, loop-carried values,
+interprocedural sources, exception paths, ownership and concurrency remain
+UNKNOWN. The contract and CLI remain `runtime_verified=false` and
+`callable=false`.

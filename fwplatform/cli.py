@@ -338,6 +338,22 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_family.add_argument("--elf", type=Path, required=True)
     sdk_family.add_argument("--expected-sha256", default=None)
     sdk_family.add_argument("--json", action="store_true")
+    sdk_family_usage = sdk_sub.add_parser("parameter-family-usage")
+    sdk_family_usage.add_argument(
+        "--fixture", type=Path, default=Path("sdk/parameter_family_usage_3_21.json")
+    )
+    sdk_family_usage.add_argument("--family", default="")
+    sdk_family_usage.add_argument("--json", action="store_true")
+    sdk_family_callsites = sdk_sub.add_parser("parameter-family-callsites")
+    sdk_family_callsites.add_argument(
+        "--fixture", type=Path, default=Path("sdk/param_family_callsites_3_21.json")
+    )
+    sdk_family_callsites.add_argument("--family", default="")
+    sdk_family_callsites.add_argument("--json", action="store_true")
+    sdk_family_callsite_probe = sdk_sub.add_parser("parameter-family-callsite-probe")
+    sdk_family_callsite_probe.add_argument("--elf", type=Path, required=True)
+    sdk_family_callsite_probe.add_argument("--expected-sha256", default=None)
+    sdk_family_callsite_probe.add_argument("--json", action="store_true")
     sdk_factory = sdk_sub.add_parser("parameter-factory")
     sdk_factory.add_argument("--elf", type=Path, required=True)
     sdk_factory.add_argument("--expected-sha256", default=None)
@@ -509,6 +525,48 @@ def main(argv: list[str] | None = None) -> int:
             or contract.get("callable") is not False):
             raise ValueError("Invalid descriptive type/lifetime contract")
         _json_or_text(contract, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-family-usage":
+        from .param_family_usage import validate_param_family_usage
+        contract = json.loads(args.fixture.read_text(encoding="utf-8"))
+        validation = validate_param_family_usage(contract)
+        if not validation["valid"]:
+            raise ValueError("Invalid ParamBase usage contract: " + ",".join(validation["errors"]))
+        if args.family:
+            contract = dict(contract)
+            contract["families"] = [
+                item for item in contract.get("families", [])
+                if item.get("name") == args.family
+            ]
+            contract["family_count"] = len(contract["families"])
+            contract["xref_count"] = sum(
+                int(item.get("xref_count", 0)) for item in contract["families"]
+            )
+        _json_or_text(contract, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-family-callsites":
+        from .param_family_callsite_probe import validate_param_family_callsites
+        contract = json.loads(args.fixture.read_text(encoding="utf-8"))
+        validation = validate_param_family_callsites(contract)
+        if not validation["valid"]:
+            raise ValueError(
+                "Invalid ParamBase callsite contract: " + ",".join(validation["errors"])
+            )
+        if args.family:
+            contract = dict(contract)
+            contract["observations"] = [
+                item for item in contract.get("observations", [])
+                if item.get("family") == args.family
+            ]
+        _json_or_text(contract, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-family-callsite-probe":
+        from .param_family_callsite_probe import probe_param_family_callsites
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_family_callsites(
+            args.elf, expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA
+        )
+        _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "parameter-family-probe":
         from .param_family_probe import probe_param_families
