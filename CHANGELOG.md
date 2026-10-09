@@ -2,6 +2,9 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.15：已從私有保存的 `libObj.so` ARM 指令檔找到第二條 `viewManagerIf::requestModelExecute` 靜態路徑。與 `ViewBase` 前端共用 model-ID import `0xdffb8`、selector helper `0x12d780` 和 event factory `0xdfbdc`，但提交事件的尾分支不同（`0xdb578` vs `0x125084`）。新增可再現 `sdk request-frontends` 文本核對、fixture 與 synthetic 測試；保存的組語報告 **33/33** 位址及操作符符合，不視為新 ELF byte/ABI 證明。
+
+
 - Phase 3.14：由先前保存的 `libObj.so` 組語追回 `ViewBase::requestModelExecute` 前端與 `AbstractUtilityManager::createRequestModelExecuteEvent` 的靜態 event envelope：事件 `0x11004003`、可能包含 `ParamList`、參數鍵 7／8、入口與 callsite 位址。
 - 新增 `sdk event-envelope [--saved-disassembly]`、保守的函式邊界／call-target／寄存器來源文字核對及 synthetic 測試。將 `0x12d780` 轉換、符號動態解析與事件投遞端明列 UNKNOWN；不宣稱 Sony ABI 或 runtime API 已完成。
 
