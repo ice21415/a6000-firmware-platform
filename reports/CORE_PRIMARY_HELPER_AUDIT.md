@@ -1393,3 +1393,43 @@ ParamBase/family tests pass. Runtime-verified and callable core API counts
 remain **0**. Still unresolved are ParamList owner identity, allocator
 interposition, C++ exception edges, synchronization, and whether any external
 caller may safely construct or retain these objects.
+
+## ParamList shared-counter construction and last-owner cleanup — 2026-10-10
+
+This checkpoint closes the next owner/lifetime boundary without repeating the
+already recovered `ParamList::get` body. The new
+`fwplatform.paramlist_lifetime_probe.py` authenticates the complete private
+ELF before decoding and records only normalized metadata in
+`sdk/paramlist_lifetime_3_21.json`.
+
+| VMA / symbol | Primary ELF observation | Boundary |
+|---:|---|---|
+| `0x7edc3e` `_ZN9ParamListC1Ev` | allocates 0x0c bytes for a pointer container, initializes begin/end/capacity to zero, stores it at object `+0x00`; allocates a 4-byte counter, writes `1`, stores it at `+0x04` | allocation failure and source-level counter type UNKNOWN |
+| `0x7edb76` `_ZN9ParamList5clearEv` → `0x7edb40` | computes `(end - begin) >> 2`, visits 4-byte element pointers, skips null slots, and invokes each non-null element's vtable slot `+0x08`; resets end to begin | indirect target and container source type UNKNOWN |
+| `0x7edcc6` unnamed rebind candidate | compares destination/source, decrements the old shared counter, clears/releases the old container only on zero, increments the source counter, then copies source container/counter pointers into the destination | source-level copy/assignment identity and return declaration UNKNOWN |
+| `0x7edd08` `_ZN9ParamListD1Ev` | decrements the counter; nonzero skips storage cleanup; zero clears elements, conditionally releases/deletes the container and deletes the counter through `_ZdlPv` | allocator interposition, exception edges and runtime ownership UNKNOWN |
+
+The shared-pointer interpretation is `STATIC_INFERRED` from the primary
+increment/decrement and last-owner branches. The field offsets and branch/call
+instructions are `PRIMARY_ELF_VERIFIED`; no lock or atomic operation appears
+in these bounded bodies, so thread safety is **UNKNOWN**. The observed rebind
+path shares the container and counter and therefore does not prove copy-on-
+write. A `ParamList::get` result remains a borrowed interior pointer candidate
+that may be invalidated by clear, replacement or last-owner destruction.
+
+The private ASCII-path Ghidra 12.1.3 `paramlist-lifetime` profile used
+`ARM:LE:32:v8`, image base `0x10000`, and `-noanalysis`. It completed with
+`COMPLETE_TARGET_EXPORT`: **11** bounded targets, **130** instruction rows,
+**26** blocks and **43** CFG edges. The profile is a cross-check of addresses
+and control flow; generated names and decompiler prose are not semantic proof.
+The project/export remain outside this repository.
+
+The read-only CLI is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-lifetime --elf C:\private\libObj.so --json
+```
+
+Eight new fail-closed tests cover identity, layout, observation completeness,
+concurrency, copy-on-write and runtime/callable promotion. Runtime-verified
+and callable core API counts remain **0**.

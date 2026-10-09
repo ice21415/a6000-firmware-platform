@@ -42,6 +42,29 @@ struct ParamListAddEvidenceConstants {
     static constexpr std::uint32_t remove_slot_vma = 0x007ede7a;
     static constexpr std::uint32_t storage_append_vma = 0x007ee0b8;
 };
+
+// ParamList construction, shared-counter and last-owner cleanup witnesses
+// from the SHA-pinned 3.21 primary ELF.  These are descriptive ELF VMAs and
+// field offsets only; they are not a host-side implementation or safe ABI.
+struct ParamListLifetimeEvidenceConstants {
+    static constexpr std::uint32_t container_pointer_offset = 0x00;
+    static constexpr std::uint32_t shared_counter_pointer_offset = 0x04;
+    static constexpr std::uint32_t container_begin_offset = 0x00;
+    static constexpr std::uint32_t container_end_offset = 0x04;
+    static constexpr std::uint32_t container_capacity_offset = 0x08;
+    static constexpr std::uint32_t element_pointer_width_bytes = 4;
+
+    static constexpr std::uint32_t constructor_vma = 0x007edc3e;
+    static constexpr std::uint32_t clear_vma = 0x007edb76;
+    static constexpr std::uint32_t clear_helper_vma = 0x007edb40;
+    static constexpr std::uint32_t container_initializer_vma = 0x007edc14;
+    static constexpr std::uint32_t container_release_vma = 0x007edca2;
+    static constexpr std::uint32_t container_release_wrapper_vma = 0x007edcb8;
+    static constexpr std::uint32_t shared_rebind_candidate_vma = 0x007edcc6;
+    static constexpr std::uint32_t destructor_vma = 0x007edd08;
+    static constexpr std::uint32_t allocator_plt_vma = 0x000dc100;
+    static constexpr std::uint32_t object_delete_plt_vma = 0x000dd620;
+};
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::int32_t payload;

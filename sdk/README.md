@@ -880,6 +880,28 @@ name, and allocator, exception, ownership, locking, concurrency and runtime
 callability remain UNKNOWN. The sanitized contract is
 `sdk/paramlist_add_3_21.json`; it is descriptive metadata, not a live wrapper.
 
+### ParamList shared-counter lifetime checkpoint
+
+The SHA-pinned primary-ELF probe records the container and last-owner cleanup
+boundary:
+
+```powershell
+python -m fwplatform.cli sdk parameter-lifetime --elf C:\private\libObj.so --json
+```
+
+It verifies the `ParamList` constructor at `0x7edc3e`, which allocates a
+three-word container at object `+0x00` and a shared counter at `+0x04`, the
+`clear` path at `0x7edb76`/`0x7edb40`, and the destructor at `0x7edd08`.
+`clear` iterates four-byte element pointers, skips null slots, invokes the
+element virtual slot `+8`, and resets the end pointer. The destructor performs
+the same cleanup only when the shared counter reaches zero. The bounded
+`0x7edcc6` sequence copies both owner pointers after releasing the destination
+owner, but its source-level assignment identity is UNKNOWN. Container
+deallocation, exception cleanup, atomicity, concurrent access, copy-on-write,
+and runtime/callable safety remain UNKNOWN. The sanitized contract is
+`sdk/paramlist_lifetime_3_21.json`; it is descriptive evidence, not a live
+wrapper.
+
 ## PrmObjMsg primary-ELF checkpoint
 
 The `parameter-objmsg` probe adds a bounded static check:

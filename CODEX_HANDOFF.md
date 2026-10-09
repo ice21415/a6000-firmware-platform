@@ -997,3 +997,34 @@ edges.  The private project/export is outside this checkout.  Six new
 fail-closed synthetic tests cover identity, phase completeness, key-scope and
 runtime/callable promotion.  The next target remains a concrete ParamList
 owner/use path; runtime-verified and callable API counts remain zero.
+
+## Latest continuation checkpoint — ParamList owner/lifetime boundary (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was rechecked without repeating
+`ParamList::get`. `fwplatform/paramlist_lifetime_probe.py` now verifies the
+exported constructor `_ZN9ParamListC1Ev` at `0x7edc3e`, `clear` at `0x7edb76`,
+and destructor `_ZN9ParamListD1Ev` at `0x7edd08`, plus the bounded unnamed
+rebind candidate at `0x7edcc6`.
+
+Primary facts: construction allocates a 12-byte pointer container at object
+`+0x00`, zeros begin/end/capacity at container `+0/+4/+8`, allocates a 4-byte
+shared counter at object `+0x04`, and initializes that counter to `1`. Clear
+uses `(end - begin) >> 2`, treats each slot as a 4-byte pointer, skips null
+slots, invokes the element vtable slot `+8`, and resets end to begin. The
+rebind candidate decrements the old counter, performs clear/container release
+and object deletion at zero, increments the source counter, then copies source
+container/counter pointers to the destination. The destructor has the same
+last-owner branch and deletes the counter through the uniquely resolved
+`_ZdlPv` PLT.
+
+The field/call/branch facts are `PRIMARY_ELF_VERIFIED`; the shared-counter and
+aliasing interpretations are `STATIC_INFERRED`. The unnamed rebind source
+operator, container deallocator at `0x7edc84`, allocation failure behavior,
+exception cleanup, atomicity, concurrency, loader binding and copy-on-write
+remain UNKNOWN. The contract is `sdk/paramlist_lifetime_3_21.json`, the
+descriptive constants are in `sdk/paramlist_3_21_candidate.hpp`, and the CLI
+is `fw sdk parameter-lifetime --elf <private-libObj.so> --json`. A private
+Ghidra 12.1.3 `paramlist-lifetime` export completed with 11 targets, 130
+instruction rows, 26 blocks and 43 edges. Runtime-verified and callable API
+counts remain 0. The next target is a uniquely identified external
+construction/use caller, not a live wrapper.

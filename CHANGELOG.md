@@ -469,3 +469,15 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
 - Added six fail-closed regression tests and a private Ghidra lifecycle
   cross-check (22 targets, 342 instructions, 43 blocks, 72 edges). Runtime
   verification and callable SDK counts remain zero.
+
+## Unreleased — ParamList shared-counter lifetime evidence
+
+- Added the SHA-pinned `parameter-lifetime` probe and descriptive contract for
+  ParamList construction, pointer-container initialization, `clear`, the
+  unnamed shared rebind candidate, and the exported destructor.
+- Recorded the observed object/container offsets and last-owner decrement path
+  without promoting the shared-counter interpretation to a thread-safe or
+  callable ownership API.
+- Added eight fail-closed regression tests and a private Ghidra cross-check
+  (11 targets, 130 instructions, 26 blocks, 43 edges). Runtime verification
+  and callable SDK counts remain zero.

@@ -671,3 +671,26 @@ constants are in `sdk/paramlist_3_21_candidate.hpp`.  The private Ghidra
 43 blocks and 72 edges.  Runtime verification, external ownership,
 allocator/exception semantics, synchronization and callable status remain
 unknown; do not use these records as live object wrappers.
+
+### ParamList shared-counter lifetime checkpoint (2026-10-10)
+
+`fwplatform/paramlist_lifetime_probe.py` authenticates the exact SHA-pinned
+private ELF and verifies the bounded ParamList owner boundary. The exported
+constructor `0x7edc3e` allocates a 12-byte pointer container at object `+0`
+and a 4-byte counter at `+4`, initializing the counter to one. The exported
+`clear` path `0x7edb76 -> 0x7edb40` walks 4-byte element pointers, invokes the
+indirect deleting-destructor slot at vtable `+8` for non-null elements, and
+resets the end pointer. The destructor `0x7edd08` and unnamed rebind candidate
+`0x7edcc6` decrement the shared counter and release the container only on the
+last-owner path; the rebind path then shares source container/counter
+pointers.
+
+The field and instruction facts are `PRIMARY_ELF_VERIFIED`; shared-counter and
+aliasing interpretations are `STATIC_INFERRED`. Copy-on-write, atomicity,
+exception cleanup, allocator interposition, runtime ownership and concurrency
+remain `UNKNOWN`. The sanitized contract is
+`sdk/paramlist_lifetime_3_21.json`; use
+`fw sdk parameter-lifetime --elf <private-libObj.so> --json` for the read-only
+probe. The private Ghidra profile completed with 11 targets, 130 instruction
+rows, 26 blocks and 43 edges. Runtime verification and callable API counts
+remain zero.
