@@ -201,3 +201,27 @@ entry `0x7ef960`: `r0=this`, `r1=Event*`, `r2=bool`, status branch through
 through `[this+4]`, and visible zero returns. Indirect targets, helper
 semantics, queue/thread behavior, ownership and runtime callability remain
 UNKNOWN. Contract: `sdk/event_manager_push_3_21.json`.
+
+## Phase 3.25 — EventManager initializer evidence
+
+`fwplatform/event_manager_init_probe.py` and
+`sdk/event_manager_init_3_21.json` add a bounded, SHA-pinned check at
+`ELF_VMA 0x7ef894`. Primary instructions verify the receiver `+0x04` callback
+candidate, `pthread_mutex_init(receiver +0x0c, 0)`, provider vtable slot
+`+0x30` result at `+0x08`, and two eight-byte state allocations initialized
+through local `0x7f09be`. PLT bindings for `pthread_mutex_init`, `_Znaj` and
+`_Znwj` are unique static evidence. The association with EventManager is
+`STATIC_INFERRED` because no constructor symbol was proven. Ownership,
+helper semantics, destructor, exception behavior, runtime binding and
+callability remain unknown/false. Four fail-closed synthetic tests accompany
+`fw sdk event-manager-init`; the private firmware is never committed.
+
+The private Ghidra cross-check for the initializer uses the ASCII Ghidra
+12.1.3 installation and a dedicated `event-manager-init` target profile in
+`ghidra-scripts/ParamListTargets.java`. With `-noanalysis`, headless execution
+exited 0 and reproduced the 78-byte body at image-base-mapped address
+`0x7ff894` (original `ELF_VMA 0x7ef894`), all 27 instruction boundaries and
+six call edges. The decompiler leaves parameters undefined, so Capstone and
+Ghidra agree on instruction/layout facts only. A separate full Auto Analysis
+attempt was intentionally stopped before completion; it is not counted as a
+successful analysis.

@@ -29,7 +29,7 @@ the observed region; source-level identity, allocator/exception semantics,
 thread safety and runtime callability remain unknown. The private targeted
 Ghidra rerun exits 0 with 21 targets, 343 instruction rows, 79 blocks and 135
 edges. The descriptive contract now has 17 interfaces; callable/runtime count
-remains zero. The full public synthetic suite now passes 234 tests.
+remains zero. The latest full public synthetic suite passes 263 tests.
 
 The next primary-ELF checkpoint adds `fwplatform/param_numberlist_probe.py`
 and `fw sdk parameter-numberlist --elf <private-libObj.so>`. It validates nine
@@ -303,3 +303,23 @@ symbol-bound implementation at `0x7ef960` (156 bytes): AAPCS32 candidates
 Indirect targets, helper semantics, queue/thread behavior, ownership and
 runtime/callable status remain UNKNOWN. Contract:
 `sdk/event_manager_push_3_21.json`.
+
+The `event-manager-init` checkpoint adds a bounded primary-ELF probe for
+`0x7ef894` and contract `sdk/event_manager_init_3_21.json`. It verifies the
+incoming callback candidate at receiver `+0x04`, mutex initialization at
+`+0x0c`, provider vtable `+0x30` result at `+0x08`, and `_Znaj`/`_Znwj`
+allocations for two eight-byte state words. This is a layout-compatible
+`STATIC_INFERRED` relation to `EventManager::push`, not proof of constructor
+identity. Helper `0x7f09be`, ownership, full destruction, exception behavior,
+runtime binding, runtime verification and callability remain UNKNOWN/false.
+Four synthetic fail-closed tests cover identity, binding and non-callable
+metadata. The private ELF remains outside the public repository.
+
+Ghidra cross-check for the initializer used the ASCII Ghidra 12.1.3 install
+with a private `-noanalysis` target profile. It exited 0 and produced one
+bounded target: image base `0x10000`, mapped program address `0x7ff894` for
+`ELF_VMA 0x7ef894`, body `[[0x7ff894,0x7ff8e1]]`, 27 matching instruction
+boundaries and six call edges. The decompiler retains undefined parameter
+types, so it does not prove C++ class identity or callability. A separate
+full Auto Analysis attempt was stopped before completion and is recorded as
+INCOMPLETE, not successful.

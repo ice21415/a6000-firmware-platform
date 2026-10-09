@@ -906,3 +906,22 @@ It verifies the symbol-bound entry `0x7ef960`, AAPCS32 candidates
 indirect dispatch through `[this+8]`, optional completion callback through
 `[this+4]`, and visible zero returns. Indirect targets, helper semantics,
 queue/thread behavior, ownership and runtime callability remain UNKNOWN.
+
+## EventManager layout initializer checkpoint
+
+The `event-manager-init` probe checks the bounded primary-ELF initializer
+candidate at `0x7ef894`:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-init --elf C:\private\libObj.so --json
+```
+
+The SHA-pinned instructions store the incoming `r1` candidate at receiver
+`+0x04`, initialize a mutex at `+0x0c`, obtain a provider vtable `+0x30`
+result into `+0x08`, and allocate two eight-byte state words through the
+unique `_Znaj`/`_Znwj` PLT bindings. The layout is only a
+`STATIC_INFERRED` relation to `EventManager::push`; no constructor symbol
+proves the class identity. Helper `0x7f09be`, ownership, synchronization,
+exception behavior and runtime binding remain UNKNOWN. The contract is
+`sdk/event_manager_init_3_21.json`, and both runtime verification and
+callability remain false.

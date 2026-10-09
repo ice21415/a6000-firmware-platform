@@ -12,8 +12,13 @@ public class ParamListTargets extends GhidraScript {
    throw new IllegalArgumentException("Requires private output and pinned 3.21 libObj.so");
   long[][] targets={{0x7eda8c,8},{0x7eda94,8},{0x7edab0,14},{0x7edabe,12},{0x7edaca,76},{0x42abcc,12},{0x42abdc,36},{0x42ac00,36},{0x42acd4,0x82},{0x120968,8},{0x120970,14},{0xfe9ae,8},{0xfe9b6,8},{0xfe9be,14},{0x7edb40,0x36},{0x7edc3e,42},{0x7edcc6,0x42},{0x7edd08,46},{0x7ededa,0x8c},{0x7ee0b8,0x2e},{0x7ee0e6,0x30}};
   if(args.length==2) {
-   if(!args[1].equals("lifecycle")) throw new IllegalArgumentException("Unknown target profile");
-   targets=new long[][]{{0x7eda84,8},{0xe50b4,20},{0xf0fb0,32},{0xe50e8,32},{0x10f9fc,8},{0x426acc,8},{0xe4840,20},{0xf0f5c,20},{0xf0f2c,26},{0xe4750,26},{0x7edcc6,66},{0x7ededa,144},{0xff9c8,62},{0xffa3c,38},{0xe5128,38},{0xe7260,54},{0x7efb00,36},{0xff954,36},{0xff904,28},{0xe4774,28},{0xe7150,36},{0x7efb2c,36}};
+   if(args[1].equals("lifecycle")) {
+    targets=new long[][]{{0x7eda84,8},{0xe50b4,20},{0xf0fb0,32},{0xe50e8,32},{0x10f9fc,8},{0x426acc,8},{0xe4840,20},{0xf0f5c,20},{0xf0f2c,26},{0xe4750,26},{0x7edcc6,66},{0x7ededa,144},{0xff9c8,62},{0xffa3c,38},{0xe5128,38},{0xe7260,54},{0x7efb00,36},{0xff954,36},{0xff904,28},{0xe4774,28},{0xe7150,36},{0x7efb2c,36}};
+   } else if(args[1].equals("event-manager-init")) {
+    targets=new long[][]{{0x7ef894,0x4e}};
+   } else {
+    throw new IllegalArgumentException("Unknown target profile");
+   }
   }
   DecompInterface dec=new DecompInterface();
   try(PrintWriter out=new PrintWriter(new FileWriter(args[0]))) {

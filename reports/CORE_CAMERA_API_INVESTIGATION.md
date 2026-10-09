@@ -736,3 +736,23 @@ explicit parameter types but not complete return/error semantics. The indirect
 function targets, queue/thread behavior, Event ownership, status meaning and
 completion result remain UNKNOWN. Contract:
 `sdk/event_manager_push_3_21.json`; runtime and callable flags remain false.
+
+## Phase 3.25 — EventManager initializer/layout candidate
+
+A bounded read of the exact SHA-pinned private ELF at `ELF_VMA 0x7ef894`
+(78 bytes, Thumb) verifies a layout-compatible initializer candidate. The
+body stores incoming `r1` at receiver `+0x04`, calls the uniquely relocated
+`pthread_mutex_init` with receiver `+0x0c` and zero, loads provider `r2`'
+`s vtable slot `+0x30` and stores its result at `+0x08`, then allocates one
+8-byte state array through `_Znaj` and two 8-byte words through `_Znwj`; both
+words pass through local helper `0x7f09be`. The three PLT bindings are
+`VERIFIED_STATIC` from the primary ELF, while loader/runtime bindings remain
+UNKNOWN.
+
+The observed layout is only `STATIC_INFERRED` as an association with the
+`EventManager::push` receiver layout. No constructor symbol proves the C++
+class identity. The helper, callback/provider ownership, synchronization
+beyond the observed mutex initialization, exception behavior, destruction
+path, and runtime callability remain UNKNOWN. Contract:
+`sdk/event_manager_init_3_21.json`; CLI:
+`fw sdk event-manager-init --elf <private-libObj.so> --json`.

@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the private-only `event-manager-init` primary-ELF probe for the
+  bounded initializer candidate at `0x7ef894`. It records the mutex,
+  callback/provider fields and two eight-byte state allocations with unique
+  PLT bindings, while keeping constructor identity, helper semantics,
+  ownership, runtime binding and callability unknown. Four synthetic
+  fail-closed tests were added; no firmware bytes are published.
+
 - ParamList mutation checkpoint: added the SHA-pinned `parameter-mutation`
   probe for clear, final destruction and the unnamed shared-assignment body.
   It verifies element vtable deletion, zero-counter cleanup, `_ZdlPv` PLT

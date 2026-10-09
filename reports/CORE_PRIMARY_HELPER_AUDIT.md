@@ -325,7 +325,7 @@ The C++ header describes target words, never host pointers or callable wrappers.
 Private sources: SHA-pinned ELF; new Capstone probes for lookup/lifecycle/base
 constructor; Ghidra targeted listing/CFG/decompilation. Public output includes
 only self-authored summaries, schema, tooling and synthetic tests.
-Latest full public synthetic regression run: **234 tests passed**, process exit 0.
+Latest full public synthetic regression run: **263 tests passed**, process exit 0.
 Candidate header passed a C++17 syntax check with the existing Ubuntu g++
 through WSL (exit 0). This checks declarations/layout assertions on the host;
 it does not link Sony code or validate a target ARM runtime ABI.
@@ -434,3 +434,36 @@ identity/return type, synchronization, runtime behavior and callability remain
 UNKNOWN. The descriptive contract is `sdk/param_objmsg_3_21.json` and its
 runtime/callable flags are false. Four synthetic fail-closed tests cover the
 metadata validator; no firmware bytes or private probe output is committed.
+
+## EventManager initializer / shared-layout checkpoint
+
+The exact SHA-pinned private `libObj.so` was read only after full-file hash
+verification. At Thumb `ELF_VMA 0x7ef894` (78 bytes), Capstone confirms an
+initializer-like body that stores `r1` at receiver `+0x04`, initializes
+`pthread_mutex_init(receiver +0x0c, 0)`, loads provider `r2`'s vtable slot
+`+0x30` and stores the result at `+0x08`, and allocates one 8-byte state
+array plus two 8-byte state words. The PLT stubs resolve uniquely in the
+static ELF to `pthread_mutex_init`, `_Znaj` and `_Znwj`; dynamic loader
+bindings remain UNKNOWN.
+
+This is a `PRIMARY_ELF_VERIFIED` instruction/layout observation and only a
+`STATIC_INFERRED` association with `EventManager::push`. No constructor or
+RTTI witness proves the class identity. Local helper `0x7f09be`, state-word
+meaning, ownership, destruction, exception behavior, synchronization beyond
+the observed mutex initialization, and runtime callability remain UNKNOWN.
+The descriptive contract is `sdk/event_manager_init_3_21.json`; the private
+probe is `fw sdk event-manager-init --elf <private-libObj.so> --json`.
+
+### Ghidra cross-check (private, targeted)
+
+The ASCII-path Ghidra 12.1.3 headless project was opened with `-noanalysis`
+for a bounded target profile after the full Auto Analysis attempt was stopped
+without a completion marker. The private script exited 0 and emitted one
+`0x7ef894` target. Ghidra image base was `0x10000`, so its program address
+`0x7ff894` maps to original `ELF_VMA 0x7ef894`; the body was
+`[[0x7ff894,0x7ff8e1]]`. It reproduced all 27 instruction boundaries,
+the six call edges (including PLT stubs and local `0x7f09be`), and the same
+receiver offsets. Ghidra's decompiler output uses `undefined4`/`param_*`
+for unresolved types and is therefore supporting disassembly evidence, not
+proof of a C++ constructor or callable ABI. Full Auto Analysis status for
+this separate run is INCOMPLETE; no success is claimed for it.

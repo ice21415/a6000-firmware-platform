@@ -370,6 +370,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_push.add_argument("--elf", type=Path, required=True)
     sdk_push.add_argument("--expected-sha256", default=None)
     sdk_push.add_argument("--json", action="store_true")
+    sdk_init = sdk_sub.add_parser("event-manager-init")
+    sdk_init.add_argument("--elf", type=Path, required=True)
+    sdk_init.add_argument("--expected-sha256", default=None)
+    sdk_init.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -558,6 +562,15 @@ def main(argv: list[str] | None = None) -> int:
         from .event_manager_push_probe import probe_event_manager_push
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_event_manager_push(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "event-manager-init":
+        from .event_manager_init_probe import probe_event_manager_init
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_event_manager_init(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

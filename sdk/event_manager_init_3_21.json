@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "entry": "0x7ef894",
+  "size": 78,
+  "verification": "PRIMARY_ELF_VERIFIED layout and PLT binding facts; constructor identity STATIC_INFERRED",
+  "abi_observation": {
+    "r0": "initializer receiver candidate",
+    "r1": "callback/function pointer candidate stored at +0x04",
+    "r2": "provider/context object candidate",
+    "safe_to_call": false
+  },
+  "layout": {
+    "+0x00": "8-byte state allocation candidate",
+    "+0x04": "incoming r1 callback candidate",
+    "+0x08": "provider vtable +0x30 return candidate",
+    "+0x0c": "pthread_mutex_init target",
+    "state_+0/+4": "two 8-byte words allocated and initialized by local helper 0x7f09be"
+  },
+  "bindings": {
+    "mutex_init": {"entry": "0xe2aa0", "symbol": "pthread_mutex_init", "status": "VERIFIED_STATIC"},
+    "state_array_alloc": {"entry": "0xe0e00", "symbol": "_Znaj", "status": "VERIFIED_STATIC"},
+    "state_word_alloc": {"entry": "0xdc100", "symbol": "_Znwj", "status": "VERIFIED_STATIC"}
+  },
+  "limitations": [
+    "No constructor symbol proves the EventManager class identity; relation to push is layout-compatible STATIC_INFERRED",
+    "Provider vtable slot +0x30 and local initializer helper 0x7f09be semantics remain UNKNOWN",
+    "Callback ownership, synchronization beyond the observed mutex init, exception behavior and runtime binding remain UNKNOWN",
+    "No runtime or device execution"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}
