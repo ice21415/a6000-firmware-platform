@@ -62,7 +62,7 @@ class PrivateThumbResearchTests(unittest.TestCase):
     def _analyze(self, **kwargs):
         return trace_private_selector_elf(
             self.elf, expected_sha256=self.sha,
-            entries=self.targets, max_region_bytes=64, **kwargs)
+            entries=self.targets, max_region_bytes=kwargs.pop("max_region_bytes", 64), **kwargs)
 
     def test_pinned_official_hash_not_runtime_verified(self):
         self.assertEqual(EXPECTED_LIBOBJ_SHA,
