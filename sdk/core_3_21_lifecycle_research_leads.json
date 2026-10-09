@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "kind": "IMDB_LIFECYCLE_TABLE_OFFLINE_RESEARCH",
+  "firmware": "Sony ILCE-6000 3.21",
+  "source_artifact_basename": "imdb-entries.json",
+  "original_data_included": false,
+  "tool_result_provenance": "Saved local research workspace: 2026-10-07 firmware-analysis static IMDb entry extraction",
+  "disclaimer": "IMDb addresses are descriptor offsets within im.elf metadata, NOT function ELF entry VMAs, ABI evidence, or proof of lens control.",
+  "entries": [
+    {
+      "domain": "Lens",
+      "module": "libInfraLensCommunicator.so",
+      "imdb_entry_index": 131,
+      "imdb_record_address": "0xd76c",
+      "imdb_id": "0x17d",
+      "phase": 8,
+      "callbacks": {
+        "init": "LensCommunicator_Init",
+        "exit": "LensCommunicator_Exit"
+      },
+      "binary_sha256": null,
+      "function_entries": null,
+      "abi": null,
+      "verification_status": "RESEARCH_LEAD",
+      "runtime_callable": false,
+      "reason": "Static lifecycle callback registration; does not establish focus/iris/zoom operations."
+    },
+    {
+      "domain": "Camera",
+      "module": "libInfraCameraProfile.so",
+      "imdb_entry_index": 125,
+      "imdb_record_address": "0xd664",
+      "imdb_id": "0x15b",
+      "phase": 8,
+      "callbacks": {
+        "init": "infra_cameraProfile_init",
+        "exit": "infra_cameraProfile_exit"
+      },
+      "binary_sha256": null,
+      "function_entries": null,
+      "abi": null,
+      "verification_status": "RESEARCH_LEAD",
+      "runtime_callable": false,
+      "reason": "Static camera profile lifecycle callbacks; no property layout or control ABI recovered."
+    }
+  ],
+  "unresolved_domain_targets": [
+    {
+      "domain": "Sensor",
+      "module": "libsencore.so",
+      "meaning": "Module name does not prove image-sensor API role; no ABI or entry matched"
+    },
+    {
+      "domain": "Media",
+      "module": "libInfraMediaCommon.so",
+      "meaning": "Existing loader dependency from libObj.so does not identify media API contracts"
+    },
+    {
+      "domain": "OSAL",
+      "module": "libosal_uipc.so",
+      "meaning": "Existing static OSAL wait observations do not establish complete queue, semaphore or callback ABI"
+    }
+  ],
+  "function_abi_verified_count": 0,
+  "lifecycle_callback_abi_verified_count": 0
+}
