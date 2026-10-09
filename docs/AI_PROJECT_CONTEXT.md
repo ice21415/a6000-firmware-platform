@@ -188,3 +188,9 @@ with the new parameter object through the unique PLT binding of
 delivery/completion and full constructor C++ identity remain UNKNOWN. Its
 contract is `sdk/camera_3_21_prepare_envelope.json`; runtime/callable flags
 remain false.
+
+The prepare envelope probe now follows `0x7f25e0`: it verifies `r2=1`, a
+receiver `+0x10` load and the unique PLT relocation of `0xdf270` to
+`EventManager::push(Event*,bool)`. This is a static symbol/dispatch fact only;
+runtime binding, receiver class, event delivery/completion and complete C++
+signature remain UNKNOWN.

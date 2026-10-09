@@ -711,3 +711,10 @@ The constructor identity is cross-family STATIC_INFERRED from the existing
 completion semantics, and complete C++ ABI remain UNKNOWN. The descriptive
 contract is `sdk/camera_3_21_prepare_envelope.json`; runtime and callable
 status remain false.
+
+The Phase 3.23 prepare/event probe now includes the tail helper at `0x7f25e0`:
+its primary instructions set `r2=1`, load receiver `+0x10`, and branch to
+`0xdf270`. The unique relocation names the target
+`_ZN12EventManager4pushEP5Eventb` (`EventManager::push(Event*,bool)`). This
+strengthens the static dispatch chain but does not verify runtime binding,
+receiver class, event delivery/completion or a callable C++ ABI.

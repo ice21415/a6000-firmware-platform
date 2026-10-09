@@ -886,3 +886,10 @@ It verifies a 16-byte allocation, a direct `0xf0fb0` constructor call with
 `Event::addParameter`. The tail branch to `0x7f25e0`, receiver identity,
 event delivery/completion and the constructor's complete C++ identity remain
 UNKNOWN; the result is never callable.
+
+The prepare probe also follows its tail helper at `0x7f25e0`. Primary ELF
+instructions show `r2=1`, a load from receiver `+0x10`, and a branch to `0xdf270`.
+The unique PLT relocation identifies `0xdf270` as
+`EventManager::push(Event*,bool)` at the symbol level; the runtime binding,
+receiver class, event delivery/completion and complete C++ signature remain
+UNKNOWN.

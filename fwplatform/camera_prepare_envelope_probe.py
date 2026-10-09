@@ -20,6 +20,7 @@ from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
 TARGET = {"name": "camera_prepare_envelope", "entry": 0x125084, "size": 0x34}
+SUBMIT_TARGET = {"name": "camera_prepare_submit_helper", "entry": 0x7F25E0, "size": 0x10}
 
 
 def _sha256(path: Path) -> str:
@@ -50,15 +51,19 @@ def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
     return data
 
 
-def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+def _decode_range(fp: Any, elf: ELFFile, entry: int, size: int) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
     rows = list(decoder.disasm(
-        _read_exec_range(fp, elf, TARGET["entry"], TARGET["size"]), TARGET["entry"]
+        _read_exec_range(fp, elf, entry, size), entry
     ))
     if not rows:
         raise ValueError("Camera prepare envelope did not decode")
     return {int(row.address): row for row in rows}
+
+
+def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+    return _decode_range(fp, elf, TARGET["entry"], TARGET["size"])
 
 
 def _immediates(ins: Any) -> list[int]:
@@ -81,14 +86,29 @@ def _require(
     return ins
 
 
-def _binding(fp: Any, elf: ELFFile, entry: int) -> dict[str, Any]:
-    result = resolve_plt_binding(fp, elf, entry, thumb_stub=False)
+def _binding(fp: Any, elf: ELFFile, entry: int, *, thumb_stub: bool = False) -> dict[str, Any]:
+    result = resolve_plt_binding(fp, elf, entry, thumb_stub=thumb_stub)
     if result.get("status") != "VERIFIED_STATIC":
         raise ValueError(f"PLT binding at 0x{entry:x} is not unique")
     return result
 
 
-def _observe(rows: dict[int, Any], allocator: dict[str, Any], add_parameter: dict[str, Any]) -> dict[str, Any]:
+def _observe_submit(rows: dict[int, Any], push_binding: dict[str, Any]) -> dict[str, Any]:
+    _require(rows, 0x7F25E0, "push")
+    _require(rows, 0x7F25E2, "movs", operands="r2, #1")
+    _require(rows, 0x7F25E6, "ldr", operands="r0, [r0, #0x10]")
+    _require(rows, 0x7F25EC, "b.w", target=0xDF270)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver_field": "+0x10 loaded into r0",
+        "mode_argument": "r2=1",
+        "tail_call": "0xdf270; unique PLT binding is retained below",
+        "binding": push_binding,
+        "identity": "Event submission/push candidate; exact C++ signature remains UNKNOWN",
+    }
+
+
+def _observe(rows: dict[int, Any], allocator: dict[str, Any], add_parameter: dict[str, Any], submit: dict[str, Any]) -> dict[str, Any]:
     _require(rows, 0x125084, "push.w")
     _require(rows, 0x125088, "mov", operands="r5, r0")
     _require(rows, 0x12508C, "movs", immediate=0x10)
@@ -112,8 +132,9 @@ def _observe(rows: dict[int, Any], allocator: dict[str, Any], add_parameter: dic
             "object": "new 16-byte parameter candidate in r2",
             "call": "PLT 0xdd194 resolved statically to Event::addParameter",
         },
-        "tail_target": "0x7f25e0 direct branch; local C++ identity and delivery/completion semantics UNKNOWN",
+        "tail_target": "0x7f25e0 helper; its register/dispatch facts are verified below",
         "bindings": {"allocator": allocator, "event_add_parameter": add_parameter},
+        "submission": submit,
         "runtime_verified": False,
         "callable": False,
     }
@@ -138,12 +159,16 @@ def probe_camera_prepare_envelope(
         rows = _decode(fp, elf)
         allocator = _binding(fp, elf, 0xDC100)
         add_parameter = _binding(fp, elf, 0xDD194)
-        observation = _observe(rows, allocator, add_parameter)
+        submit_rows = _decode_range(fp, elf, SUBMIT_TARGET["entry"], SUBMIT_TARGET["size"])
+        push_binding = _binding(fp, elf, 0xDF270, thumb_stub=True)
+        submit = _observe_submit(submit_rows, push_binding)
+        observation = _observe(rows, allocator, add_parameter, submit)
     return {
         "status": "LOCAL_PRIMARY_ELF_CAMERA_PREPARE_EVIDENCE_ONLY",
         "binary_file_sha256": digest,
         "address_space": "ELF_VMA",
         "target": TARGET,
+        "submit_target": SUBMIT_TARGET,
         "observation": observation,
         "runtime_verified": False,
         "callable": False,
@@ -167,4 +192,9 @@ def validate_camera_prepare_envelope(report: dict[str, Any]) -> dict[str, Any]:
         errors.append("allocator_binding")
     if bindings.get("event_add_parameter", {}).get("status") != "VERIFIED_STATIC":
         errors.append("event_add_parameter_binding")
+    submission = observation.get("submission", {})
+    if submission.get("status") != "PRIMARY_ELF_VERIFIED":
+        errors.append("submission_observation")
+    if submission.get("binding", {}).get("status") != "VERIFIED_STATIC":
+        errors.append("submission_binding")
     return {"valid": not errors, "errors": sorted(set(errors))}

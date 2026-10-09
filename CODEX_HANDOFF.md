@@ -288,3 +288,9 @@ The tail branch `0x7f25e0`, receiver identity, event delivery/completion and
 complete constructor ABI remain UNKNOWN; runtime and callable claims stay
 false. The descriptive contract is
 `sdk/camera_3_21_prepare_envelope.json`.
+
+The `camera_prepare_envelope` probe now follows its tail helper `0x7f25e0`:
+that helper sets `r2=1`, loads receiver `+0x10`, and branches to `0xdf270`,
+whose unique PLT relocation names `EventManager::push(Event*,bool)`. This is
+static symbol/dispatch evidence only; runtime binding, receiver identity,
+event delivery/completion and complete C++ signature remain UNKNOWN.

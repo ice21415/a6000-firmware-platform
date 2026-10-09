@@ -15,6 +15,7 @@ def _report():
         "observation": {
             "status": "PRIMARY_ELF_VERIFIED",
             "bindings": {"allocator": binding, "event_add_parameter": binding},
+            "submission": {"status": "PRIMARY_ELF_VERIFIED", "binding": binding},
         },
     }
 

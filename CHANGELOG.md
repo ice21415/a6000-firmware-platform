@@ -183,3 +183,8 @@
   It verifies the 16-byte allocation, zero-valued direct constructor call and
   key-6 `Event::addParameter` PLT binding while keeping the `0x7f25e0` tail
   target, receiver, delivery and completion semantics unresolved.
+
+- Extended `camera-prepare-envelope` through its tail helper `0x7f25e0`.
+  The probe now verifies `r2=1`, receiver `+0x10` loading and the unique
+  `EventManager::push` PLT binding at `0xdf270`; runtime binding and delivery
+  semantics remain unknown.
