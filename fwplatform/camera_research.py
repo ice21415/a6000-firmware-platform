@@ -156,7 +156,8 @@ def inspect_camera_research(
         if edge.get("kind") != kind:
             raise ValueError(f"static_calls[{idx}]: incorrect instruction edge kind")
         calls.append({"caller": caller, "callee": callee, "callsite": hex(callsite),
-                      "kind": kind, "source_artifact": _artifact(edge.get("source_artifact")),
+                      "kind": kind, "instruction": instruction,
+                      "source_artifact": _artifact(edge.get("source_artifact")),
                       "proof_level": "REPORTED_STATIC_INSTRUCTION_NOT_PUBLICLY_REVALIDATED",
                       "runtime_executed": False})
 
