@@ -301,6 +301,8 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
+    sdk_trace.add_argument("--entry", type=lambda v: int(v, 0), action="append",
+                           help="Explicit alternate ELF VMA for bounded research (repeat <=8); defaults to known 3.21 targets")
     sdk_trace.add_argument("--expected-sha256", default=None,
                            help="Explicit override for synthetic fixtures; otherwise pinned to original ILCE-6000 3.21 libObj.so")
     sdk_trace.add_argument("--json", action="store_true")
@@ -383,9 +385,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "sdk" and args.sdk_command == "trace-selector":
         # Strictly private, bounded ELF file read; never migrate SQLite or execute code.
         from .private_thumb_research import trace_private_selector_elf
-        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA, TARGETS
+        entries = (tuple((f"explicit_entry_{i + 1}", address)
+                         for i, address in enumerate(args.entry))
+                   if args.entry is not None else TARGETS)
         result = trace_private_selector_elf(
-            args.elf, max_region_bytes=args.region_bytes,
+            args.elf, max_region_bytes=args.region_bytes, entries=entries,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )
         _json_or_text(result, args.json)
