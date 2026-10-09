@@ -299,6 +299,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_investigate.add_argument("--limit", type=int, default=25)
     sdk_investigate.add_argument("--relation-limit", type=int, default=8)
     sdk_investigate.add_argument("--json", action="store_true")
+    sdk_inspect = sdk_sub.add_parser("inspect")
+    sdk_inspect.add_argument("--function-id", type=int, required=True)
+    sdk_inspect.add_argument("--relation-limit", type=int, default=8)
+    sdk_inspect.add_argument("--json", action="store_true")
     sdk_draft = sdk_sub.add_parser("draft")
     sdk_draft.add_argument("--output", type=Path, required=True)
     sdk_draft.add_argument("--firmware-version", default="3.21")
@@ -424,6 +428,12 @@ def main(argv: list[str] | None = None) -> int:
                 include_internal=args.include_internal,
                 include_generated=args.include_generated,
                 limit=args.limit, relation_limit=args.relation_limit,
+            ), args.json)
+        elif args.command == "sdk" and args.sdk_command == "inspect":
+            from .function_inspection import inspect_function
+            _json_or_text(inspect_function(
+                db, function_id=args.function_id,
+                relation_limit=args.relation_limit,
             ), args.json)
         elif args.command == "sdk" and args.sdk_command == "draft":
             from .sdk_review import draft_sdk_review
