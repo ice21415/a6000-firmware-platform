@@ -955,8 +955,11 @@ or standard container. Allocation/deallocation pairing, ownership,
 termination/cycle invariants and runtime behavior remain UNKNOWN.
 
 The private ASCII-path Ghidra 12.1.3 `event-manager-init` profile exited 0
-with `COMPLETE_TARGET_EXPORT`: 8 targets, 83 instruction rows, 11 blocks and
-18 edges. The local full suite is now 366 tests passed; runtime-verified and
-callable API counts remain 0. Next target: locate the destruction/ownership
-path for the two state objects without treating the static link layout as a
-safe callable API.
+with `COMPLETE_TARGET_EXPORT`: 15 targets, 162 instruction rows, 23 blocks and
+37 edges. The adjacent cleanup candidate `0x7f09d2` statically binds its
+`current+8` payload release path to `Event::~Event`, `_ZdlPv` and an exception
+cleanup through `__cxa_end_cleanup`. It is not proven to be an EventManager
+destructor or ownership path. The local full suite is now 367 tests passed;
+runtime-verified and callable API counts remain 0. Next target: prove or
+disprove the allocation/deallocation pairing for the two state objects without
+treating the static link layout as a safe callable API.

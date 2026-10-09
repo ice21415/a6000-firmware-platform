@@ -230,7 +230,7 @@ through local `0x7f09be`. PLT bindings for `pthread_mutex_init`, `_Znaj` and
 chain now verifies that `0x1111b8` clears the two words and `0x1111a2` writes
 the two self-links at `+0x00` and `+0x04`; this is a structural observation,
 not a source-level container name. Ownership, destruction, exception behavior,
-runtime binding and callability remain unknown/false. Six fail-closed synthetic
+runtime binding and callability remain unknown/false. Seven fail-closed synthetic
 tests accompany `fw sdk event-manager-init`; the private firmware is never
 committed.
 
@@ -240,7 +240,11 @@ The private Ghidra cross-check for the initializer uses the ASCII Ghidra
 exited 0 and reproduced the 78-byte body at image-base-mapped address
 `0x7ff894` (original `ELF_VMA 0x7ef894`), all 27 instruction boundaries and
 six call edges. The updated profile also exports the bounded helper chain as
-8 targets, 83 instruction rows, 11 blocks and 18 edges. The decompiler leaves
+15 targets, 162 instruction rows, 23 blocks and 37 edges. The adjacent
+cleanup candidate `0x7f09d2` iterates the same link words, passes each
+`current+8` payload through static `Event::~Event` and `_ZdlPv` bindings, and
+retains an exception cleanup path through `__cxa_end_cleanup`; this does not
+prove EventManager ownership or destructor identity. The decompiler leaves
 parameters undefined, so Capstone and Ghidra agree on instruction/layout facts
 only. A separate full Auto Analysis
 attempt was intentionally stopped before completion; it is not counted as a

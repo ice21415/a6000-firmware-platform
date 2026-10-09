@@ -29,6 +29,15 @@ def _report():
                 "initialization": "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link",
                 "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
                 "ownership": "UNKNOWN; allocation/deallocation pairing is not established by this helper chain",
+                "cleanup": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "semantic_level": "STATIC_INFERRED",
+                    "entry": "0x7f09d2",
+                    "owner_identity": "UNKNOWN; this adjacent cleanup candidate is not proven to be an EventManager destructor",
+                    "event_destructor_binding": {"status": "VERIFIED_STATIC"},
+                    "deallocator_binding": {"status": "VERIFIED_STATIC"},
+                    "exception_cleanup_binding": {"status": "VERIFIED_STATIC"},
+                },
             },
         },
     }
@@ -74,6 +83,13 @@ class EventManagerInitProbeTests(unittest.TestCase):
         result = validate_event_manager_init(report)
         self.assertFalse(result["valid"])
         self.assertIn("state_initialization_status", result["errors"])
+
+    def test_cleanup_owner_promotion_is_rejected(self):
+        report = _report()
+        report["observation"]["state_initialization"]["cleanup"]["owner_identity"] = "EventManager::~EventManager"
+        result = validate_event_manager_init(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("state_cleanup_owner_scope", result["errors"])
 
 
 if __name__ == "__main__":

@@ -94,6 +94,10 @@ def _observe_state_helpers(fp: Any, elf: ELFFile) -> dict[str, Any]:
     self_link = _decode_at(fp, elf, 0x1111A2, 0x0C, "state self-link helper")
     wrapper = _decode_at(fp, elf, 0x1111CC, 0x0E, "state initialization wrapper")
     clear_path = _decode_at(fp, elf, 0x1114B0, 0x14, "state clear path")
+    cleanup = _decode_at(fp, elf, 0x7F09D2, 0x60, "state cleanup candidate")
+    event_destructor = _binding(fp, elf, 0xE1B1C)
+    deallocator = _binding(fp, elf, 0xDD620)
+    exception_cleanup = _binding(fp, elf, 0xDD4F8)
     _require(helper, 0x7F09C4, "bl", target=0x1111CC)
     _require(helper, 0x7F09CA, "bl", target=0x1114B0)
     _require(wrapper, 0x1111D2, "bl", target=0x1111B8)
@@ -106,6 +110,21 @@ def _observe_state_helpers(fp: Any, elf: ELFFile) -> dict[str, Any]:
     _require(self_link, 0x1111A8, "str", operands="r0, [r0, #4]")
     _require(clear_path, 0x1114B6, "bl", target=0x111438)
     _require(clear_path, 0x1114C0, "b.w", target=0x1111A2)
+    _require(cleanup, 0x7F09DA, "bl", target=0x111264)
+    _require(cleanup, 0x7F09E2, "bl", target=0x111234)
+    _require(cleanup, 0x7F09EC, "bl", target=0x111178)
+    _require(cleanup, 0x7F09F0, "ldr", operands="r4, [r0]")
+    _require(cleanup, 0x7F09F2, "cbz", target=0x7F0A00)
+    _require(cleanup, 0x7F09F6, "blx", target=0xE1B1C)
+    _require(cleanup, 0x7F09FC, "blx", target=0xDD620)
+    _require(cleanup, 0x7F0A02, "bl", target=0x7EA7EC)
+    _require(cleanup, 0x7F0A0A, "bl", target=0x7EA7DC)
+    _require(cleanup, 0x7F0A10, "bne", target=0x7F09EA)
+    _require(cleanup, 0x7F0A14, "bl", target=0x1114B0)
+    _require(cleanup, 0x7F0A1A, "bl", target=0x111460)
+    _require(cleanup, 0x7F0A28, "mov", operands="r0, r5")
+    _require(cleanup, 0x7F0A2A, "bl", target=0x111460)
+    _require(cleanup, 0x7F0A2E, "blx", target=0xDD4F8)
     return {
         "status": "PRIMARY_ELF_VERIFIED",
         "semantic_level": "STATIC_INFERRED",
@@ -119,6 +138,22 @@ def _observe_state_helpers(fp: Any, elf: ELFFile) -> dict[str, Any]:
         "initialization": "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link",
         "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
         "ownership": "UNKNOWN; allocation/deallocation pairing is not established by this helper chain",
+        "cleanup": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "semantic_level": "STATIC_INFERRED",
+            "entry": "0x7f09d2",
+            "head_helper": "0x111264 returns the first link word [object]",
+            "sentinel_helper": "0x111234 preserves the input object as the sentinel",
+            "node_payload": "0x111178 returns [current_link] + 8; the following load supplies a payload pointer candidate",
+            "release_sequence": "payload pointer is passed to Event::~Event then _ZdlPv",
+            "advance_compare": "0x7ea7ec follows the current link word and 0x7ea7dc compares it with the sentinel",
+            "normal_teardown": "0x1114b0 then 0x111460",
+            "exception_teardown": "0x111460 then __cxa_end_cleanup",
+            "event_destructor_binding": event_destructor,
+            "deallocator_binding": deallocator,
+            "exception_cleanup_binding": exception_cleanup,
+            "owner_identity": "UNKNOWN; this adjacent cleanup candidate is not proven to be an EventManager destructor",
+        },
     }
 
 
@@ -252,4 +287,18 @@ def validate_event_manager_init(report: dict[str, Any]) -> dict[str, Any]:
         "UNKNOWN; allocation/deallocation pairing is not established by this helper chain"
     ):
         errors.append("state_ownership_scope")
+    cleanup = state.get("cleanup") or {}
+    if cleanup.get("status") != "PRIMARY_ELF_VERIFIED":
+        errors.append("state_cleanup_status")
+    if cleanup.get("semantic_level") != "STATIC_INFERRED":
+        errors.append("state_cleanup_semantics")
+    if cleanup.get("entry") != "0x7f09d2":
+        errors.append("state_cleanup_entry")
+    if cleanup.get("owner_identity") != (
+        "UNKNOWN; this adjacent cleanup candidate is not proven to be an EventManager destructor"
+    ):
+        errors.append("state_cleanup_owner_scope")
+    for key in ("event_destructor_binding", "deallocator_binding", "exception_cleanup_binding"):
+        if cleanup.get(key, {}).get("status") != "VERIFIED_STATIC":
+            errors.append(f"state_cleanup_binding:{key}")
     return {"valid": not errors, "errors": sorted(set(errors))}

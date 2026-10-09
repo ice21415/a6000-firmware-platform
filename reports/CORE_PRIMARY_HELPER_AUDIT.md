@@ -1312,7 +1312,7 @@ subtracting the image base. The private export/project remains outside the
 repository.
 
 The current full local `python -m unittest discover -s tests -v` run passes
-**366 tests**. These are synthetic/public evidence-gate tests; runtime
+**367 tests**. These are synthetic/public evidence-gate tests; runtime
 verification and callable API counts remain 0.
 
 ## EventManager helper-chain and mutex binding refinement — 2026-10-10
@@ -1347,5 +1347,8 @@ the composed two-word link-object interpretation is `STATIC_INFERRED`.
 
 No source-level container, constructor identity, allocation/deallocation
 pairing, ownership, cycle/termination guarantee or runtime safety is claimed.
-The private Ghidra cross-check exited 0 with 8 targets, 83 instruction rows,
-11 blocks and 18 edges. Runtime-verified and callable counts remain 0.
+The private Ghidra cross-check exited 0 with 15 targets, 162 instruction rows,
+23 blocks and 37 edges. The adjacent cleanup candidate statically binds the
+payload release path to `Event::~Event`, `_ZdlPv` and `__cxa_end_cleanup`; its
+EventManager ownership and destructor identity remain UNKNOWN. Runtime-verified
+and callable counts remain 0.

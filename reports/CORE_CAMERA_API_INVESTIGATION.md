@@ -850,7 +850,7 @@ used `ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`. It exited 0 with
 edges. Ghidra's mapped body `0x7ff9fc..0x7ffa1d` agrees with Capstone after
 subtracting the image base. The private project/export is not checked in.
 
-The full local `python -m unittest discover -s tests -v` run passed **366
+The full local `python -m unittest discover -s tests -v` run passed **367
 tests** after this addition; this is synthetic/public evidence-gate coverage,
 not runtime verification or a callable-API count.
 
@@ -897,5 +897,10 @@ The source-level container class, EventManager constructor identity, allocation
 and destruction pairing, ownership, cycle/termination invariant and runtime
 behavior remain UNKNOWN. The corrected private ASCII-path Ghidra 12.1.3
 initializer profile exited 0 with `COMPLETE_TARGET_EXPORT`: 8 targets, 83
-instruction rows, 11 blocks and 18 edges. The private project/export remains
-outside the repository; runtime verification and callability remain false.
+instruction rows, 11 blocks and 18 edges. The follow-up cleanup-inclusive
+profile exited 0 with `COMPLETE_TARGET_EXPORT`: 15 targets, 162 instruction
+rows, 23 blocks and 37 edges. It statically binds the payload release path to
+`Event::~Event`, `_ZdlPv` and `__cxa_end_cleanup`; this is not proof of
+EventManager ownership or a destructor identity. The private project/export
+remains outside the repository; runtime verification and callability remain
+false.
