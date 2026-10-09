@@ -2,6 +2,14 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- ParamList mutation checkpoint: added the SHA-pinned `parameter-mutation`
+  probe for clear, final destruction and the unnamed shared-assignment body.
+  It verifies element vtable deletion, zero-counter cleanup, `_ZdlPv` PLT
+  binding and source/container pointer sharing while keeping copy-on-write,
+  locking, exception behavior and runtime callability unknown. The targeted
+  private Ghidra export now covers 21 bounded targets; the full public suite
+  passes 234 tests; no firmware bytes are published.
+
 - ParamList factory caller checkpoint: added the private SHA-pinned
   `parameter-factory` probe. Four factory callsites now have bounded register
   provenance, null-result guards and success-path calls to the relocation-

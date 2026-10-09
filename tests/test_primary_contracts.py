@@ -42,6 +42,18 @@ class PrimaryContractTests(unittest.TestCase):
         self.assertIn("ownership", add)
         self.assertIn("UNKNOWN", add["ownership"])
 
+    def test_paramlist_mutation_contracts_are_static_only(self):
+        interfaces = {item["name"]: item for item in self.contract["interfaces"]}
+        clear = interfaces["ParamList::clear"]
+        destructor = interfaces["ParamList::~ParamList"]
+        assignment = interfaces["ParamList::assignment_like_candidate"]
+        self.assertEqual(clear["entry"], "0x7edb76")
+        self.assertEqual(destructor["delete_binding"]["symbol"], "_ZdlPv")
+        self.assertFalse(assignment["copy_on_write_detach_observed"])
+        for item in (clear, destructor, assignment):
+            self.assertFalse(item["safe_to_call"])
+            self.assertTrue(item["declared_return_type"].startswith("UNKNOWN"))
+
     def test_static_status_cannot_enable_runtime(self):
         for field in ("runtime_verified", "callable"):
             doc = copy.deepcopy(self.contract)

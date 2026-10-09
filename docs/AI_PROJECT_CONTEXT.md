@@ -127,6 +127,12 @@ The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 The follow-up ASCII Ghidra run covering factory plus mutation/storage targets
 exited 0 with 19 bounded targets, 292 instruction rows, 66 blocks and 112
 edges. It remains targeted evidence rather than full-libObj analysis.
+The subsequent `parameter-mutation` probe verifies clear (`0x7edb76`/`0x7edb40`),
+destructor (`0x7edd08`) and unnamed shared-assignment (`0x7edcc6`) facts. The
+destructor delete PLT resolves to `_ZdlPv` at GOT `0x102d6bc`; copy-on-write,
+locks, exception behavior and runtime safety remain unknown. A private
+`-noanalysis` Ghidra rerun exits 0 with 21 targets, 343 instructions, 79 blocks
+and 135 edges.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved

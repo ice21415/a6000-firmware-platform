@@ -19,6 +19,18 @@ descriptive contract has 14 interfaces and still grants zero callable or
 runtime-verified APIs.  `ParamListTargets.java` now includes the add and
 storage/replacement bodies for the next private Ghidra cross-check.
 
+The latest mutation checkpoint adds `fwplatform/paramlist_mutation_probe.py` and
+`fw sdk parameter-mutation --elf <private-libObj.so>`. It verifies the clear
+wrapper `0x7edb76` -> `0x7edb40`, element virtual deletion slot `+8`, destructor
+counter decrement/zero cleanup at `0x7edd08`, and the unnamed assignment-like
+share operation at `0x7edcc6`. Destructor delete PLT `0xdd620` resolves to
+`_ZdlPv` through GOT `0x102d6bc`. The assignment body has no detach path in
+the observed region; source-level identity, allocator/exception semantics,
+thread safety and runtime callability remain unknown. The private targeted
+Ghidra rerun exits 0 with 21 targets, 343 instruction rows, 79 blocks and 135
+edges. The descriptive contract now has 17 interfaces; callable/runtime count
+remains zero. The full public synthetic suite now passes 234 tests.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current

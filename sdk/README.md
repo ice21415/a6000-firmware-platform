@@ -23,6 +23,17 @@ relocations. Register values loaded from dynamic tables are
 `STATIC_INFERRED`; no result is runtime-callable and no ownership or locking
 guarantee is implied.
 
+The container lifetime probe separately checks clear/destruction and the
+unnamed shared-assignment body:
+
+```powershell
+python -m fwplatform.cli sdk parameter-mutation --elf C:\private\libObj.so --json
+```
+
+It reports element deletion, counter-zero cleanup and allocator relocation
+evidence. The assignment identity, copy-on-write behavior, locking and
+exception contract remain unknown by design.
+
 It currently discovers ten direct 3.21 `ParamBase`-derived RTTI/vtable records
 and profiles `PrmBool`, `PrmNumber`, `PrmString`, `PrmPoint`, `PrmDimension`,
 `PrmStruct`, `PrmSet`, `PrmNumberList`, `PrmCntInfoList` and `PrmObjMsg`. The

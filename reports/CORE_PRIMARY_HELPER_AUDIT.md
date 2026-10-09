@@ -184,6 +184,39 @@ and `0x7ee0e6`; the existing factory `0x42acd4` was included in the same run.
 This is targeted cross-validation, not full-libObj coverage and not runtime
 verification.
 
+### ParamList clear/destruction/assignment checkpoint — 2026-10-09
+
+The new `fwplatform.paramlist_mutation_probe` (`fw sdk parameter-mutation
+--elf <private-libObj.so>`) revalidated the pinned ELF and decoded four bounded
+targets. `ParamList::clear` at `0x7edb76` is a twelve-byte tail wrapper to the
+local implementation `0x7edb40`. The implementation obtains the element count,
+iterates from index zero, skips null slots, dispatches each non-null element's
+vtable slot `+8`, then tail-branches to `0x7edb32` for container storage
+release. This is direct instruction evidence for element destruction during
+clear; it does not establish allocator or lock semantics.
+
+The named destructor `_ZN9ParamListD1Ev` (`0x7edd08`, Thumb symbol `0x7edd09`,
+46 bytes) loads the shared counter at receiver `+0x04`, decrements it, and
+only when the result is zero calls the clear implementation and two delete
+calls. The delete PLT `0xdd620` resolves uniquely through GOT `0x102d6bc` to
+`_ZdlPv`; runtime interposition remains unknown. The unnamed body at
+`0x7edcc6` has a self-assignment guard, releases the destination share when
+needed, copies the source counter/container pointers and increments the
+counter. It is `PRIMARY_ELF_VERIFIED` as machine behavior but only
+`STATIC_INFERRED` as a C++ assignment identity; no detach or copy-on-write
+path was observed in this body.
+
+The public contract now includes descriptive entries for `ParamList::clear`,
+`ParamList::~ParamList` and `ParamList::assignment_like_candidate`. All remain
+`safe_to_call=false`; complete counter invariants, exception behavior,
+allocator pairing, synchronization and concurrent safety are `UNKNOWN`.
+The mutation probe's validator rejects missing targets, forged runtime claims
+and copy-on-write claims. Its private output validated successfully against
+all four targets. A targeted private ASCII Ghidra `-noanalysis` rerun exited
+**0** with 21 bounded targets, 343 instruction rows, 79 blocks and 135 CFG
+edges; the new clear/assignment/destructor bodies were included. Raw output
+and project data remain private.
+
 ## ParamList continuation — latest checkpoint
 
 The installation was copied to an ASCII path and the new
@@ -244,7 +277,7 @@ The C++ header describes target words, never host pointers or callable wrappers.
 Private sources: SHA-pinned ELF; new Capstone probes for lookup/lifecycle/base
 constructor; Ghidra targeted listing/CFG/decompilation. Public output includes
 only self-authored summaries, schema, tooling and synthetic tests.
-Full public synthetic regression run: **228 tests passed**, process exit 0.
+Latest full public synthetic regression run: **234 tests passed**, process exit 0.
 Candidate header passed a C++17 syntax check with the existing Ubuntu g++
 through WSL (exit 0). This checks declarations/layout assertions on the host;
 it does not link Sony code or validate a target ARM runtime ABI.
@@ -302,8 +335,9 @@ evidence locators and absence of runtime/callability claims.
 Old saved-text research remains preserved; this is additive primary evidence.
 
 Fully verified callable core APIs: **0**. Runtime verification: **0**.
-Public synthetic regression suite: **206 tests passed** (Python 3.12),
+Historical public synthetic checkpoint: **206 tests passed** (Python 3.12),
 including three PLT decoding tests and three descriptive-contract safety tests.
-Next: review the actual ParamList::get body at ELF VMA 0x7edaca, its returned
-object layout and lookup invariants; recover the wrapper class via RTTI/vtables;
-repair Ghidra logging and tail-call analysis before relying on decompiler types.
+Current next blockers: establish the source-level identity and complete ABI of
+the assignment-like body, trace all mutation/copy paths and synchronization,
+and determine concrete payload ownership and runtime binding. The static
+contracts remain descriptive and `safe_to_call=false`.
