@@ -305,16 +305,25 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                     "target_address_space": identity.get("address_space"), "analysis_run_id": run_id,
                     "caller_entry": caller_entry, "caller_resolution": caller_resolution,
                     "analyzer_version": analyzer_version}
-                # Legacy schema has an additional nullable-unsafe unique key
-                # on (caller,address,target). Reuse that row when an older
-                # export used a different identity key.
+                # The identity includes export ownership, not the nullable
+                # caller_id. Keep one row when caller resolution changes.
                 existing_callsite = db.connection.execute(
-                    "SELECT id FROM callsite WHERE caller_id IS ? AND address=? AND target IS ? LIMIT 1",
-                    (caller, from_address, target)).fetchone()
+                    "SELECT id FROM callsite WHERE identity_key=? LIMIT 1", (key,)
+                ).fetchone()
+                if existing_callsite is None and caller is not None:
+                    # A uniquely owned historical row may still have a v4 key;
+                    # upgrade it in place without matching anonymous callers
+                    # from other binaries by address alone.
+                    legacy_matches = db.query(
+                        "SELECT id FROM callsite WHERE caller_id=? AND address=? AND target IS ?",
+                        (caller, from_address, target),
+                    )
+                    if len(legacy_matches) == 1:
+                        existing_callsite = legacy_matches[0]
                 if existing_callsite:
-                    assignments = ",".join(f"{key_name}=?" for key_name in callsite_values if key_name != "identity_key")
+                    assignments = ",".join(f"{key_name}=?" for key_name in callsite_values)
                     db.connection.execute(f"UPDATE callsite SET {assignments} WHERE id=?",
-                                          [callsite_values[key_name] for key_name in callsite_values if key_name != "identity_key"] + [existing_callsite[0]])
+                                          [callsite_values[key_name] for key_name in callsite_values] + [existing_callsite[0]])
                 else:
                     db.upsert("callsite", callsite_values, ("identity_key",))
                 counts["callsites"] += 1
