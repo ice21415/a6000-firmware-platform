@@ -225,3 +225,16 @@ six call edges. The decompiler leaves parameters undefined, so Capstone and
 Ghidra agree on instruction/layout facts only. A separate full Auto Analysis
 attempt was intentionally stopped before completion; it is not counted as a
 successful analysis.
+
+## Phase 3.26 — request-model Event factory
+
+`fwplatform/camera_request_event_probe.py` verifies the symbol-bound primary
+ELF factory `_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList`
+at `0x7f0b0c`. It records the explicit AAPCS32 argument shape, literal event
+ID `0x11004003`, optional ParamList attachment, and model/selector parameter
+keys 7/8. Unique PLT bindings are retained as static evidence. The local
+PrmNumber constructor, Event return type, ownership, exception table,
+consumer delivery, runtime binding and callability remain unresolved.
+The private Ghidra targeted profile exits 0 with 36 instruction rows and 12
+edges; it is not full-library Auto Analysis. The public contract remains
+runtime/callable false.

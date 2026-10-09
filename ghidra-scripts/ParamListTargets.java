@@ -16,6 +16,8 @@ public class ParamListTargets extends GhidraScript {
     targets=new long[][]{{0x7eda84,8},{0xe50b4,20},{0xf0fb0,32},{0xe50e8,32},{0x10f9fc,8},{0x426acc,8},{0xe4840,20},{0xf0f5c,20},{0xf0f2c,26},{0xe4750,26},{0x7edcc6,66},{0x7ededa,144},{0xff9c8,62},{0xffa3c,38},{0xe5128,38},{0xe7260,54},{0x7efb00,36},{0xff954,36},{0xff904,28},{0xe4774,28},{0xe7150,36},{0x7efb2c,36}};
    } else if(args[1].equals("event-manager-init")) {
     targets=new long[][]{{0x7ef894,0x4e}};
+   } else if(args[1].equals("request-event-factory")) {
+    targets=new long[][]{{0x7f0b0c,0x6c}};
    } else {
     throw new IllegalArgumentException("Unknown target profile");
    }

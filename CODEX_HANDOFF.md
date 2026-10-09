@@ -323,3 +323,16 @@ boundaries and six call edges. The decompiler retains undefined parameter
 types, so it does not prove C++ class identity or callability. A separate
 full Auto Analysis attempt was stopped before completion and is recorded as
 INCOMPLETE, not successful.
+
+The request-model Event factory checkpoint adds
+`fwplatform/camera_request_event_probe.py`, contract
+`sdk/camera_request_event_3_21.json`, and CLI command
+`fw sdk request-event-factory`. The SHA-pinned primary ELF symbol at
+`0x7f0b0c` supplies explicit `int`, `unsigned long` and `ParamList*`
+arguments after the receiver. The body constructs event `0x11004003`,
+conditionally attaches ParamList, and adds model/selector PrmNumber
+candidates under keys 7 and 8. This is static evidence only; Event return
+type, ownership, consumer delivery, exception semantics, runtime binding and
+callability remain unknown/false. A private ASCII Ghidra targeted run exited
+0 and reproduced 36 instructions and 12 edges. Four synthetic fail-closed
+tests cover identity, event ID, binding and non-callable metadata.

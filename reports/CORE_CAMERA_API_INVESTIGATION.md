@@ -756,3 +756,37 @@ beyond the observed mutex initialization, exception behavior, destruction
 path, and runtime callability remain UNKNOWN. Contract:
 `sdk/event_manager_init_3_21.json`; CLI:
 `fw sdk event-manager-init --elf <private-libObj.so> --json`.
+
+## Phase 3.26 — primary request-model Event factory at `0x7f0b0c`
+
+The exact SHA-pinned `libObj.so` contains the dynamic symbol
+`_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList`
+with Thumb-tagged value `0x7f0b0d`, even instruction VMA `0x7f0b0c`, and
+108-byte symbol size. The bounded Capstone probe verifies the AAPCS32 shape
+`r0=this/context`, explicit `r1=int model identifier`, `r2=unsigned long
+selector`, and `r3=ParamList* candidate`.
+
+The body allocates 16 bytes and calls the uniquely relocated
+`Event::Event(unsigned long,unsigned char,unsigned char)` with literal event
+ID `0x11004003`, `r2=2`, and `r3=0`. A non-null `r3` takes the
+`Event::setParamList(Event*,ParamList*)` path. It then allocates two 16-byte
+`PrmNumber` candidates through the local constructor candidate `0xf0fb0`,
+using the original model identifier and selector, and adds them through the
+unique `Event::addParameter` binding under keys 7 and 8. A cleanup-shaped
+landing path calls `_ZdlPv` followed by `__cxa_end_cleanup`; exception-table
+ownership semantics remain UNKNOWN. The factory returns the allocated Event
+pointer in `r0`, but the declared C++ return type is not encoded by this
+mangled symbol.
+
+The primary instruction and unique PLT facts are `PRIMARY_ELF_VERIFIED`; the
+local PrmNumber constructor identity and returned Event ownership are
+`STATIC_INFERRED`/UNKNOWN. Event delivery, consumer identity, allocator
+interposition, runtime binding, runtime verification and callability remain
+UNKNOWN/false. Contract: `sdk/camera_request_event_3_21.json`; CLI:
+`fw sdk request-event-factory --elf <private-libObj.so> --json`.
+
+A private ASCII Ghidra 12.1.3 targeted `-noanalysis` run exited 0. With image
+base `0x10000`, ELF VMA `0x7f0b0c` mapped to program address `0x800b0c`; the
+export reproduced 36 instruction rows and 12 edges, including the conditional
+ParamList branch. Ghidra's decompiler retained undefined return/parameter
+categories and therefore serves as cross-checking control-flow evidence only.

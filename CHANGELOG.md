@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the SHA-pinned `request-event-factory` probe for the real
+  `AbstractUtilityManager::createRequestModelExecuteEvent` body at
+  `0x7f0b0c`. It verifies Event ID `0x11004003`, optional ParamList
+  attachment, and key-7/key-8 `PrmNumber` construction with unique PLT
+  bindings. Return type, ownership, consumer delivery, runtime binding and
+  callability remain unknown; four fail-closed tests were added.
+
 - Added the private-only `event-manager-init` primary-ELF probe for the
   bounded initializer candidate at `0x7ef894`. It records the mutex,
   callback/provider fields and two eight-byte state allocations with unique

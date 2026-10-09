@@ -467,3 +467,21 @@ receiver offsets. Ghidra's decompiler output uses `undefined4`/`param_*`
 for unresolved types and is therefore supporting disassembly evidence, not
 proof of a C++ constructor or callable ABI. Full Auto Analysis status for
 this separate run is INCOMPLETE; no success is claimed for it.
+
+## Request-model Event factory primary checkpoint
+
+The exact SHA-pinned private ELF now has a bounded probe for the symbol-bound
+`AbstractUtilityManager::createRequestModelExecuteEvent` at `0x7f0b0c`
+(Thumb tag `0x7f0b0d`, 108 bytes). It verifies `r0` receiver/context,
+explicit `int`/`unsigned long`/`ParamList*` argument positions, literal event
+ID `0x11004003`, optional ParamList attachment, and key-7/key-8 PrmNumber
+construction. Unique static PLT bindings identify Event construction,
+ParamList attachment, parameter insertion, allocation, delete and exception
+cleanup. The return pointer shape, constructor identity for local `0xf0fb0`,
+ownership, event consumer, exception semantics, runtime binding and
+callability remain UNKNOWN/false. Contract:
+`sdk/camera_request_event_3_21.json`.
+
+Private ASCII Ghidra 12.1.3 targeted `-noanalysis` exited 0 and reproduced
+36 instruction rows and 12 edges at image-base-mapped address `0x800b0c`
+(`ELF_VMA 0x7f0b0c`).

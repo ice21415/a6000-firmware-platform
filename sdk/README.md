@@ -925,3 +925,21 @@ proves the class identity. Helper `0x7f09be`, ownership, synchronization,
 exception behavior and runtime binding remain UNKNOWN. The contract is
 `sdk/event_manager_init_3_21.json`, and both runtime verification and
 callability remain false.
+
+## Request-model Event factory checkpoint
+
+The `request-event-factory` probe verifies the symbol-bound factory at
+`0x7f0b0c`:
+
+```powershell
+python -m fwplatform.cli sdk request-event-factory --elf C:\private\libObj.so --json
+```
+
+Its mangled symbol supplies explicit arguments `int`, `unsigned long` and
+`ParamList*` after the receiver. The body allocates an Event, constructs it
+with literal event ID `0x11004003`, conditionally attaches a non-null
+ParamList, and adds model/selector `PrmNumber` candidates under keys 7 and 8.
+The event return pointer is a static shape observation; the declared return
+type, ownership, exception table, consumer delivery, runtime binding and
+callability remain UNKNOWN. The contract is
+`sdk/camera_request_event_3_21.json` and runtime/callable flags remain false.
