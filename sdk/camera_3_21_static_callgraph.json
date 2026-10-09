@@ -2,7 +2,7 @@
   "schema_version": 1,
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
-  "source_scope": "Manually checked against saved 2026-10-07 private raw ELF instruction audits; no original bytes redistributed",
+  "source_scope": "Manually checked against saved 2026-10-07 private raw ELF instruction audits; no original bytes redistributed; instruction-immediate displacements are distinguished from derived model-root offsets",
   "proof_policy": "RESEARCH_REPORT_ONLY",
   "static_calls": [
     {
@@ -97,7 +97,9 @@
       "observed_value": 1,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
     },
     {
       "owner": "ModelCamera::PrepChk",
@@ -108,7 +110,9 @@
       "observed_value": null,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
     },
     {
       "owner": "ModelCamera::prepare_setter_candidate",
@@ -119,7 +123,9 @@
       "observed_value": null,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x64",
+      "inferred_base_adjustment": "0x0"
     },
     {
       "owner": "ModelCamera::prepare_setter_candidate",
@@ -130,7 +136,9 @@
       "observed_value": null,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x80",
+      "inferred_base_adjustment": "0x0"
     },
     {
       "owner": "ModelCamera::active_completion_helper_candidate",
@@ -141,7 +149,9 @@
       "observed_value": 1,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x81",
+      "inferred_base_adjustment": "0x0"
     },
     {
       "owner": "ModelCamera::clear_neutral_pending_candidate",
@@ -152,7 +162,9 @@
       "observed_value": 0,
       "source_artifact": "camera-prepare-audit.json",
       "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
-      "runtime_observed": false
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
     }
   ],
   "normalized_selector_routes": [
