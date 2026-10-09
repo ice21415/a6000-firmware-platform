@@ -23,6 +23,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 已在私有 DB 副本驗證 targeted SyncAndroid/ModelCamera evidence ingestion、OSAL queue/message、JNI registration lookup、state transitions 和 provenance gaps。
 - Receiver canonical function、message completion、Java native implementation、camera ready/first-shot 和 runtime verification 保持 UNKNOWN/CANDIDATE。
 
+## Phase 3.2（公開靜態索引／資料完整性）
+
+- schema v7 移除阻礙多命名空間 queue 和多 ELF JNI 的舊 UNIQUE 限制，保留資料列 ID 與外鍵。
+- JNI bridge identity 加入 DEX、native binary fingerprint、address space；缺少 binary identity 者以來源 evidence 區隔。
+- v6→v7 合成資料升級測試涵蓋 dependency/callsite identity 與 SQLite integrity。
+- 新增 `fw analyze dex --path` 和 `fw query dex`，只將 DEX 字串與候選索引保存為有來源的研究觀測。
+- 真實韌體、多 ELF Ghidra trace、訊息收發語意及 camera runtime 行為仍需獨立證據與驗證。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
