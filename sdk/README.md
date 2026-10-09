@@ -123,6 +123,10 @@ same name at a different address is not treated as exported. The discovery
 result exposes `unique_function_entry`; a collision between numeric entry
 addresses makes location evidence insufficient for identification.
 
+An SDK contract fixture is never its own independent ABI proof, even if a
+legacy evidence row labels that fixture `VERIFIED_STATIC`. The audit reports
+`SELF_ATTESTED_SDK_FIXTURE` for any such claim.
+
 Contract import also requires a unique binary SHA-256 row and a unique
 numeric entry address. Subsequent alias collisions are reported by SDK audit
 as `AMBIGUOUS_FUNCTION_ADDRESS`; legacy static status is automatically
