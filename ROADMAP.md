@@ -135,6 +135,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.18（優先破解核心 API：具名 ABI 引數及 Camera action 內部呼叫）
+
+- **ABI 具體推進**：`ViewBase::requestModelExecute` (`0x12106e`) 及 `viewManagerIf::requestModelExecute` (`0x1250c0`) 的 Itanium mangling 都給出顯式參數 `char const*, unsigned long, ParamList*`，但符號名不含 static 與 return type。由保存的 ARM 暫存器資料流判定前者成員式 `r0=this,r1=name,r2=selector,r3=ParamList*`，後者更像靜態式 `r0=name,r1=selector,r2=ParamList*`。
+- **事件工廠 ABI 線索**：`AbstractUtilityManager::createRequestModelExecuteEvent` 的顯式參數 `int,unsigned long,ParamList*`；保存的 `operator new`→`Event` constructor→`r0` 返回資料流強烈支持返回建立的 `Event*`，但 C++ 宣告返回型別、owner/lifetime、動態連結仍未知。
+- **實際 Camera 內部引數**：`ActionGpSetSetting` `0x4cfb9c` 從 `0x131fd2` 取 selector，對 `0x0f01` 成立時，於 `0x4cfe98` 帶 `r0` Camera this 候選、`r1` `0x13200a` 的返回值呼叫 `pvt_ActionSetInit=0x4cf7a8`。確認兩個暫存器來源和 callee 保存邏輯，但 `r1` 真正 C++ 型別仍 UNKNOWN。
+- **跨 ELF 證據**：`viewUnified2.so` 在 `0x1a26e6` 發出 `model/CAMERA` selector `0x0f01` 的具名 callsite，暫存器配置符合前述成員函式形式；並非動態投遞鏈證明。
+- 新增 `sdk/camera_3_21_request_abi_leads.json`、`fwplatform/request_abi.py`、`sdk request-abi` 及 synthetic ABI 回歸測試。這是「參數 ABI 候選」，**不是**可安全呼叫的 Sony Camera API；下一個真核心缺口是 `0x13200a` 輸出型別、`0x12d780` 內部指令、事件接收者和原始 ELF 驗證。
+
 ## Phase 3.17（ModelManager +0xa4 狀態閘門與共用 semaphore）
 
 - 新核對 `libObj.so` 保存組語中的 `0x7eaa14`：讀取物件 `+0xa4`，將非零 word 正規化為 Boolean。上游 `0x7eeec8` 的 guard 未短路時又做 `EOR 1`，因此狀態零→queue gate 1、非零→gate 0；主事件迴圈在 gate 為零時才依保存的 `0x7ef188` 分支走向 `0x7eeefa`。不得把此欄位直接命名為 Camera READY。
