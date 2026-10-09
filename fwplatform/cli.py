@@ -282,6 +282,11 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_import = sdk_sub.add_parser("import"); sdk_import.add_argument("--fixture", type=Path, required=True); sdk_import.add_argument("--json", action="store_true")
     sdk_audit = sdk_sub.add_parser("audit"); sdk_audit.add_argument("--json", action="store_true")
     sdk_mock = sdk_sub.add_parser("mock"); sdk_mock.add_argument("--scenario", type=Path, required=True); sdk_mock.add_argument("--json", action="store_true")
+    sdk_research = sdk_sub.add_parser("research")
+    sdk_research.add_argument("--catalog", type=Path, default=Path("sdk/camera_3_21_static_candidates.json"))
+    sdk_research.add_argument("--graph", type=Path, default=Path("sdk/camera_3_21_static_callgraph.json"))
+    sdk_research.add_argument("--focus", default="")
+    sdk_research.add_argument("--json", action="store_true")
     sdk_discover = sdk_sub.add_parser("discover")
     sdk_discover.add_argument("--name", default="")
     sdk_discover.add_argument("--binary-sha256", default="")
@@ -346,6 +351,12 @@ def main(argv: list[str] | None = None) -> int:
         result = simulate_protocol(args.scenario)
         _json_or_text(result, args.json)
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "sdk" and args.sdk_command == "research":
+        # Pure report validator: do not open/migrate any SQLite or firmware ELF.
+        from .camera_research import inspect_camera_research
+        result = inspect_camera_research(args.catalog, args.graph, focus=args.focus)
+        _json_or_text(result, args.json)
+        return 0
     db = Database(args.db)
     db.migrate()
     try:
