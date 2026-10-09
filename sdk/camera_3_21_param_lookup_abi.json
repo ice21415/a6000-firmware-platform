@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "elf": {
+    "name": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "primary_elf_opcode_redecoded_now": false
+  },
+  "kind": "action_parameter_lookup_register_convention_research",
+  "status": "REGISTER_INPUT_OUTPUT_AND_BRANCH_SEMANTICS_INFERRED_CXX_ABI_UNVERIFIED",
+  "helper_0x42ac00": {
+    "target_vma": "0x42ac00",
+    "register_roles": {
+      "r0": "stack-local payload view/context address",
+      "r1": "numeric parameter ID",
+      "r2": "address of caller-provided output slot",
+      "r3": "UNKNOWN; no stable cross-caller role established"
+    },
+    "return_value_observed": "r0 checked immediately: zero branch skips Invalid ParamList or reads output slot; other branch treated as error in sampled code",
+    "return_abi_type_verified": false,
+    "output_slot_cpp_type_verified": false,
+    "source_cpp_type_verified": false,
+    "cases": [
+      {
+        "entry": "0x4bac78",
+        "label": "ActionExeAfRangeLimitDrive",
+        "observations": [
+          {
+            "vma": "0x4bac9e",
+            "snippet": "bl       #0x42abcc",
+            "role": "payload adapter instantiated from 0x13200a getter"
+          },
+          {
+            "vma": "0x4baca2",
+            "snippet": "add.w    r0, r7, #0x20",
+            "role": "view pointer"
+          },
+          {
+            "vma": "0x4baca6",
+            "snippet": "movw     r1, #0x3fe",
+            "role": "first parameter ID"
+          },
+          {
+            "vma": "0x4bacaa",
+            "snippet": "add.w    r2, r7, #0x34",
+            "role": "first output slot address"
+          },
+          {
+            "vma": "0x4bacb4",
+            "snippet": "bl       #0x42ac00",
+            "role": "first lookup"
+          },
+          {
+            "vma": "0x4bacb8",
+            "snippet": "cbz      r0, #0x4bacc4",
+            "role": "zero result bypasses Invalid ParamList"
+          },
+          {
+            "vma": "0x4bacc0",
+            "snippet": "'Invalid ParamList'",
+            "role": "first failure branch"
+          },
+          {
+            "vma": "0x4bacc4",
+            "snippet": "add.w    r0, r7, #0x20",
+            "role": "same view pointer"
+          },
+          {
+            "vma": "0x4bacc8",
+            "snippet": "movw     r1, #0x3ff",
+            "role": "second parameter ID"
+          },
+          {
+            "vma": "0x4baccc",
+            "snippet": "add.w    r2, r7, #0x30",
+            "role": "second output slot address"
+          },
+          {
+            "vma": "0x4bacd0",
+            "snippet": "ldr      r5, [r7, #0x34]",
+            "role": "reads first output after accepted first lookup"
+          },
+          {
+            "vma": "0x4bacd2",
+            "snippet": "bl       #0x42ac00",
+            "role": "second lookup"
+          },
+          {
+            "vma": "0x4bacd6",
+            "snippet": "cbz      r0, #0x4bace6",
+            "role": "zero result bypasses Invalid ParamList"
+          },
+          {
+            "vma": "0x4bacde",
+            "snippet": "'Invalid ParamList'",
+            "role": "second failure branch"
+          },
+          {
+            "vma": "0x4bacf2",
+            "snippet": "ldr      r6, [r7, #0x30]",
+            "role": "reads second output"
+          }
+        ],
+        "observed_parameter_ids": [
+          "0x3fe",
+          "0x3ff"
+        ],
+        "zero_branch_semantics": "SKIP_INVALID_PARAMLIST_BRANCH"
+      },
+      {
+        "entry": "0x4afc9c",
+        "label": "ActionObjectFocusPosDisplayEvent",
+        "observations": [
+          {
+            "vma": "0x4afcc4",
+            "snippet": "bl       #0x42abcc",
+            "role": "payload adapter instantiated from getter"
+          },
+          {
+            "vma": "0x4aff4a",
+            "snippet": "mov      r0, r7",
+            "role": "view pointer"
+          },
+          {
+            "vma": "0x4aff4c",
+            "snippet": "mov.w    r1, #0x1b8",
+            "role": "parameter ID"
+          },
+          {
+            "vma": "0x4aff50",
+            "snippet": "add.w    r2, r7, #0x14",
+            "role": "output address"
+          },
+          {
+            "vma": "0x4aff54",
+            "snippet": "bl       #0x42ac00",
+            "role": "lookup"
+          },
+          {
+            "vma": "0x4aff58",
+            "snippet": "cbnz     r0, #0x4aff6a",
+            "role": "nonzero skips saved output"
+          },
+          {
+            "vma": "0x4aff5a",
+            "snippet": "ldr      r3, [r7, #0x14]",
+            "role": "zero-result path reads output"
+          },
+          {
+            "vma": "0x4aff64",
+            "snippet": "str.w    r3, [r4, #0x200]",
+            "role": "zero-result path stores output into Camera field"
+          },
+          {
+            "vma": "0x4aff6e",
+            "snippet": "movw     r1, #0x1b9",
+            "role": "second parameter ID"
+          },
+          {
+            "vma": "0x4aff72",
+            "snippet": "add.w    r2, r7, #0x14",
+            "role": "output slot reused"
+          },
+          {
+            "vma": "0x4aff76",
+            "snippet": "bl       #0x42ac00",
+            "role": "second lookup"
+          },
+          {
+            "vma": "0x4aff7a",
+            "snippet": "cbnz     r0, #0x4aff8a",
+            "role": "nonzero skips second output"
+          },
+          {
+            "vma": "0x4aff7c",
+            "snippet": "ldr      r3, [r7, #0x14]",
+            "role": "second zero-result path reads output"
+          },
+          {
+            "vma": "0x4aff86",
+            "snippet": "str.w    r3, [r4, #0x204]",
+            "role": "second output stored in distinct Camera field"
+          }
+        ],
+        "observed_parameter_ids": [
+          "0x1b8",
+          "0x1b9"
+        ],
+        "zero_branch_semantics": "READ_AND_STORE_OUT_SLOT"
+      }
+    ]
+  },
+  "helper_0x42abdc": {
+    "target_vma": "0x42abdc",
+    "comparison_relation_to_0x42ac00": "UNKNOWN_SEPARATE_NEARBY_HELPER",
+    "caller": "0x4cf7a8",
+    "observations": [
+      {
+        "vma": "0x4cf850",
+        "snippet": "add.w    r0, r7, #0x6a0",
+        "role": "payload view initialized by 0x42abcc"
+      },
+      {
+        "vma": "0x4cf854",
+        "snippet": "literal 0x12000005",
+        "role": "special parameter selector loaded into r1"
+      },
+      {
+        "vma": "0x4cf856",
+        "snippet": "add.w    r2, r7, #0x6c8",
+        "role": "output address"
+      },
+      {
+        "vma": "0x4cf85e",
+        "snippet": "bl       #0x42abdc",
+        "role": "alternate helper call"
+      },
+      {
+        "vma": "0x4cf862",
+        "snippet": "cmp      r0, #0",
+        "role": "return checked"
+      },
+      {
+        "vma": "0x4cf864",
+        "snippet": "bne      #0x4cf8dc",
+        "role": "nonzero chooses alternative processing"
+      },
+      {
+        "vma": "0x4cf866",
+        "snippet": "ldr.w    r3, [r7, #0x6c8]",
+        "role": "zero path reads output"
+      },
+      {
+        "vma": "0x4cf86a",
+        "snippet": "cmp      r3, #1",
+        "role": "value one comparison"
+      },
+      {
+        "vma": "0x4cf86c",
+        "snippet": "bne      #0x4cf8dc",
+        "role": "other values branch to alternative"
+      },
+      {
+        "vma": "0x4cf874",
+        "snippet": "'EasyMode ON'",
+        "role": "logging path for read value of one"
+      }
+    ],
+    "register_roles": {
+      "r0": "stack-local payload view pointer",
+      "r1": "literal key/value 0x12000005",
+      "r2": "output address",
+      "r3": "UNKNOWN"
+    },
+    "return_cpp_type_verified": false
+  },
+  "critical_limitations": [
+    "No original ELF bytes for helper implementations in this session",
+    "Numeric ID does not identify the declared C++ parameter type or encoding",
+    "Zero/nonzero path in the sampled callers does not establish all possible status or exception semantics",
+    "Do not assume 0x42abdc and 0x42ac00 have identical implementations or ABI",
+    "Returned payload from 0x13200a remains an opaque input to 0x42abcc",
+    "No Event 0x11004003 consumer mapped to ModelCamera ActionGpSetSetting",
+    "Do not produce or execute Camera control calls from this candidate"
+  ],
+  "abi_verified": false,
+  "device_callability_verified": false,
+  "complete_core_camera_apis": 0
+}
