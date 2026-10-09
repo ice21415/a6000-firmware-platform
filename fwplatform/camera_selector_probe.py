@@ -18,6 +18,7 @@ from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
 TARGET = {"name": "camera_selector_transform", "entry": 0x12D780, "size": 0xD6}
+TRANSFORM_TARGET = {"name": "selector_transform_math", "entry": 0x120168, "size": 0x1A}
 
 
 def _sha256(path: Path) -> str:
@@ -48,16 +49,20 @@ def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
     return data
 
 
-def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+def _decode_range(fp: Any, elf: ELFFile, start: int, size: int) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
     rows = list(decoder.disasm(
-        _read_exec_range(fp, elf, TARGET["entry"], TARGET["size"]),
-        TARGET["entry"],
+        _read_exec_range(fp, elf, start, size),
+        start,
     ))
     if not rows:
         raise ValueError("selector helper did not decode")
     return {int(row.address): row for row in rows}
+
+
+def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+    return _decode_range(fp, elf, TARGET["entry"], TARGET["size"])
 
 
 def _immediates(ins: Any) -> list[int]:
@@ -143,6 +148,30 @@ def _observe(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_transform(rows: dict[int, Any]) -> dict[str, Any]:
+    """Validate the local selector math called by the special branch."""
+    _require(rows, 0x120168, "mov", operands="r3, r0")
+    _require(rows, 0x12016A, "bic", operands="r0, r2, #0xfe0")
+    _require(rows, 0x12016E, "bic", operands="r0, r0, #0x1f")
+    _require(rows, 0x120176, "cbnz", target=0x12017E)
+    _require(rows, 0x120178, "lsls", operands="r1, r1, #0xc")
+    _require(rows, 0x12017A, "adds", operands="r2, r2, r1")
+    _require(rows, 0x12017C, "adds", operands="r2, r2, r3")
+    _require(rows, 0x12017E, "mov", operands="r0, r2")
+    _require(rows, 0x120180, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "inputs": {
+            "r0": "selected base copied to r3",
+            "r1": "model ID candidate, shifted left by 12 only on aligned-selector path",
+            "r2": "original selector candidate",
+        },
+        "guard": "(r2 & 0xfff) != 0 takes the direct return path",
+        "aligned_path": "when (r2 & 0xfff) == 0, returns r2 + (r1 << 12) + r0",
+        "return": "word in r0; C++ type and selector domain remain UNKNOWN",
+    }
+
+
 def probe_camera_selector(
     elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA,
 ) -> dict[str, Any]:
@@ -160,12 +189,18 @@ def probe_camera_selector(
         if elf.elfclass != 32 or not elf.little_endian or elf["e_machine"] != "EM_ARM":
             raise ValueError("probe accepts only ELF32 little-endian ARM")
         rows = _decode(fp, elf)
+        transform_rows = _decode_range(
+            fp, elf, TRANSFORM_TARGET["entry"], TRANSFORM_TARGET["size"]
+        )
     observation = _observe(rows)
+    transform = _observe_transform(transform_rows)
+    observation["transform_math"] = transform
     return {
         "status": "LOCAL_PRIMARY_ELF_CAMERA_SELECTOR_EVIDENCE_ONLY",
         "binary_file_sha256": digest,
         "address_space": "ELF_VMA",
         "target": TARGET,
+        "transform_target": TRANSFORM_TARGET,
         "observation": observation,
         "runtime_verified": False,
         "callable": False,
@@ -183,4 +218,6 @@ def validate_camera_selector(report: dict[str, Any]) -> dict[str, Any]:
         errors.append("runtime_or_callable_claim")
     if report.get("observation", {}).get("status") != "PRIMARY_ELF_VERIFIED":
         errors.append("observation_status")
+    if report.get("observation", {}).get("transform_math", {}).get("status") != "PRIMARY_ELF_VERIFIED":
+        errors.append("transform_observation_status")
     return {"valid": not errors, "errors": sorted(set(errors))}

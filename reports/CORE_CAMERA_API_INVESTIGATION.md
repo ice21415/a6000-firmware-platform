@@ -277,15 +277,17 @@ This does not execute the firmware or promote the helper to a callable API.
 
 | Branch | Primary ELF fact | Remaining unknown |
 |---|---|---|
-| `[r0] == 0x40` | calls `IdGenerator::Get` through PLT `0xdffb8`; byte `[r4+1] == 'M'` selects `0x12000000`, `'V'` selects `0x13000000`, other values return `-1`; calls `0x120168` with model ID in `r1` and original selector in `r2` | exact transform, return type and model-token ABI |
+| `[r0] == 0x40` | calls `IdGenerator::Get` through PLT `0xdffb8`; byte `[r4+1] == 'M'` selects `0x12000000`, `'V'` selects `0x13000000`, other values return `-1`; calls `0x120168` with model ID in `r1` and original selector in `r2` | C++ identity, return type and model-token ABI |
 | `[r0] != 0x40` | constructs local temporaries, checks a prepared object, then loads vtable slot `+8` and invokes it through `r4`; null object returns `-1` | helper identities, virtual target and semantic mapping |
 
 The descriptive contract is `sdk/camera_3_21_selector_transform.json`.
-Its evidence level is `PRIMARY_ELF_VERIFIED` for the listed branches and
-register moves, while `runtime_verified=false`, `callable=false`, and all
-hardware/UI/ModelCamera causality remain unresolved. This is the first direct
-primary-ELF evidence for the selector transformation boundary; it does not
-prove that the result reaches `ModelCamera::ActionGpSetSetting`.
+The same private probe now validates the local math at `0x120168`: it clears
+the low 12 bits of `r2`, branches directly when the result is non-zero, and
+otherwise returns `r2 + (r1 << 12) + r0`. The arithmetic and register flow are
+`PRIMARY_ELF_VERIFIED`; the helper's C++ identity, return type, selector
+domain, hardware/UI/ModelCamera causality remain unresolved. The contract
+keeps `runtime_verified=false` and `callable=false`; this does not prove that
+the result reaches `ModelCamera::ActionGpSetSetting`.
 
 
 ## Phase 3.15: independently found two request-model frontend code paths

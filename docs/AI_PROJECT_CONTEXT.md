@@ -153,6 +153,10 @@ returns `-1` for a null prepared object. The transform, helper semantics,
 return type, ModelCamera causality, runtime behavior and callability are
 UNKNOWN; the SDK contract is descriptive only. Four synthetic fail-closed
 tests cover the metadata validator, and the private probe is never committed.
+Its local transform at `0x120168` is now directly checked as well: non-aligned
+selectors return the original `r2`, while aligned selectors return
+`r2 + (r1 << 12) + r0`. The arithmetic is primary-ELF verified; C++ identity,
+return type, selector domain and ModelCamera causality remain UNKNOWN.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved

@@ -61,6 +61,12 @@ contract is `sdk/camera_3_21_selector_transform.json`; runtime and callable
 claims remain false. `tests/test_camera_selector_probe.py` contains four
 synthetic fail-closed checks.
 
+The selector probe now also validates the local transform at `0x120168`:
+after clearing the low 12 bits of `r2`, a non-zero result returns the original
+`r2`; the aligned path returns `r2 + (r1 << 12) + r0`. This arithmetic and
+register flow are primary-ELF static facts. The helper's C++ identity, return
+type, selector domain and downstream ModelCamera causality remain UNKNOWN.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current

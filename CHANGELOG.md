@@ -173,3 +173,8 @@
   non-null destruction, deleting destruction and the clone candidate. The
   `MWF::ObjMsg` pointee, ownership, allocator pairing and runtime callability
   remain unknown.
+
+- Extended `camera-selector` with direct primary-ELF validation of the local
+  transform at `0x120168`: the low-12-bit guard, direct-return path and aligned
+  `r2 + (r1 << 12) + r0` arithmetic are now recorded. C++ identity, return
+  type, selector domain and downstream ModelCamera causality remain unknown.

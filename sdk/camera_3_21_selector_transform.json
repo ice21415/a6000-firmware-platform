@@ -4,7 +4,7 @@
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
   "entry": "0x12d780",
-  "verification": "PRIMARY_ELF_VERIFIED branch and register facts; C++ identity, return type and runtime safety UNKNOWN",
+  "verification": "PRIMARY_ELF_VERIFIED branch, register and local transform facts; C++ identity, return type and runtime safety UNKNOWN",
   "abi_observation": {
     "r0": "model/name token pointer candidate; byte at [r0] is tested",
     "r1": "selector input preserved in r6",
@@ -33,11 +33,24 @@
       "helper_and_virtual_semantics": "UNKNOWN"
     }
   ],
+  "transform": {
+    "entry": "0x120168",
+    "size": 26,
+    "verification": "PRIMARY_ELF_VERIFIED",
+    "guard": "(r2 & 0xfff) != 0 returns the original r2 word",
+    "aligned_path": "(r2 & 0xfff) == 0 returns r2 + (r1 << 12) + r0",
+    "registers": {
+      "r0": "selected base copied to r3",
+      "r1": "model ID candidate",
+      "r2": "original selector candidate"
+    },
+    "evidence": ["ELF_VMA:0x120168", "ELF_VMA:0x12016a", "ELF_VMA:0x12016e", "ELF_VMA:0x120176", "ELF_VMA:0x120178", "ELF_VMA:0x12017a", "ELF_VMA:0x12017c", "ELF_VMA:0x12017e"]
+  },
   "runtime_verified": false,
   "callable": false,
   "limitations": [
     "No runtime or device execution",
-    "0x120168 transformation semantics and C++ return type remain UNKNOWN",
+    "0x120168 C++ identity, return type and selector domain remain UNKNOWN",
     "Normal-branch helper identities and virtual target semantics remain UNKNOWN",
     "This is descriptive evidence, not a Camera control wrapper"
   ]

@@ -11,7 +11,10 @@ def _report():
         "address_space": "ELF_VMA",
         "runtime_verified": False,
         "callable": False,
-        "observation": {"status": "PRIMARY_ELF_VERIFIED"},
+        "observation": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "transform_math": {"status": "PRIMARY_ELF_VERIFIED"},
+        },
     }
 
 
@@ -34,6 +37,13 @@ class CameraSelectorProbeTests(unittest.TestCase):
         result = validate_camera_selector(report)
         self.assertFalse(result["valid"])
         self.assertIn("observation_status", result["errors"])
+
+    def test_missing_transform_status_is_rejected(self):
+        report = _report()
+        del report["observation"]["transform_math"]
+        result = validate_camera_selector(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("transform_observation_status", result["errors"])
 
     def test_runtime_or_callable_promotion_is_rejected(self):
         report = _report()
