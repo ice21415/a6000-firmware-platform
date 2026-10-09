@@ -35,8 +35,8 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
     """
     indexed = _count(db, "SELECT COUNT(*) FROM function")
     cfg = _count(db, "SELECT COUNT(DISTINCT function_id) FROM basic_block WHERE function_id IS NOT NULL")
-    semantic = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME','MOCK_TESTED')")
-    runtime = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status='VERIFIED_RUNTIME'")
+    # A claimed status alone does not establish understanding of an API.
+    runtime_claimed = _count(db, "SELECT COUNT(*) FROM sdk_interface WHERE verification_status='VERIFIED_RUNTIME'")
     protocol = _count(db, """SELECT COUNT(*) FROM semantic_edge e JOIN evidence v ON v.id=e.evidence_id
         WHERE e.relation_type IN ('SENDS_MESSAGE','RECEIVES_MESSAGE','JNI_BRIDGE','DEPENDS_ON')
         AND e.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME') AND v.status IN ('VERIFIED_STATIC','VERIFIED_RUNTIME')""")
@@ -48,14 +48,16 @@ def build_sdk_index(db: Database, output: Path, firmware_version: str = "3.21") 
         "generated_from": "local evidence database (private snapshot is not shipped)",
         "database_snapshot_included": False,
         "coverage": {"indexed_functions": indexed, "cfg_recovered_functions": cfg,
-                      "semantically_understood_functions": semantic, "runtime_verified_interfaces": runtime,
+                      "semantically_understood_functions": None, "runtime_verified_interfaces": None,
+                      "runtime_claimed_interfaces": runtime_claimed,
                       "verified_protocol_edges": protocol, "sdk_documented_interfaces": len(interfaces),
                       "callable_validated_interfaces": None,
                       "static_contract_complete": audit["static_contract_complete"],
                       "denominators": {"indexed_functions": "all function rows in current database",
                                        "cfg_recovered_functions": "distinct function_id with basic_block rows",
-                                       "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
-                                       "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
+                                       "semantically_understood_functions": "UNKNOWN until individual function semantics are independently established",
+                                       "runtime_verified_interfaces": "UNKNOWN: stored runtime status flags are not sufficient evidence",
+                                       "runtime_claimed_interfaces": "rows declaring VERIFIED_RUNTIME without independent execution validation",
                                        "verified_protocol_edges": "semantic protocol edges whose edge and primary evidence statuses are VERIFIED_*",
                                        "callable_validated_interfaces": "UNKNOWN: no offline database flag authorizes runtime invocation",
                                        "static_contract_complete": "explicit ABI/parameters/evidence and unique binary/function ownership"}},
