@@ -146,7 +146,43 @@
     "Definition and opcode semantics for selector helper at 0x12d780",
     "Factory instance/context object layouts and ParamList lifetime/ownership",
     "Event 0x11004003 recipient, key 7/8 extraction, link to ModelCamera::ActionGpSetSetting",
-    "Runtime execution permission, initialization, threading and physical camera safety"
+    "Runtime execution permission, initialization, threading and physical camera safety",
+    "The ModelCamera::pvt_ActionSetInit second argument originates from 0x13200a but lacks verified C++ type, layout, ownership and return/error semantics"
   ],
-  "callable_camera_api_count": 0
+  "callable_camera_api_count": 0,
+  "core_camera_internal_dispatch": {
+    "dispatcher_vma": "0x4cfb9c",
+    "callee_vma": "0x4cf7a8",
+    "status": "STATIC_INTERNAL_CALL_ARGUMENT_SHAPE_OBSERVED",
+    "dispatcher_name_lead": "ModelCamera::ActionGpSetSetting",
+    "callee_name_lead": "ModelCamera::pvt_ActionSetInit",
+    "trigger_selector": "0x0f01",
+    "selector_value_source": "0x131fd2 returns r0",
+    "parameter_value_source": "0x13200a returns r0 stored into r4",
+    "callsite": "0x4cfe98",
+    "callsite_input_registers": {
+      "r0": "saved entry r0 via r5 (ModelCamera this candidate)",
+      "r1": "return of 0x13200a via r4; type NOT VERIFIED"
+    },
+    "callee_entry_observes": {
+      "r0": "saved in r4 at 0x4cf7b6",
+      "r1": "saved in sl at 0x4cf7ac and forwarded at 0x4cf7ee"
+    },
+    "helper_outgoing_calls": [
+      {
+        "site": "0x4cf814",
+        "target": "0x4b1a20",
+        "role": "EE-neutral sender candidate"
+      },
+      {
+        "site": "0x4cf81a",
+        "target": "0x4b096c",
+        "role": "PrepChk candidate"
+      }
+    ],
+    "raw_opcode_full_sha_rechecked_in_this_run": false,
+    "parameter1_type_verified": false,
+    "return_type_verified": false,
+    "callable_api_abi_complete": false
+  }
 }
