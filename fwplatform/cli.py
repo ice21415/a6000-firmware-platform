@@ -394,6 +394,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_param_string.add_argument("--elf", type=Path, required=True)
     sdk_param_string.add_argument("--expected-sha256", default=None)
     sdk_param_string.add_argument("--json", action="store_true")
+    sdk_param_struct = sdk_sub.add_parser("parameter-struct")
+    sdk_param_struct.add_argument("--elf", type=Path, required=True)
+    sdk_param_struct.add_argument("--expected-sha256", default=None)
+    sdk_param_struct.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -636,6 +640,15 @@ def main(argv: list[str] | None = None) -> int:
         from .param_string_probe import probe_param_string
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_param_string(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-struct":
+        from .param_struct_probe import probe_param_struct
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_struct(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

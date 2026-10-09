@@ -401,3 +401,18 @@ instructions, 6 blocks and 14 edges. Five synthetic validator tests were
 added; no firmware bytes or private analysis exports were committed.
 The complete local suite now passes 283 tests; runtime-verified and callable
 counts remain zero.
+
+## Phase 3.31 — PrmStruct pointer/length payload evidence
+
+`fwplatform/param_struct_probe.py`, `sdk/param_struct_3_21.json` and
+`fw sdk parameter-struct` add a SHA-pinned bounded probe for the discriminator-6
+PrmStruct candidate. Primary ELF evidence confirms the vtable/RTTI slots, a
+20-byte object, `malloc`/`memcpy` construction of a pointer-plus-length
+payload, `free` destruction, the deleting wrapper and clone allocation.
+Nested schema/type, serialization, invalid-input, allocator/exception,
+aliasing, synchronization, runtime binding and source-level return type remain
+UNKNOWN. Runtime-verified and callable counts remain zero.
+
+Private ASCII Ghidra 12.1.3 targeted output exited 0 with 4 targets, 54
+instructions, 4 blocks and 9 edges. Five synthetic validator tests were
+added; no firmware bytes or private analysis exports were committed.

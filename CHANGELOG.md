@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the private-only `parameter-struct` probe and descriptive contract for
+  the discriminator-6 PrmStruct family. Primary ELF evidence verifies the
+  vtable/RTTI, `malloc`/`memcpy` pointer-plus-length payload construction,
+  `free` destruction and clone allocation. Nested schema, invalid-input,
+  allocator, aliasing, runtime and callability semantics remain unknown; no
+  firmware bytes are published.
+
 - Added the private-only `parameter-string` probe and descriptive contract for
   the discriminator-2 PrmString family. Primary ELF evidence verifies the
   vtable/RTTI, `strlen`/`new[]`/`strncpy` construction, conditional `delete[]`

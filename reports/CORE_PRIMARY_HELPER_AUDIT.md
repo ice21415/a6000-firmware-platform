@@ -612,3 +612,33 @@ not complete C++ recovery. Five new fail-closed tests cover identity,
 discriminator, observation completeness and non-callable metadata. The
 complete local suite now passes 283 tests; runtime-verified and callable counts
 remain zero.
+
+## PrmStruct pointer/length payload checkpoint — 2026-10-10
+
+The new `fwplatform/param_struct_probe.py` validates the discriminator-6
+`PrmStruct` candidate from the authenticated ELF. Its vtable at `0xfe7400`
+points to RTTI `0xfe7418`, clone `0xe72a0`, non-deleting destructor `0xe7150`
+and deleting destructor `0xe717c`; the object-size witness is `0x14` bytes.
+
+The constructor at `0xe7260` receives a source byte pointer candidate in `r1`
+and a byte-length candidate in `r2`. It passes the length to the relocation-
+bound `malloc`, stores the result at `+0x0c`, calls relocation-bound `memcpy`
+with destination/source/length, and stores the length at `+0x10`. The
+destructor passes `+0x0c` to `free` before the local ParamBase destruction
+path. The deleting wrapper calls object `_ZdlPv`; clone allocates a separate
+`0x14`-byte object and copies the pointer/length candidates into the
+constructor.
+
+These are `PRIMARY_ELF_VERIFIED` instruction and relocation facts. Nested
+schema/type meaning, serialization, null/zero-length behavior, allocator and
+exception semantics, alias/transfer rules, synchronization, runtime binding
+and clone return type remain `UNKNOWN`. No local guard precedes malloc,
+memcpy or free, so the probe makes no safety claim for invalid input. Contract:
+`sdk/param_struct_3_21.json`; runtime verification and callability remain
+false.
+
+The private ASCII Ghidra 12.1.3 targeted `param-struct` profile exited 0 with
+4 targets, 54 instruction rows, 4 blocks and 9 CFG edges. Its unresolved
+external libraries and undefined decompiler types are supporting evidence,
+not complete C++ recovery. Five fail-closed synthetic tests cover identity,
+discriminator, observation completeness and non-callable metadata.

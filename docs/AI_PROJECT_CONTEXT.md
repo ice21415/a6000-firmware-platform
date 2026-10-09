@@ -189,6 +189,21 @@ delivery/completion and full constructor C++ identity remain UNKNOWN. Its
 contract is `sdk/camera_3_21_prepare_envelope.json`; runtime/callable flags
 remain false.
 
+## Phase 3.31 — PrmStruct evidence
+
+`fwplatform/param_struct_probe.py` adds the private-only discriminator-6
+PrmStruct probe. It validates the vtable/RTTI pair and bounded constructor,
+destructor, deleting-destructor and clone paths. The constructor uses
+`malloc`/`memcpy` for a pointer-plus-length payload at `+0x0c/+0x10`; the
+destructor calls `free`. Nested schema, serialization, invalid-input,
+allocator, aliasing, synchronization and runtime semantics remain unknown.
+
+CLI: `fw sdk parameter-struct --elf <private-libObj.so> --json`.
+Contract: `sdk/param_struct_3_21.json`. Five fail-closed synthetic tests are
+included. Private Ghidra targeted cross-check: exit 0, 4 targets, 54
+instructions, 4 blocks and 9 edges. Runtime verification and callability
+remain false.
+
 The prepare envelope probe now follows `0x7f25e0`: it verifies `r2=1`, a
 receiver `+0x10` load and the unique PLT relocation of `0xdf270` to
 `EventManager::push(Event*,bool)`. This is a static symbol/dispatch fact only;

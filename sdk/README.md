@@ -1018,3 +1018,21 @@ source-level clone return type remain unknown. The contract is
 `sdk/param_string_3_21.json`; runtime and callable flags are false. A private
 Ghidra targeted profile exited 0 with 4 targets, 60 instructions, 6 blocks and
 14 CFG edges; raw ELF and Ghidra exports stay outside the repository.
+
+## PrmStruct pointer/length payload checkpoint
+
+Use the private-only command:
+
+```powershell
+python -m fwplatform.cli sdk parameter-struct --elf C:\private\libObj.so --json
+```
+
+The SHA-pinned probe verifies the discriminator-6 vtable/RTTI pair, 20-byte
+object shape, `malloc`/`memcpy` construction of a pointer-plus-length payload,
+conditional lifetime path through `free`, the deleting wrapper and clone
+allocation. The payload is only a copied byte-buffer and length candidate;
+nested schema, serialization, invalid-input, allocator/exception, aliasing,
+synchronization, runtime binding and source-level clone return semantics remain
+unknown. Contract: `sdk/param_struct_3_21.json`; runtime and callable flags are
+false. Private Ghidra targeted output exited 0 with 4 targets, 54 instructions,
+4 blocks and 9 CFG edges.
