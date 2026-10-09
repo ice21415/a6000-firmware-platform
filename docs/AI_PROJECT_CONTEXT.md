@@ -273,9 +273,28 @@ and `sdk/param_set_3_21.json`. Primary ELF evidence confirms the discriminator-7
 copy path and destructor path. The payload is documented only as an
 ordered-container-like candidate: source type, element type, comparator,
 allocator, alias and synchronization semantics remain UNKNOWN. The private
-ASCII Ghidra `param-set` profile exits 0 with 13 targets, 161 instruction rows,
-17 blocks and 33 CFG edges. Runtime verification and callable SDK counts remain
+ASCII Ghidra `param-set` profile exits 0 with 17 targets, 243 instruction rows,
+30 blocks and 60 CFG edges. Runtime verification and callable SDK counts remain
 zero.
+
+## Phase 3.31 — PrmSet tree-helper and lifetime boundary
+
+The same authenticated ELF now has direct relocation evidence for six
+libstdc++ `_Rb_tree` traversal/insertion symbols. Bounded helpers show a
+20-byte node allocation unit, node value copy at `+0x10`, header sentinel at
+payload `+0x04`, and node count at `+0x14`; the PrmSet copy and recursive
+release paths preserve/use those fields. This establishes an
+ordered-associative-tree-like **ELF-local model**, not an exact `std::set`
+source declaration. The `0xffe70` insert helper has not been uniquely tied to
+a named PrmSet mutator.
+
+`sdk/param_set_3_21.json` and `sdk/paramlist_3_21_candidate.hpp` preserve the
+offsets, PLT/GOT identities, direct `6PrmSet` to `ParamBase` RTTI relation and
+all UNKNOWN boundaries. ParamList's shared counter and virtual element
+destruction imply that `ParamList::get`/`PrmSet::getSet` results are borrowed
+interior-pointer candidates; replacement or destruction can invalidate them.
+Null behavior, synchronization, exception cleanup, runtime loader binding and
+callability remain unverified.
 
 ## Phase 3.29 — PrmPoint / PrmDimension inline-word evidence
 

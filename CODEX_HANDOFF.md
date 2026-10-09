@@ -539,4 +539,54 @@ The probe independently discovers ten direct RTTI `+0x08` relocations to
 and two CFG edges. These are static facts only; source-level ownership,
 exception behavior, locking, runtime binding and callable SDK status remain
 unknown/false. Seven synthetic validator tests were added and the complete
-local suite now passes 312 tests.
+local suite now passes 318 tests.
+
+## Current continuation checkpoint (2026-10-10) — PrmSet tree payload
+
+The exact SHA-pinned primary ELF was re-read with Capstone and cross-checked
+using the private ASCII-path Ghidra 12.1.3 `ParamListTargets.java param-set`
+profile. The public probe and SDK metadata now cover the bounded PrmSet tree
+helper family without publishing bytes or decompiler output.
+
+Direct primary-ELF facts:
+
+- `0x7efb00` calls `ParamBaseC2` with discriminator `7`, installs the derived
+  vtable address point at object `+0x00`, advances to object `+0x0c`, and calls
+  the payload default initializer. It does not write key `+0x08` in the
+  bounded body.
+- `0xffcf6`/`0xffce4` zero payload fields `+0x04..+0x13`, clear `+0x14`, and
+  self-link the header fields `+0x0c` and `+0x10` to payload `+0x04`.
+- `0xffe1c` multiplies a count by `0x14`; `0xffe4c` writes/copies a node
+  value beginning at `node+0x10`; `0xffe70` calls the uniquely relocated
+  libstdc++ `_Rb_tree_insert_and_rebalance` PLT and increments `[tree+0x14]`.
+- `0x63e83a` has a self-copy guard and copies the source node count from
+  `+0x14`; `0xffd80` is a direct recursive node-release helper reached from
+  the PrmSet payload destruction path.
+- PLT/GOT relocation bindings for `_Rb_tree_increment`, insertion/rebalance,
+  erase/rebalance, and decrement are preserved as static evidence. This does
+  not prove `std::set<uint32_t>` or any runtime loader binding.
+
+`sdk/param_set_3_21.json` records the direct tree facts as
+`PRIMARY_ELF_VERIFIED` and the source family as `STATIC_INFERRED`; exact
+PrmSet source alias, element type, comparator, mutation caller and exception
+paths remain UNKNOWN. `sdk/paramlist_3_21_candidate.hpp` adds descriptive
+24-byte tree words and constants only; it is not a live-object wrapper.
+
+The private Ghidra run exited 0 with 17 target bodies, 243 instruction rows,
+30 blocks and 60 CFG edges, completion marker
+`COMPLETE_TARGET_EXPORT`, language `ARM:LE:32:v8`, image base `0x10000`, and
+`-noanalysis`. It is a bounded cross-check, not whole-program Auto Analysis.
+
+ParamList lifetime conclusions remain unchanged: the shared counter is at
+`ParamList+0x04`; clear/destructor release non-null elements through their
+virtual destructor slot and free shared storage only when the counter reaches
+zero. `ParamList::get` and `PrmSet::getSet` therefore expose borrowed interior
+pointer candidates whose validity is bounded by replacement/destruction;
+null, concurrency, copy-on-write, allocator and runtime safety remain
+unverified. Runtime-verified and callable SDK counts remain zero.
+
+The final local regression run after this checkpoint passed **318 tests**.
+
+Next investigation targets: identify a unique PrmSet mutation caller for
+`0xffe70`, recover the exact value/comparator type, and trace all exception and
+owner-release paths before any stronger ABI declaration is considered.

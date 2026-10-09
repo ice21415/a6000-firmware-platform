@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased — PrmSet tree/lifetime evidence checkpoint
+
+- Extended the SHA-pinned `PrmSet` probe with bounded node destruction,
+  allocation-size, node-value, ordered-tree insertion and copy observations.
+  Direct PLT/GOT checks identify six libstdc++ `_Rb_tree` traversal/rebalance
+  imports; the public contract records an ordered-associative-tree-like model,
+  not an exact source template or callable API.
+- Added descriptive `PrmSetPayloadTreeWords`/offset constants, a private
+  Ghidra `param-set` cross-check (exit 0, 17 targets, 243 instructions, 30
+  blocks, 60 CFG edges), five fail-closed tree evidence tests and a contract
+  round-trip check. Runtime
+  verification and callable SDK counts remain zero; raw firmware and Ghidra
+  output remain private.
+
 ## Unreleased — ParamBase foundation checkpoint
 
 - Added the SHA-pinned `parameter-base` probe and descriptive contract. It

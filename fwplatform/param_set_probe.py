@@ -36,6 +36,11 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "payload_default_init", "entry": 0xFFD22, "size": 0x0E},
     {"name": "payload_init", "entry": 0xFFCF6, "size": 0x30},
     {"name": "payload_sentinel_init", "entry": 0xFFCE4, "size": 0x14},
+    {"name": "payload_tree_destroy_recursive", "entry": 0xFFD80, "size": 0x30},
+    {"name": "payload_node_size", "entry": 0xFFE1C, "size": 0x1A},
+    {"name": "payload_node_construct", "entry": 0xFFE4C, "size": 0x24},
+    {"name": "payload_tree_insert", "entry": 0xFFE70, "size": 0x60},
+    {"name": "payload_tree_copy", "entry": 0x63E83A, "size": 0x74},
     {"name": "payload_copy_wrapper", "entry": 0x63E8A6, "size": 0x0E},
     {"name": "payload_destroy_wrapper", "entry": 0xFFE0C, "size": 0x0E},
 )
@@ -284,6 +289,95 @@ def _observe_payload_destroy(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_tree_destroy_recursive(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the bounded recursive tree-node release helper.
+
+    The helper's local names and source container type are unavailable.  The
+    probe therefore records only the direct branch/call facts and does not
+    turn the routine into a source-level destructor declaration.
+    """
+    _require(rows, 0xFFD80, "push")
+    _require(rows, 0xFFD88, "b", target=0xFFDAA)
+    _require(rows, 0xFFD8C, "bl", target=0xFFC60)
+    _require(rows, 0xFFD94, "bl", target=0xFFD80)
+    _require(rows, 0xFFD9A, "bl", target=0xFFC68)
+    _require(rows, 0xFFDA4, "bl", target=0xFFD74)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "operation": "walks a child chain recursively and invokes local node release helpers",
+        "recursion": "direct self-call at 0xffd94",
+        "source_destructor_identity": "UNKNOWN",
+    }
+
+
+def _observe_node_size(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0xFFE1C, "ldr")
+    _require(rows, 0xFFE20, "cmp")
+    _require(rows, 0xFFE2A, "movs", immediate=0x14)
+    _require(rows, 0xFFE2C, "muls", operands="r0, r1, r0")
+    _require(rows, 0xFFE32, "b.w", target=0xDC0FC)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "allocation_unit_bytes": 0x14,
+        "count_input": "r1",
+        "size_expression": "r0 = r1 * 0x14 after the bounded overflow guard",
+        "allocator_target": "0xdc0fc; source allocator identity UNKNOWN",
+    }
+
+
+def _observe_node_construct(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0xFFE4C, "push")
+    _require(rows, 0xFFE54, "bl", target=0xFFE3C)
+    _require(rows, 0xFFE5C, "adds", operands="r0, r7, #4")
+    _require(rows, 0xFFE5E, "add.w", operands="r1, r4, #0x10")
+    _require(rows, 0xFFE62, "bl", target=0xECD7A)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "node_value_offset": 0x10,
+        "value_source": "r1 is retained as r2 and passed to the bounded word-copy helper",
+        "word_copy_helper": "0xecd7a; exact source type and copy count semantics UNKNOWN",
+        "node_header_size_bytes": 0x10,
+    }
+
+
+def _observe_tree_insert(rows: dict[int, Any], insert_binding: dict[str, Any]) -> dict[str, Any]:
+    _require(rows, 0xFFE7E, "cbnz", target=0xFFE9C)
+    _require(rows, 0xFFE80, "bl", target=0xFFC70)
+    _require(rows, 0xFFE94, "bl", target=0xEFE6C)
+    _require(rows, 0xFFEA4, "bl", target=0xFFE4C)
+    _require(rows, 0xFFEAA, "adds", operands="r3, r4, #4")
+    _require(rows, 0xFFEB2, "blx", target=0xDC63C)
+    _require(rows, 0xFFEB6, "ldr", operands="r3, [r4, #0x14]")
+    _require(rows, 0xFFEBE, "str", operands="r3, [r4, #0x14]")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "header_sentinel_offset": 0x04,
+        "node_count_offset": 0x14,
+        "node_value_offset": 0x10,
+        "operation": "construct a node, call the ELF's comparator, then call libstdc++ tree insertion/rebalance",
+        "insert_binding": insert_binding,
+        "relation_scope": "generic ELF-local ordered-tree helper; direct PrmSet operation caller is not proven",
+    }
+
+
+def _observe_tree_copy(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0x63E83A, "cmp", operands="r0, r1")
+    _require(rows, 0x63E846, "beq", target=0x63E8A0)
+    _require(rows, 0x63E848, "bl", target=0xFFDB0)
+    _require(rows, 0x63E852, "cbz", target=0x63E8A0)
+    _require(rows, 0x63E870, "bl", target=0x63E7B0)
+    _require(rows, 0x63E898, "ldr", operands="r3, [r5, #0x14]")
+    _require(rows, 0x63E89E, "str", operands="r3, [r4, #0x14]")
+    _require(rows, 0x63E8A0, "mov", operands="r0, r4")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "self_copy_guard": "r0 == r1 returns the destination without copying",
+        "operation": "copies tree links/node graph through local helpers and copies the source node count",
+        "node_count_offset": 0x14,
+        "source_type": "UNKNOWN",
+    }
+
+
 def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA) -> dict[str, Any]:
     """Read bounded PrmSet methods from the authenticated private ELF."""
     path = Path(elf_path).resolve()
@@ -312,6 +406,26 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "allocator": _binding(fp, elf, 0xDC100, "_Znwj"),
             "delete": _binding(fp, elf, 0xDD620, "_ZdlPv"),
             "paramlist_get": _binding(fp, elf, 0xE2894, "_ZNK9ParamList3getEmm"),
+            "rb_tree_increment_const": _binding(
+                fp, elf, 0xDBB6C, "_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base",
+            ),
+            "rb_tree_insert_rebalance": _binding(
+                fp, elf, 0xDC63C,
+                "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
+            ),
+            "rb_tree_erase_rebalance": _binding(
+                fp, elf, 0xDD17C,
+                "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_",
+            ),
+            "rb_tree_decrement_const": _binding(
+                fp, elf, 0xDE038, "_ZSt18_Rb_tree_decrementPKSt18_Rb_tree_node_base",
+            ),
+            "rb_tree_increment": _binding(
+                fp, elf, 0xE0B00, "_ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base",
+            ),
+            "rb_tree_decrement": _binding(
+                fp, elf, 0xE186C, "_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base",
+            ),
         }
         observations = {
             "prmset_get_set": _observe_get_set(_decode(fp, elf, 0x7EFAE8, 8)),
@@ -334,6 +448,17 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             ),
             "payload_init": _observe_payload_init(_decode(fp, elf, 0xFFCF6, 0x30), bindings["memset"]),
             "payload_sentinel_init": _observe_payload_sentinel(_decode(fp, elf, 0xFFCE4, 0x14)),
+            "payload_tree_destroy_recursive": _observe_tree_destroy_recursive(
+                _decode(fp, elf, 0xFFD80, 0x30),
+            ),
+            "payload_node_size": _observe_node_size(_decode(fp, elf, 0xFFE1C, 0x1A)),
+            "payload_node_construct": _observe_node_construct(
+                _decode(fp, elf, 0xFFE4C, 0x24),
+            ),
+            "payload_tree_insert": _observe_tree_insert(
+                _decode(fp, elf, 0xFFE70, 0x60), bindings["rb_tree_insert_rebalance"],
+            ),
+            "payload_tree_copy": _observe_tree_copy(_decode(fp, elf, 0x63E83A, 0x74)),
             "payload_copy_wrapper": _observe_copy_wrapper(_decode(fp, elf, 0x63E8A6, 0x0E)),
             "payload_destroy_wrapper": _observe_payload_destroy(_decode(fp, elf, 0xFFE0C, 0x0E)),
         }
@@ -344,6 +469,16 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
         "type": "PrmSet",
         "discriminator": 7,
         "allocation_size_bytes": 0x24,
+        "inheritance": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "base_type": "ParamBase",
+            "rtti_name": "6PrmSet",
+            "rtti_vma": "0x1019d08",
+            "vtable_prefix_vma": "0x1019d18",
+            "vtable_address_point": "0x1019d20",
+            "relation": "direct RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relation",
+            "source": "cross-checked against param_base_3_21.json; source class declaration remains descriptive",
+        },
         "payload_layout": {
             "object_base": "+0x0c",
             "size_bytes": 0x18,
@@ -355,7 +490,22 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
                 "+0x10": "self-linked sentinel pointer to payload +0x04",
                 "+0x14": "zeroed payload field",
             },
-            "container_identity": "ordered-container-like payload candidate; source type UNKNOWN",
+            "container_identity": (
+                "ordered-associative-tree-like payload; ELF-local _Rb_tree ABI evidence is direct, "
+                "but the exact PrmSet source alias and element type remain UNKNOWN"
+            ),
+            "tree_evidence": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "node_size_bytes": 0x14,
+                "node_value_offset": 0x10,
+                "header_sentinel_offset": 0x04,
+                "node_count_offset": 0x14,
+                "insert_rebalance_binding": bindings["rb_tree_insert_rebalance"],
+                "erase_rebalance_binding": bindings["rb_tree_erase_rebalance"],
+                "source_type": "UNKNOWN",
+                "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
+                "prmset_operation_path": "UNKNOWN; the bounded PrmSet lifecycle reaches shared helpers, not a named insert method",
+            },
         },
         "bindings": bindings,
         "observations": observations,
@@ -384,6 +534,43 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
         errors.append("allocation_size")
     if report.get("runtime_verified") is not False or report.get("callable") is not False:
         errors.append("runtime_or_callable_claim")
+    inheritance = report.get("inheritance")
+    if not isinstance(inheritance, dict):
+        errors.append("missing_inheritance_evidence")
+    else:
+        if inheritance.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("inheritance_status")
+        if inheritance.get("base_type") != "ParamBase" or inheritance.get("rtti_name") != "6PrmSet":
+            errors.append("inheritance_identity")
+        if inheritance.get("vtable_address_point") != "0x1019d20":
+            errors.append("inheritance_vtable")
+    tree = report.get("payload_layout", {}).get("tree_evidence")
+    if not isinstance(tree, dict):
+        errors.append("missing_tree_evidence")
+    else:
+        if tree.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("tree_evidence_status")
+        if tree.get("node_size_bytes") != 0x14:
+            errors.append("tree_node_size")
+        if tree.get("node_value_offset") != 0x10:
+            errors.append("tree_node_value_offset")
+        if tree.get("header_sentinel_offset") != 0x04:
+            errors.append("tree_header_offset")
+        if tree.get("node_count_offset") != 0x14:
+            errors.append("tree_count_offset")
+        if tree.get("source_type") != "UNKNOWN":
+            errors.append("tree_source_type_promotion")
+        if not str(tree.get("likely_source_family", "")).startswith("STATIC_INFERRED"):
+            errors.append("tree_source_family_status")
+        insert = tree.get("insert_rebalance_binding")
+        if not isinstance(insert, dict) or insert.get("status") != "VERIFIED_STATIC":
+            errors.append("tree_insert_binding")
+        else:
+            candidates = insert.get("candidates", [])
+            if len(candidates) != 1 or candidates[0].get("symbol") != (
+                "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_"
+            ):
+                errors.append("tree_insert_symbol")
     expected = {target["name"] for target in TARGETS}
     observations = report.get("observations")
     if not isinstance(observations, dict) or not expected.issubset(observations):

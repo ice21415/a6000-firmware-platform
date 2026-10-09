@@ -882,4 +882,73 @@ raw export and project remain private. The public contract records this as a
 static cross-check only; runtime verification and callable SDK counts remain
 zero. Ownership, copy/assignment, exception handling, locking, concurrent
 access and derived payload semantics remain UNKNOWN. The new validator adds
-seven synthetic checks; the complete local suite now passes **312 tests**.
+seven synthetic checks; the complete local suite now passes **318 tests**.
+
+## PrmSet payload tree and lifetime cross-check — 2026-10-10
+
+This checkpoint extends the earlier ParamBase/PrmSet bounded study. The
+authenticated private ELF remains the exact SHA-256 pinned 3.21 `libObj.so`;
+only descriptive metadata is checked in. `fwplatform/param_set_probe.py`
+now validates the payload helper family and the standard-library relocation
+identity without treating a stripped local helper as a source-level method.
+
+The direct constructor/lifecycle facts are:
+
+| ELF VMA | Evidence | Result | Boundary |
+|---:|---|---|---|
+| `0x7efb00` | `PrmSet` constructor calls `_ZN9ParamBaseC2Em` with `r1=7`, writes the derived vtable address point at `+0x00`, post-increments the object pointer by `0x0c`, and calls `0xffd22` | object size `0x24`; embedded payload starts at `+0x0c`; key `+0x08` is not written in this bounded constructor | source-level constructor exception/ownership behavior UNKNOWN |
+| `0xffcf6` / `0xffce4` | payload initializer zeros 16 bytes at payload `+0x04`, clears `+0x14`, then writes `+0x0c`/`+0x10` links to payload `+0x04` | 24-byte payload word layout is directly observed | payload `+0x00` and exact node/header field names UNKNOWN |
+| `0xffe1c` | bounded arithmetic uses `r0 = r1 * 0x14` after an overflow guard | node allocation unit is **20 bytes** | allocator and element type UNKNOWN |
+| `0xffe4c` | node construction passes `r1` as `r2` to a word-copy helper with destination `node + 0x10` | node value begins at `+0x10` in this helper | value width/type and copy count UNKNOWN |
+| `0xffe70` | constructs a node, calls the local comparator, passes `tree + 0x04` as the header argument, calls PLT `0xdc63c`, and increments `[tree + 0x14]` | ELF-local ordered-tree insertion helper | direct caller identity from a PrmSet mutator is not recovered |
+| `0x63e83a` | self-copy guard, recursive copy helpers, and `ldr r3,[r5,#0x14]` / `str r3,[r4,#0x14]` | copy preserves the observed node-count field and returns destination | exception cleanup, aliases and source type UNKNOWN |
+| `0xffd80` / `0xffdf6` | recursive child walk invokes local node-release helpers; `0xffe0c` delegates to it | embedded payload release is part of the PrmSet destructor path | exact node destructor and empty-tree guard semantics UNKNOWN |
+
+The six dynamic imports below are uniquely resolved at their PLT/GOT slots in
+the primary ELF. This is direct relocation evidence, not proof of the source
+template or runtime loader binding:
+
+| PLT VMA | Relocated symbol |
+|---:|---|
+| `0xdbb6c` | `_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base` |
+| `0xdc63c` | `_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_` |
+| `0xdd17c` | `_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_` |
+| `0xde038` | `_ZSt18_Rb_tree_decrementPKSt18_Rb_tree_node_base` |
+| `0xe0b00` | `_ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base` |
+| `0xe186c` | `_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base` |
+
+Therefore the checked-in SDK contract records the payload as
+**ordered-associative-tree-like** with `STATIC_INFERRED` source-family
+metadata. It does not call the object `std::set<uint32_t>`, does not name a
+comparator or element signedness, and does not expose a callable wrapper. The
+new descriptive header words are in
+`sdk/paramlist_3_21_candidate.hpp`; `sdk/param_set_3_21.json` records the
+same offsets, relocation bindings, PrmSet RTTI relation (`6PrmSet` to
+`ParamBase`) and unresolved boundaries. `runtime_verified=false` and
+`callable=false` remain unchanged.
+
+The ParamList lifetime evidence remains separate and applies to a pointer
+returned through the lookup path: the list owns a shared counter at `+0x04`,
+the clear/destructor paths invoke an element's virtual destructor slot only
+for non-null elements, and storage is released when the counter reaches zero.
+Consequently a `ParamList::get`/`PrmSet::getSet` result is a **borrowed
+interior pointer candidate** whose validity ends on element replacement,
+list destruction or another unverified owner release. No null-safety,
+concurrency guarantee, copy-on-write detach, allocator interposition or
+runtime ABI guarantee has been established.
+
+A private ASCII-path Ghidra 12.1.3 `ParamListTargets.java param-set` run
+cross-checked the new targets with `ARM:LE:32:v8`, image base `0x10000`, and
+`-noanalysis`. It exited `0` with **17** target bodies, **243** instruction
+rows, **30** basic blocks and **60** CFG edges, ending with
+`COMPLETE_TARGET_EXPORT`. The raw export and project remain outside the public
+checkout; the run is a targeted static cross-check, not whole-program Auto
+Analysis and not runtime validation.
+
+The new synthetic validator checks reject a wrong binary hash, wrong node
+size, wrong `_Rb_tree` binding, missing tree evidence, wrong derived vtable,
+exact source-type promotion and runtime/callable promotion. The complete
+public suite now passes **318 tests**. Remaining blockers are the source-level ParamSet alias and
+element type, a unique PrmSet mutation caller for `0xffe70`, complete
+constructor/destructor exception paths, and any runtime/parallel safety
+property.

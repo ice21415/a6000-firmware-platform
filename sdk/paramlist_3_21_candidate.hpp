@@ -72,6 +72,28 @@ static_assert(sizeof(PrmDimensionSnapshotWords) == 20);
 static_assert(sizeof(PrmStructSnapshotWords) == 20);
 static_assert(sizeof(PrmSetSnapshotWords) == 36);
 
+// The following words describe the bounded ELF-local tree evidence inside a
+// PrmSet payload.  They are not a std::set declaration and must not be used
+// as host pointers or live camera objects.  The source alias, comparator,
+// element signedness and mutation entry point are still unknown.
+struct PrmSetPayloadTreeWords {
+    std::uint32_t unknown_00;
+    std::uint32_t header_word_04;
+    std::uint32_t header_word_08;
+    std::uint32_t header_link_0c;
+    std::uint32_t header_link_10;
+    std::uint32_t node_count_14;
+};
+struct PrmSetTreeEvidenceConstants {
+    static constexpr std::uint32_t node_size_bytes = 0x14;
+    static constexpr std::uint32_t node_value_offset = 0x10;
+    static constexpr std::uint32_t header_sentinel_offset = 0x04;
+    static constexpr std::uint32_t node_count_offset = 0x14;
+};
+static_assert(offsetof(PrmSetPayloadTreeWords, header_word_04) == 4);
+static_assert(offsetof(PrmSetPayloadTreeWords, node_count_14) == 20);
+static_assert(sizeof(PrmSetPayloadTreeWords) == 24);
+
 // Additional static layouts recovered from the 3.21 ParamBase family.  The
 // collection members are deliberately named storage/words: their allocator,
 // iterator and ownership ABI has not been proven and these are not live views.

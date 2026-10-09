@@ -7,7 +7,7 @@
   "type": "PrmSet",
   "discriminator": 7,
   "allocation_size_bytes": 36,
-  "verification": "PRIMARY_ELF_VERIFIED bounded methods and unique static bindings",
+  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle and ELF-local tree-helper facts; source container alias remains UNKNOWN",
   "layout": {
     "+0x00": "ParamBase vptr address point",
     "+0x04": "ParamBase discriminator candidate, initialized to 7 through ParamBaseC2",
@@ -21,7 +21,29 @@
       "+0x10": "pointer to payload +0x04 sentinel",
       "+0x14": "zeroed field"
     },
-    "container_identity": "ordered-container-like payload candidate; source type and element type UNKNOWN"
+    "container_identity": "ordered-associative-tree-like payload; direct ELF-local _Rb_tree ABI evidence, exact PrmSet source alias and element type UNKNOWN",
+    "tree_evidence": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "node_size_bytes": 20,
+      "node_value_offset": 16,
+      "header_sentinel_offset": 4,
+      "node_count_offset": 20,
+      "insert_rebalance_binding": {
+        "plt": "0xdc63c",
+        "got": "0x102d1b0",
+        "symbol": "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
+        "runtime_binding": "UNKNOWN"
+      },
+      "erase_rebalance_binding": {
+        "plt": "0xdd17c",
+        "got": "0x102d544",
+        "symbol": "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_",
+        "runtime_binding": "UNKNOWN"
+      },
+      "source_type": "UNKNOWN",
+      "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
+      "prmset_operation_path": "UNKNOWN; bounded PrmSet lifecycle reaches shared helpers, not a named insert method"
+    }
   },
   "methods": {
     "getSet": {
@@ -35,7 +57,10 @@
     "GET": {
       "entry": "0x7efaf0",
       "symbol": "_ZN6PrmSet3GETEPK9ParamListm",
-      "inputs": ["const ParamList* candidate in r0", "unsigned long key candidate in r1"],
+      "inputs": [
+        "const ParamList* candidate in r0",
+        "unsigned long key candidate in r1"
+      ],
       "lookup_discriminator": 7,
       "target": "ParamList::get via interworking veneer",
       "return_semantics": "delegated result; source return and ownership UNKNOWN",
@@ -43,7 +68,9 @@
     },
     "constructor": {
       "entry": "0x7efb00",
-      "inputs": ["PrmSet receiver candidate in r0"],
+      "inputs": [
+        "PrmSet receiver candidate in r0"
+      ],
       "effects": "initializes ParamBase discriminator 7, vptr and embedded payload",
       "safe_to_call": false
     },
@@ -57,14 +84,87 @@
       "effects": "allocates 0x24-byte object and copies source payload through 0x63e8a6",
       "source_return_type": "UNKNOWN",
       "safe_to_call": false
+    },
+    "payload_tree_helpers": {
+      "entries": {
+        "recursive_destroy": "0xffd80",
+        "node_size": "0xffe1c",
+        "node_construct": "0xffe4c",
+        "insert": "0xffe70",
+        "copy": "0x63e83a"
+      },
+      "verification": "PRIMARY_ELF_VERIFIED for bounded instruction and relocation facts",
+      "insert_scope": "generic ELF-local helper; direct PrmSet method identity UNKNOWN",
+      "safe_to_call": false
     }
   },
   "bindings": {
-    "param_base_constructor": {"plt": "0xe11a4", "got": "0x102e984", "symbol": "_ZN9ParamBaseC2Em", "runtime_binding": "UNKNOWN"},
-    "memset": {"plt": "0xde37c", "got": "0x102dae4", "symbol": "memset", "runtime_binding": "UNKNOWN"},
-    "allocator": {"plt": "0xdc100", "got": "0x102cffc", "symbol": "_Znwj", "runtime_binding": "UNKNOWN"},
-    "delete": {"plt": "0xdd620", "got": "0x102d6bc", "symbol": "_ZdlPv", "runtime_binding": "UNKNOWN"},
-    "paramlist_get": {"plt": "0xe2894", "got": "0x102f0c8", "symbol": "_ZNK9ParamList3getEmm", "runtime_binding": "UNKNOWN"}
+    "param_base_constructor": {
+      "plt": "0xe11a4",
+      "got": "0x102e984",
+      "symbol": "_ZN9ParamBaseC2Em",
+      "runtime_binding": "UNKNOWN"
+    },
+    "memset": {
+      "plt": "0xde37c",
+      "got": "0x102dae4",
+      "symbol": "memset",
+      "runtime_binding": "UNKNOWN"
+    },
+    "allocator": {
+      "plt": "0xdc100",
+      "got": "0x102cffc",
+      "symbol": "_Znwj",
+      "runtime_binding": "UNKNOWN"
+    },
+    "delete": {
+      "plt": "0xdd620",
+      "got": "0x102d6bc",
+      "symbol": "_ZdlPv",
+      "runtime_binding": "UNKNOWN"
+    },
+    "paramlist_get": {
+      "plt": "0xe2894",
+      "got": "0x102f0c8",
+      "symbol": "_ZNK9ParamList3getEmm",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_increment_const": {
+      "plt": "0xdbb6c",
+      "got": "0x102ce3c",
+      "symbol": "_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_insert_rebalance": {
+      "plt": "0xdc63c",
+      "got": "0x102d1b0",
+      "symbol": "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_erase_rebalance": {
+      "plt": "0xdd17c",
+      "got": "0x102d544",
+      "symbol": "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_decrement_const": {
+      "plt": "0xde038",
+      "got": "0x102d9e0",
+      "symbol": "_ZSt18_Rb_tree_decrementPKSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_increment": {
+      "plt": "0xe0b00",
+      "got": "0x102e774",
+      "symbol": "_ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_decrement": {
+      "plt": "0xe186c",
+      "got": "0x102eba8",
+      "symbol": "_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    }
   },
   "ownership": {
     "payload": "embedded storage is released by the destructor; container allocator and element ownership UNKNOWN",
@@ -77,8 +177,22 @@
     "payload +0x00 is not written by the bounded default initializer",
     "Element type, ordering/comparator, allocator pairing and exception paths UNKNOWN",
     "Runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
-    "No runtime execution or device validation"
+    "No runtime execution or device validation",
+    "The 0xffe70 insertion helper is not directly named or uniquely connected to a PrmSet mutator in the bounded evidence",
+    "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
+    "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN"
   ],
   "runtime_verified": false,
-  "callable": false
+  "callable": false,
+  "evidence_revision": "param-set-tree-helpers-2026-10-10",
+  "inheritance": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "base_type": "ParamBase",
+    "rtti_name": "6PrmSet",
+    "rtti_vma": "0x1019d08",
+    "vtable_prefix_vma": "0x1019d18",
+    "vtable_address_point": "0x1019d20",
+    "relation": "direct RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relation",
+    "source": "sdk/param_base_3_21.json direct_derived; exact source class declaration remains descriptive"
+  }
 }
