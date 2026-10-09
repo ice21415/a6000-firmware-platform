@@ -73,7 +73,7 @@ def apply_v7(conn: sqlite3.Connection) -> None:
         raise RuntimeError("schema v7 rebuild requires foreign_keys=OFF")
     if not any(str(c[1]) == "dex_path" for c in conn.execute("PRAGMA table_info(jni_bridge)")):
         conn.execute("ALTER TABLE jni_bridge ADD COLUMN dex_path TEXT")
-    for table in ("module_dependency", "message_queue", "jni_bridge"):
+    for table in ("module_dependency", "message_queue", "jni_bridge", "callsite"):
         _rebuild_without_legacy_unique(conn, table)
 
     dependencies = []
