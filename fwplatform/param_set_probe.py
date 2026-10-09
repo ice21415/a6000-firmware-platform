@@ -34,6 +34,7 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "prmset_deleting_destructor", "entry": 0x7EFB58, "size": 0x14},
     {"name": "prmset_clone", "entry": 0x7EFBB4, "size": 0x1C},
     {"name": "payload_default_init", "entry": 0xFFD22, "size": 0x0E},
+    {"name": "payload_header_accessors", "entry": 0xFFC40, "size": 0xA0},
     {"name": "payload_init", "entry": 0xFFCF6, "size": 0x30},
     {"name": "payload_sentinel_init", "entry": 0xFFCE4, "size": 0x14},
     {"name": "payload_tree_destroy_recursive", "entry": 0xFFD80, "size": 0x30},
@@ -221,6 +222,47 @@ def _observe_payload_default_init(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_payload_header_accessors(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record direct word/link accessors used by the payload helpers.
+
+    The offsets are machine-level observations.  Their compatibility with a
+    libstdc++ tree header is a source-family inference, not a proof of the
+    original typedef or element type.
+    """
+    _require(rows, 0xFFC40, "push")
+    _require(rows, 0xFFC44, "ldr", operands="r0, [r0, #8]")
+    _require(rows, 0xFFC60, "push")
+    _require(rows, 0xFFC64, "ldr", operands="r0, [r0, #0xc]")
+    _require(rows, 0xFFC68, "push")
+    _require(rows, 0xFFC6C, "ldr", operands="r0, [r0, #8]")
+    _require(rows, 0xFFCCC, "push")
+    _require(rows, 0xFFCCE, "adds", operands="r0, #0xc")
+    _require(rows, 0xFFCD4, "push")
+    _require(rows, 0xFFCD6, "adds", operands="r0, #8")
+    _require(rows, 0xFFCDC, "push")
+    _require(rows, 0xFFCDE, "adds", operands="r0, #0x10")
+    _require(rows, 0xFFC70, "push")
+    _require(rows, 0xFFC72, "adds", operands="r0, #4")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "payload_root_source": "0xffc40 returns [payload + 0x08]",
+        "node_link_accessors": {
+            "+0x08": "0xffc68 returns [node + 0x08]",
+            "+0x0c": "0xffc60 returns [node + 0x0c]",
+        },
+        "header_accessors": {
+            "+0x04": "0xffc70 returns payload/header base +0x04",
+            "+0x08": "0xffcd4 returns payload/header base +0x08",
+            "+0x0c": "0xffccc returns payload/header base +0x0c",
+            "+0x10": "0xffcdc returns payload/header base +0x10",
+        },
+        "layout_compatibility": (
+            "STATIC_INFERRED; offsets and imported _Rb_tree node-base ABI are "
+            "compatible with a libstdc++ _Rb_tree header/node layout"
+        ),
+    }
+
+
 def _observe_payload_helper(rows: dict[int, Any], bindings: dict[str, Any]) -> dict[str, Any]:
     _require(rows, 0x7EFB72, "movs", immediate=7)
     _require(rows, 0x7EFB78, "blx", target=0xE11A4)
@@ -289,6 +331,7 @@ def _observe_payload_destroy(rows: dict[int, Any]) -> dict[str, Any]:
     return {
         "status": "PRIMARY_ELF_VERIFIED",
         "operation": "delegates embedded payload release to 0xffdf6",
+        "root_source": "0xffdf6 obtains [payload + 0x08] through 0xffc40 before recursive destruction",
         "container_semantics": "UNKNOWN",
     }
 
@@ -310,6 +353,12 @@ def _observe_tree_destroy_recursive(rows: dict[int, Any]) -> dict[str, Any]:
         "status": "PRIMARY_ELF_VERIFIED",
         "operation": "walks a child chain recursively and invokes local node release helpers",
         "recursion": "direct self-call at 0xffd94",
+        "node_link_offsets": {
+            "+0x08": "followed by 0xffc68 before node release",
+            "+0x0c": "followed by 0xffc60 before recursive destruction",
+        },
+        "termination": "cmp r4, #0; returns when the selected link is null",
+        "node_release_path": "0xffd74 -> 0xffd66 -> 0xffd58 -> ARM interworking veneer 0xdd61c/PLT 0xdd620",
         "source_destructor_identity": "UNKNOWN",
     }
 
@@ -591,6 +640,9 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "payload_default_init": _observe_payload_default_init(
                 _decode(fp, elf, 0xFFD22, 0x0E),
             ),
+            "payload_header_accessors": _observe_payload_header_accessors(
+                _decode(fp, elf, 0xFFC40, 0xA0),
+            ),
             "payload_init": _observe_payload_init(_decode(fp, elf, 0xFFCF6, 0x30), bindings["memset"]),
             "payload_sentinel_init": _observe_payload_sentinel(_decode(fp, elf, 0xFFCE4, 0x14)),
             "payload_tree_destroy_recursive": _observe_tree_destroy_recursive(
@@ -649,9 +701,25 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
                 "+0x14": "zeroed payload field",
             },
             "container_identity": (
-                "ordered-associative-tree-like payload; ELF-local _Rb_tree ABI evidence is direct, "
-                "but the exact PrmSet source alias and element type remain UNKNOWN"
+                "layout-compatible with a libstdc++ _Rb_tree header/node family; the exact "
+                "PrmSet source alias and element type remain UNKNOWN"
             ),
+            "header_layout": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "base_offset": "+0x04",
+                "fields": {
+                    "+0x04": "header word; initialized to zero",
+                    "+0x08": "root/parent link candidate; initialized to zero",
+                    "+0x0c": "header link candidate; initialized to header +0x04",
+                    "+0x10": "header link candidate; initialized to header +0x04",
+                    "+0x14": "node count candidate; initialized to zero",
+                },
+                "compatibility": (
+                    "STATIC_INFERRED; matches the 20-byte libstdc++ _Rb_tree_node_base "
+                    "plus count shape"
+                ),
+                "evidence": "payload_header_accessors, payload_sentinel_init, payload_tree_destroy_recursive",
+            },
             "tree_evidence": {
                 "status": "PRIMARY_ELF_VERIFIED",
                 "node_size_bytes": 0x14,
@@ -659,6 +727,18 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
                 "node_value_width_bytes": 4,
                 "header_sentinel_offset": 0x04,
                 "node_count_offset": 0x14,
+                "node_layout": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "+0x00": "node header word candidate",
+                    "+0x04": "node link candidate",
+                    "+0x08": "node link candidate; accessor observed at 0xffc68",
+                    "+0x0c": "node link candidate; accessor observed at 0xffc60",
+                    "+0x10": "one-word value storage",
+                    "compatibility": (
+                        "STATIC_INFERRED; compatible with libstdc++ _Rb_tree_node_base "
+                        "plus value storage"
+                    ),
+                },
                 "insert_rebalance_binding": bindings["rb_tree_insert_rebalance"],
                 "erase_rebalance_binding": bindings["rb_tree_erase_rebalance"],
                 "source_type": "UNKNOWN",
@@ -708,7 +788,18 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
             errors.append("inheritance_identity")
         if inheritance.get("vtable_address_point") != "0x1019d20":
             errors.append("inheritance_vtable")
-    tree = report.get("payload_layout", {}).get("tree_evidence")
+    payload_layout = report.get("payload_layout")
+    header = payload_layout.get("header_layout") if isinstance(payload_layout, dict) else None
+    if not isinstance(header, dict):
+        errors.append("missing_header_layout")
+    else:
+        if header.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("header_layout_status")
+        if header.get("base_offset") != "+0x04":
+            errors.append("header_layout_base")
+        if not str(header.get("compatibility", "")).startswith("STATIC_INFERRED"):
+            errors.append("header_layout_compatibility")
+    tree = payload_layout.get("tree_evidence") if isinstance(payload_layout, dict) else None
     if not isinstance(tree, dict):
         errors.append("missing_tree_evidence")
     else:
@@ -720,6 +811,16 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
             errors.append("tree_node_value_offset")
         if tree.get("node_value_width_bytes") != 4:
             errors.append("tree_node_value_width")
+        node_layout = tree.get("node_layout")
+        if not isinstance(node_layout, dict):
+            errors.append("missing_node_layout")
+        else:
+            if node_layout.get("status") != "PRIMARY_ELF_VERIFIED":
+                errors.append("node_layout_status")
+            if node_layout.get("+0x10") != "one-word value storage":
+                errors.append("node_layout_value_offset")
+            if not str(node_layout.get("compatibility", "")).startswith("STATIC_INFERRED"):
+                errors.append("node_layout_compatibility")
         if tree.get("header_sentinel_offset") != 0x04:
             errors.append("tree_header_offset")
         if tree.get("node_count_offset") != 0x14:

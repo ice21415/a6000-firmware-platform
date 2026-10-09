@@ -5,7 +5,25 @@ import ghidra.program.model.address.*;
 import ghidra.program.model.listing.*;
 import ghidra.program.model.block.*;
 import java.io.*;
+import java.util.*;
 public class ParamListTargets extends GhidraScript {
+ private void clearOverlappingFunctions(Address start, Address end) {
+  FunctionManager manager=currentProgram.getFunctionManager();
+  ArrayList<Address> entries=new ArrayList<Address>();
+  Iterator<Function> it=manager.getFunctionsOverlapping(new AddressSet(start,end));
+  while(it.hasNext()) entries.add(it.next().getEntryPoint());
+  for(Address entry:entries) manager.removeFunction(entry);
+ }
+ private Function prepareFunction(Address a, Address end) throws Exception {
+  clearListing(a,end);
+  clearOverlappingFunctions(a,end);
+  currentProgram.getProgramContext().setValue(currentProgram.getRegister("TMode"),a,end,java.math.BigInteger.ONE);
+  disassemble(a);
+  Function f=getFunctionAt(a); if(f==null) f=createFunction(a,null);
+  if(f==null) throw new IllegalStateException("No function at "+a);
+  f.setBody(new AddressSet(a,end));
+  return f;
+ }
  public void run() throws Exception {
   String[] args=getScriptArgs();
   if(args.length<1 || args.length>2 || !"8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a".equalsIgnoreCase(currentProgram.getExecutableSHA256()))
@@ -21,7 +39,7 @@ public class ParamListTargets extends GhidraScript {
    } else if(args[1].equals("event-core")) {
     targets=new long[][]{{0x7f17f8,0x34},{0x7f182c,0x20},{0x7f184c,0x2a},{0x7f1876,0x22},{0xf0f84,0x0e},{0x10d098,0x0e}};
    } else if(args[1].equals("param-set")) {
-    targets=new long[][]{{0x7efae8,0x08},{0x7efaf0,0x0e},{0x7efb00,0x24},{0x7efb2c,0x20},{0x7efb58,0x14},{0x7efb6c,0x30},{0x7efbb4,0x1c},{0xffce4,0x14},{0xffcf6,0x30},{0xffd22,0x0e},{0xffd80,0x30},{0xffe1c,0x1a},{0xffe4c,0x24},{0xecd7a,0x0c},{0xefe6c,0x12},{0xffe70,0x60},{0xffed0,0xe6},{0x63e796,0x1a},{0x63e83a,0x74},{0x63e8a6,0x0e},{0xffe0c,0x0e}};
+    targets=new long[][]{{0x7efae8,0x08},{0x7efaf0,0x0e},{0x7efb00,0x24},{0x7efb2c,0x20},{0x7efb58,0x14},{0x7efb6c,0x30},{0x7efbb4,0x1c},{0xffc40,0x08},{0xffc60,0x08},{0xffc68,0x08},{0xffc70,0x08},{0xffccc,0x08},{0xffcd4,0x08},{0xffcdc,0x08},{0xffce4,0x10},{0xffcf6,0x1e},{0xffd22,0x0e},{0xffd80,0x30},{0xffe1c,0x1a},{0xffe4c,0x24},{0xecd7a,0x0c},{0xefe6c,0x12},{0xffe70,0x60},{0xffed0,0xe6},{0x63e796,0x1a},{0x63e83a,0x6c},{0x63e8a6,0x0e},{0xffe0c,0x0e}};
    } else if(args[1].equals("param-pair")) {
     targets=new long[][]{{0xffa3c,0x2a},{0xff904,0x1a},{0xff940,0x14},{0xffa70,0x1c},{0xe5128,0x2a},{0xe4774,0x1a},{0xe4868,0x14},{0xe515c,0x1a}};
    } else if(args[1].equals("param-string")) {
@@ -42,16 +60,12 @@ public class ParamListTargets extends GhidraScript {
    for(long[] target:targets){
     Address a=currentProgram.getImageBase().add(target[0]);
     Address end=a.add(target[1]-1);
-    clearListing(a,end);
-    currentProgram.getProgramContext().setValue(currentProgram.getRegister("TMode"),a,end,java.math.BigInteger.ONE);
-    disassemble(a);
-    Function f=getFunctionAt(a); if(f==null) f=createFunction(a,null);
-    if(f==null) throw new IllegalStateException("No function at "+a);
-    f.setBody(new AddressSet(a,end));
+    prepareFunction(a,end);
    }
    dec.openProgram(currentProgram);
    for(long[] target:targets){
     Address a=currentProgram.getImageBase().add(target[0]); Function f=getFunctionAt(a);
+    if(f==null) f=prepareFunction(a,a.add(target[1]-1));
     out.println("ELF_VMA="+Long.toHexString(target[0])+" GHIDRA="+a+" BODY="+f.getBody());
     InstructionIterator instructions=currentProgram.getListing().getInstructions(f.getBody(),true);
     while(instructions.hasNext()){Instruction ins=instructions.next();out.println(ins.getAddress()+" SIZE="+ins.getLength()+" "+ins);}

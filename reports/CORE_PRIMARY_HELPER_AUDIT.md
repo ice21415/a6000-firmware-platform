@@ -1054,3 +1054,82 @@ same checks.  `runtime_verified=false` and `callable=false` remain mandatory.
 Seven synthetic parser/validator/CLI regression tests and the complete local
 suite (328 tests) pass after this checkpoint.  This test result validates the
 public evidence handling only; it is not runtime verification of the camera.
+
+## PrmSet `_Rb_tree`-compatible header, node and release evidence — 2026-10-10
+
+This checkpoint re-ran the bounded private probe against the exact SHA-pinned
+Sony ILCE-6000 3.21 `libObj.so` (`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`).
+The new observations extend the earlier ParamList/PrmSet control-flow work;
+they do not repeat the 76-byte `ParamList::get` recovery. The probe uses
+Capstone 5.0.7 and the existing private Ghidra 12.1.3 targeted profile. The
+Ghidra profile now includes the bounded accessor region at `0xffc40`; its
+export remains private and the public repository contains only metadata.
+
+### Direct primary-ELF facts
+
+| ELF VMA | Direct observation | Status |
+|---:|---|---|
+| `0xffc40` | loads `[payload + 0x08]` and returns it | `PRIMARY_ELF_VERIFIED` |
+| `0xffc60` / `0xffc68` | load node words at `+0x0c` and `+0x08` respectively | `PRIMARY_ELF_VERIFIED` |
+| `0xffccc` / `0xffcd4` / `0xffcdc` / `0xffc70` | address accessors for `+0x0c`, `+0x08`, `+0x10`, and `+0x04` | `PRIMARY_ELF_VERIFIED` |
+| `0xffce4` / `0xffcf6` | sentinel initialization makes `payload +0x0c` and `+0x10` point at `payload +0x04`; the initializer clears `+0x04..+0x13` and `+0x14` | `PRIMARY_ELF_VERIFIED` |
+| `0xffd80` | follows the two observed node links, recurses until a selected link is null, then releases the node through the local delete path | `PRIMARY_ELF_VERIFIED` |
+| `0xffdf6` / `0xffe0c` | payload destruction obtains the root through `0xffc40` and delegates to recursive release | `PRIMARY_ELF_VERIFIED` |
+| `0xffe70` | passes `bool`, node, parent and `tree +0x04` header arguments to the relocation-resolved `_Rb_tree_insert_and_rebalance`, then increments `[tree +0x14]` | `PRIMARY_ELF_VERIFIED` |
+
+The observed payload header begins at object-relative `+0x0c` and uses a
+header base at payload-relative `+0x04`. Its words at `+0x04`, `+0x08`,
+`+0x0c`, `+0x10` plus the count at `+0x14` are layout-compatible with the
+20-byte libstdc++ `_Rb_tree_header` shape. A separately allocated node is
+20 bytes: its `+0x08` and `+0x0c` words are followed by the recursive release
+helper, and its one-word value storage is at `+0x10`. These offsets and the
+imported `_Rb_tree` ABI are direct static facts; the compatibility statement
+is `STATIC_INFERRED`.
+
+### Lifetime and safety boundary
+
+`PrmSet::getSet()` still returns an interior pointer candidate without a
+retaining operation in its bounded body. The recursive release path reaches an
+ARM interworking veneer and the `_ZdlPv` PLT binding, but allocator behavior,
+exception cleanup, null/invalid-element policy outside the observed null link,
+copy-on-write, owner identity, locks and concurrent access remain `UNKNOWN`.
+A pointer obtained through `ParamList::get` or `getSet` must therefore remain a
+descriptive borrowed-pointer candidate; it is not a safe host pointer or a
+runtime SDK handle.
+
+The exact source alias (`std::set`, another `_Rb_tree` wrapper, or a Sony
+container), key/value typedef, comparator class, and full virtual destructor
+ownership contract remain unresolved. No runtime verification was performed;
+`runtime_verified=false` and `callable=false` are unchanged.
+
+The updated probe, descriptive header and JSON contract add evidence-gated
+header/node metadata and fail-closed tests for status promotion. The private
+probe returned `validation={'valid': True, 'errors': []}` with the pinned
+hash. The public test suite result and CI status are reported in the commit
+that contains this checkpoint.
+
+### Verification update after the accessor-profile rerun
+
+The first rerun exposed an overlapping target range in the existing private
+Ghidra profile; that run is retained as a failed environment observation and
+is not counted as a successful export. `ParamListTargets.java` now removes
+pre-existing overlapping functions, uses non-overlapping bounded helper
+ranges, and recreates a missing target function before export. The corrected
+ASCII-path Ghidra 12.1.3 run used `ARM:LE:32:v8`, image base `0x10000`, and
+`-noanalysis`, exited `0`, and ended with `COMPLETE_TARGET_EXPORT`:
+
+- 28 target bodies
+- 375 instruction rows
+- 55 basic blocks
+- 96 CFG edges
+- accessor targets present at `0xffc40`, `0xffc60`, `0xffc68`, `0xffc70`,
+  `0xffccc`, `0xffcd4` and `0xffcdc`
+
+The private export is not checked in. The full public synthetic regression
+suite now passes **330 tests**. This validates the evidence gate and exporter
+handling only; it does not add runtime or callable-API proof.
+
+The public Windows environment has no `g++`, `clang++` or `cl`, so the
+candidate C++ header was not compiler-checked in this session; its layout is
+covered by the JSON/Python evidence gates and static assertions remain for a
+future toolchain check.

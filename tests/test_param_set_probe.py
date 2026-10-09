@@ -29,6 +29,11 @@ def _report():
             "vtable_address_point": "0x1019d20",
         },
         "payload_layout": {
+            "header_layout": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "base_offset": "+0x04",
+                "compatibility": "STATIC_INFERRED; compatible header shape",
+            },
             "tree_evidence": {
                 "status": "PRIMARY_ELF_VERIFIED",
                 "node_size_bytes": 0x14,
@@ -36,6 +41,11 @@ def _report():
                 "node_value_width_bytes": 4,
                 "header_sentinel_offset": 0x04,
                 "node_count_offset": 0x14,
+                "node_layout": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "+0x10": "one-word value storage",
+                    "compatibility": "STATIC_INFERRED; compatible node shape",
+                },
                 "source_type": "UNKNOWN",
                 "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
                 "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
@@ -65,6 +75,14 @@ class ParamSetProbeTests(unittest.TestCase):
         self.assertEqual(tree["node_value_width_bytes"], 4)
         self.assertEqual(tree["source_type"], "UNKNOWN")
         self.assertEqual(tree["value_type"].split(";", 1)[0], "UNKNOWN")
+        header = contract["layout"]["header_layout"]
+        self.assertEqual(header["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(header["base_offset"], "+0x04")
+        self.assertTrue(header["compatibility"].startswith("STATIC_INFERRED"))
+        node = tree["node_layout"]
+        self.assertEqual(node["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(node["+0x10"], "one-word value storage")
+        self.assertTrue(node["compatibility"].startswith("STATIC_INFERRED"))
         self.assertEqual(tree["insert_callers"]["direct_callsite_addresses"], [
             "0xfff4e", "0xfff86", "0x7f4402",
         ])
@@ -112,6 +130,20 @@ class ParamSetProbeTests(unittest.TestCase):
         result = validate_param_set(report)
         self.assertFalse(result["valid"])
         self.assertIn("tree_node_value_width", result["errors"])
+
+    def test_header_layout_is_evidence_gated(self):
+        report = _report()
+        report["payload_layout"]["header_layout"]["status"] = "INFERRED"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("header_layout_status", result["errors"])
+
+    def test_node_layout_is_evidence_gated(self):
+        report = _report()
+        report["payload_layout"]["tree_evidence"]["node_layout"]["+0x10"] = "unknown"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("node_layout_value_offset", result["errors"])
 
     def test_tree_symbol_mismatch_is_rejected(self):
         report = _report()

@@ -84,12 +84,32 @@ struct PrmSetPayloadTreeWords {
     std::uint32_t header_link_10;
     std::uint32_t node_count_14;
 };
+// Layout-compatible candidate for the separately allocated tree node.  The
+// field names intentionally remain generic: the exact PrmSet element type,
+// comparator and allocator ownership are not proven by the primary ELF.
+struct PrmSetTreeNodeWords {
+    std::uint32_t node_word_00;
+    std::uint32_t node_link_04;
+    std::uint32_t node_link_08;
+    std::uint32_t node_link_0c;
+    std::uint32_t value_word_10;
+};
+static_assert(offsetof(PrmSetTreeNodeWords, node_link_08) == 8);
+static_assert(offsetof(PrmSetTreeNodeWords, value_word_10) == 16);
+static_assert(sizeof(PrmSetTreeNodeWords) == 20);
+
 struct PrmSetTreeEvidenceConstants {
     static constexpr std::uint32_t node_size_bytes = 0x14;
     static constexpr std::uint32_t node_value_offset = 0x10;
     static constexpr std::uint32_t node_value_width_bytes = 0x04;
     static constexpr std::uint32_t header_sentinel_offset = 0x04;
     static constexpr std::uint32_t node_count_offset = 0x14;
+    static constexpr std::uint32_t payload_header_base_offset = 0x04;
+    static constexpr std::uint32_t payload_root_offset = 0x08;
+    static constexpr std::uint32_t payload_header_link_0c_offset = 0x0c;
+    static constexpr std::uint32_t payload_header_link_10_offset = 0x10;
+    static constexpr std::uint32_t node_link_08_offset = 0x08;
+    static constexpr std::uint32_t node_link_0c_offset = 0x0c;
     static constexpr std::uint32_t value_copy_helper_vma = 0x000ecd7a;
     static constexpr std::uint32_t value_compare_helper_vma = 0x000efe6c;
 };

@@ -479,3 +479,27 @@ Without private inputs, `fw sdk parameter-set-cross-elf --json` validates and
 prints the sanitized checked-in contract. Seven targeted parser/validator/CLI
 tests and the 328-test local suite pass. Raw firmware, Ghidra projects, JSONL
 exports and private paths stay outside the public checkout.
+
+## ParamSet header/node lifetime checkpoint (2026-10-10)
+
+The private-only `fwplatform.param_set_probe` now validates direct accessors in
+`libObj.so` at `0xffc40`, `0xffc60`, `0xffc68`, `0xffc70`, `0xffccc`,
+`0xffcd4` and `0xffcdc`, plus recursive release at `0xffd80`/`0xffdf6`.
+The observed payload header begins at `payload +0x04`, links are initialized at
+`+0x0c`/`+0x10`, the root is read from `+0x08`, and the count candidate is at
+`+0x14`. The separately allocated node is 20 bytes with one-word value storage
+at `+0x10` and link candidates at `+0x08`/`+0x0c`.
+
+These offsets are `PRIMARY_ELF_VERIFIED`; compatibility with the imported
+libstdc++ `_Rb_tree` header/node ABI is `STATIC_INFERRED`. The exact source
+container alias, element type/comparator, allocator, owner-release and
+concurrency behavior remain `UNKNOWN`. This is descriptive offline metadata,
+not a live object declaration. The probe enforces the private ELF SHA and
+never emits firmware bytes. `runtime_verified=false` and `callable=false`.
+The targeted Ghidra profile includes the accessor range, while its project and
+export remain private.
+
+The corrected private Ghidra accessor rerun used non-overlapping target ranges
+and explicit overlap cleanup. It exited 0 with `COMPLETE_TARGET_EXPORT`, 28
+bodies, 375 instruction rows, 55 blocks and 96 CFG edges; the first overlapping
+range attempt is retained as a failed run observation and is not counted.

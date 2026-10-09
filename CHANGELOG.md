@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — PrmSet header/node lifetime evidence
+
+- Added SHA-pinned primary-ELF observations for the payload root/header and
+  node-link accessors (`0xffc40`, `0xffc60`, `0xffc68`, `0xffc70`, `0xffccc`,
+  `0xffcd4`, `0xffcdc`) and the recursive release path through `_ZdlPv`.
+- Added evidence-gated header/node metadata to the descriptive SDK contract,
+  generic node snapshot declarations and fail-closed regression tests. Direct
+  offsets are `PRIMARY_ELF_VERIFIED`; `_Rb_tree` family compatibility remains
+  `STATIC_INFERRED`. Exact source alias, value type, ownership, exceptions,
+  concurrency and runtime callability remain unknown.
+- Extended the private Ghidra target profile with the accessor region. No
+  firmware bytes, private Ghidra output or runtime/device data are published.
+
 ## Unreleased — cross-ELF ParamSet caller evidence
 
 - Added the generic metadata-only `ImportedSymbolReferences.java` exporter and
@@ -328,3 +341,16 @@ Ghidra output were added; runtime and callable API counts remain zero.
 Added bounded static evidence for CntInfoList removal, front-drop, temporary
 copy and rebuild paths. Updated the descriptive contract, tests and private
 Ghidra profile without adding firmware bytes or private analysis artifacts.
+
+## Unreleased — corrected ParamSet Ghidra accessor profile
+
+- Added bounded payload header/node accessors and recursive release evidence to
+  the SHA-pinned private probe and descriptive SDK metadata. Direct offsets are
+  `PRIMARY_ELF_VERIFIED`; `_Rb_tree` compatibility is `STATIC_INFERRED`.
+- Fixed the targeted `ParamListTargets.java` profile to remove overlapping
+  functions, use non-overlapping helper ranges and recreate missing targets.
+  The corrected private run exits 0 with 28 bodies, 375 instructions, 55
+  blocks, 96 edges and `COMPLETE_TARGET_EXPORT`.
+- Full synthetic regression suite: 330 tests passed. Runtime verification and
+  callable SDK counts remain zero; private firmware/Ghidra exports remain
+  excluded.

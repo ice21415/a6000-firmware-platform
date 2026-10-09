@@ -667,3 +667,55 @@ source element alias without promoting the observed one-word comparator to an
 exact typedef. Continue to use `sdk/param_set_3_21.json` and the separate
 cross-ELF contract rather than treating the generic `0xffe70` helper as the
 mutation caller.
+
+## Continuation checkpoint — ParamSet header/node lifetime (2026-10-10)
+
+The exact private `libObj.so` was re-verified at SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`. The
+bounded Capstone probe now records the following additional facts without
+repeating the recovered `ParamList::get` body:
+
+- `0xffc40` returns `[payload + 0x08]`; `0xffc60` and `0xffc68` load node
+  words at `+0x0c` and `+0x08`.
+- `0xffc70`, `0xffccc`, `0xffcd4` and `0xffcdc` are direct address accessors
+  for payload/header offsets `+0x04`, `+0x0c`, `+0x08` and `+0x10`.
+- Sentinel initialization at `0xffce4` and payload initialization at `0xffcf6`
+  produce the observed header words and clear the node-count candidate at
+  `+0x14`.
+- Recursive destruction at `0xffd80` follows the observed links until null,
+  releases nodes through the local path ending at the `_ZdlPv` PLT, and
+  `0xffdf6` obtains the root through `0xffc40`.
+- The insertion helper at `0xffe70` passes the standard `_Rb_tree` rebalance
+  argument shape and increments the observed count word.
+
+The direct offsets are `PRIMARY_ELF_VERIFIED`; compatibility with a 20-byte
+libstdc++ `_Rb_tree` header/node family is `STATIC_INFERRED`. The exact source
+alias, element typedef/comparator, allocator pairing, virtual destructor
+ownership, null/invalid-element behavior beyond the observed null link,
+exception cleanup, and concurrency remain `UNKNOWN`. `getSet` remains a
+borrowed interior-pointer candidate; no runtime-safe or callable API is
+created. `runtime_verified=false` and `callable=false` remain mandatory.
+
+`fwplatform/param_set_probe.py`, `sdk/param_set_3_21.json` and
+`sdk/paramlist_3_21_candidate.hpp` carry the evidence-gated layout. The
+private Ghidra profile includes the accessor region; its project/export stay
+outside the public checkout. Targeted tests pass after this checkpoint; run
+the full suite before committing.
+
+Next target: recover a uniquely typed PrmSet mutation/owner caller, then map
+exception and virtual-release paths. Do not promote `_Rb_tree` compatibility
+to `std::set` or expose a live wrapper.
+
+## Verification update — accessor profile rerun (2026-10-10)
+
+The first attempt to extend the private Ghidra profile exposed an overlapping
+bounded target; it is not counted as success. `ParamListTargets.java` now
+clears overlapping existing functions and uses non-overlapping helper ranges.
+The corrected ASCII-path Ghidra 12.1.3 run (ARM:LE:32:v8, image base
+0x10000, -noanalysis) exited 0 and wrote `COMPLETE_TARGET_EXPORT` with 28
+bodies, 375 instruction rows, 55 blocks and 96 CFG edges. Accessor targets
+were present at 0xffc40, 0xffc60, 0xffc68, 0xffc70, 0xffccc, 0xffcd4 and
+0xffcdc. The private export remains outside the repository.
+
+The complete public synthetic suite passes 330 tests. This is static evidence
+and tooling validation; runtime-verified and callable SDK counts remain zero.

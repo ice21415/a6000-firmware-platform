@@ -22,7 +22,20 @@
       "+0x10": "pointer to payload +0x04 sentinel",
       "+0x14": "zeroed field"
     },
-    "container_identity": "ordered-associative-tree-like payload; direct ELF-local _Rb_tree ABI evidence, exact PrmSet source alias and element type UNKNOWN",
+    "container_identity": "layout-compatible with a libstdc++ _Rb_tree header/node family; exact PrmSet source alias and element type UNKNOWN",
+    "header_layout": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "base_offset": "+0x04",
+      "fields": {
+        "+0x04": "header word; initialized to zero",
+        "+0x08": "root/parent link candidate; initialized to zero",
+        "+0x0c": "header link candidate; initialized to header +0x04",
+        "+0x10": "header link candidate; initialized to header +0x04",
+        "+0x14": "node count candidate; initialized to zero"
+      },
+      "compatibility": "STATIC_INFERRED; matches the 20-byte libstdc++ _Rb_tree_node_base plus count shape",
+      "evidence": "payload_header_accessors, payload_sentinel_init, payload_tree_destroy_recursive"
+    },
     "tree_evidence": {
       "status": "PRIMARY_ELF_VERIFIED",
       "node_size_bytes": 20,
@@ -45,6 +58,15 @@
       "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
       "prmset_operation_path": "UNKNOWN; bounded PrmSet lifecycle reaches shared helpers, not a named insert method",
       "node_value_width_bytes": 4,
+      "node_layout": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "+0x00": "node header word candidate",
+        "+0x04": "node link candidate",
+        "+0x08": "node link candidate; accessor observed at 0xffc68",
+        "+0x0c": "node link candidate; accessor observed at 0xffc60",
+        "+0x10": "one-word value storage",
+        "compatibility": "STATIC_INFERRED; compatible with libstdc++ _Rb_tree_node_base plus value storage"
+      },
       "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
       "insert_callers": {
         "status": "PRIMARY_ELF_VERIFIED",
@@ -124,6 +146,7 @@
     },
     "payload_tree_helpers": {
       "entries": {
+        "header_accessors": "0xffc40",
         "recursive_destroy": "0xffd80",
         "node_size": "0xffe1c",
         "node_construct": "0xffe4c",
@@ -137,7 +160,7 @@
       "verification": "PRIMARY_ELF_VERIFIED for bounded instruction and relocation facts",
       "insert_scope": "generic ELF-local helper; direct PrmSet method identity UNKNOWN",
       "safe_to_call": false,
-      "value_semantics": "The bounded node construction/copy path transfers one 32-bit word at node +0x10; the local comparator orders two such words with an unsigned comparison. The exact PrmSet source element type remains UNKNOWN."
+      "value_semantics": "The bounded node construction/copy path transfers one 32-bit word at node +0x10; the local comparator orders two such words with an unsigned comparison. Header/link accessors observe payload +0x04, +0x08, +0x0c and +0x10, compatible with the imported _Rb_tree node-base ABI. The exact PrmSet source element type remains UNKNOWN."
     }
   },
   "bindings": {
@@ -215,7 +238,7 @@
     "status": "STATIC_INFERRED"
   },
   "limitations": [
-    "No source-level proof that the payload is std::set or another named container",
+    "The payload header/node offsets are compatible with libstdc++ _Rb_tree, but there is no source-level proof that it is std::set or another named container",
     "payload +0x00 is not written by the bounded default initializer",
     "The helper copies and compares one 32-bit word, but the exact PrmSet element typedef and source comparator remain UNKNOWN",
     "No unique PrmSet mutation caller for 0xffe70 is proven; direct Thumb callsites are preserved as helper evidence only. A separate libScalarDaemon caller now consumes GET followed by getSet, but its mutation relationship is unknown",
@@ -226,7 +249,7 @@
   ],
   "runtime_verified": false,
   "callable": false,
-  "evidence_revision": "param-set-tree-value-helpers-cross-elf-2026-10-10",
+  "evidence_revision": "param-set-header-node-lifetime-2026-10-10",
   "inheritance": {
     "status": "PRIMARY_ELF_VERIFIED",
     "base_type": "ParamBase",
