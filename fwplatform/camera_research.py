@@ -179,7 +179,7 @@ def inspect_camera_research(
         observed = obj.get("observed_value")
         if observed is not None and (isinstance(observed, bool) or not isinstance(observed, int) or observed not in (0, 1)):
             raise ValueError("field value must be 0, 1 or UNKNOWN")
-        fields.append({"owner": obj["owner"], "kind": obj["kind"], "offset": hex(offset),
+        fields.append({"owner": obj["owner"], "kind": obj["kind"], "offset": hex(offset), "object_field_offset": hex(offset),
                        "instruction_address": hex(_address(obj["instruction_address"], "field.instruction_address")),
                        "observed_value": observed, "source_artifact": _artifact(obj.get("source_artifact")),
                        "instruction_immediate_offset": hex(immediate),
