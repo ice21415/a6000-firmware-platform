@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.3：JNI semantic graph 以精確 DEX path 和 evidence ID 配對，修正 JNI registration module ID 誤作 binary ID 的風險。
+- DEX parser 提供 bounded string/type/proto/method/class-def table 解析；class definition 和 method reference 分開記錄，不推定方法實作。
+- DEX `research_observation` 採交易回滾，新增跨 DEX、防錯誤索引、重跑與部分匯入失敗的合成回歸測試。
+
 - Phase 3.2：schema v7 保留 legacy DB identity 與 FK，移除衝突的 module dependency、OSAL queue、JNI bridge 唯一性約束，並補上 v6 upgrade tests。
 - JNI bridge identity 綁定 native binary SHA、DEX path 與 address space，不再依相同虛擬位址覆寫其他韌體的對應。
 - 增加 evidence-bound DEX string/candidate persistence、`fw analyze dex` 與 `fw query dex` 以及 CLI 回歸測試。
