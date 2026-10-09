@@ -328,6 +328,9 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_core_probe.add_argument("--expected-sha256", default=None,
                                 help="Synthetic fixture override only; default pins Sony libObj.so 3.21")
     sdk_core_probe.add_argument("--json", action="store_true")
+    sdk_primary = sdk_sub.add_parser("primary-contracts")
+    sdk_primary.add_argument("--fixture", type=Path, default=Path("sdk/core_3_21_primary_helper_contracts.json"))
+    sdk_primary.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -422,6 +425,12 @@ def main(argv: list[str] | None = None) -> int:
             args.elf, expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
             targets=targets, region_bytes=args.region_bytes,
         )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "primary-contracts":
+        from .primary_contracts import validate_primary_contracts
+        contract = json.loads(args.fixture.read_text(encoding="utf-8"))
+        result = {"validation": validate_primary_contracts(contract), "contract": contract}
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "trace-selector":

@@ -1,0 +1,33 @@
+"""Public metadata validation; contains no Sony bytes or decompiler output."""
+import copy
+import json
+from pathlib import Path
+import unittest
+
+from fwplatform.primary_contracts import validate_primary_contracts
+
+
+class PrimaryContractTests(unittest.TestCase):
+    def setUp(self):
+        path = Path(__file__).resolve().parents[1] / "sdk/core_3_21_primary_helper_contracts.json"
+        self.contract = json.loads(path.read_text(encoding="utf-8"))
+
+    def test_descriptive_contracts_never_grant_callability(self):
+        self.assertEqual(validate_primary_contracts(self.contract)["callable_interfaces"], 0)
+
+    def test_static_status_cannot_enable_runtime(self):
+        for field in ("runtime_verified", "callable"):
+            doc = copy.deepcopy(self.contract)
+            doc[field] = True
+            with self.assertRaises(ValueError):
+                validate_primary_contracts(doc)
+
+    def test_identity_address_and_evidence_fail_closed(self):
+        for field, value in (("binary_sha256", "0" * 64), ("address_space", "ram")):
+            doc = copy.deepcopy(self.contract)
+            doc[field] = value
+            with self.assertRaises(ValueError):
+                validate_primary_contracts(doc)
+        self.contract["interfaces"][0]["evidence_locators"] = []
+        with self.assertRaises(ValueError):
+            validate_primary_contracts(self.contract)

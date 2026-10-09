@@ -1,5 +1,9 @@
 # A6000 Firmware Research Platform
 
+最新核心 helper 原始 ELF 驗證：[研究稽核](reports/CORE_PRIMARY_HELPER_AUDIT.md)。
+可用 `python -m fwplatform.cli sdk primary-contracts --json` 查詢描述性契約；
+這些介面尚未通過實機驗證，不能當作可直接呼叫的相機 SDK。
+
 這是一個獨立的 Sony ILCE-6000（A6000）韌體逆向工程研究平台，目標是把
 inventory、靜態 ELF 分析、Ghidra CFG、跨模組 linkage、證據管理和描述性 SDK
 集中到可重複執行的本機資料庫中。

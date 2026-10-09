@@ -201,6 +201,17 @@ def probe_private_core_abi(
             _read_vma(fp, elf, entry, 2, executable=True)
             region = _trace_thumb(fp, elf, entry, region_bytes)
             observations = _reg_observations(fp, elf, region)
+            from .elf_plt import resolve_plt_binding
+            bindings = []
+            plt = elf.get_section_by_name(".plt")
+            if plt is not None:
+                for branch in region["branch_observations"]:
+                    target = branch.get("target_vma")
+                    if target is None:
+                        continue
+                    target_address = int(target, 16)
+                    if plt["sh_addr"] <= target_address < plt["sh_addr"] + plt["sh_size"]:
+                        bindings.append(resolve_plt_binding(fp, elf, target_address, thumb_stub=True))
             reports.append({
                 "research_target": label, "entry_vma": hex(entry),
                 "bounded_region_bytes": region_bytes,
@@ -211,6 +222,7 @@ def probe_private_core_abi(
                 "incompleteness_reasons": region["incompleteness_reasons"],
                 "sampled_instruction_rows": region["instruction_observations"][:MAX_SAMPLED_ROWS],
                 "register_and_return_observations": observations,
+                "relocation_bound_tail_targets": bindings,
                 "complete_cpp_abi_proven": False,
                 "function_boundary_proven": False,
             })

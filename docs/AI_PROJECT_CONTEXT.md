@@ -81,3 +81,12 @@ fw graph export --format graphml --output <graphml>
 
 優先擴充真實證據 adapter 的 locator/ABI 驗證、受控 multi-ELF Ghidra checkpoint、事件
 與狀態機關係及 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。
+# Primary helper continuation (2026-10-09)
+
+Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` before repeating the handoff's
+missing-byte conclusion. Real private SHA-pinned libObj.so was read with Capstone.
+`fwplatform/elf_plt.py` resolves interworking PLT relocations;
+`fwplatform/primary_contracts.py` validates the additive descriptive SDK fixture.
+Targeted Ghidra instructions agree after image-base mapping, but tail-call
+decompilation is rejected and process exit 1 remains an environment limitation.
+No runtime/callable interface was validated. Next callee: ELF VMA 0x7edaca.

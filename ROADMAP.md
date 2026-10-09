@@ -202,3 +202,9 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 完成 Camera、UI、Lens、Sensor、Media、Android、Networking 等 domain index。
 - 建立可回復、可驗證的 modding framework adapter；任何實機 adapter 都必須另行審查。
 - 支援公開資料來源的可重現分析，不把私人 firmware 納入 CI 或 release。
+# Primary helper checkpoint — 2026-10-09
+
+The two handoff target bodies have now been read from the authenticated private
+ELF. See `reports/CORE_PRIMARY_HELPER_AUDIT.md`. Next review ParamList::get
+at ELF VMA 0x7edaca, recover wrapper class identity, and repair targeted Ghidra
+tail-call decompilation/logging. Runtime-safe SDK API count remains zero.

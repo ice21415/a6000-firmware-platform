@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "runtime_verified": false,
+  "callable": false,
+  "interfaces": [
+    {
+      "name": "opaque_action_payload_getter",
+      "entry": "0x13200a",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "Readable object pointer; word at offset 0x14 supplies Event receiver",
+      "r1_r2_r3": "No semantic use in local wrapper; forwarded through tail call",
+      "return": "Tail-return of Event::getParamList() const; defined local implementation loads Event word at offset 0x0c into r0",
+      "declared_return_type": "UNKNOWN",
+      "tail_binding": {
+        "plt_entry": "0xdbd1c",
+        "got_slot": "0x102cec8",
+        "symbol": "_ZNK5Event12getParamListEv",
+        "local_definition": "0xfe9d4",
+        "runtime_symbol_interposition": "UNKNOWN"
+      },
+      "evidence_locators": ["ELF_VMA:0x13200e", "ELF_VMA:0x132014", "ELF_RELOCATION:0x102cec8", "ELF_SYMBOL:0xfe9d5", "ELF_VMA:0xfe9d8"],
+      "preconditions": "Readable object and Event pointer; wrapper has no null checks",
+      "ownership": "UNKNOWN",
+      "thread_context": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "opaque_parameter_word_lookup",
+      "entry": "0x42ac00",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "Readable wrapper pointer; word at offset 4 supplies ParamList receiver",
+      "r1": "Forwarded lookup key; unsigned long supported by downstream mangled argument type",
+      "r2": "Optional output pointer saved in r4; success writes one 32-bit word",
+      "r3": "Saved/restored for stack alignment; no semantic argument use in reviewed local body",
+      "lookup": "0xe5b20 forwards r0/r1, assigns r2=1, tail-calls ParamList::get(unsigned long,unsigned long) const",
+      "lookup_binding": {"plt_entry": "0xe2890", "got_slot": "0x102f0c8", "symbol": "_ZNK9ParamList3getEmm"},
+      "output": "0xe5b18 loads selected object's word at offset 0x0c; 0x42ac16 stores it through original r2",
+      "return": "r0=0 on write success; r0=1 for null list, null output or null lookup result",
+      "failure_output": "Local wrapper does not write output on its failure paths; callee side effects UNKNOWN",
+      "declared_return_type": "UNKNOWN; observed machine status values 0 and 1",
+      "evidence_locators": ["ELF_VMA:0x42ac00", "ELF_VMA:0x42ac04", "ELF_VMA:0x42ac08", "ELF_VMA:0x42ac0a", "ELF_VMA:0x42ac16", "ELF_VMA:0x42ac18", "ELF_VMA:0x42ac1c", "ELF_VMA:0x42ac20", "ELF_VMA:0xe5b22", "ELF_RELOCATION:0x102f0c8", "ELF_VMA:0xe5b1c"],
+      "preconditions": "Wrapper r0 must be readable even when list/output are null",
+      "ownership": "UNKNOWN",
+      "thread_context": "UNKNOWN",
+      "safe_to_call": false
+    }
+  ],
+  "limitations": ["Research specifications only; no native wrapper", "Local symbol definition is not proof of runtime binding", "Ghidra decompiler guesses are not declared C++ types", "No Runtime Verification", "Underlying ParamList::get implementation and side effects remain to be reviewed"]
+}
