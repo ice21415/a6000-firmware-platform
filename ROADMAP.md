@@ -68,6 +68,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 覆蓋合成多 binary 同名函式、無證據關係、函式定位、上限、重跑與草稿匯入回歸測試。
 - 完整核心 API 仍需合法取得的多 ELF 程式碼證據與獨立 ABI、JNI、OSAL 及狀態機確認；symbol inventory 無法替代語意逆向。
 
+## Phase 3.7（受控多 ELF Ghidra 覆蓋擴展）
+
+- 新增 `fw analyze ghidra-batch`：預設僅規劃、選擇尚未成功匯入的 ELF，且以 manifest SHA-256、受限路徑與固定批量排程。
+- 明確 `--execute` 才會使用本機 Ghidra PowerShell wrapper；獨立限制輸出與 project 目錄必須位於 firmware root 外。
+- 每個檔案二次 SHA 驗證、清除上次輸出、完整 marker／原始 SHA 驗證；單一 Ghidra 作業失敗不阻斷其他靜態分析。
+- 新增 synthetic binary、headless wrapper mock 和 resume/skip/failure regression tests；CI 不含真實 Sony 韌體，也不宣稱已掃描所有 ELF。
+- 尚需在授權的本機研究副本中執行分析，並逐步驗證各 domain 的 ABI 與 API 語意。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
