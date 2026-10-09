@@ -32,13 +32,21 @@ EXPECTED = {
         ("0x7ef188", "beq.w    #0x7eeefa"),
         ("0x7ef0c6", "bl       #0x7f2210"),
         ("0x7ef15a", "bl       #0x7f2210"),
+        ("0x7ef16e", "bl       #0x7eecac"),
     ),
     ("app_event_pop", "0x7eec8c"): (
         ("0x7eec92", "ldr      r0, [r0, #0x10]"),
         ("0x7eec98", "b.w      #0xdf82c"),
+    ),
+    ("app_event_dispatch", "0x7eecac"): (
         ("0x7eecac", "push     {r7, lr}"),
         ("0x7eecb0", "ldr      r0, [r0, #0x18]"),
         ("0x7eecb6", "b.w      #0x7f21e8"),
+    ),
+    ("app_event_cleanup", "0x7eecbc"): (
+        ("0x7eece6", "cmp      r0, #0"),
+        ("0x7eecec", "bl       #0x7eecac"),
+        ("0x7eecf2", "bne      #0x7eecc8"),
     ),
     ("app_event_queue_receive", "0x7eeec8"): (
         ("0x7eeed0", "bl       #0x7f29ec"),
