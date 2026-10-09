@@ -110,6 +110,7 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 新增 `sdk/camera_3_21_static_callgraph.json`：九條有保存研究來源的 direct call/tail branch、六筆欄位觀測、四條 bounded normalized selector transition、一個無法唯一解析的間接指派。
 - `--compare-db <private-copy.sqlite>` 以 SQLite read-only mode 交叉核對真正索引的 ELF SHA 唯一性、函式數值 VMA、明確 caller/callee ID；缺少／碰撞／不吻合一律不自動宣稱 ABI 已驗證。
 - 新增唯讀 `fw sdk research` 與針對單一函式 `--focus` 的可稽核圖譜。驗證數值 VMA／指令目標一致、重複入口、偽造 ABI／runtime claim，以及證據檔名最小化；不把手工整理的報告當作公開獨立指令 byte 驗證。
+- 從既有 IMDb phase-8 研究資料補記 `LensCommunicator_Init/Exit` 與 `infra_cameraProfile_init/exit` lifecycle 線索；descriptor offset 不得冒充 callback 函式 VMA。
 - Camera 等核心的真正 ABI／Lens、Sensor、Media 硬體語意及可呼叫性仍需獨立反組譯、ABI 與裝置行為核對；完成度分母仍 UNKNOWN。
 
 ## 下一階段
