@@ -159,6 +159,65 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.17: ModelManager status gate and shared semaphore boundaries
+
+Existing **private saved** `libObj.so` ARM disassembly and the older
+separate Appframework wait-chain JSON now identify a more exact
+application-queue **Boolean status gate**, not a Camera ready API.
+
+The saved `0x7eaa14` status-reader entry loads a word at
+`[r0+0xa4]` and normalizes its nonzero test to 0 or 1.
+The upstream `0x7eeec8` queue-state helper has an earlier
+guard `0x7f29ec`: a nonzero guard result returns 0. When that
+guard does not short circuit, it calls `0x7eaa14`, XORs the
+result with 1, and zero-extends it. Consequently, **only under
+the guard-passed path**:
+
+| Word at ModelManager candidate `+0xa4` | Local `0x7eaa14` result | `0x7eeec8` return |
+|---|---:|---:|
+| Zero | 0 | 1 |
+| Nonzero | 1 | 0 |
+
+The caller `application_thread_body` branches to its sleep
+path `0x7eeefa` when that gate result is zero (callsite
+`0x7ef180` and conditional branch `0x7ef188`).
+This is local assembly control flow only: **do not infer a
+global Camera-ready predicate or the runtime cause of a delay**.
+The adjacent scan at `0x7eaa68` compares status
+`0x50000`, `0x70000`, `0x40000`, but this is **not
+proven to be the same C++ function** as the `0x7eaa14`
+Boolean reader.
+
+The separate `app-status-wait-chain.json` preserves three
+reported semaphore `0x830451` wrappers: `0x7f21e8`
+(completion helper `0x7f0aa0`), `0x7f2210` (`0x7f099c`)
+and `0x7f2238` (`0x7f0aac`). It also reports five
+callsite/state pairs for the `0x7eb118` status setter.
+These are **secondary static research claims**, not fresh
+opcode proofs for `0x7f21e8` or `0x7f2238`.
+The earlier `0x7f2210` branch does have an independently
+saved instruction region.
+
+Run independent, opt-in source-tier crosschecks:
+
+```powershell
+python -m fwplatform.cli sdk app-sync --json
+python -m fwplatform.cli sdk app-sync --saved-disassembly C:\private\boot-static-analysis\app-event-functions.txt --saved-status-chain C:\private\boot-static-analysis\app-status-wait-chain.json --json
+```
+
+With no private source files, the output is CANDIDATE_FIXTURE_ONLY.
+With saved files, the validator separately verifies 18 selected
+ARM instruction-text locations (rechecked in the connected workspace)
+and three reported semaphore wrappers / five status-transition
+callsites. No SQLite, device access, Sony bytecode distribution, or
+ABI/run-time proof is involved. CI uses synthetic saved inputs.
+
+**Remaining critical links:** the `0x11004003` event's real
+consumer, any decoding of keys 7/8, exact `0x12d780`
+selector semantics and actual original-ELF disassembly of the
+`0x7f21e8` wait body. Do not patch a wait, change `+0xa4`
+or claim any completed Camera SDK ABI from this data.
+
 ## Phase 3.16: Appframework event-queue and dispatch boundary
 
 A saved original-firmware `libObj.so` disassembly identifies
