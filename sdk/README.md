@@ -201,6 +201,11 @@ trace runtime execution or authorize callable Camera APIs. The private
 `libObj.so` reverse-engineering results were generated before this PR and
 their detailed provenance remains in local research artifacts.
 
+Separate `sdk/core_3_21_lifecycle_research_leads.json` records the static
+phase-8 IMDb LensCommunicator init/exit and CameraProfile init/exit callbacks.
+IMDb descriptor offsets are **not** function VMAs, and no lens focus/iris,
+sensor-imager or media processing ABI is claimed by these leads.
+
 Known blockers include the asynchronous EE-neutral command's concrete
 implementation and completion producer, EventFilter normalization, complete
 state/action coverage, calling conventions/return layouts, and physical
