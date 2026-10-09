@@ -192,6 +192,76 @@ class CoreApiInvestigationTests(unittest.TestCase):
         self.assertIsNone(result["runtime_callable_apis"])
         self.db = Database(self.dbfile)
 
+    def test_inspect_exact_generated_function_without_lexical_domain(self) -> None:
+        from fwplatform.function_inspection import inspect_function
+        bid = self.binaries["Camera_capture"]
+        original_module = self.db.connection.execute(
+            "SELECT module_id FROM function WHERE id=?",
+            (self.functions["Camera_capture"],),
+        ).fetchone()[0]
+        fid = self.db.upsert("function", {
+            "binary_id": bid, "module_id": original_module,
+            "identity_key": "function:generated:0x900",
+            "name": "FUN_00000900", "address": "0x900",
+            "generated_name": 1, "prototype": "void FUN_00000900(void)",
+        }, ("identity_key",))
+        self.db.upsert("state_machine", {
+            "name": "ModelCamera.selector_dispatch",
+            "module_id": original_module, "status": "CANDIDATE",
+        }, ("name",))
+        self.db.commit()
+        changes = self.db.connection.total_changes
+        record = inspect_function(self.db, function_id=fid)
+        self.assertEqual(self.db.connection.total_changes, changes)
+        self.assertTrue(record["function"]["generated_name"])
+        self.assertEqual(record["function"]["raw_prototype_unverified"],
+                         "void FUN_00000900(void)")
+        self.assertFalse(record["function"]["location_evidence_valid"])
+        self.assertEqual(record["function"]["abi_status"], "UNKNOWN")
+        self.assertFalse(record["function"]["runtime_callable"])
+        context = record["module_state_machine_context"]
+        self.assertEqual(context["scope"], "module_id_only_not_function_transition_proof")
+        self.assertEqual(context["rows"][0]["name"], "ModelCamera.selector_dispatch")
+        self.assertFalse(context["function_to_state_link_verified"])
+        self.assertEqual(self._camera()["indexed_candidates"], 1)
+
+    def test_inspect_same_numeric_entry_downgrades_identity(self) -> None:
+        from fwplatform.function_inspection import inspect_function
+        fid = self.functions["Camera_capture"]
+        self.db.upsert("function", {
+            "binary_id": self.binaries["Camera_capture"],
+            "identity_key": "function:alias:0x0100",
+            "name": "FUN_alias", "address": "0x0100",
+        }, ("identity_key",))
+        self.db.commit()
+        row = inspect_function(self.db, function_id=fid)
+        self.assertFalse(row["function"]["identity_unique"])
+        self.assertFalse(row["function"]["location_evidence_valid"])
+        self.assertIsNone(row["function"]["location_evidence_id"])
+
+    def test_inspect_invalid_ids_and_cli_response(self) -> None:
+        from fwplatform.function_inspection import inspect_function
+        with self.assertRaises(ValueError):
+            inspect_function(self.db, function_id=0)
+        with self.assertRaises(ValueError):
+            inspect_function(self.db, function_id=999999)
+        with self.assertRaises(ValueError):
+            inspect_function(self.db, function_id=self.functions["Camera_capture"],
+                             relation_limit=0)
+        camera_id = self.functions["Camera_capture"]
+        self.db.close()
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured):
+            self.assertEqual(main([
+                "--db", str(self.dbfile), "sdk", "inspect",
+                "--function-id", str(camera_id), "--json",
+            ]), 0)
+        result = json.loads(captured.getvalue())
+        self.assertEqual(result["function"]["id"], camera_id)
+        self.assertTrue(result["function"]["location_evidence_valid"])
+        self.assertEqual(result["function"]["abi_status"], "UNKNOWN")
+        self.db = Database(self.dbfile)
+
 
 if __name__ == "__main__":
     unittest.main()
