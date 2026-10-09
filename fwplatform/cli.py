@@ -302,6 +302,16 @@ def build_parser() -> argparse.ArgumentParser:
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
+    batch = analyze_sub.add_parser("ghidra-batch")
+    batch.add_argument("--root", type=Path, required=True)
+    batch.add_argument("--limit", type=int, default=5)
+    batch.add_argument("--force", action="store_true")
+    batch.add_argument("--execute", action="store_true")
+    batch.add_argument("--ghidra-root", type=Path)
+    batch.add_argument("--project-dir", type=Path)
+    batch.add_argument("--output-dir", type=Path)
+    batch.add_argument("--timeout", type=int, default=3600)
+    batch.add_argument("--json", action="store_true")
     linkage = analyze_sub.add_parser("linkage"); linkage.add_argument("--root", type=Path, required=True); linkage.add_argument("--limit", type=int); linkage.add_argument("--json", action="store_true")
     osal = analyze_sub.add_parser("osal"); osal.add_argument("--fixture", type=Path, required=True); osal.add_argument("--json", action="store_true")
     jni = analyze_sub.add_parser("jni"); jni.add_argument("--fixture", type=Path, required=True); jni.add_argument("--json", action="store_true")
@@ -411,6 +421,21 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "analyze" and args.analyze_command == "ghidra":
             from .ghidra_importer import import_ghidra_jsonl
             _json_or_text(import_ghidra_jsonl(db, args.root, args.binary, args.jsonl), args.json)
+        elif args.command == "analyze" and args.analyze_command == "ghidra-batch":
+            from .ghidra_batch import plan_ghidra_batch, run_ghidra_batch
+            if args.execute:
+                if args.ghidra_root is None or args.project_dir is None or args.output_dir is None:
+                    parser.error("--execute requires --ghidra-root, --project-dir and --output-dir")
+                result = run_ghidra_batch(
+                    db, args.root, ghidra_root=args.ghidra_root,
+                    project_dir=args.project_dir, output_dir=args.output_dir,
+                    limit=args.limit, force=args.force, timeout=args.timeout,
+                )
+                _json_or_text(result, args.json)
+                return 0 if result["status"] == "COMPLETE" else 2
+            _json_or_text(plan_ghidra_batch(
+                db, args.root, limit=args.limit, force=args.force,
+            ), args.json)
         elif args.command == "analyze" and args.analyze_command == "linkage":
             from .linkage import analyze_linkage
             _json_or_text(analyze_linkage(db, args.root, args.limit), args.json)
