@@ -2,6 +2,11 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.6：Ghidra function records 獨立保存來源 SHA 與 entry locator；不把 prototype 直接推定成 ABI。
+- `fw sdk discover` 以 ELF export + binary identity 搜尋待審核 API，列出候選與證據缺口，不寫入 SDK。
+- `fw sdk draft` 產出需人工確認、全部標 CANDIDATE 的 SDK fixture，保留 domain 搜尋提示而不自動確認語意。
+- 新增 multi-ELF 同名函式、來源歸屬、受控查詢與 review-fixture roundtrip 的合成測試。
+
 - Phase 3.5：加入純離線 `fw sdk mock --scenario`，以名稱空間隔離的命令與狀態轉移建立 deterministic tests；不觸及硬體。
 - 強化 SDK `VERIFIED_STATIC` 合約，要求 primary evidence 同時支持 ELF SHA、function address、ABI 與 parameter/return layout。
 - OSAL/JNI fixture 匯入改為整批 SQLite savepoint rollback；native role/function 綁定要求 ELF SHA，避免跨 binary name/address 誤配。
