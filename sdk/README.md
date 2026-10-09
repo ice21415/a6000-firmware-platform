@@ -202,6 +202,53 @@ nor verification of the unknown helper or event consumer. Synthetic
 regression tests exercise mismatched targets, register swaps and
 unjustified ABI/runtime claims without shipping proprietary firmware.
 
+## Phase 3.15: two request frontends and bounded private Thumb tracing
+
+The saved `libObj.so` disassembly now provides a **second independent
+frontend observation**, `viewManagerIf::requestModelExecute` at
+`0x1250c0`. Both this method and `ViewBase::requestModelExecute`
+(`0x12106e`) call the **same local helper target `0x12d780`** and
+**same named factory import stub target `0xdfbdc`**. The alternate
+frontend's tail branch is `0x125084`, not the known ViewBase
+`requestApplicationExecute` PLT symbol; no event queue consumer is
+therefore inferred from that address or the common factory symbol.
+Its original `r0` meaning remains unknown. The new saved text
+validator covers **50 exact annotated instruction sites** across the
+two frontends and candidate event factory (16+15+19). This exact
+site count was directly matched against the PRIVATE saved local
+`model-camera-methods.txt`, not a new full-file original ELF scan.
+
+To perform the **next local source-byte analysis step** without
+replaying Ghidra's earlier whole-module timeout, use the added bounded
+Capstone CLI on a PRIVATE original 3.21 `libObj.so`:
+
+```powershell
+python -m fwplatform.cli sdk trace-selector --elf C:\private\firmware\libObj.so --region-bytes 1536 --json
+```
+
+This command requires the original `libObj.so` full-file SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`
+by default and checks unambiguous executable PT_LOAD mapping. It
+performs **nonexecuting** bounded Thumb decoding of `0x12d780` and
+`0x125084`, reports visited opcodes/branch targets, bounded literal
+loads and separately lists raw occurrences of `0x11004003`.
+**Raw-word occurrences are not event-consumer xrefs.** It does not
+recursively follow BL calls into unrelated code, deduce ABI/struct
+ownership, patch firmware or communicate with hardware. Targets,
+region width and SHA can be explicitly overridden for synthetic
+fixtures or other authorized local investigations; the default
+SHA pin prevents accidentally analyzing the wrong Sony release.
+
+As a diagnostic CLI, the output can include address-annotated
+instruction mnemonics from a *private* binary: retain the output
+locally and do not commit proprietary trace material or any firmware
+to this public repository. The connected workspace's text file API
+explicitly rejects `libObj.so` as BINARY_FILE, so this capability
+was tested with **synthetic ELF32/Thumb fixtures**, **not** executed
+against Sony's original private ELF in this session. The exact
+`0x12d780` selector transform and `0x11004003` consumer are still
+UNKNOWN; no runtime-callable Sony API has been asserted.
+
 ## Phase 3.14: recover model-request event envelope (saved static assembly)
 
 An additional previously saved original-ELF ARM/Thumb report for `libObj.so`
