@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.14：由先前保存的 `libObj.so` 組語追回 `ViewBase::requestModelExecute` 前端與 `AbstractUtilityManager::createRequestModelExecuteEvent` 的靜態 event envelope：事件 `0x11004003`、可能包含 `ParamList`、參數鍵 7／8、入口與 callsite 位址。
+- 新增 `sdk event-envelope [--saved-disassembly]`、保守的函式邊界／call-target／寄存器來源文字核對及 synthetic 測試。將 `0x12d780` 轉換、符號動態解析與事件投遞端明列 UNKNOWN；不宣稱 Sony ABI 或 runtime API 已完成。
+
+
 - Phase 3.13：利用已保存的 REA/Ghidra UI 反編譯與獨立 Camera raw ELF/Capstone 區段，建立 `sdk rea-bridge` 跨 ELF selector 研究核對；區分 UI 地址 `0x1b2504→0x1a2504`、兩端 `0x0f01`、事件投遞未證實，以及靜態呼叫位置不等於 runtime 次數。
 - 新增 REA metadata fixture、嚴格 saved UI pseudocode count 和 Thumb MOVW/BL byte decoder 的 synthetic 測試。沒有執行任何韌體、接觸設備或聲稱 Sony ABI 已完成。
 
