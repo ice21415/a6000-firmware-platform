@@ -1,5 +1,7 @@
 """Synthetic checks for the private ParamBase family probe."""
 import unittest
+import json
+from pathlib import Path
 
 from fwplatform.param_family_probe import (
     PARAM_FAMILY_TARGETS,
@@ -61,6 +63,47 @@ class ParamFamilyProbeTests(unittest.TestCase):
     def test_ambiguous_target_does_not_choose_a_symbol(self) -> None:
         symbols = {"first": (0x2001, 4), "second": (0x2000, 4)}
         self.assertIsNone(_target_symbol(symbols, 0x2001))
+
+    def test_checked_in_family_contract_preserves_ehabi_lifecycle_metadata(self) -> None:
+        path = Path(__file__).resolve().parents[1] / "sdk/parameter_types_lifetime_3_21.json"
+        contract = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(len(contract["types"]), 10)
+        for item in contract["types"]:
+            unwind = item.get("exception_unwind")
+            self.assertIsInstance(unwind, dict, item["name"])
+            self.assertEqual(unwind["status"], "PRIMARY_ELF_VERIFIED")
+            self.assertEqual(unwind["format"], "ARM EHABI .ARM.exidx metadata")
+            targets = unwind["targets"]
+            for role, key in (
+                ("constructor", "constructor"),
+                ("clone", "clone_candidate"),
+                ("nondeleting_destructor", "nondeleting_destructor"),
+                ("deleting_destructor", "deleting_destructor"),
+            ):
+                if item.get(key) is None:
+                    continue
+                self.assertIn(role, targets, f"{item['name']}:{role}")
+                self.assertEqual(targets[role]["entry_vma"], str(item[key]).split(maxsplit=1)[0])
+                self.assertEqual(targets[role]["address_space"], "ELF_VMA")
+                self.assertEqual(targets[role]["status"], "PRIMARY_ELF_VERIFIED")
+
+    def test_exception_metadata_cannot_be_promoted_to_runtime(self) -> None:
+        contract = self._contract()
+        contract["types"][0]["exception_unwind"] = {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "format": "ARM EHABI .ARM.exidx metadata",
+            "targets": {
+                "constructor": {
+                    "entry_vma": "0x1000",
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "address_space": "ELF_VMA",
+                }
+            },
+        }
+        contract["types"][0]["runtime_verified"] = True
+        result = validate_param_family_contract(contract)
+        self.assertFalse(result["valid"])
+        self.assertIn("unsafe_type_claim:SyntheticParam", result["errors"])
 
 
 if __name__ == "__main__":

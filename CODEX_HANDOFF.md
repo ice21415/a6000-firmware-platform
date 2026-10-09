@@ -814,3 +814,24 @@ identity, allocator pairing, locking and runtime ABI remain unknown.
 Next target: owner-release and concrete construction/use evidence, without
 promoting the generic ordered-tree helper or generated Ghidra names to a
 PrmSet API.
+
+## Latest checkpoint — ParamBase family EHABI lifecycle index (2026-10-10)
+
+`fwplatform/param_family_probe.py` now resolves sanitized ARM EHABI
+`.ARM.exidx` metadata for every profiled ParamBase-derived family.  The
+authenticated private ELF produced one unique constructor, clone,
+non-deleting-destructor and deleting-destructor entry for each of the ten
+direct RTTI families (40 lifecycle records total).  The probe rejects a
+missing/ambiguous/truncated entry and never emits unwind words or firmware
+bytes.  `PrmSet`, `PrmNumberList` and `PrmObjMsg` entries were independently
+checked against their exact ELF VMAs and `.exidx` locations.
+
+The public `sdk/parameter_types_lifetime_3_21.json` contract now carries the
+sanitized metadata and an explicit semantic limit: EHABI presence does not
+prove every throw edge, exception object, allocator pairing, ownership or
+runtime lifetime contract.  `runtime_verified=false` and `callable=false`
+remain mandatory.  Synthetic family tests now cover the metadata shape and
+reject runtime promotion.  This checkpoint did not run a large Ghidra job and
+does not turn the generic ordered-tree callers into a ParamSet mutator.
+The complete local suite now passes 349 tests; runtime-verified and callable
+core API counts remain zero.

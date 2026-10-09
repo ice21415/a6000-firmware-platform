@@ -1221,3 +1221,13 @@ none is a runtime-safety guarantee.
 公開 `fwplatform/param_set_probe.py` 現在要求唯一 `.ARM.exidx` entry、唯一 `__cxa_end_cleanup` relocation binding，並把 exception cleanup status 固定在 `STATIC_INFERRED`；validator 會拒絕把 cleanup 或 runtime/callable 狀態提升。`sdk/param_set_3_21.json` 與 `sdk/paramlist_3_21_candidate.hpp` 加入描述性 EHABI/cleanup metadata；仍然不是可呼叫 wrapper。runtime verification 與 callable API counts 維持 **0**。本輪 targeted PrmSet regression tests：**22 passed**。 Full local regression suite: **347 tests passed in 16.666s**。
 
 仍未解決：PrmSet 真實 source element typedef/comparator、唯一 mutation owner/caller、完整 EHABI throw-edge/exception-object semantics、allocator pairing、concurrency、runtime ABI 與可呼叫性。下一步應在不把 generic ordered-tree helper 誤標為 PrmSet mutator 的前提下，繼續追蹤 owner-release 與具體 construction/use sites。
+
+## ParamBase 派生族 ARM EHABI lifecycle index — 2026-10-10
+
+本輪把 `.ARM.exidx` 解析加入通用 `fwplatform.param_family_probe`。它只接受完整、SHA-pinned 的 primary ELF，對每個已由 RTTI/vtable 證實的 ParamBase 直接派生族，逐一要求 constructor、clone、non-deleting destructor 和 deleting destructor 的唯一 EHABI entry；回傳 section/VMA、EXTAB 或 compact 分類，不回傳 unwind words 或原始韌體 bytes。
+
+私有 ELF 的十個 direct ParamBase RTTI records 均成功取得四個 lifecycle entries（共 40 筆 primary metadata）：`PrmBool`、`PrmNumber`、`PrmString`、`PrmPoint`、`PrmDimension`、`PrmStruct`、`PrmSet`、`PrmNumberList`、`PrmCntInfoList` 和 `PrmObjMsg`。`PrmSet` 的 entries 為 constructor `0x7efb00` / `.exidx 0xfb2a5c`、clone `0x7efbb4` / `0xfb2a7c`、D1 `0x7efb2c` / `0xfb2a64`、D0 `0x7efb58` / `0xfb2a6c`；`PrmNumberList` 的 entries 為 `0xecdb8` / `0xf60d3c`、`0xed3a4` / `0xf60e44`、`0xece64` / `0xf60d74`、`0xece98` / `0xf60d7c`；`PrmObjMsg` 的 entries 為 `0x12c754` / `0xf661bc`、`0x12c784` / `0xf661cc`、`0x12c700` / `0xf661ac`、`0x12c740` / `0xf661b4`。所有地址均為 `ELF_VMA`，每筆狀態為 `PRIMARY_ELF_VERIFIED`。
+
+此 index 證實的是「某個精確函式 VMA 有唯一 EHABI metadata」；它不證明每條 throw edge、exception object、allocator pairing、source-level virtual declaration、所有權或並行生命週期。公開 `sdk/parameter_types_lifetime_3_21.json` 現在保存每一族的 sanitized entries，`runtime_verified=false`、`callable=false` 未變。通用 validator 會拒絕缺少 entry、錯誤地址空間或 runtime/callable promotion。這輪沒有重跑大型 Ghidra，也沒有把泛用 tree caller 歸屬到 ParamSet。
+
+本輪新增的 family probe regression tests 與 checked-in contract shape checks 通過；完整本地測試為 **349 tests passed**。這只驗證 metadata 管線與 fail-closed 規則，不增加任何 runtime-verified 或 callable API。

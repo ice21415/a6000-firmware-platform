@@ -564,3 +564,15 @@ non-overlapping cleanup ranges and completed with Ghidra 12.1.3,
 `ARM:LE:32:v8`, image base `0x10000`, exit 0, `COMPLETE_TARGET_EXPORT`,
 4 targets, 39 instructions, 4 blocks and 11 edges. Raw exports and projects
 remain private.
+### ParamBase family EHABI lifecycle index (2026-10-10)
+
+`fwplatform/param_family_probe.py` now records sanitized `.ARM.exidx`
+metadata for the constructor, clone, non-deleting destructor and deleting
+destructor of all ten direct ParamBase RTTI families.  The primary ELF pass
+requires one exact entry per target and keeps the function VMA, `.exidx`
+locator, address space and compact/EXTAB classification; it does not publish
+unwind words or raw firmware.  The checked-in
+`sdk/parameter_types_lifetime_3_21.json` metadata and regression tests preserve
+this evidence.  EHABI metadata remains static evidence only: exception-object
+types, complete throw paths, allocator pairing, ownership, locking, runtime
+binding and callable safety are UNKNOWN; runtime/callable counts remain zero.

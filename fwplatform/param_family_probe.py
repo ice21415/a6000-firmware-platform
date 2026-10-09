@@ -127,6 +127,8 @@ PARAM_FAMILY_TARGETS: tuple[dict[str, Any], ...] = (
         "name": "PrmNumberList",
         "vtable_symbol": "_ZTV13PrmNumberList",
         "constructor_symbol": "_ZN13PrmNumberListC1Ev",
+        "destructor_entry": 0xECE64,
+        "deleting_destructor_entry": 0xECE98,
         "destructor_symbol": "_ZN13PrmNumberListD1Ev",
         "clone_entry": 0xED3A4,
         "initializer_entry": 0xECDA8,
@@ -146,6 +148,8 @@ PARAM_FAMILY_TARGETS: tuple[dict[str, Any], ...] = (
         "name": "PrmCntInfoList",
         "vtable_symbol": "_ZTV14PrmCntInfoList",
         "constructor_symbol": "_ZN14PrmCntInfoListC1Ev",
+        "destructor_entry": 0x11D54C,
+        "deleting_destructor_entry": 0x11D590,
         "destructor_symbol": "_ZN14PrmCntInfoListD1Ev",
         "clone_entry": 0x11DA18,
         "initializer_entry": 0x11D42C,
@@ -171,6 +175,8 @@ PARAM_FAMILY_TARGETS: tuple[dict[str, Any], ...] = (
         "vtable_vma": 0xFEC498,
         "constructor_symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE",
         "destructor_symbol": None,
+        "destructor_entry": 0x12C700,
+        "deleting_destructor_entry": 0x12C740,
         "clone_entry": 0x12C784,
         "initializer_entry": None,
         "discriminator": 8,
@@ -265,6 +271,61 @@ def _relocations(elf: ELFFile) -> dict[int, dict[str, Any]]:
             ):
                 result[offset] = candidate
     return result
+
+
+def _prel31(place: int, word: int) -> int:
+    """Resolve an ARM EHABI PREL31 word without exposing raw bytes."""
+    value = word & 0x7FFFFFFF
+    if value & 0x40000000:
+        value -= 0x80000000
+    return (place + value) & 0xFFFFFFFF
+
+
+def _exception_index_entry(elf: ELFFile, target: int) -> dict[str, Any]:
+    """Return sanitized ARM EHABI metadata for one exact function VMA.
+
+    The encoded unwind words are deliberately not returned.  A missing or
+    ambiguous entry is an analysis error for the authenticated primary ELF;
+    this prevents a nearby function's exception record from being silently
+    attached to a family member.
+    """
+    section = elf.get_section_by_name(".ARM.exidx")
+    if section is None:
+        raise ValueError("primary ELF has no .ARM.exidx section")
+    data = section.data()
+    if not data or len(data) % 8:
+        raise ValueError("truncated or malformed .ARM.exidx section")
+    base = int(section["sh_addr"])
+    matches: list[dict[str, Any]] = []
+    for offset in range(0, len(data), 8):
+        function_vma = _prel31(
+            base + offset,
+            int.from_bytes(data[offset:offset + 4], "little"),
+        )
+        if function_vma != (target & ~1):
+            continue
+        unwind_word = int.from_bytes(data[offset + 4:offset + 8], "little")
+        if unwind_word & 0x80000000:
+            unwind_kind = "COMPACT"
+            extab_vma = None
+        else:
+            unwind_kind = "EXTAB"
+            extab_vma = f"0x{_prel31(base + offset + 4, unwind_word):x}"
+        matches.append({
+            "section": ".ARM.exidx",
+            "entry_vma": f"0x{function_vma:x}",
+            "entry_offset": f"0x{base + offset:x}",
+            "exidx_entry_vma": f"0x{base + offset:x}",
+            "extab_vma": extab_vma,
+            "unwind_kind": unwind_kind,
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA",
+        })
+    if len(matches) != 1:
+        raise ValueError(
+            f"expected one .ARM.exidx entry for 0x{target:x}, found {len(matches)}"
+        )
+    return matches[0]
 
 
 def _discover_parambase_types(
@@ -508,6 +569,18 @@ def probe_param_families(
             vtable_record = _vtable_record(elf, symbols, relocations, vtable)
             observations = _decode_constructor_observations(elf, constructor, constructor_size)
             clone = int(spec["clone_entry"])
+            lifecycle_entries = {
+                "constructor": constructor,
+                "clone": clone,
+            }
+            if spec.get("destructor_entry") is not None:
+                lifecycle_entries["nondeleting_destructor"] = int(spec["destructor_entry"])
+            if spec.get("deleting_destructor_entry") is not None:
+                lifecycle_entries["deleting_destructor"] = int(spec["deleting_destructor_entry"])
+            exception_targets = {
+                name: _exception_index_entry(elf, entry)
+                for name, entry in lifecycle_entries.items()
+            }
             records.append({
                 "name": name,
                 "verification": "PRIMARY_ELF_VERIFIED",
@@ -530,6 +603,16 @@ def probe_param_families(
                 if spec.get("deleting_destructor_entry") is not None else None,
                 "payload_kind": spec["payload_kind"],
                 "payload_offsets": [hex(int(x)) for x in spec["payload_offsets"]],
+                "exception_unwind": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "format": "ARM EHABI .ARM.exidx metadata",
+                    "targets": exception_targets,
+                    "semantic_limit": (
+                        "EHABI records and function-local cleanup metadata do not prove "
+                        "every throw edge, exception object, allocator pairing or "
+                        "runtime lifetime contract"
+                    ),
+                },
                 "method_symbols": [
                     {"name": symbol, "address": hex(_vma_symbol(symbols, symbol))}
                     for symbol in spec.get("method_symbols", [])
@@ -574,4 +657,37 @@ def validate_param_family_contract(contract: dict[str, Any]) -> dict[str, Any]:
             errors.append(f"missing_vtable_address_space:{item.get('name')}")
         if item.get("runtime_verified") is not False or item.get("callable") is not False:
             errors.append(f"unsafe_type_claim:{item.get('name')}")
+        exception_unwind = item.get("exception_unwind")
+        if exception_unwind is not None:
+            if exception_unwind.get("status") != "PRIMARY_ELF_VERIFIED":
+                errors.append(f"exception_unwind_status:{item.get('name')}")
+            if exception_unwind.get("format") != "ARM EHABI .ARM.exidx metadata":
+                errors.append(f"exception_unwind_format:{item.get('name')}")
+            targets = exception_unwind.get("targets")
+            if not isinstance(targets, dict) or not targets:
+                errors.append(f"exception_unwind_targets:{item.get('name')}")
+            else:
+                expected_entries = {
+                    "constructor": item.get("constructor"),
+                    "clone": item.get("clone_candidate"),
+                    "nondeleting_destructor": item.get("nondeleting_destructor"),
+                    "deleting_destructor": item.get("deleting_destructor"),
+                }
+                for role, entry in expected_entries.items():
+                    if entry is None:
+                        continue
+                    if isinstance(entry, str):
+                        # Existing descriptive contracts may append a prose
+                        # explanation after the leading VMA.
+                        entry = entry.split(maxsplit=1)[0]
+                    row = targets.get(role)
+                    if not isinstance(row, dict):
+                        errors.append(f"exception_unwind_missing:{item.get('name')}:{role}")
+                        continue
+                    if row.get("status") != "PRIMARY_ELF_VERIFIED":
+                        errors.append(f"exception_unwind_entry_status:{item.get('name')}:{role}")
+                    if row.get("address_space") != "ELF_VMA":
+                        errors.append(f"exception_unwind_address_space:{item.get('name')}:{role}")
+                    if row.get("entry_vma") != str(entry):
+                        errors.append(f"exception_unwind_entry:{item.get('name')}:{role}")
     return {"valid": not errors, "errors": errors, "type_count": len(contract.get("types", []))}

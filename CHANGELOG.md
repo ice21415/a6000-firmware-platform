@@ -395,3 +395,11 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
   raw export and private projects remain excluded.
 - Added fail-closed validator coverage for missing or promoted exception
   evidence. Targeted PrmSet tests pass 22/22; the full local suite passes 347 tests.
+## Unreleased — ParamBase family EHABI lifecycle evidence
+
+- Added a generic, SHA-pinned `.ARM.exidx` metadata pass for all ten direct
+  ParamBase-derived families, covering constructor, clone and destructor
+  entries without publishing unwind words or firmware bytes.
+- Extended the descriptive parameter lifetime contract and fail-closed tests;
+  exception-object semantics, ownership, allocator pairing, runtime safety and
+  callable status remain unknown.
