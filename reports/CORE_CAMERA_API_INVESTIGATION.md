@@ -148,3 +148,59 @@ reading or a command runner. Therefore no real 3.21 Sony opcode check count
 or ABI/runtime success claim is made here. Further local analysis should
 import the verified raw-byte observations as *static instruction evidence*,
 followed by separate ABI and event/OSAL causality review.
+
+
+## Phase 3.13: REA/Ghidra UI-to-Camera selector endpoint cross-check
+
+Private offline research preserves an earlier successful
+reverse-engineer-anything (REA 4.1.0) / Ghidra 12.1.4 session on
+`viewUnified2.so` (SHA-256:
+`7fbfa8539717ba3dca0cb5a82cf976b50a2b97443972fe321a064cbb09a75588`).
+Its saved `0x1b2504.c` decompilation is **Ghidra VMA**, offset by
+`+0x10000` relative to that ELF's `0x1a2504` entry. This
+specific UI image rebasing cannot be applied to `libObj.so`.
+
+A fresh read of the **saved** UI decompilation located 20 textual sites
+where `requestModelExecute` supplies `model/CAMERA` with selector
+`0x0f01`, six where it supplies `model/STILL_REC`, and four
+`setInitForRec` invocation sites in the saved UI helper decompilation.
+These numbers are static call-expression counts in different branches,
+not observed per-boot execution counts. The existing REA evidence ID
+for the main successful decompile is
+`ev_816bea3002eac3bf155723d8554c23c6087e58c8c1cfec8db7c7078636feb8c7`.
+Its pseudocode should not be mistaken for vendor source or a verified ABI.
+
+The **separate** saved `libObj.so` raw-ELF/Capstone audit
+(`audit_obj_selectors.json`, source SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`)
+contains an instruction span beginning `0x4cfe8a`. Independently
+decoding the saved Thumb bytes gives MOVW immediate `0x0f01` at
+`0x4cfe8a` and BL target `0x4cf7a8` at `0x4cfe98`.
+This validates the **stored instruction slice against the saved
+disassembly**, not the whole current original ELF, and is not
+successful REA pseudocode for `libObj.so`: that target previously
+timed out in the Ghidra provider.
+
+These two observations form a **cross-ELF investigation lead**, not a
+proven call chain. The `ViewBase::requestModelExecute` routing,
+message/event namespace translation, queue delivery, native
+`EventFilter`, callback producer and runtime branch conditions are
+not yet traced. No runtime device operation or SDK ABI verification
+is claimed.
+
+The public changes include
+`sdk/ui_camera_3_21_rea_bridge.json`,
+`fwplatform/rea_bridge.py`, synthetic tests, and:
+
+```powershell
+python -m fwplatform.cli sdk rea-bridge --json
+python -m fwplatform.cli sdk rea-bridge --ui-decompile C:\private\rea-analysis\ui-setinit\0x1b2504.c --camera-audit C:\private\rea-analysis\camera-neutral\audit_obj_selectors.json --json
+```
+
+The first command **does not claim to have rechecked unavailable
+private source files**. The second independently checks the supplied
+saved pseudocode's request expressions, source names, offsets,
+bounded MOVW immediate/BL target and Capstone text. It is read-only,
+does not launch REA/Ghidra or execute an ELF, and preserves the
+unresolved middle routing boundary. CI exercises synthetic examples
+rather than publishing private Sony instruction bytes.
