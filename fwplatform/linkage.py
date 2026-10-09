@@ -116,6 +116,48 @@ def _export_index(db: Database) -> dict[tuple[str, str | None], list[dict[str, A
     return result
 
 
+def _symbol_address(value: Any) -> int | None:
+    """Parse file-format VMA conservatively; never equate zero/invalid targets."""
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        return None
+    try:
+        address = int(str(value).strip(), 0)
+    except ValueError:
+        return None
+    return address if address > 0 else None
+
+
+def _resolve_import_provider(
+    exports: dict[tuple[str, str | None], list[dict[str, Any]]],
+    name: str, version: str | None, resolved_dependencies: set[int],
+) -> tuple[dict[str, Any] | None, list[int], str]:
+    """Find one static symbol provider without guessing dynamic-loader binding.
+
+    A global same-name export is *not* evidence of a DT_NEEDED relationship.
+    Distinct addresses within one provider are distinct candidates; versioned
+    imports never silently fall back to unversioned symbols.
+    """
+    if not resolved_dependencies:
+        return None, [], "no-resolved-dependency"
+    candidates = [
+        row for row in exports.get((name, version), [])
+        if int(row["binary_id"]) in resolved_dependencies
+    ]
+    if not candidates:
+        return None, [], "no-matching-dependent-export"
+    unique: dict[tuple[int, int], dict[str, Any]] = {}
+    for row in candidates:
+        address = _symbol_address(row["address"])
+        if address is not None:
+            unique[(int(row["binary_id"]), address)] = row
+    possible_binaries = sorted({int(row["binary_id"]) for row in candidates})
+    if not unique:
+        return None, possible_binaries, "no-valid-export-vma"
+    if len(unique) != 1:
+        return None, possible_binaries, "ambiguous-export-entry"
+    return next(iter(unique.values())), possible_binaries, "unique-dependent-export"
+
+
 def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[str, int]:
     """Resolve ELF dependencies without basename-based guessing.
 
@@ -139,15 +181,16 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
     for row in rows:
         stats["binaries"] += 1
         binary_id, rel, digest = int(row[0]), str(row[1]), str(row[2])
+        resolver_version = f"{__version__}:linkage-v4"
         prior = db.connection.execute("SELECT id,status FROM analysis_run WHERE binary_id=? AND analyzer='elf_linkage' AND analyzer_version=? AND input_sha256=?",
-                                      (binary_id, __version__, digest)).fetchone()
+                                      (binary_id, resolver_version, digest)).fetchone()
         if prior and prior["status"] == "COMPLETE":
             stats["skipped"] += 1
             continue
         run_id = db.upsert("analysis_run", {"binary_id": binary_id, "analyzer": "elf_linkage",
-            "analyzer_version": __version__, "input_sha256": digest, "started_at": utc_now(),
+            "analyzer_version": resolver_version, "input_sha256": digest, "started_at": utc_now(),
             "completed_at": None, "status": "RUNNING", "checkpoint": "dynamic", "error_text": None,
-            "metadata_json": json.dumps({"path": rel, "resolver": "soname-search-path-v3"}, sort_keys=True)},
+            "metadata_json": json.dumps({"path": rel, "resolver": "soname-search-path-v4"}, sort_keys=True)},
             ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
         path = root / rel
         try:
@@ -159,7 +202,7 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
             evidence_excerpt = json.dumps({"binary": rel, "needed": metadata.needed, "soname": metadata.soname,
                                             "rpath": metadata.rpath, "runpath": metadata.runpath}, sort_keys=True)
             evidence_id = db.evidence(rel, digest, "elf_dynamic", "DT_NEEDED", evidence_excerpt,
-                                      "VERIFIED_STATIC", {"parser": "pyelftools", "resolver": "soname-search-path-v3"},
+                                      "VERIFIED_STATIC", {"parser": "pyelftools", "resolver": "soname-search-path-v4"},
                                       evidence_type="elf_dynamic", status_basis="dynamic_tag")
             resolved_dependencies: set[int] = set()
             for needed_name in metadata.needed:
@@ -175,6 +218,7 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
                     continue
                 target_module = _module(db, target_binary)
                 resolved_dependencies.add(target_binary)
+                db.connection.execute("DELETE FROM unresolved_edge WHERE identity_key=?", (identity,))
                 target_soname = next((str(c["soname"]) for c in candidates if int(c["id"]) == target_binary and c.get("soname")), None)
                 db.upsert("module_dependency", {"from_module_id": module_id, "to_module_id": target_module,
                     "kind": "DT_NEEDED", "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id,
@@ -182,30 +226,38 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
                     "search_rule": rule, "analyzer_version": __version__,
                     "metadata_json": json.dumps({"candidate_binary_ids": candidate_ids}, sort_keys=True)}, ("identity_key",))
                 stats["needed"] += 1
+            # Invalidate only automatic linkage candidates from previous runs.
+            # Stale providers must not survive when dependency evidence changes.
+            db.connection.execute("""DELETE FROM cross_reference
+                WHERE from_binary_id=? AND kind='resolved_import'
+                AND source_evidence_id IN (SELECT id FROM evidence WHERE kind='elf_dynamic')""",
+                (binary_id,))
             imports = db.query("SELECT name,address,version FROM import_export WHERE binary_id=? AND direction='import' AND name<>''", [binary_id])
             for symbol_row in imports:
                 name, version = str(symbol_row[0]), str(symbol_row[2]) if symbol_row[2] else None
-                dependency_exports = [item for item in exports.get((name, version), []) if int(item["binary_id"]) in resolved_dependencies]
-                if not dependency_exports and version is not None:
-                    dependency_exports = [item for item in exports.get((name, None), []) if int(item["binary_id"]) in resolved_dependencies]
-                if not dependency_exports:
-                    dependency_exports = exports.get((name, version), []) or exports.get((name, None), [])
-                unique = {int(item["binary_id"]): item for item in dependency_exports}
                 source_address = str(symbol_row[1])
                 identity = f"symbol:{binary_id}:{source_address}:{name}:{version or ''}"
-                if len(unique) != 1 or source_address in {"0", "0x0", "None"}:
+                target, candidate_ids, reason = _resolve_import_provider(
+                    exports, name, version, resolved_dependencies,
+                )
+                if _symbol_address(source_address) is None:
+                    target = None
+                    reason = "no-import-address"
+                if target is None:
                     stats["unresolved_symbols"] += 1
-                    if len(unique) > 1:
+                    if reason == "ambiguous-export-entry":
                         stats["ambiguous_symbols"] += 1
                     _record_unresolved(db, identity=identity, from_type="binary", from_id=binary_id,
-                                       relation="import_symbol", reason=f"ambiguous-or-unresolved:{name}",
-                                       candidates=sorted(unique), evidence_id=evidence_id)
+                                       relation="import_symbol", reason=f"{reason}:{name}",
+                                       candidates=candidate_ids, evidence_id=evidence_id)
                     continue
-                target_binary, target = next(iter(unique.items()))
+                db.connection.execute("DELETE FROM unresolved_edge WHERE identity_key=?", (identity,))
                 db.upsert("cross_reference", {"from_binary_id": binary_id, "from_address": source_address,
-                    "to_binary_id": target_binary, "to_address": str(target["address"]), "kind": "resolved_import",
-                    "status": "VERIFIED_STATIC", "source_evidence_id": evidence_id},
+                    "to_binary_id": int(target["binary_id"]), "to_address": str(target["address"]),
+                    "kind": "resolved_import", "status": "CANDIDATE", "source_evidence_id": evidence_id},
                     ("from_binary_id", "from_address", "to_binary_id", "to_address", "kind"))
+                # Exact static provider candidate; ELF interposition and PLT/GOT
+                # binding still require further evidence before verification.
                 stats["resolved_symbols"] += 1
             db.connection.execute("UPDATE binary SET candidate_load_paths=? WHERE id=?",
                                   (json.dumps({"soname": metadata.soname, "rpath": metadata.rpath, "runpath": metadata.runpath}, sort_keys=True), binary_id))
