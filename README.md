@@ -10,14 +10,14 @@ NAND/WBI/bootloader 備份、私人 SQLite、原始反組譯 JSONL 或 runtime d
 
 目前已完成的公開功能包括：
 
-- SQLite migration v1–v6，以及 evidence identity、duplicate archive、semantic graph 和完整性檢查。
+- SQLite migration v1–v7，以及 evidence identity、duplicate archive、semantic graph 和完整性檢查。
 - 遞迴 inventory 與 ELF/DEX/ODEX/APK/script/resource/unknown classifier。
 - Python ELF symbol/import/export/relocation index。
 - Ghidra Headless Auto Analysis JSONL export；支援 ARM/Thumb、function、basic block、
   instruction、callsite、XREF、symbol、prototype 和 address-space provenance。
 - Ghidra JSONL 增量匯入與 `analysis_run` checkpoint。
 - ELF `DT_NEEDED` 和唯一 export/import resolution linkage。
-- Phase 3/3.1 semantic graph migrations v5–v6，保存 Binary、Module、Function、CFG、OSAL、JNI、Event、State、body ranges 和 SDK interface 關係。
+- Phase 3/3.2 semantic graph migrations v5–v7，保存 Binary、Module、Function、CFG、OSAL、JNI、Event、State、body ranges 和 SDK interface 關係。
 - SONAME/DT_NEEDED 搜尋路徑解析；同名 ELF、symbol 和缺失 caller 會保留 unresolved edge，不任意配對。
 - OSAL protocol fixture analyzer、JNI/Java fixture analyzer、DEX 字串/class inventory 和 GraphML/JSON graph export。
 - 私有研究資料的 allowlisted evidence adapter：可將 SyncAndroid OSAL/JNI 線索與 ModelCamera selector transitions 匯入副本資料庫；每筆資料保留來源 SHA-256、locator、原始 confidence 和 unresolved 缺口。
@@ -134,6 +134,25 @@ python -m fwplatform.cli --db C:\path\private-copy.db protocol queue 0x01554466 
 python -m fwplatform.cli --db C:\path\private-copy.db evidence SyncAndroid --json
 python -m fwplatform.cli --db C:\path\private-copy.db reports --phase3-1 --json
 ```
+
+## Phase 3.2：schema v7 與 DEX 靜態索引
+
+Schema v7 修復舊版 `module_dependency`、`message_queue`、`jni_bridge` 的
+legacy UNIQUE 限制，保留原有 ID、外鍵和索引；callsite identity 會依可驗證的
+caller/address 資訊轉換，缺乏足夠資訊者維持 legacy identity。
+請先備份私有 SQLite 資料庫並在副本中執行 migration，確認
+`PRAGMA quick_check` 和 `PRAGMA foreign_key_check`，不要直接覆寫研究原始資料。
+
+可以從合法取得的本機 DEX 檔案建立可查詢的字串索引：
+
+```powershell
+python -m fwplatform.cli --db database/firmware.db analyze dex --path C:\\path\\to\\classes.dex --json
+python -m fwplatform.cli --db database/firmware.db query dex SyncAndroid --json
+```
+
+`dex_string` 僅表示字串表中的靜態字串；
+`dex_descriptor_candidate` 和 `dex_signature_candidate` 仍為 CANDIDATE，
+不代表 Java class/method 或 JNI bridge 已獲證實。此流程不會對相機寫入資料。
 
 ## 參與開發
 
