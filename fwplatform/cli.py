@@ -279,6 +279,8 @@ def build_parser() -> argparse.ArgumentParser:
     sdk = commands.add_parser("sdk"); sdk_sub = sdk.add_subparsers(dest="sdk_command", required=True)
     sdk_build = sdk_sub.add_parser("build"); sdk_build.add_argument("--output", type=Path, default=Path("sdk/sdk-index.json")); sdk_build.add_argument("--json", action="store_true")
     sdk_cov = sdk_sub.add_parser("coverage"); sdk_cov.add_argument("--json", action="store_true")
+    sdk_import = sdk_sub.add_parser("import"); sdk_import.add_argument("--fixture", type=Path, required=True); sdk_import.add_argument("--json", action="store_true")
+    sdk_audit = sdk_sub.add_parser("audit"); sdk_audit.add_argument("--json", action="store_true")
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
@@ -351,8 +353,18 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "sdk" and args.sdk_command == "build":
             _json_or_text(build_sdk_index(db, args.output), args.json)
         elif args.command == "sdk" and args.sdk_command == "coverage":
+            from .sdk_contracts import audit_sdk_contracts
             rows = db.query("SELECT verification_status,COUNT(*) AS count FROM sdk_interface GROUP BY verification_status ORDER BY verification_status")
-            _json_or_text({"interfaces": [dict(row) for row in rows]}, args.json)
+            audit = audit_sdk_contracts(db)
+            _json_or_text({"interfaces": [dict(row) for row in rows],
+                           "static_contract_complete": audit["static_contract_complete"],
+                           "runtime_callable_validated": None}, args.json)
+        elif args.command == "sdk" and args.sdk_command == "import":
+            from .sdk_contracts import import_sdk_contracts
+            _json_or_text(import_sdk_contracts(db, args.fixture), args.json)
+        elif args.command == "sdk" and args.sdk_command == "audit":
+            from .sdk_contracts import audit_sdk_contracts
+            _json_or_text(audit_sdk_contracts(db), args.json)
         elif args.command == "analyze" and args.analyze_command == "elf":
             from analyzers.runner import run_elf_batch
             _json_or_text(run_elf_batch(db, args.root, args.limit), args.json)
