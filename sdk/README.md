@@ -159,6 +159,46 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.13: REA/Ghidra saved UI-to-Camera endpoint audit
+
+The connected private research workspace contains saved
+`reverse-engineer-anything` (REA 4.1.0) / Ghidra 12.1.4 findings for
+`viewUnified2.so` and separate, **non-REA** original-ELF/Capstone
+instruction observations for `libObj.so`. The optional saved inputs
+are never committed: `rea-analysis/ui-setinit/0x1b2504.c` and
+`rea-analysis/camera-neutral/audit_obj_selectors.json`.
+
+The UI saved decompilation of `CmnViewBigModelUtil::setInitForRec`
+contains 20 **static textual sites** requesting selector `0x0f01`
+to `model/CAMERA` and 6 requesting it to `model/STILL_REC`.
+Different mode branches cannot be counted as live repetitions. UI Ghidra
+VMA `0x1b2504` maps to **UI ELF** VMA `0x1a2504` due to
+**UI-specific** image bias `+0x10000`. Do not apply that bias to
+`libObj.so`.
+
+The separate saved Camera `audit_obj_selectors.json` byte span at
+`0x4cfe8a` contains a Thumb MOVW selector immediate `0x0f01`, and
+at `0x4cfe98` a Thumb BL targeting `pvt_ActionSetInit=0x4cf7a8`.
+A newly implemented bounded decoder can recheck these *saved* bytes
+and their Capstone metadata. This is **not** a fresh full-original-ELF
+verification, nor Ghidra pseudocode for `libObj.so`.
+
+```powershell
+python -m fwplatform.cli sdk rea-bridge --json
+python -m fwplatform.cli sdk rea-bridge --fixture sdk/ui_camera_3_21_rea_bridge.json --ui-decompile C:\private\rea-analysis\ui-setinit\0x1b2504.c --camera-audit C:\private\rea-analysis\camera-neutral\audit_obj_selectors.json --json
+```
+
+The first command reports missing local artifact checks explicitly;
+the second requires observed direct UI request counts, correct UI
+rebase, matching camera saved source SHA and exact MOVW/BL
+instruction targets. Neither executes Ghidra, a firmware binary, or a
+camera; neither writes a research database. Even with both endpoints
+rechecked, the intermediate `ViewBase::requestModelExecute`
+message routing, queue delivery and event normalization remain
+**UNVERIFIED**. No Camera ABI/runtime callable inference is permitted.
+CI uses synthetic inputs with different addresses, not redistributed
+Sony instructions.
+
 ## Phase 3.11: static ModelCamera reverse-engineering bundle (no device access)
 
 The private Sony ILCE-6000 3.21 ELF was located in the connected research
