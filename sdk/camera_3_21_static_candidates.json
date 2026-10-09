@@ -50,7 +50,7 @@
         "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
         "source_artifact_basenames": [
           "model-camera-methods.txt",
-          "camera-neutral/FINDINGS.zh-TW.md"
+          "FINDINGS.zh-TW.md"
         ],
         "address_space": "ELF_VMA",
         "static_instruction_evidence_in_public_repo": false,
@@ -103,7 +103,7 @@
         "source_artifact_basenames": [
           "model-camera-methods.txt",
           "camera-prepare-audit.json",
-          "camera-neutral/FINDINGS.zh-TW.md"
+          "FINDINGS.zh-TW.md"
         ],
         "address_space": "ELF_VMA",
         "static_instruction_evidence_in_public_repo": false,
@@ -129,7 +129,7 @@
         "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
         "source_artifact_basenames": [
           "CAMERA-NEUTRAL-AND-SETINIT.zh-TW.md",
-          "camera-neutral/FINDINGS.zh-TW.md"
+          "FINDINGS.zh-TW.md"
         ],
         "address_space": "ELF_VMA",
         "static_instruction_evidence_in_public_repo": false,
