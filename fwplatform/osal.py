@@ -80,52 +80,59 @@ def import_osal_fixture(db: Database, fixture: Path) -> dict[str, Any]:
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or not isinstance(payload.get("queue"), dict):
         raise ValueError("OSAL fixture requires an object and a queue object")
-    evidence_id = _evidence(db, fixture, payload)
-    queue = payload["queue"]
-    namespace = str(queue.get("namespace") or "unknown")
-    value = str(queue.get("value") or queue.get("address") or "")
-    if not value:
-        raise ValueError("OSAL queue requires namespace and value/address")
-    queue_key = f"queue:{namespace}:{value}:{queue.get('name') or ''}"
-    queue_id = db.upsert("message_queue", {"module_id": _module(db, queue.get("module")),
-        "name": queue.get("name"), "address": value, "direction": queue.get("direction"),
-        "status": _status(queue), "source_evidence_id": evidence_id, "identity_key": queue_key,
-        "namespace": namespace, "queue_value": value, "semantics": queue.get("semantics"),
-        "callback_function_id": _function(db, queue.get("callback")), "address_space": queue.get("address_space"),
-        "analyzer_version": "osal_protocol:1"}, ("identity_key",))
-    counts = {"queue": 1, "messages": 0, "flows": 0, "unresolved": 0, "evidence_id": evidence_id, "queue_id": queue_id}
-    for item in payload.get("messages", []):
-        if not isinstance(item, dict):
-            continue
-        command_id = _message_id(db, item.get("command") or item.get("message"), evidence_id)
-        reply_id = _message_id(db, item.get("reply"), evidence_id)
-        command_ref = item.get("command") or item.get("message") or {}
-        identity = f"osal:{queue_key}:{command_ref.get('namespace','unknown')}:{command_ref.get('value','')}:{item.get('direction','')}"
-        producer_id = _function(db, item.get("producer")); consumer_id = _function(db, item.get("consumer")); callback_id = _function(db, item.get("callback"))
-        row_id = db.upsert("osal_message", {"queue_id": queue_id, "message_id": command_id,
-            "direction": item.get("direction"), "semantics": item.get("semantics"),
-            "payload_layout": json.dumps(item.get("payload"), ensure_ascii=False, sort_keys=True) if item.get("payload") is not None else None,
-            "reply_message_id": reply_id, "timeout_ms": item.get("timeout_ms"), "producer_function_id": producer_id,
-            "consumer_function_id": consumer_id, "callback_function_id": callback_id,
-            "status": _status(item), "source_evidence_id": evidence_id, "analyzer_version": "osal_protocol:1",
-            "identity_key": identity, "metadata_json": json.dumps(item, ensure_ascii=False, sort_keys=True)}, ("identity_key",))
-        counts["messages"] += 1
-        for role, function_id in (("producer", producer_id), ("consumer", consumer_id), ("callback", callback_id)):
-            ref = item.get(role)
-            # An omitted role is absence of a relationship, not a NULL
-            # endpoint.  Materialising it as a flow made every async message
-            # look as if it had three endpoints and polluted the graph.
-            if not ref:
+    db.connection.execute("SAVEPOINT osal_fixture_import")
+    try:
+        evidence_id = _evidence(db, fixture, payload)
+        queue = payload["queue"]
+        namespace = str(queue.get("namespace") or "unknown")
+        value = str(queue.get("value") or queue.get("address") or "")
+        if not value:
+            raise ValueError("OSAL queue requires namespace and value/address")
+        queue_key = f"queue:{namespace}:{value}:{queue.get('name') or ''}"
+        queue_id = db.upsert("message_queue", {"module_id": _module(db, queue.get("module")),
+            "name": queue.get("name"), "address": value, "direction": queue.get("direction"),
+            "status": _status(queue), "source_evidence_id": evidence_id, "identity_key": queue_key,
+            "namespace": namespace, "queue_value": value, "semantics": queue.get("semantics"),
+            "callback_function_id": _function(db, queue.get("callback")), "address_space": queue.get("address_space"),
+            "analyzer_version": "osal_protocol:1"}, ("identity_key",))
+        counts = {"queue": 1, "messages": 0, "flows": 0, "unresolved": 0, "evidence_id": evidence_id, "queue_id": queue_id}
+        for item in payload.get("messages", []):
+            if not isinstance(item, dict):
                 continue
-            module_id = _module(db, ref)
-            if function_id is None and module_id is None:
-                counts["unresolved"] += 1
-                _unresolved(db, f"{identity}:{role}", f"osal_{role}", f"endpoint {role} is not uniquely identified", evidence_id)
-                continue
-            flow_key = f"flow:{row_id}:{role}:{module_id or 0}:{function_id or 0}"
-            db.upsert("message_flow", {"osal_message_id": row_id, "role": role, "module_id": module_id,
-                "function_id": function_id, "status": _status(item), "source_evidence_id": evidence_id,
-                "identity_key": flow_key, "metadata_json": json.dumps(ref or {}, sort_keys=True)}, ("identity_key",))
-            counts["flows"] += 1
+            command_id = _message_id(db, item.get("command") or item.get("message"), evidence_id)
+            reply_id = _message_id(db, item.get("reply"), evidence_id)
+            command_ref = item.get("command") or item.get("message") or {}
+            identity = f"osal:{queue_key}:{command_ref.get('namespace','unknown')}:{command_ref.get('value','')}:{item.get('direction','')}"
+            producer_id = _function(db, item.get("producer")); consumer_id = _function(db, item.get("consumer")); callback_id = _function(db, item.get("callback"))
+            row_id = db.upsert("osal_message", {"queue_id": queue_id, "message_id": command_id,
+                "direction": item.get("direction"), "semantics": item.get("semantics"),
+                "payload_layout": json.dumps(item.get("payload"), ensure_ascii=False, sort_keys=True) if item.get("payload") is not None else None,
+                "reply_message_id": reply_id, "timeout_ms": item.get("timeout_ms"), "producer_function_id": producer_id,
+                "consumer_function_id": consumer_id, "callback_function_id": callback_id,
+                "status": _status(item), "source_evidence_id": evidence_id, "analyzer_version": "osal_protocol:1",
+                "identity_key": identity, "metadata_json": json.dumps(item, ensure_ascii=False, sort_keys=True)}, ("identity_key",))
+            counts["messages"] += 1
+            for role, function_id in (("producer", producer_id), ("consumer", consumer_id), ("callback", callback_id)):
+                ref = item.get(role)
+                # An omitted role is absence of a relationship, not a NULL
+                # endpoint.  Materialising it as a flow made every async message
+                # look as if it had three endpoints and polluted the graph.
+                if not ref:
+                    continue
+                module_id = _module(db, ref)
+                if function_id is None and module_id is None:
+                    counts["unresolved"] += 1
+                    _unresolved(db, f"{identity}:{role}", f"osal_{role}", f"endpoint {role} is not uniquely identified", evidence_id)
+                    continue
+                flow_key = f"flow:{row_id}:{role}:{module_id or 0}:{function_id or 0}"
+                db.upsert("message_flow", {"osal_message_id": row_id, "role": role, "module_id": module_id,
+                    "function_id": function_id, "status": _status(item), "source_evidence_id": evidence_id,
+                    "identity_key": flow_key, "metadata_json": json.dumps(ref or {}, sort_keys=True)}, ("identity_key",))
+                counts["flows"] += 1
+    except Exception:
+        db.connection.execute("ROLLBACK TO SAVEPOINT osal_fixture_import")
+        db.connection.execute("RELEASE SAVEPOINT osal_fixture_import")
+        raise
+    db.connection.execute("RELEASE SAVEPOINT osal_fixture_import")
     db.commit()
     return counts
