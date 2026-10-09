@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "type": "model_execute_event_envelope_research",
+  "status": "STATIC_ENVELOPE_SITES_REPORTED_CONSUMER_UNRESOLVED",
+  "binary": {
+    "name": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
+  },
+  "evidence": {
+    "saved_artifact_basename": "model-camera-methods.txt",
+    "origin": "Prior local ARM/Thumb ELF disassembly of original 3.21 binary; not new live REA session or independently re-read ELF",
+    "primary_instruction_bytes_bundled": false,
+    "caller_implementation_resolved_by_dynamic_linker": false
+  },
+  "request_frontend": {
+    "name": "ViewBase::requestModelExecute",
+    "entry_vma": "0x12106e",
+    "model_name_resolve": {
+      "site": "0x121082",
+      "symbol": "IdGenerator::Get",
+      "reported_plt_target": "0xdffb8",
+      "from_register": "r1",
+      "output_register": "r0"
+    },
+    "selector_transform": {
+      "site": "0x12108c",
+      "reported_direct_target": "0x12d780",
+      "inputs": [
+        "model_name",
+        "requested_selector"
+      ],
+      "semantics": "UNKNOWN",
+      "output_register": "r0"
+    },
+    "factory_call": {
+      "site": "0x121098",
+      "symbol": "AbstractUtilityManager::createRequestModelExecuteEvent",
+      "reported_plt_target": "0xdfbdc",
+      "arguments_observed": {
+        "r1": "IdGenerator output",
+        "r2": "selector_transform output",
+        "r3": "ParamList pointer"
+      }
+    },
+    "application_submit": {
+      "site": "0x1210a4",
+      "symbol": "View::requestApplicationExecute",
+      "reported_plt_target": "0xdb578",
+      "kind": "TAIL_BRANCH",
+      "delivers_to_camera_dispatcher_verified": false
+    }
+  },
+  "factory_implementation_lead": {
+    "name": "AbstractUtilityManager::createRequestModelExecuteEvent",
+    "entry_vma": "0x7f0b0c",
+    "symbol_identity_matches_import": true,
+    "dynamic_linked_to_frontend_plt_verified": false,
+    "event_id": "0x11004003",
+    "sites": [
+      {
+        "address": "0x7f0b1e",
+        "role": "EVENT_ID_LITERAL",
+        "instruction_contains": "literal 0x11004003"
+      },
+      {
+        "address": "0x7f0b20",
+        "role": "EVENT_CONSTRUCTOR_BYTE_ARGUMENT",
+        "instruction_contains": "movs     r2, #2"
+      },
+      {
+        "address": "0x7f0b22",
+        "role": "EVENT_CONSTRUCTOR_BYTE_ARGUMENT",
+        "instruction_contains": "movs     r3, #0"
+      },
+      {
+        "address": "0x7f0b26",
+        "role": "EVENT_CONSTRUCTOR",
+        "instruction_contains": "_ZN5EventC1Emhh"
+      },
+      {
+        "address": "0x7f0b2a",
+        "role": "OPTIONAL_PARAMLIST_GUARD",
+        "instruction_contains": "cbz      r5"
+      },
+      {
+        "address": "0x7f0b30",
+        "role": "OPTIONAL_PARAMLIST_ATTACH",
+        "instruction_contains": "_ZN5Event12setParamListEP9ParamList"
+      },
+      {
+        "address": "0x7f0b44",
+        "role": "PARAM_KEY_7",
+        "instruction_contains": "movs     r1, #7"
+      },
+      {
+        "address": "0x7f0b48",
+        "role": "PARAM_INSERT_7",
+        "instruction_contains": "_ZN5Event12addParameterEmP9ParamBase"
+      },
+      {
+        "address": "0x7f0b5c",
+        "role": "PARAM_KEY_8",
+        "instruction_contains": "movs     r1, #8"
+      },
+      {
+        "address": "0x7f0b60",
+        "role": "PARAM_INSERT_8",
+        "instruction_contains": "_ZN5Event12addParameterEmP9ParamBase"
+      }
+    ],
+    "parameter_keys": [
+      {
+        "key": 7,
+        "origin": "model_name_id_output",
+        "type": "UNKNOWN_WRAPPED_IN_PARAMBASE",
+        "insert_site": "0x7f0b48",
+        "receiver_identity_verified": false
+      },
+      {
+        "key": 8,
+        "origin": "selector_transform_output",
+        "type": "UNKNOWN_WRAPPED_IN_PARAMBASE",
+        "insert_site": "0x7f0b60",
+        "receiver_identity_verified": false
+      }
+    ],
+    "optional_paramlist": true,
+    "parameter_ownership_verified": false,
+    "return_convention_verified": false
+  },
+  "unresolved_boundaries": [
+    "Exact dynamic binding of imported factory symbol to the separately recovered implementation entry",
+    "Meaning and exact transformation of helper at 0x12d780",
+    "View::requestApplicationExecute dispatch queue and consumer of event 0x11004003",
+    "Extraction of event parameter keys 7 and 8 and mapping to ModelCamera::ActionGpSetSetting",
+    "Error semantics, ParamList ownership, threading, lifetime and runtime safe callability"
+  ],
+  "complete_abi_count": 0,
+  "confirmed_runtime_camera_apis": 0
+}
