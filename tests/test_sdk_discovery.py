@@ -192,6 +192,45 @@ class SdkDiscoveryTests(unittest.TestCase):
         self.assertNotIn("source_evidence_id", payload["interfaces"][0])
         self.assertEqual(import_sdk_contracts(self.db, output)["interfaces"], 1)
 
+    def test_discovery_reports_import_evidence_without_runtime_promotion(self):
+        camera_bid = self.db.connection.execute(
+            "SELECT id FROM binary WHERE sha256=?", (self.digest,)
+        ).fetchone()[0]
+        imported_bid = self.db.connection.execute(
+            "SELECT id FROM binary WHERE sha256=?", (self.other_digest,)
+        ).fetchone()[0]
+        evidence = self.db.evidence(
+            "synthetic-dynamic.so", "d" * 64, "elf_dynamic", "DT_NEEDED",
+            json.dumps({"needed": ["lib0.so"]}), "VERIFIED_STATIC",
+        )
+        self.db.upsert("cross_reference", {
+            "from_binary_id": imported_bid, "from_address": "0x400",
+            "to_binary_id": camera_bid, "to_address": "0x0100",
+            "kind": "resolved_import", "status": "CANDIDATE",
+            "source_evidence_id": evidence,
+        }, ("from_binary_id", "from_address", "to_binary_id", "to_address", "kind"))
+        # A manually added link with no dynamic ELF evidence must not inflate
+        # the count of machine-indexed provider candidates.
+        self.db.upsert("cross_reference", {
+            "from_binary_id": imported_bid, "from_address": "0x500",
+            "to_binary_id": camera_bid, "to_address": "0x100",
+            "kind": "resolved_import", "status": "VERIFIED_STATIC",
+        }, ("from_binary_id", "from_address", "to_binary_id", "to_address", "kind"))
+        self.db.commit()
+        found = discover_sdk_candidates(self.db, binary_sha256=self.digest)
+        self.assertEqual(found["returned"], 1)
+        entry = found["candidates"][0]
+        self.assertEqual(entry["incoming_static_import_candidates"], 1)
+        self.assertEqual(entry["incoming_importing_binary_count"], 1)
+        self.assertEqual(entry["incoming_import_evidence_ids"], [evidence])
+        self.assertFalse(entry["runtime_import_binding_verified"])
+        self.assertFalse(entry["runtime_callable"])
+        output = self.root / "import-evidence-review.json"
+        draft_sdk_review(self.db, output, binary_sha256=self.digest)
+        review = json.loads(output.read_text(encoding="utf-8"))["interfaces"][0]["review"]
+        self.assertEqual(review["incoming_static_import_candidates"], 1)
+        self.assertFalse(review["runtime_import_binding_verified"])
+
 
 if __name__ == "__main__":
     unittest.main()
