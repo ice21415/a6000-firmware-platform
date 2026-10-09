@@ -84,6 +84,7 @@ class OfflineSdkProtocolMockTests(unittest.TestCase):
         result = json.loads(out.getvalue())
         self.assertEqual(result["status"], "FAIL")
         self.assertFalse(result["hardware_access"])
+        self.assertFalse((self.root / "study.sqlite").exists())
 
 
 if __name__ == "__main__":
