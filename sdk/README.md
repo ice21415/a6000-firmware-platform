@@ -159,6 +159,36 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.22 — primary-byte probe correctness / output-register evidence
+
+The core helper ELF probe was tightened specifically for
+`0x13200a` and `0x42ac00`. Its exact-byte decoder now also
+records a bounded list of Capstone **memory operands**
+(load/store direction hint, base/index registers, displacement,
+instruction VMA), together with highlighted **`r2`-based
+memory stores**. A store using a base register `r2`
+is a useful check against the `r2=output pointer`
+caller ABI lead, but **is not proof** that this register
+still holds the original argument or that the stored
+value has a specific C++ type. For that reason the
+report deliberately sets
+`r2_based_store_is_proven_output_parameter=false`.
+
+The shared Thumb decoder also accepts a complete
+2-byte instruction at the **end of an executable PT_LOAD**
+without incorrectly requiring 4 bytes of mapped code.
+This matters when a function ends with `BX LR`
+on the last executable halfword; it is covered by
+a synthetic ARM ELF boundary regression.
+
+**Both improvements passed CI with synthetic ELF input,
+not an extracted Sony `libObj.so`.** The local private
+probe command and hard SHA-256 pin remain the same.
+Please inspect its `research_targets` section for
+visited memory access sites; only outputs from an
+exact-sha private Sony run constitute new primary
+machine-code evidence.
+
 ## Phase 3.21 — targeted primary-byte ABI probe (Core: 0x13200a / 0x42ac00)
 
 To stop accumulating speculative static reports, the first priority
