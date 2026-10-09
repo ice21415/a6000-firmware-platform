@@ -61,6 +61,14 @@ callable signature. JNI and OSAL fixtures are all-or-nothing SQLite imports;
 function links require a binary fingerprint, not a name or virtual address
 without a known ELF identity.
 
+The pure mock runner opens no SQLite database; it reads only the supplied
+local JSON scenario. SDK index export also sanitizes legacy status flags:
+`verification_status` is downgraded if the contract is not audited,
+`runtime_safety` is always `DESCRIPTIVE_ONLY`, and the original database
+values appear separately as `reported_verification_status` and
+`reported_runtime_safety` for transparency. Mock tests and status flags are
+never evidence of live device compatibility.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
