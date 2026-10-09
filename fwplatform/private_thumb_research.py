@@ -219,6 +219,11 @@ def trace_private_selector_elf(
             raise ValueError("requires executable or shared library")
         traced = []
         for role, entry in entries:
+            # A target entry must map to one executable file-backed segment.
+            # Ambiguous executable mappings are invalid, not partial successes.
+            if not isinstance(entry, int) or isinstance(entry, bool) or entry <= 0 or entry & 1:
+                raise ValueError("Thumb function entry must be a positive even ELF VMA")
+            _read_vma(fp, elf, entry, 4, executable=True)
             report = _trace_thumb(fp, elf, entry, max_region_bytes)
             report["research_role_hint"] = role
             traced.append(report)
