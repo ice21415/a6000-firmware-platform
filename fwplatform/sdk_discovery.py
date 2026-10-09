@@ -80,6 +80,22 @@ def discover_sdk_candidates(
         LEFT JOIN evidence e ON e.id=f.source_evidence_id
         WHERE {" AND ".join(filters)}
         ORDER BY lower(b.sha256),lower(f.name),f.address,f.id LIMIT ?"""
+    # Count only source-backed static import-provider *candidates*, never
+    # inferred runtime callsites or a claim that a symbol is a callable SDK API.
+    incoming: dict[tuple[int, int], list[dict[str, Any]]] = {}
+    for ref in db.query("""SELECT x.to_binary_id,x.to_address,x.from_binary_id,
+            x.from_address,x.source_evidence_id,x.status AS link_status
+            FROM cross_reference x JOIN evidence e ON e.id=x.source_evidence_id
+            WHERE x.kind='resolved_import' AND e.kind='elf_dynamic'
+            ORDER BY x.to_binary_id,x.to_address,x.from_binary_id,x.from_address"""):
+        numeric_target = _address_value(ref["to_address"])
+        if ref["to_binary_id"] is not None and numeric_target is not None:
+            incoming.setdefault((int(ref["to_binary_id"]), numeric_target), []).append({
+                "from_binary_id": int(ref["from_binary_id"]) if ref["from_binary_id"] is not None else None,
+                "from_address": ref["from_address"],
+                "evidence_id": ref["source_evidence_id"],
+                "reported_link_status": ref["link_status"],
+            })
     candidates: list[dict[str, Any]] = []
     export_cache: dict[tuple[int, str], set[int]] = {}
     function_cache: dict[int, dict[int, list[Any]]] = {}
@@ -122,6 +138,7 @@ def discover_sdk_candidates(
         unique_function_entry = (numeric_address is not None and len(
             _function_index(db, int(row["binary_id"]), function_cache).get(numeric_address, [])
         ) == 1)
+        import_links = incoming.get((int(row["binary_id"]), numeric_address), []) if numeric_address is not None else []
         location_bound = (unique_binary_identity and unique_function_entry
                           and row["evidence_status"] == "VERIFIED_STATIC"
                           and _proves_function_location(
@@ -139,6 +156,16 @@ def discover_sdk_candidates(
             "entry_location_evidence_valid": location_bound,
             "unique_function_entry": unique_function_entry,
             "unique_binary_identity": unique_binary_identity,
+            "incoming_static_import_candidates": len(import_links),
+            "incoming_importing_binary_count": len({
+                link["from_binary_id"] for link in import_links
+                if link["from_binary_id"] is not None
+            }),
+            "incoming_import_evidence_ids": sorted({
+                int(link["evidence_id"]) for link in import_links
+                if link["evidence_id"] is not None
+            }),
+            "runtime_import_binding_verified": False,
             "api_status": "UNVERIFIED_CANDIDATE",
             "abi_status": "UNKNOWN",
             "parameter_layout_verified": False,
