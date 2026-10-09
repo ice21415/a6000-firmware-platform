@@ -47,6 +47,19 @@ def _address(value: Any, label: str) -> int:
     return n
 
 
+def _nonnegative_offset(value: Any, label: str) -> int:
+    """Byte displacement and base adjustment can legitimately be zero."""
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise ValueError(f"{label}: invalid nonnegative offset")
+    try:
+        n = int(str(value).strip(), 0)
+    except ValueError as exc:
+        raise ValueError(f"{label}: invalid nonnegative offset") from exc
+    if n < 0:
+        raise ValueError(f"{label}: negative offset")
+    return n
+
+
 def _artifact(value: Any) -> str:
     text = _text(value, "source_artifact")
     if not ARTIFACT.fullmatch(text) or text in {".", ".."}:
@@ -156,8 +169,8 @@ def inspect_camera_research(
         if _address(obj.get("instruction_address"), "field.instruction_address") < int(functions[obj["owner"]]["address"], 0):
             raise ValueError(f"field_observations[{idx}]: instruction precedes reported entry")
         offset = _address(obj.get("object_field_offset"), "field.object_field_offset")
-        immediate = _address(obj.get("instruction_immediate_offset"), "field.instruction_immediate_offset")
-        base_adjustment = _address(obj.get("inferred_base_adjustment"), "field.inferred_base_adjustment")
+        immediate = _nonnegative_offset(obj.get("instruction_immediate_offset"), "field.instruction_immediate_offset")
+        base_adjustment = _nonnegative_offset(obj.get("inferred_base_adjustment"), "field.inferred_base_adjustment")
         if immediate > 0xFFF or base_adjustment + immediate != offset:
             raise ValueError("field raw opcode immediate and inferred model field offset disagree")
         if offset > 0x100000:
