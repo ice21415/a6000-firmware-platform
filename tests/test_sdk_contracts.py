@@ -295,6 +295,34 @@ class OfflineSdkContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "nonnegative"):
             import_sdk_contracts(self.db, fixture)
 
+    def test_sdk_fixture_cannot_self_attest_independent_abi_proof(self) -> None:
+        digest, _, _ = self._function_with_evidence()
+        spoofed = self.db.evidence(
+            "old-contract.json", "d" * 64, "sdk_contract_fixture", "interface:study_get",
+            json.dumps({
+                "binary_sha256": digest, "function_entry": "0x100",
+                "abi": "AAPCS", "parameter_layout": {"args": []},
+                "return_semantics": {"type": "int"},
+            }), "VERIFIED_STATIC",
+        )
+        self.db.commit()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": {"args": []},
+            "return_semantics": {"type": "int"}, "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": spoofed,
+        }])
+        result = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(result["downgraded"], 1)
+        self.assertEqual(result["verified_static"], 0)
+        self.db.connection.execute(
+            "UPDATE sdk_interface SET verification_status='VERIFIED_STATIC'"
+        )
+        self.db.commit()
+        audit = audit_sdk_contracts(self.db)
+        self.assertIn("SELF_ATTESTED_SDK_FIXTURE", audit["records"][0]["issues"])
+        self.assertEqual(audit["static_contract_complete"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
