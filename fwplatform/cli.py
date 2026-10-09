@@ -298,6 +298,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_envelope.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_execute_envelope.json"))
     sdk_envelope.add_argument("--saved-disassembly", type=Path)
     sdk_envelope.add_argument("--json", action="store_true")
+    sdk_event_loop = sdk_sub.add_parser("event-loop")
+    sdk_event_loop.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_application_event_loop.json"))
+    sdk_event_loop.add_argument("--saved-disassembly", type=Path)
+    sdk_event_loop.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -392,6 +396,13 @@ def main(argv: list[str] | None = None) -> int:
         result = trace_private_selector_elf(
             args.elf, max_region_bytes=args.region_bytes, entries=entries,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "event-loop":
+        from .app_event_loop import audit_application_event_loop
+        result = audit_application_event_loop(
+            args.fixture, saved_disassembly=args.saved_disassembly,
         )
         _json_or_text(result, args.json)
         return 0
