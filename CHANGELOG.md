@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.7：新增受限、可恢復的 `analyze ghidra-batch` 多 ELF 計畫與選擇性本機執行工具。
+- 校驗 inventory SHA、避免危險來源路徑、限制分析批量與逾時；輸出保留在 firmware root 之外，不匯入 stale／截斷 JSONL。
+- 新增 synthetic batch planner、mock headless 寫入、失敗隔離與 resume skip 測試，沒有將原廠 firmware 納入 CI。
+
 - Phase 3.6：Ghidra function records 獨立保存來源 SHA 與 entry locator；不把 prototype 直接推定成 ABI。
 - `fw sdk discover` 以 ELF export + binary identity 搜尋待審核 API，列出候選與證據缺口，不寫入 SDK。
 - `fw sdk draft` 產出需人工確認、全部標 CANDIDATE 的 SDK fixture，保留 domain 搜尋提示而不自動確認語意。
