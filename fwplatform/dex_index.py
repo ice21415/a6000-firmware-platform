@@ -6,7 +6,7 @@ from typing import Any
 
 from analyzers.dex_analyzer import analyze_dex
 
-from .db import Database, utc_now
+from .db import Database, sha256_file, utc_now
 
 
 ANALYZER_VERSION = "dex_inventory:2"
@@ -20,9 +20,11 @@ def index_dex(db: Database, path: Path) -> dict[str, Any]:
     """
     path = path.resolve()
     parsed = analyze_dex(path)  # Validate the entire file before any DB write.
-    # Use the digest of the exact byte snapshot that was parsed, not a
-    # second file read which could observe a changed file.
+    # Retain the digest of the exact parsed bytes, and reject changing inputs
+    # before storing provenance. The validation read is not used as identity.
     digest = parsed["sha256"]
+    if sha256_file(path) != digest:
+        raise ValueError("DEX input changed during analysis; retry with a stable snapshot")
     rows = db.query("SELECT id FROM binary WHERE lower(sha256)=? ORDER BY id", (digest,))
     binary_id = int(rows[0]["id"]) if len(rows) == 1 else None
     db.connection.execute("SAVEPOINT dex_index")
