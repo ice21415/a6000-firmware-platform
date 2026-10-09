@@ -243,6 +243,58 @@ class OfflineSdkContractTests(unittest.TestCase):
         finally:
             self.db = Database(self.root / "sdk.sqlite")
 
+    def test_equivalent_numeric_function_addresses_resolve_and_audit(self) -> None:
+        digest, function_id, evidence_id = self._function_with_evidence()
+        self.db.connection.execute("UPDATE function SET address=? WHERE id=?",
+                                   ("0X0100", function_id))
+        self.db.commit()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": {"args": []},
+            "return_semantics": {"type": "int"}, "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": evidence_id,
+        }])
+        imported = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(imported["verified_static"], 1)
+        self.assertEqual(audit_sdk_contracts(self.db)["static_contract_complete"], 1)
+        self.assertEqual(self.db.connection.execute(
+            "SELECT function_id FROM sdk_interface"
+        ).fetchone()[0], function_id)
+
+    def test_numeric_address_collision_revokes_static_contract_completeness(self) -> None:
+        digest, function_id, evidence_id = self._function_with_evidence()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": {"args": []},
+            "return_semantics": {"type": "int"}, "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": evidence_id,
+        }])
+        self.assertEqual(import_sdk_contracts(self.db, fixture)["verified_static"], 1)
+        binary_id = self.db.connection.execute(
+            "SELECT binary_id FROM function WHERE id=?", (function_id,)
+        ).fetchone()[0]
+        self.db.upsert("function", {
+            "identity_key": "function:alias-collision", "binary_id": binary_id,
+            "name": "study_alias", "address": "0x0100",
+        }, ("identity_key",))
+        self.db.commit()
+        audit = audit_sdk_contracts(self.db)
+        self.assertEqual(audit["static_contract_complete"], 0)
+        self.assertIn("AMBIGUOUS_FUNCTION_ADDRESS", audit["records"][0]["issues"])
+        published = build_sdk_index(self.db, self.root / "collision.json")
+        self.assertEqual(published["interfaces"][0]["verification_status"], "CANDIDATE")
+        imported = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(imported["downgraded"], 1)
+        self.assertEqual(imported["unresolved"], 1)
+
+    def test_negative_function_address_is_rejected(self) -> None:
+        fixture = self._fixture([{
+            "name": "unsafe_address", "domain": "Camera",
+            "binary_sha256": "a" * 64, "address": "-0x1",
+        }])
+        with self.assertRaisesRegex(ValueError, "nonnegative"):
+            import_sdk_contracts(self.db, fixture)
+
 
 if __name__ == "__main__":
     unittest.main()
