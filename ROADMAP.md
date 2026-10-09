@@ -113,6 +113,13 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 從既有 IMDb phase-8 研究資料補記 `LensCommunicator_Init/Exit` 與 `infra_cameraProfile_init/exit` lifecycle 線索；descriptor offset 不得冒充 callback 函式 VMA。
 - Camera 等核心的真正 ABI／Lens、Sensor、Media 硬體語意及可呼叫性仍需獨立反組譯、ABI 與裝置行為核對；完成度分母仍 UNKNOWN。
 
+## Phase 3.12（獨立 ELF 指令核對）
+
+- `fw sdk research --verify-elf <private-libObj.so>` 先以整檔 SHA-256 精確核對官方 3.21 ELF 身分，再透過 ELF32 little-endian ARM 執行段 VMA 檢查 Thumb-2 `BL`／`B.W` 分支 target 與 `LDRB.W`／`STRB.W` raw byte displacement。
+- 從 ModelCamera 模型欄位的 **raw 指令 immediate** 分離由 register/dataflow 推得的 `+0x2680` object base；只能證明指令當下的直接運算元，不能由其推定整個 object root、calling convention 或硬體 ready。
+- 不匹配的 ELF hash、分支 target、欄位 immediate 或多重 executable PT_LOAD mapping 均失敗或明確回報未通過；CI 使用合成 ARM ELF，從未出版／執行專有 Sony 原始韌體。
+- 這是增加原始指令可重現核對的能力，尚未在連線 runtime 內直接執行私有 ELF verifier，因此不宣稱全部 Sony Camera ABI 已驗證。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
