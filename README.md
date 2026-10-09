@@ -61,6 +61,8 @@ python -m fwplatform.cli --db database/firmware.db manifest build --root C:\path
 python -m fwplatform.cli --db database/firmware.db coverage --json
 python -m fwplatform.cli --db database/firmware.db query module libObj --json
 python -m fwplatform.cli --db database/firmware.db unknowns --json
+# sanitized ParamSet tree-helper caller metadata (static evidence only)
+python -m fwplatform.cli sdk parameter-set-callers --json
 ```
 
 ## Ghidra Headless

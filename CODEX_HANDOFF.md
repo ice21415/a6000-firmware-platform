@@ -719,3 +719,35 @@ were present at 0xffc40, 0xffc60, 0xffc68, 0xffc70, 0xffccc, 0xffcd4 and
 
 The complete public synthetic suite passes 330 tests. This is static evidence
 and tooling validation; runtime-verified and callable SDK counts remain zero.
+
+## Continuation checkpoint — ParamSet helper caller ranges (2026-10-10)
+
+`ghidra-scripts/TargetCallers.java` now exports SHA-pinned, metadata-only
+caller references with explicit Ghidra image-base addresses, ELF VMAs, address
+space, caller entry and actual (possibly non-contiguous) body ranges. Generated
+function labels are retained only as non-semantic locators. The bounded
+five-target `param-set-callers` profile also includes the wrapper at `0xfffb6`
+and insertion wrapper at `0x7f44ce`, which was
+needed to resolve the previously Capstone-only call at `0xfffc0`.
+
+The private ASCII-path Ghidra 12.1.3 rerun exited 0 with
+`COMPLETE_TARGET_CALLER_EXPORT`, three targets and eight references. Capstone's
+exact Thumb `BL` scan agrees with all eight: `0xffe70` is called at
+`0x7f4402`, `0xfff4e` and `0xfff86`; `0xffed0` is called at `0x7f4440`,
+`0x7f44a0`, `0x7f44c6` and `0xfffc0`; the helper `0x7f4390` is called at
+`0x7f44fc`. Ghidra reports caller bodies `0x7f4390..0x7f44cd`,
+`0x7f44ce..0x7f4519`, `0xffed0..0xfffb5` and `0xfffb6..0xfffe5`.
+
+`fwplatform/target_callers.py` parses the private export, rejects truncation,
+hash/address-space mismatches, duplicate references and out-of-body callsites,
+then emits the public-safe `sdk/param_set_tree_callers_3_21.json`. The CLI is
+`fw sdk parameter-set-callers`; private mode accepts `--ghidra-export` and
+`--elf`, while the default reads the sanitized contract. The callsites are
+`PRIMARY_ELF_VERIFIED` from Ghidra plus Capstone; caller identity is only
+`GHIDRA_DERIVED`, and `prmset_mutator_entry`, runtime verification and callable
+status remain `UNKNOWN`/false. No private export or firmware bytes are checked
+in.
+
+The new synthetic caller-parser/CLI tests pass. Next target remains a uniquely
+typed ParamSet mutation/owner path; do not promote the generic ordered-tree
+helper or generated labels to a source-level API.

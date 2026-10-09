@@ -1133,3 +1133,36 @@ The public Windows environment has no `g++`, `clang++` or `cl`, so the
 candidate C++ header was not compiler-checked in this session; its layout is
 covered by the JSON/Python evidence gates and static assertions remain for a
 future toolchain check.
+
+### Address-space-aware caller recovery for the ordered-tree helpers — 2026-10-10
+
+The new metadata-only `TargetCallers.java` export was rerun against the exact
+SHA-pinned private ELF after adding a bounded profile for the small wrapper at
+`0xfffb6`. The ASCII-path Ghidra 12.1.3 process exited `0` and emitted
+`COMPLETE_TARGET_CALLER_EXPORT`; the export itself is private and is not part of
+the public repository. Its program identity was `ARM:LE:32:v8`, Ghidra image
+base `0x10000`, address space `ram`, and analyzer script version
+`target-callers-1`. The companion five-target bounded CFG profile exported 295
+instruction rows, 49 blocks and 116 edges; these counts are private validation metadata,
+not a whole-ELF coverage claim.
+
+The public contract `sdk/param_set_tree_callers_3_21.json` contains only
+normalized metadata and evidence status. It records three helper targets and
+eight caller references. All eight callsite VMAs were independently found by
+the Capstone Thumb `BL` scan and mapped to a Ghidra caller whose reported body
+range contains the callsite:
+
+| Target | Callsite VMAs | Ghidra caller entry/body (ELF VMA) | Status |
+|---:|---|---|---|
+| `0xffe70` | `0x7f4402`, `0xfff4e`, `0xfff86` | `0x7f4390..0x7f44cd`; `0xffed0..0xfffb5` | callsites `PRIMARY_ELF_VERIFIED`; caller identity `GHIDRA_DERIVED` |
+| `0xffed0` | `0x7f4440`, `0x7f44a0`, `0x7f44c6`, `0xfffc0` | `0x7f4390..0x7f44cd`; `0xfffb6..0xfffe5` | callsites `PRIMARY_ELF_VERIFIED`; caller identity `GHIDRA_DERIVED` |
+| `0x7f4390` | `0x7f44fc` | `0x7f44ce..0x7f4519` | callsite `PRIMARY_ELF_VERIFIED`; caller identity `GHIDRA_DERIVED` |
+
+The generated labels (`FUN_...`) remain locators and are explicitly marked
+non-semantic. The `0x7f4390` body is a generic ordered-tree helper candidate;
+the evidence still does **not** prove that it is a `PrmSet` mutator or that a
+specific source-level class owns it. `prmset_mutator_entry` and
+`prmset_relation` therefore remain `UNKNOWN`. The new parser rejects truncated
+exports, hash/address-space mismatches, duplicate references and a callsite
+outside its reported (possibly non-contiguous) body ranges. Runtime ownership,
+exception cleanup, locking and callable safety remain unknown.

@@ -503,3 +503,24 @@ The corrected private Ghidra accessor rerun used non-overlapping target ranges
 and explicit overlap cleanup. It exited 0 with `COMPLETE_TARGET_EXPORT`, 28
 bodies, 375 instruction rows, 55 blocks and 96 CFG edges; the first overlapping
 range attempt is retained as a failed run observation and is not counted.
+
+## ParamSet helper caller-range checkpoint (2026-10-10)
+
+`ghidra-scripts/TargetCallers.java` is a metadata-only, SHA-pinned exporter
+for exact target VMAs. `fwplatform/target_callers.py` validates its completion
+marker, program identity, image-base mapping, caller body ranges and reference
+counts, then separates Ghidra-derived caller identity from Capstone-confirmed
+callsite facts. The public, sanitized contract is
+`sdk/param_set_tree_callers_3_21.json`; raw export text remains private.
+
+The current private run used Ghidra 12.1.3 `ARM:LE:32:v8`, image base
+`0x10000`, and exited 0. It records eight references to the generic helpers:
+three calls to `0xffe70` from `0x7f4390`/`0xffed0`, four calls to `0xffed0`
+from `0x7f4390`/`0xfffb6`, and one call to `0x7f4390` from `0x7f44ce`.
+Capstone's exact Thumb `BL` scan agrees with all eight. The body ranges are preserved in ELF VMA form, and generated
+`FUN_...` labels are explicitly non-semantic. The generic helper has not been
+identified as a PrmSet mutator; runtime ownership, exception behavior,
+locking and callable safety remain unknown/false.
+
+Use `fw sdk parameter-set-callers --json` to validate the checked-in contract,
+or supply private `--ghidra-export` and `--elf` inputs for a local reparse.

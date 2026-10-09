@@ -416,6 +416,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--fixture", type=Path, default=Path("sdk/paramset_cross_elf_3_21.json")
     )
     sdk_param_set_cross.add_argument("--json", action="store_true")
+    sdk_param_set_callers = sdk_sub.add_parser("parameter-set-callers")
+    sdk_param_set_callers.add_argument(
+        "--fixture", type=Path, default=Path("sdk/param_set_tree_callers_3_21.json")
+    )
+    sdk_param_set_callers.add_argument("--ghidra-export", type=Path)
+    sdk_param_set_callers.add_argument("--elf", type=Path)
+    sdk_param_set_callers.add_argument("--expected-sha256", default=None)
+    sdk_param_set_callers.add_argument("--json", action="store_true")
     sdk_param_pair = sdk_sub.add_parser("parameter-pair")
     sdk_param_pair.add_argument("--elf", type=Path, required=True)
     sdk_param_pair.add_argument("--expected-sha256", default=None)
@@ -729,6 +737,58 @@ def main(argv: list[str] | None = None) -> int:
             validation = validate_paramset_cross_elf(result)
             if not validation["valid"]:
                 raise ValueError("Invalid ParamSet cross-ELF contract: " + ",".join(validation["errors"]))
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-set-callers":
+        from .param_set_probe import _thumb_bl_callers
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA, _sha256
+        from .target_callers import (
+            parse_target_callers_export,
+            summarize_target_callers,
+            validate_target_callers_contract,
+        )
+        expected_sha = (args.expected_sha256 or EXPECTED_LIBOBJ_SHA).lower()
+        if args.ghidra_export is not None:
+            if args.elf is None:
+                raise ValueError("--ghidra-export requires --elf")
+            from elftools.elf.elffile import ELFFile
+            import capstone
+            if _sha256(args.elf).lower() != expected_sha:
+                raise ValueError("--elf SHA-256 does not match the pinned binary identity")
+            parsed = parse_target_callers_export(
+                args.ghidra_export, expected_sha256=expected_sha
+            )
+            with args.elf.open("rb") as stream:
+                elf = ELFFile(stream)
+                capstone_callsites = {
+                    int(item["target_vma"], 16): _thumb_bl_callers(
+                        stream, elf, int(item["target_vma"], 16)
+                    )
+                    for item in parsed["targets"]
+                }
+            result = summarize_target_callers(
+                parsed,
+                capstone_callsites=capstone_callsites,
+                capstone_version=getattr(capstone, "__version__", "UNKNOWN"),
+            )
+            validation = validate_target_callers_contract(
+                result, expected_sha256=expected_sha
+            )
+            if not validation["valid"]:
+                raise ValueError(
+                    "Invalid generated ParamSet caller contract: "
+                    + ",".join(validation["errors"])
+                )
+        else:
+            result = json.loads(args.fixture.read_text(encoding="utf-8"))
+            validation = validate_target_callers_contract(
+                result, expected_sha256=expected_sha
+            )
+            if not validation["valid"]:
+                raise ValueError(
+                    "Invalid ParamSet caller contract: "
+                    + ",".join(validation["errors"])
+                )
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "parameter-pair":

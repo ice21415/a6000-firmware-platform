@@ -70,6 +70,8 @@
       "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
       "insert_callers": {
         "status": "PRIMARY_ELF_VERIFIED",
+        "caller_metadata_contract": "sdk/param_set_tree_callers_3_21.json",
+        "caller_metadata_summary": "Ghidra caller ranges are recorded separately from Capstone callsite facts; generated labels are non-semantic and a Capstone-only 0xfffc0 caller remains unresolved",
         "target": "0xffe70",
         "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
         "direct_callsite_addresses": [

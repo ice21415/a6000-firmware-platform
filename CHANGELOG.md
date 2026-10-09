@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — address-space-aware ParamSet helper callers
+
+- Added the metadata-only `TargetCallers.java` exporter and bounded caller
+  profile. It records exact caller entries and body ranges without publishing
+  firmware bytes or decompiler text; generated Ghidra labels remain
+  non-semantic.
+- Added `fwplatform.target_callers` and the descriptive
+  `sdk/param_set_tree_callers_3_21.json`. Eight helper callsites (including
+  the `0x7f4390` wrapper relation) are cross-checked by Ghidra metadata and Capstone; the new parser rejects
+  truncated exports, address-space mismatches, duplicate references and
+  callsites outside reported function ranges.
+- Added `fw sdk parameter-set-callers` and synthetic fail-closed tests. Caller
+  identity remains `GHIDRA_DERIVED`; ParamSet mutator ownership, runtime
+  verification and callable API status remain unknown/false.
+
 ## Unreleased — PrmSet header/node lifetime evidence
 
 - Added SHA-pinned primary-ELF observations for the payload root/header and
