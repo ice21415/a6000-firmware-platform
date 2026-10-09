@@ -103,7 +103,7 @@ class ModelExecuteEventEnvelopeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "0x12108c"):
             self._run()
         self.disasm.write_text(synthetic_report().replace(
-            "0x7f0b26: _ZN5EventC1Emhh", "0x7f0b26: nop"))
+            "0x7f0b26: blx      #0xdb66c ; _ZN5EventC1Emhh", "0x7f0b26: nop"))
         with self.assertRaisesRegex(ValueError, "0x7f0b26"):
             self._run()
 
@@ -115,6 +115,21 @@ class ModelExecuteEventEnvelopeTests(unittest.TestCase):
             self._run()
         self.disasm.write_text(synthetic_report() + "0x7f0b60: extra\n")
         with self.assertRaisesRegex(ValueError, "duplicated"):
+            self._run()
+
+    def test_wrong_plt_target_even_with_matching_symbol_name_rejected(self):
+        current = synthetic_report()
+        self.disasm.write_text(current.replace(
+            "0x121098: blx      #0xdfbdc ; _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+            "0x121098: blx      #0xdfbe0 ; _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+        ))
+        with self.assertRaisesRegex(ValueError, "0x121098"):
+            self._run()
+
+    def test_register_dataflow_to_event_parameter_8_is_required(self):
+        self.disasm.write_text(synthetic_report().replace(
+            "0x7f0b52: mov      r1, r8", "0x7f0b52: mov      r1, r6"))
+        with self.assertRaisesRegex(ValueError, "0x7f0b52"):
             self._run()
 
     def test_wrong_frontend_pointer_provenance_rejected(self):
