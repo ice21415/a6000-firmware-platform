@@ -64,6 +64,7 @@ def _array(data: dict[str, Any], name: str) -> list[Any]:
 def inspect_camera_research(
     catalog: Path, graph: Path, *, focus: str = "",
     compare_db: Path | None = None,
+    verify_elf: Path | None = None,
 ) -> dict[str, Any]:
     """Check normalized addresses/branches and show a static review subgraph.
 
@@ -155,6 +156,10 @@ def inspect_camera_research(
         if _address(obj.get("instruction_address"), "field.instruction_address") < int(functions[obj["owner"]]["address"], 0):
             raise ValueError(f"field_observations[{idx}]: instruction precedes reported entry")
         offset = _address(obj.get("object_field_offset"), "field.object_field_offset")
+        immediate = _address(obj.get("instruction_immediate_offset"), "field.instruction_immediate_offset")
+        base_adjustment = _address(obj.get("inferred_base_adjustment"), "field.inferred_base_adjustment")
+        if immediate > 0xFFF or base_adjustment + immediate != offset:
+            raise ValueError("field raw opcode immediate and inferred model field offset disagree")
         if offset > 0x100000:
             raise ValueError("field offset exceeds allowed model structure range")
         observed = obj.get("observed_value")
@@ -163,6 +168,8 @@ def inspect_camera_research(
         fields.append({"owner": obj["owner"], "kind": obj["kind"], "offset": hex(offset),
                        "instruction_address": hex(_address(obj["instruction_address"], "field.instruction_address")),
                        "observed_value": observed, "source_artifact": _artifact(obj.get("source_artifact")),
+                       "instruction_immediate_offset": hex(immediate),
+                       "inferred_base_adjustment": hex(base_adjustment),
                        "runtime_observed": False})
 
     selectors: list[dict[str, Any]] = []
@@ -218,6 +225,10 @@ def inspect_camera_research(
     if compare_db is not None:
         from .camera_db_crosscheck import crosscheck_camera_database
         database_crosscheck = crosscheck_camera_database(compare_db, sha, functions, calls)
+    independent_elf_check = None
+    if verify_elf is not None:
+        from .camera_elf_verify import verify_camera_elf
+        independent_elf_check = verify_camera_elf(verify_elf, sha, calls, fields)
     return {
         "status": "RESEARCH_GRAPH_INTERNALLY_CONSISTENT",
         "firmware_version": inventory["firmware_version"],
@@ -242,6 +253,7 @@ def inspect_camera_research(
             "complete_sdk_api_denominator": None,
         },
         "database_crosscheck": database_crosscheck,
+        "independent_elf_check": independent_elf_check,
         "callable_camera_apis": None,
         "rule": "A consistent report is not proof of a callable SDK or a verified camera control API.",
     }
