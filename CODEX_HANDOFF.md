@@ -61,6 +61,11 @@ descriptive contract is in `sdk/core_3_21_primary_helper_contracts.json`.
 The private metadata-only Ghidra xref export completed exit 0 with 25 target
 records and 2,290 xrefs; its four factory callsites were retained as address
 metadata only.
+The helper chain is now bounded as well: `0x120970` fixes lookup discriminator
+5 and `0x120968` loads `+0x0c`; `0xfe9be` fixes discriminator 3 and
+`0xfe9ae`/`0xfe9b6` load `+0x0c`/`+0x10`. The private Ghidra core export
+completed exit 0 for 16 targets, 198 instruction rows, 46 blocks and 73
+edges. Coordinate semantics, source-level names and ownership remain unknown.
 Callable/runtime-verified core API count remains zero. Private raw exports and
 Ghidra projects are outside this public checkout.
 

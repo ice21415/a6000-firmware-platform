@@ -111,6 +111,9 @@ The current private checkpoint also verifies the bounded factory candidate
 constructors, respectively, with four direct callers. Its descriptive ABI is
 recorded in `sdk/core_3_21_primary_helper_contracts.json`; ownership and
 runtime safety remain unknown.
+The supporting forwarders/getters are bounded at `0x120970`, `0x120968`,
+`0xfe9be`, `0xfe9ae` and `0xfe9b6`; the latest private core export has 16
+targets, 198 instruction rows, 46 blocks and 73 edges.
 The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.

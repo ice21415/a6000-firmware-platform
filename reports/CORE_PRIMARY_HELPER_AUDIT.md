@@ -116,11 +116,20 @@ object is dereferenced at `+4`, but its C++ type is not recovered. This is a
 static factory contract, not evidence that the factory is safe to call on a
 camera or that its returned object has a known owner.
 
+The source helpers are now independently bounded and Ghidra-cross-checked:
+`0x120970` fixes discriminator 5 and tail-calls the ParamList lookup PLT,
+`0x120968` loads the Bool byte at `+0x0c`, `0xfe9be` fixes discriminator 3
+and tail-calls the same lookup PLT, while `0xfe9ae` and `0xfe9b6` load the
+Point candidate's words at `+0x0c` and `+0x10`. These are field/dispatch facts;
+they do not establish coordinate units, source-level method names or ownership.
+
 The public contract is `sdk/core_3_21_primary_helper_contracts.json`; the
 metadata-only reusable xref export is `ghidra-scripts/ParamFamilyReferences.java`.
 Its private SHA-pinned run completed with exit 0 and emitted 25 bounded target
 records / 2,290 xrefs; the factory record contains four unconditional-call
-xrefs. The export is not committed.
+xrefs. The core target export was rerun with the five helper bodies: 16
+bounded targets, 198 instruction rows, 46 blocks and 73 edges, with a complete
+marker. All raw exports remain private.
 
 
 ## ParamList continuation — latest checkpoint

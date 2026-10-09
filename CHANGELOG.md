@@ -16,6 +16,10 @@
   explicit null paths. Source-level identity, helper semantics, ownership and
   runtime callability remain unknown.
 
+- Core factory helper follow-up: bounded and cross-checked the discriminator-5
+  and discriminator-3 lookup forwarders plus Bool/Point payload-word getters;
+  no coordinate semantics or ownership claims were added.
+
 - Derived payload/lifetime follow-up: primary constructor/RTTI/vtable evidence
   confirms PrmNumber signed-word and PrmBool byte payloads. Verified deleting
   destructor bindings, shared assignment-like count changes and replacement

@@ -25,6 +25,12 @@ class PrimaryContractTests(unittest.TestCase):
             {1, 3, 5},
         )
         self.assertTrue(factory["declared_return_type"].startswith("UNKNOWN"))
+        helpers = {item["name"]: item for item in self.contract["interfaces"]}
+        self.assertEqual(helpers["discriminator_five_lookup_forwarder"]["entry"], "0x120970")
+        self.assertEqual(helpers["discriminator_three_lookup_forwarder"]["entry"], "0xfe9be")
+        self.assertEqual(helpers["bool_payload_word_getter"]["entry"], "0x120968")
+        self.assertEqual(helpers["point_payload_word_0c_getter"]["entry"], "0xfe9ae")
+        self.assertEqual(helpers["point_payload_word_10_getter"]["entry"], "0xfe9b6")
 
     def test_static_status_cannot_enable_runtime(self):
         for field in ("runtime_verified", "callable"):

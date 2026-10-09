@@ -796,5 +796,7 @@ self-contained offline memory bytes, with bounds checks and a resource budget.
 The returned payload word's concrete type is UNKNOWN. No runtime-safe API is
 provided. The same contract records the static `0x42acd4` factory mapping for
 discriminators 5/1/3 to Bool/Number/Point construction and its four direct
-callers; source-level ownership and helper semantics remain UNKNOWN. See
+callers. It also records the discriminator-5/3 lookup forwarders and the
+Bool/Point payload-word getters used by those branches; source-level ownership
+and helper semantics remain UNKNOWN. See
 `reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.
