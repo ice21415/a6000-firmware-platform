@@ -159,6 +159,71 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.18: first typed *argument* ABI leads (no callable Camera ABI yet)
+
+This phase deliberately stops producing broad inventories and instead
+recovers specific AAPCS32 register arguments for the
+`requestModelExecute` bridge and the ModelCamera `0x0f01`
+dispatch to `pvt_ActionSetInit`. The Itanium C++ symbols preserve
+parameter **types** but do **not** encode ordinary return type or
+whether a method is static. The saved Thumb register flows let us
+distinguish the two identically parameter-mangled entry points:
+
+| Candidate entry | Mangled explicit arguments | Saved AAPCS32 register lead |
+|---|---|---|
+| `ViewBase::requestModelExecute` `0x12106e` | `char const*, unsigned long, ParamList*` | instance-like: `r0=this`, `r1=name`, `r2=selector`, `r3=ParamList*` |
+| `viewManagerIf::requestModelExecute` `0x1250c0` | identical | static-like: `r0=name`, `r1=selector`, `r2=ParamList*`; incoming `r3` overwritten during GOT setup |
+| `AbstractUtilityManager::createRequestModelExecuteEvent` `0x7f0b0c` | `int, unsigned long, ParamList*` | instance/context-like: `r0=context`, `r1=model ID`, `r2=transformed selector`, `r3=ParamList*` |
+
+The `ViewBase` caller uses a context pointer loaded from
+`[this+0x7c]`, whereas `viewManagerIf` fetches the context
+through the GOT. In *both* cases, `IdGenerator::Get` receives
+the original **model name** and helper `0x12d780` receives
+the **original model name and selector**, then the event factory
+receives the helper's unknown transformed selector. The different
+physical input registers are therefore explained by the static-vs-
+instance calling convention, *not* evidence that the helper
+has different APIs.
+
+The factory saves `operator new(0x10)`'s return in `r4`,
+constructs `Event` there, then returns `r4` in `r0`
+at `0x7f0b64–66`. `Event*` is a **strong static
+return-object inference**; the C++ declared return type,
+return/error ownership semantics and calling safety remain unverified.
+
+The cross-ELF saved `viewUnified2.so` call at
+`0x1a26e6` independently shows `model/CAMERA`, explicit
+selector `0x0f01` placed into `r2`, and candidate
+`ParamList*` in `r3`. **It does not by itself prove
+dynamic linker binding or event consumption.**
+
+For the Camera internals, the `ActionGpSetSetting`
+selector check `0x4cfe8a–90` gates an action call
+`0x4cfe98→0x4cf7a8` with `r0` sourced from the
+saved Camera instance and `r1` sourced from helper
+`0x13200a`. The callee preserves these in `r4/sl`
+and forwards `sl` to `0x42abcc`. The exact **C++ type
+of the second Camera argument is UNKNOWN**: this is an
+internal two-register argument *shape*, not a complete Camera
+ABI. Its downstream `0x4b1a20` and `0x4b096c`
+calls are consistent with previous static EE/prepare research.
+
+The new command enforces this evidence hierarchy and never calls
+firmware:
+
+```powershell
+python -m fwplatform.cli sdk request-abi --json
+python -m fwplatform.cli sdk request-abi --saved-libobj C:\private\boot-static-analysis\model-camera-methods.txt --saved-view C:\private\boot-static-analysis\view-boot-methods.txt --json
+```
+
+Without saved source, the command only reports ABI candidates.
+When given both private saved reports, it checks exact address and
+register-site observations, including the original `0x0f01`
+UI and ModelCamera dispatch. Current source reports are **text**
+extractions, not freshly SHA-verified original ELF bytes.
+CI uses synthetic data, rejects wrong registers/prototypes,
+and asserts **zero completed callable core Camera APIs**.
+
 ## Phase 3.17: ModelManager status gate and shared semaphore boundaries
 
 Existing **private saved** `libObj.so` ARM disassembly and the older
