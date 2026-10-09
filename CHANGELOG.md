@@ -403,3 +403,11 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
 - Extended the descriptive parameter lifetime contract and fail-closed tests;
   exception-object semantics, ownership, allocator pairing, runtime safety and
   callable status remain unknown.
+
+## Unreleased — bounded PrmSet lifecycle caller scan
+
+- Added a single-pass Thumb `BL` scan for the six named PrmSet lifecycle
+  targets. The public contract records exact callsite counts and the scan
+  boundary; absent direct calls do not rule out indirect dispatch or callers in
+  another ELF.
+- Kept owner/mutator identity and runtime/callable status unknown.

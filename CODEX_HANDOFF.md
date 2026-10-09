@@ -833,5 +833,22 @@ runtime lifetime contract.  `runtime_verified=false` and `callable=false`
 remain mandatory.  Synthetic family tests now cover the metadata shape and
 reject runtime promotion.  This checkpoint did not run a large Ghidra job and
 does not turn the generic ordered-tree callers into a ParamSet mutator.
-The complete local suite now passes 349 tests; runtime-verified and callable
+The complete local suite now passes 351 tests; runtime-verified and callable
 core API counts remain zero.
+
+## Latest checkpoint — PrmSet direct lifecycle caller scan (2026-10-10)
+
+The PrmSet probe now performs one conservative scan of the authenticated
+`libObj.so` executable `.text`: each 32-bit Thumb `BL` candidate is decoded by
+Capstone and matched against the six named PrmSet lifecycle VMAs.  No direct
+caller was found for `getSet`, `GET`, the constructor, deleting destructor or
+clone; the non-deleting destructor has one callsite at `0x7efb5e` from its
+deleting path.  The result is stored in `sdk/param_set_3_21.json` with
+`PRIMARY_ELF_VERIFIED` callsite facts and UNKNOWN caller identity.
+
+The scan does not cover BLX/register/vtable dispatch or callers in another ELF,
+so it is a bounded negative result and does not establish that the functions
+are unused.  It also does not identify a ParamSet owner or mutator; the generic
+ordered-tree helper remains unassigned.  The new validator and checked-in
+contract tests keep this scope explicit and continue to reject runtime or
+callable promotion.

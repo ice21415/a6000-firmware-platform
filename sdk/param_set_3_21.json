@@ -82,7 +82,8 @@
         "direct_callsite_count": 3,
         "prmset_mutator_entry": "UNKNOWN",
         "prmset_relation": "UNKNOWN within libObj.so; the separate cross-ELF contract proves a libScalarDaemon caller but does not identify this generic insertion helper as its mutator",
-        "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics"
+        "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics",
+        "address_space": "ELF_VMA"
       },
       "value_copy_evidence": {
         "status": "PRIMARY_ELF_VERIFIED",
@@ -282,7 +283,8 @@
     "Allocator pairing, exception paths, runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
     "No runtime execution or device validation",
     "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
-    "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN"
+    "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN",
+    "Direct lifecycle caller scan covers immediate Thumb BL encodings in libObj.so .text only; absent direct BL does not exclude BLX/register/vtable dispatch or callers in another ELF"
   ],
   "safety_boundaries": {
     "get_set_null_receiver": {
@@ -312,7 +314,7 @@
   },
   "runtime_verified": false,
   "callable": false,
-  "evidence_revision": "param-set-vtable-and-header-2026-10-10",
+  "evidence_revision": "param-set-direct-call-scan-2026-10-10",
   "inheritance": {
     "status": "PRIMARY_ELF_VERIFIED",
     "base_type": "ParamBase",
@@ -389,5 +391,57 @@
       }
     },
     "semantic_limit": "EHABI coverage and bounded cleanup calls do not prove every throw edge, exception object type or allocator contract"
+  },
+  "direct_call_scan": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "address_space": "ELF_VMA",
+    "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+    "targets": {
+      "get_set": {
+        "target": "0x7efae8",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "get": {
+        "target": "0x7efaf0",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "constructor": {
+        "target": "0x7efb00",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "destructor": {
+        "target": "0x7efb2c",
+        "direct_callsite_addresses": [
+          "0x7efb5e"
+        ],
+        "direct_callsite_count": 1,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "deleting_destructor": {
+        "target": "0x7efb58",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "clone": {
+        "target": "0x7efbb4",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      }
+    },
+    "scope_limit": "absence of a direct BL does not exclude BLX/register/vtable dispatch or callers in another ELF"
   }
 }

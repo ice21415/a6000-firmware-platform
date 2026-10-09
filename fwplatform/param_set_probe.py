@@ -638,9 +638,16 @@ def _thumb_bl_callers(fp: Any, elf: ELFFile, target: int) -> list[int]:
     not infer a containing function when symbols or a complete function body
     are unavailable.
     """
+    return _thumb_bl_callers_many(fp, elf, {target}).get(target, [])
+
+
+def _thumb_bl_callers_many(
+    fp: Any, elf: ELFFile, targets: set[int],
+) -> dict[int, list[int]]:
+    """Scan one executable ``.text`` image for several direct BL targets."""
     section = elf.get_section_by_name(".text")
     if section is None or not (int(section["sh_flags"]) & 4):
-        return []
+        return {target: [] for target in targets}
     offset = int(section["sh_offset"])
     base = int(section["sh_addr"])
     size = int(section["sh_size"])
@@ -652,7 +659,7 @@ def _thumb_bl_callers(fp: Any, elf: ELFFile, target: int) -> list[int]:
     def sign_extend(value: int, bits: int) -> int:
         return value - (1 << bits) if value & (1 << (bits - 1)) else value
 
-    callers: list[int] = []
+    callers: dict[int, list[int]] = {target: [] for target in targets}
     for index in range(0, max(0, len(data) - 4), 2):
         first = int.from_bytes(data[index:index + 2], "little")
         second = int.from_bytes(data[index + 2:index + 4], "little")
@@ -669,11 +676,10 @@ def _thumb_bl_callers(fp: Any, elf: ELFFile, target: int) -> list[int]:
         )
         caller = base + index
         destination = caller + 4 + sign_extend(immediate, 25)
-        if destination != target:
-            continue
         rows = list(decoder.disasm(data[index:index + 4], caller, count=1))
         if rows and rows[0].mnemonic.lower() == "bl":
-            callers.append(caller)
+            if destination in callers:
+                callers[destination].append(caller)
     return callers
 
 
@@ -681,6 +687,7 @@ def _observe_tree_insert_callers(fp: Any, elf: ELFFile) -> dict[str, Any]:
     callers = _thumb_bl_callers(fp, elf, 0xFFE70)
     return {
         "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA",
         "target": "0xffe70",
         "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
         "direct_callsite_addresses": [f"0x{address:x}" for address in callers],
@@ -688,6 +695,45 @@ def _observe_tree_insert_callers(fp: Any, elf: ELFFile) -> dict[str, Any]:
         "prmset_mutator_entry": "UNKNOWN",
         "prmset_relation": "UNKNOWN; no callsite is proven to consume PrmSet::getSet() in this ELF-only scan",
         "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics",
+    }
+
+
+def _observe_direct_paramset_callers(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    """Scan direct Thumb BL references to the named PrmSet lifecycle targets.
+
+    This is deliberately a negative-capability observation: it covers only
+    immediate BL encodings in the executable ``.text`` section.  It does not
+    claim that an absent direct call rules out BLX/register dispatch, a
+    vtable call, or a caller in another ELF.
+    """
+    targets = {
+        "get_set": 0x7EFAE8,
+        "get": 0x7EFAF0,
+        "constructor": 0x7EFB00,
+        "destructor": 0x7EFB2C,
+        "deleting_destructor": 0x7EFB58,
+        "clone": 0x7EFBB4,
+    }
+    by_target = _thumb_bl_callers_many(fp, elf, set(targets.values()))
+    records: dict[str, Any] = {}
+    for name, target in targets.items():
+        callsites = by_target.get(target, [])
+        records[name] = {
+            "target": f"0x{target:x}",
+            "direct_callsite_addresses": [f"0x{address:x}" for address in callsites],
+            "direct_callsite_count": len(callsites),
+            "status": "PRIMARY_ELF_VERIFIED",
+            "caller_identity": "UNKNOWN; no nearest-address function attribution",
+        }
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA",
+        "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+        "targets": records,
+        "scope_limit": (
+            "absence of a direct BL does not exclude BLX/register/vtable dispatch "
+            "or callers in another ELF"
+        ),
     }
 
 
@@ -853,6 +899,7 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
         }
         prmset_vtable = _observe_prmset_vtable(fp, elf)
         observations["payload_tree_insert_callers"] = _observe_tree_insert_callers(fp, elf)
+        observations["direct_paramset_callers"] = _observe_direct_paramset_callers(fp, elf)
     return {
         "status": "LOCAL_PRIMARY_ELF_PRMSET_EVIDENCE_ONLY",
         "binary_file_sha256": digest,
@@ -943,6 +990,7 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             },
         },
         "bindings": bindings,
+        "direct_call_scan": observations["direct_paramset_callers"],
         "observations": observations,
         "ownership": {
             "constructor": "embedded payload initialized in a newly allocated 0x24-byte object",
@@ -1181,4 +1229,36 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
                     errors.append(f"exception_cleanup_locator:{name}")
                 if cleanup.get("calls") != calls:
                     errors.append(f"exception_cleanup_calls:{name}")
+    direct_scan = report.get("direct_call_scan")
+    if not isinstance(direct_scan, dict):
+        errors.append("missing_direct_call_scan")
+    else:
+        if direct_scan.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("direct_call_scan_status")
+        if direct_scan.get("address_space") != "ELF_VMA":
+            errors.append("direct_call_scan_address_space")
+        expected_targets = {
+            "get_set": "0x7efae8",
+            "get": "0x7efaf0",
+            "constructor": "0x7efb00",
+            "destructor": "0x7efb2c",
+            "deleting_destructor": "0x7efb58",
+            "clone": "0x7efbb4",
+        }
+        rows = direct_scan.get("targets")
+        if not isinstance(rows, dict):
+            errors.append("direct_call_scan_targets")
+        else:
+            for name, target in expected_targets.items():
+                row = rows.get(name)
+                if not isinstance(row, dict):
+                    errors.append(f"direct_call_scan_target:{name}")
+                    continue
+                if row.get("target") != target:
+                    errors.append(f"direct_call_scan_locator:{name}")
+                if row.get("status") != "PRIMARY_ELF_VERIFIED":
+                    errors.append(f"direct_call_scan_target_status:{name}")
+                callsites = row.get("direct_callsite_addresses")
+                if not isinstance(callsites, list) or row.get("direct_callsite_count") != len(callsites):
+                    errors.append(f"direct_call_scan_count:{name}")
     return {"valid": not errors, "errors": sorted(set(errors))}

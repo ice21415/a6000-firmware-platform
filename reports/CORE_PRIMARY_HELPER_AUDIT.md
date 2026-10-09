@@ -1230,4 +1230,10 @@ none is a runtime-safety guarantee.
 
 此 index 證實的是「某個精確函式 VMA 有唯一 EHABI metadata」；它不證明每條 throw edge、exception object、allocator pairing、source-level virtual declaration、所有權或並行生命週期。公開 `sdk/parameter_types_lifetime_3_21.json` 現在保存每一族的 sanitized entries，`runtime_verified=false`、`callable=false` 未變。通用 validator 會拒絕缺少 entry、錯誤地址空間或 runtime/callable promotion。這輪沒有重跑大型 Ghidra，也沒有把泛用 tree caller 歸屬到 ParamSet。
 
-本輪新增的 family probe regression tests 與 checked-in contract shape checks 通過；完整本地測試為 **349 tests passed**。這只驗證 metadata 管線與 fail-closed 規則，不增加任何 runtime-verified 或 callable API。
+本輪新增的 family probe regression tests 與 checked-in contract shape checks 通過；完整本地測試為 **351 tests passed**。這只驗證 metadata 管線與 fail-closed 規則，不增加任何 runtime-verified 或 callable API。
+
+## PrmSet direct lifecycle caller scan — 2026-10-10
+
+為了縮小 owner/mutator 缺口，`fwplatform.param_set_probe` 新增一次性掃描：在同一份 primary ELF 的 executable `.text` 中，逐 2-byte 邊界辨識 Thumb `BL` encoding，再以 Capstone 確認候選指令。結果為：`getSet 0x7efae8`、`GET 0x7efaf0`、constructor `0x7efb00`、deleting destructor `0x7efb58` 和 clone `0x7efbb4` 均沒有 direct `BL` caller；non-deleting destructor `0x7efb2c` 只有 deleting path 內的 `0x7efb5e` 呼叫。這些 callsite 本身是 `PRIMARY_ELF_VERIFIED`，caller function identity 保持 `UNKNOWN`。
+
+這是有明確掃描範圍的負向結果，不是「沒有任何 caller」的證明：它不涵蓋 `BLX`/register 或 vtable dispatch，也不涵蓋其他 ELF。公開 `sdk/param_set_3_21.json` 保存 target、callsite count/address 與 scope limit；因此 ParamSet owner/mutator 仍未確定，泛用 `_Rb_tree` helper 仍不可升級為 ParamSet API。

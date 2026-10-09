@@ -52,6 +52,26 @@ def _report():
                 "candidates": [{"symbol": "__cxa_end_cleanup"}],
             },
         },
+        "direct_call_scan": {
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA",
+            "targets": {
+                name: {
+                    "target": target,
+                    "direct_callsite_addresses": [],
+                    "direct_callsite_count": 0,
+                    "status": "PRIMARY_ELF_VERIFIED",
+                }
+                for name, target in {
+                    "get_set": "0x7efae8",
+                    "get": "0x7efaf0",
+                    "constructor": "0x7efb00",
+                    "destructor": "0x7efb2c",
+                    "deleting_destructor": "0x7efb58",
+                    "clone": "0x7efbb4",
+                }.items()
+            },
+        },
         "inheritance": {
             "status": "PRIMARY_ELF_VERIFIED",
             "base_type": "ParamBase",
@@ -181,6 +201,7 @@ class ParamSetProbeTests(unittest.TestCase):
         self.assertEqual(tree["insert_callers"]["direct_callsite_addresses"], [
             "0xfff4e", "0xfff86", "0x7f4402",
         ])
+        self.assertEqual(tree["insert_callers"]["address_space"], "ELF_VMA")
         self.assertEqual(tree["value_copy_evidence"]["entry"], "0xecd7a")
         self.assertEqual(tree["value_compare_evidence"]["entry"], "0xefe6c")
         inheritance = contract["inheritance"]
@@ -208,6 +229,15 @@ class ParamSetProbeTests(unittest.TestCase):
             contract["methods"]["clone_candidate"]["exception_cleanup"]["landing_pad_candidate"],
             "0x7efbce",
         )
+        direct_scan = contract["direct_call_scan"]
+        self.assertEqual(direct_scan["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(direct_scan["address_space"], "ELF_VMA")
+        self.assertEqual(direct_scan["targets"]["constructor"]["direct_callsite_count"], 0)
+        self.assertEqual(
+            direct_scan["targets"]["destructor"]["direct_callsite_addresses"],
+            ["0x7efb5e"],
+        )
+        self.assertEqual(direct_scan["targets"]["clone"]["direct_callsite_count"], 0)
 
     def test_static_report_is_valid(self):
         result = validate_param_set(_report())
@@ -353,6 +383,20 @@ class ParamSetProbeTests(unittest.TestCase):
         result = validate_param_set(report)
         self.assertFalse(result["valid"])
         self.assertIn("end_cleanup_symbol", result["errors"])
+
+    def test_missing_direct_call_scan_is_rejected(self):
+        report = _report()
+        del report["direct_call_scan"]
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("missing_direct_call_scan", result["errors"])
+
+    def test_direct_call_scan_count_is_evidence_gated(self):
+        report = _report()
+        report["direct_call_scan"]["targets"]["clone"]["direct_callsite_count"] = 1
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("direct_call_scan_count:clone", result["errors"])
 
 
 if __name__ == "__main__":

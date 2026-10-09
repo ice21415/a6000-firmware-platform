@@ -576,3 +576,10 @@ unwind words or raw firmware.  The checked-in
 this evidence.  EHABI metadata remains static evidence only: exception-object
 types, complete throw paths, allocator pairing, ownership, locking, runtime
 binding and callable safety are UNKNOWN; runtime/callable counts remain zero.
+
+The PrmSet probe also records a bounded direct Thumb `BL` caller scan for
+`getSet`, `GET`, constructor, both destructor slots and clone.  The pinned
+`libObj.so` has no direct `BL` callers for the first, second, constructor,
+deleting-destructor or clone targets; `0x7efb5e` calls the non-deleting
+destructor from the deleting path.  This does not cover BLX/register/vtable
+dispatch or other ELFs, so owner/mutator identity remains UNKNOWN.
