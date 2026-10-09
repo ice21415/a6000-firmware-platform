@@ -135,6 +135,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.16（Appframework 事件迴圈／投遞邊界）
+
+- 從保存 `libObj.so` 指令找到 `application_thread_body=0x7eeee8`、queue guard `0x7eeec8`、dispatch `0x7eecac→0x7f21e8`、semaphore helper `0x7f2210→0x7f099c`。
+- 兩個 loop 呼叫點 `0x7ef0d4`、`0x7ef16e`，以及 cleanup `0x7eecec` 均報告直呼 `0x7eecac`。
+- 原始保存報告含 `app_event_pop`、`app_event_dispatch`、`app_event_cleanup` 重疊掃描範圍；改以六個具名入口分別檢查，不能把重複掃描行數當成多條獨立函式執行證據。
+- 新增 `sdk/camera_3_21_application_event_loop.json`、`fwplatform/app_event_loop.py`、`fw sdk event-loop` 及合成測試，核對 26 個保存的 opcode-text 位置。沒有原始 ELF 位元組驗證、事件接收動態證據或 SQLite 寫入。
+- **尚未完成：** 尚不能從事件建立端 `0x11004003` 證明消費者在此迴圈，未查明事件 key 7/8 到 `ModelCamera::ActionGpSetSetting` 的轉換路徑，完整 Camera ABI 仍未知。
+
 ## Phase 3.15（兩條 requestModelExecute 靜態入口交叉核對）
 
 - 新增第二個 `viewManagerIf::requestModelExecute` `libObj.so` ELF VMA `0x1250c0` 的具名入口線索，與 `ViewBase::requestModelExecute=0x12106e` 比較；兩者的保存指令顯示同樣呼叫 `IdGenerator::Get@0xdffb8`、`0x12d780` selector helper 與 `createRequestModelExecuteEvent@0xdfbdc`。
