@@ -200,6 +200,27 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                     "generated_name": int(bool(record.get("generated"))), "origin": "ghidra_auto_function",
                     "analysis_run_id": run_id, "prototype": record.get("prototype"),
                     "address_space": identity.get("address_space")}, ("identity_key",))
+            # Function-entry evidence is distinct from the export's metadata.
+            # A Ghidra prototype is a raw observation, *not* a verified ABI,
+            # argument layout, return contract, or API semantic meaning.
+            function_evidence = db.evidence(
+                str(jsonl), jsonl_digest, "ghidra_function_entry",
+                f"function:{entry}",
+                json.dumps({
+                    "binary_sha256": digest, "function_entry": entry,
+                    "function_name": name, "prototype_text": record.get("prototype"),
+                    "address_space": identity.get("address_space"),
+                    "generated_name": bool(record.get("generated")),
+                }, ensure_ascii=False, sort_keys=True),
+                "VERIFIED_STATIC", {
+                    "binary_sha256": digest, "run_id": run_key, "record_kind": "function",
+                    "prototype_abi_verified": False,
+                },
+                evidence_type="ghidra_function_location",
+                status_basis="validated_jsonl_function_record",
+            )
+            db.connection.execute("UPDATE function SET source_evidence_id=? WHERE id=?",
+                                  (function_evidence, function_id))
             function_ids[entry] = function_id
             counts["functions"] += 1
 
