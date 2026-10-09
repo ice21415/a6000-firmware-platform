@@ -298,6 +298,11 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_envelope.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_execute_envelope.json"))
     sdk_envelope.add_argument("--saved-disassembly", type=Path)
     sdk_envelope.add_argument("--json", action="store_true")
+    sdk_frontends = sdk_sub.add_parser("request-frontends")
+    sdk_frontends.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_request_frontends.json"))
+    sdk_frontends.add_argument("--saved-disassembly", type=Path)
+    sdk_frontends.add_argument("--event-envelope", type=Path)
+    sdk_frontends.add_argument("--json", action="store_true")
     sdk_discover = sdk_sub.add_parser("discover")
     sdk_discover.add_argument("--name", default="")
     sdk_discover.add_argument("--binary-sha256", default="")
@@ -362,6 +367,13 @@ def main(argv: list[str] | None = None) -> int:
         result = simulate_protocol(args.scenario)
         _json_or_text(result, args.json)
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "sdk" and args.sdk_command == "request-frontends":
+        from .model_request_frontends import audit_model_request_frontends
+        result = audit_model_request_frontends(args.fixture,
+            saved_disassembly=args.saved_disassembly,
+            event_envelope=args.event_envelope)
+        _json_or_text(result, args.json)
+        return 0
     if args.command == "sdk" and args.sdk_command == "event-envelope":
         from .event_envelope import audit_model_execute_event
         result = audit_model_execute_event(args.fixture, saved_disassembly=args.saved_disassembly)
