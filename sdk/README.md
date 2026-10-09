@@ -128,6 +128,10 @@ numeric entry address. Subsequent alias collisions are reported by SDK audit
 as `AMBIGUOUS_FUNCTION_ADDRESS`; legacy static status is automatically
 downgraded in a descriptive SDK export. These checks strengthen the review
 queue but do not verify an API ABI, semantics, or runtime callability.
+If two inventoried paths have the same ELF SHA-256, discovery reports
+`unique_binary_identity=false` and cannot claim a uniquely resolved entry.
+The review draft keeps candidate source paths together and collapses duplicate
+contract identities, remaining importable as unverified hypotheses.
 
 ## Device safety boundaries
 
