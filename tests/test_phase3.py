@@ -72,6 +72,35 @@ class Phase3Tests(unittest.TestCase):
             self.assertEqual(db.connection.execute("SELECT status FROM analysis_run WHERE analyzer='ghidra_headless'").fetchone()[0], "FAILED")
             db.close()
 
+
+    def test_ghidra_rejects_mismatched_complete_marker_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            binary = root / "sample.so"
+            binary.write_bytes(b"sample-elf")
+            digest = sha256_file(binary)
+            db = self._db(root)
+            db.connection.execute(
+                "INSERT INTO binary(path,sha256,size,format,analysis_status,metadata_json) VALUES(?,?,?,?,?,?)",
+                (binary.name, digest, binary.stat().st_size, "elf_executable_or_shared_library", "INVENTORIED", "{}"),
+            )
+            db.commit()
+            jsonl = root / "mismatched.jsonl"
+            metadata = {"kind": "metadata", "run_id": "run-1", "binary_sha256": digest}
+            for bad_marker in (
+                {"run_id": "another-run", "binary_sha256": digest},
+                {"run_id": "run-1", "binary_sha256": "f" * 64},
+            ):
+                marker = {"kind": "complete", "record_count": 1, "export_status": "complete", **bad_marker}
+                jsonl.write_text(json.dumps(metadata) + "\n" + json.dumps(marker) + "\n", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "differs between metadata and complete marker"):
+                    import_ghidra_jsonl(db, root, binary, jsonl)
+            self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM function").fetchone()[0], 0)
+            self.assertEqual(db.connection.execute(
+                "SELECT status FROM analysis_run WHERE analyzer='ghidra_headless'"
+            ).fetchone()[0], "FAILED")
+            db.close()
+
     def test_linkage_does_not_choose_ambiguous_basename(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); (root / "app").mkdir(); (root / "a").mkdir(); (root / "b").mkdir()
