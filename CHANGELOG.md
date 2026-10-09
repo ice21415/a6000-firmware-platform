@@ -248,3 +248,9 @@ Extended the private-only CntInfoList probe and Ghidra target profile with
 index, length, growth and word-copy helpers. Updated the descriptive contract
 and public snapshot header. No firmware bytes, raw disassembly or private
 Ghidra output were added; runtime and callable API counts remain zero.
+
+## 2026-10-10 — PrmCntInfoList removal evidence
+
+Added bounded static evidence for CntInfoList removal, front-drop, temporary
+copy and rebuild paths. Updated the descriptive contract, tests and private
+Ghidra profile without adding firmware bytes or private analysis artifacts.

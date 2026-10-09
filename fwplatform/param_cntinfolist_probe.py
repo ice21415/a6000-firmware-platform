@@ -35,11 +35,16 @@ TARGETS: tuple[dict[str, Any], ...] = (
      "symbol": "_ZN14PrmCntInfoList8getGroupEj"},
     {"name": "collection_index_helper", "entry": 0x11D47E, "size": 32},
     {"name": "collection_length_helper", "entry": 0xE77A2, "size": 20},
+    {"name": "collection_copy_and_drop", "entry": 0x11D468, "size": 22},
+    {"name": "collection_drop_first", "entry": 0xE7E86, "size": 32},
     {"name": "append_helper", "entry": 0x11D8E6, "size": 40},
     {"name": "append_growth_helper", "entry": 0x11D8B0, "size": 54},
     {"name": "collection_word_copy", "entry": 0xECD7A, "size": 12},
     {"name": "add", "entry": 0x11D90E, "size": 40,
      "symbol": "_ZN14PrmCntInfoList3addEjj"},
+    {"name": "remove", "entry": 0x11D82E, "size": 130,
+     "symbol": "_ZN14PrmCntInfoList6removeEj"},
+    {"name": "remove_rebuild_helper", "entry": 0x11D72A, "size": 260},
     {"name": "clone", "entry": 0x11DA18, "size": 100},
     {"name": "default_constructor", "entry": 0x11D680, "size": 84,
      "symbol": "_ZN14PrmCntInfoListC1Ev"},
@@ -235,6 +240,35 @@ def _observe_collection_length(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_collection_copy_and_drop(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0x11D470, "bl", target=0xE76EC)
+    _require(rows, 0x11D476, "bl", target=0xE7E86)
+    _require(rows, 0x11D47C, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "source": "r1 collection-like storage; four words are copied into r0 before mutation",
+        "effect": "advances the copied collection through the local drop-first helper",
+        "element_width": "32-bit word candidate",
+        "bounds_behavior": "drop-first helper behavior is bounded by end/capacity metadata; invalid empty-state behavior remains UNKNOWN",
+    }
+
+
+def _observe_collection_drop_first(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0xE7E88, "mov", operands="r4, r0")
+    _require(rows, 0xE7E90, "adds", operands="r3, #4")
+    _require(rows, 0xE7E94, "cmp", operands="r3, r2")
+    _require(rows, 0xE7E96, "bne", target=0xE7EA4)
+    _require(rows, 0xE7E9C, "bl", target=0xE77F6)
+    _require(rows, 0xE7EA4, "mov", operands="r0, r4")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "effect": "advances the collection begin pointer by one 32-bit element",
+        "end_case": "when the advanced begin reaches end, rebuilds metadata through 0xe77f6",
+        "element_destructor": "no per-element destructor call observed in this word-width path",
+        "empty_or_invalid_behavior": "UNKNOWN",
+    }
+
+
 def _observe_append_growth(rows: dict[int, Any]) -> dict[str, Any]:
     _require(rows, 0x11D8B8, "movs", operands="r1, #1")
     _require(rows, 0x11D8BA, "bl", target=0xE8672)
@@ -276,6 +310,50 @@ def _observe_add(rows: dict[int, Any]) -> dict[str, Any]:
         "arguments": "r1/r2 are unsigned int candidates from _ZN14PrmCntInfoList3addEjj",
         "effect": "appends r1 to collection +0x0c and r2 to collection +0x34",
         "return_type": "UNKNOWN",
+    }
+
+
+def _observe_remove(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0x11D838, "add.w", operands="r6, r0, #0xc")
+    _require(rows, 0x11D844, "adds", operands="r5, #0x34")
+    _require(rows, 0x11D846, "bl", target=0xE7702)
+    _require(rows, 0x11D850, "movs", operands="r4, #0")
+    _require(rows, 0x11D862, "bl", target=0x11D468)
+    _require(rows, 0x11D86E, "bl", target=0x11D468)
+    _require(rows, 0x11D872, "cmp", operands="r4, r8")
+    _require(rows, 0x11D874, "blo", target=0x11D858)
+    _require(rows, 0x11D88A, "bl", target=0x11D72A)
+    _require(rows, 0x11D8A2, "bl", target=0x11D72A)
+    _require(rows, 0x11D8AC, "pop.w")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "PrmCntInfoList* in r0",
+        "index": "unsigned int candidate in r1 from _ZN14PrmCntInfoList6removeEj",
+        "preparation": "copies both collection regions into local temporaries",
+        "loop": "repeats collection copy/drop for both regions while r4 < r1",
+        "commit": "passes both transformed temporaries through local rebuild helper 0x11d72a",
+        "return_type": "UNKNOWN",
+        "invalid_index_and_alias_behavior": "UNKNOWN",
+    }
+
+
+def _observe_remove_rebuild(rows: dict[int, Any]) -> dict[str, Any]:
+    _require(rows, 0x11D73E, "bl", target=0xE76EC)
+    _require(rows, 0x11D746, "bl", target=0xE7E86)
+    _require(rows, 0x11D75A, "bl", target=0xE7774)
+    _require(rows, 0x11D762, "bl", target=0xE77A2)
+    _require(rows, 0x11D76A, "bhs", target=0x11D7BC)
+    _require(rows, 0x11D7B0, "bl", target=0xE83F8)
+    _require(rows, 0x11D7CE, "bl", target=0x11D4FA)
+    _require(rows, 0x11D802, "bl", target=0xE7D00)
+    _require(rows, 0x11D81E, "bl", target=0xE7CD6)
+    _require(rows, 0x11D82A, "pop.w")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "inputs": "local collection metadata and temporary candidates are compared and rebuilt through helper calls",
+        "branches": "contains a capacity/length branch at 0x11d76a and separate rebuild paths",
+        "output": "returns destination-shaped temporary state; source-level assignment/rebuild identity UNKNOWN",
+        "exception_and_alias_behavior": "UNKNOWN",
     }
 
 
@@ -392,6 +470,10 @@ def probe_param_cntinfolist(
                 facts = _observe_collection_index(rows)
             elif name == "collection_length_helper":
                 facts = _observe_collection_length(rows)
+            elif name == "collection_copy_and_drop":
+                facts = _observe_collection_copy_and_drop(rows)
+            elif name == "collection_drop_first":
+                facts = _observe_collection_drop_first(rows)
             elif name == "append_helper":
                 facts = _observe_append(rows)
             elif name == "append_growth_helper":
@@ -400,6 +482,10 @@ def probe_param_cntinfolist(
                 facts = _observe_word_copy(rows)
             elif name == "add":
                 facts = _observe_add(rows)
+            elif name == "remove":
+                facts = _observe_remove(rows)
+            elif name == "remove_rebuild_helper":
+                facts = _observe_remove_rebuild(rows)
             elif name == "clone":
                 facts = _observe_clone(
                     rows,

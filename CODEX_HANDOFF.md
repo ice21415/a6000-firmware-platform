@@ -431,3 +431,12 @@ The CntInfoList lifecycle extension now includes clone target `0x11da18` and
 the deleting destructor target `0x11d590`; both remain static-only and
 non-callable. The current targeted Ghidra run is 18 targets, 237 instructions,
 22 blocks and 47 edges, exit 0.
+
+## Phase 3.33 — PrmCntInfoList removal evidence
+
+The private-only CntInfoList probe now includes `remove(unsigned)` at `0x11d82e`,
+its local rebuild helper `0x11d72a`, the four-word copy wrapper `0x11d468`, and
+the drop-first helper `0xe7e86`. The evidence shows temporary reconstruction
+and word-width front removal; it does not establish bounds, ownership, alias
+or concurrency behavior. Targeted Ghidra exited 0 with 22 targets, 384
+instructions, 38 blocks and 96 edges. Runtime/callable counts remain zero.

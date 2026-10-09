@@ -215,3 +215,10 @@ The next static milestone is to map the newly confirmed word-width collection
 helpers to construction/use sites while preserving unknown allocator, bounds,
 exception and synchronization semantics. Any future SDK declaration remains
 read-only and descriptive until caller and runtime evidence exist.
+
+### ParamBase follow-up: removal and invalidation semantics
+
+The removal path is now indexed, but invalid-index behavior, ownership transfer,
+alias invalidation, exception behavior and synchronization remain open. The
+next target is to connect this path to concrete ParamList replacement callers
+without promoting local helper names to source-level C++ APIs.

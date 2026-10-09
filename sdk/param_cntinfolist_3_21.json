@@ -103,6 +103,24 @@
       "safe_to_call": false
     },
     {
+      "name": "collection_copy_and_drop",
+      "entry": "0x11d468",
+      "abi": "r0=destination collection-like storage; r1=source collection-like storage",
+      "effect": "copies four words and advances the destination through the local drop-first helper",
+      "evidence": ["ELF_VMA:0x11d470", "ELF_VMA:0x11d476", "ELF_VMA:0x11d47c"],
+      "element_width": "32-bit word candidate",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_drop_first",
+      "entry": "0xe7e86",
+      "abi": "r0=collection-like storage",
+      "effect": "advances begin by one word; when begin reaches end, rebuilds metadata through 0xe77f6",
+      "evidence": ["ELF_VMA:0xe7e88", "ELF_VMA:0xe7e90", "ELF_VMA:0xe7e94", "ELF_VMA:0xe7e9c", "ELF_VMA:0xe7ea4"],
+      "empty_or_invalid_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
       "name": "append_helper",
       "entry": "0x11d8e6",
       "abi": "r0=collection-like storage; r1=pointer to one input word",
@@ -137,6 +155,25 @@
       "effect": "appends r1 to +0x0c and r2 to +0x34 through 0x11d8e6",
       "evidence": ["ELF_SYMBOL:0x11d90f:size=40", "ELF_VMA:0x11d916", "ELF_VMA:0x11d920", "ELF_VMA:0x11d924", "ELF_VMA:0x11d92a"],
       "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "remove",
+      "entry": "0x11d82e",
+      "symbol": "_ZN14PrmCntInfoList6removeEj",
+      "abi": "r0=PrmCntInfoList*; r1=unsigned int index candidate",
+      "effect": "copies both collection regions, drops one word per loop iteration from each temporary, and passes both through 0x11d72a",
+      "evidence": ["ELF_SYMBOL:0x11d82f:size=130", "ELF_VMA:0x11d838", "ELF_VMA:0x11d846", "ELF_VMA:0x11d862", "ELF_VMA:0x11d86e", "ELF_VMA:0x11d872", "ELF_VMA:0x11d88a", "ELF_VMA:0x11d8a2"],
+      "invalid_index_alias_and_return_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "remove_rebuild_helper",
+      "entry": "0x11d72a",
+      "abi": "local collection/temporary candidates in r0/r1/r2 and related stack temporaries",
+      "effect": "compares metadata, follows capacity/length branches, and rebuilds temporary collection state through local helpers",
+      "evidence": ["ELF_VMA:0x11d73e", "ELF_VMA:0x11d746", "ELF_VMA:0x11d75a", "ELF_VMA:0x11d762", "ELF_VMA:0x11d76a", "ELF_VMA:0x11d7b0", "ELF_VMA:0x11d802", "ELF_VMA:0x11d81e"],
+      "source_level_identity": "UNKNOWN",
       "safe_to_call": false
     },
     {

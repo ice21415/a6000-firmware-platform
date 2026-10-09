@@ -1036,3 +1036,13 @@ synchronization, runtime binding and source-level clone return semantics remain
 unknown. Contract: `sdk/param_struct_3_21.json`; runtime and callable flags are
 false. Private Ghidra targeted output exited 0 with 4 targets, 54 instructions,
 4 blocks and 9 CFG edges.
+
+## PrmCntInfoList removal evidence
+
+The private-only `parameter-cntinfolist` probe also records the exported
+`remove(unsigned)` path at `0x11d82e`. Static evidence shows temporary copies
+of the `+0x0c` and `+0x34` collection regions, repeated word-width front drops,
+and a local rebuild path at `0x11d72a`. It does not establish invalid-index,
+ownership, alias invalidation, exception or synchronization behavior. The
+contract remains `safe_to_call: false`, `runtime_verified: false` and
+`callable: false`.

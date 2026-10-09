@@ -682,3 +682,18 @@ the deleting path calls the relocation-bound `PrmCntInfoListD1` PLT then
 `_ZdlPv`. These are lifetime/control-flow facts only: source-level clone
 return type, ownership transfer, allocator pairing, exception paths and
 runtime safety remain UNKNOWN.
+
+## PrmCntInfoList removal/lifecycle checkpoint — 2026-10-10
+
+The authenticated ELF now also verifies `_ZN14PrmCntInfoList6removeEj` at
+`0x11d82e` and its bounded local rebuild path at `0x11d72a`. The method copies
+both collection regions, repeats a copy/drop-first operation for both while
+`r4 < r1`, then commits the transformed temporaries through `0x11d72a`.
+`0xe7e86` advances a collection begin pointer by one 32-bit word and rebuilds
+metadata when begin reaches end. The exact meaning of the index, invalid-index
+behavior, aliasing, assignment identity, exception handling and pointer
+invalidation remain UNKNOWN.
+
+The private targeted Ghidra profile now exits 0 with 22 targets, 384
+instruction rows, 38 blocks and 96 CFG edges. The public contract records
+these as static evidence only; no runtime or callable ABI claim is made.

@@ -312,3 +312,12 @@ index helper, length arithmetic, full-capacity append branch and guarded
 Ghidra exited 0 with 18 targets, 237 instructions, 22 blocks and 47 edges.
 This remains PRIMARY_ELF_VERIFIED static evidence only; runtime verification,
 thread safety, null safety and callable ABI remain UNKNOWN/false.
+
+## Phase 3.33 — PrmCntInfoList removal evidence
+
+`fw sdk parameter-cntinfolist --elf <private-libObj.so> --json` now records the
+`remove(unsigned)` control flow, copy/drop-first helpers and rebuild branch.
+The result remains a descriptive PRIMARY_ELF_VERIFIED record: invalid-index,
+ownership, aliasing, exception, synchronization and runtime behavior remain
+unknown. Private targeted Ghidra: exit 0, 22 targets, 384 instructions, 38
+blocks and 96 edges.
