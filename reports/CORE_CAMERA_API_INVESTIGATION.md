@@ -443,7 +443,12 @@ python -m fwplatform.cli sdk request-abi --saved-libobj C:\private\boot-static-a
 This command enforces encoded argument types, non-encoded
 return type, per-ELF SHA metadata, strict entrypoint
 and register-source matches, ModelCamera selector guard
-and the external UI `0x0f01` callsite. Missing private
+and the external UI `0x0f01` callsite. The connected private
+workspace's saved disassembly text was reread and **80/80**
+selected annotated opcode-text locations matched: 56 across
+request frontends / factory, 19 in the Camera action/SetInit
+sequence, and 5 in the UI source caller. These are static
+textual proof sites, not new original ELF opcode bytes. Missing private
 source reports produce a **candidate-only** status.
 It does not load or execute original Sony ELF bytes,
 commit Sony instruction bytes, claim an Event consumer
