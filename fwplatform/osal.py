@@ -49,7 +49,9 @@ def _function(db: Database, ref: Any) -> int | None:
         clauses.append("f.address=?"); args.append(text)
     if name:
         clauses.append("f.name=?"); args.append(str(name))
-    if not clauses:
+    # Global names and virtual addresses can be reused by unrelated ELF
+    # images. Resolve functions only within an explicit binary identity.
+    if not sha or not clauses or (address is None and not name):
         return None
     rows = db.query("SELECT f.id FROM function f LEFT JOIN binary b ON b.id=f.binary_id WHERE " + " AND ".join(clauses) + " ORDER BY f.id", args)
     return int(rows[0][0]) if len(rows) == 1 else None
