@@ -146,6 +146,12 @@ distinct provider VMAs remain unresolved or ambiguous. Even a single
 matched export yields only a `CANDIDATE` cross-reference: loader binding,
 symbol interposition, PLT/GOT behavior and ABI remain unverified.
 
+SDK candidate discovery also reports `incoming_static_import_candidates`,
+`incoming_importing_binary_count` and source evidence IDs based only on
+`elf_dynamic`-backed cross-reference records. Review drafts preserve these
+counts for prioritizing manual disassembly. These counts never prove
+a successful runtime import binding, ABI signature or callable API.
+
 The linkage analyzer fingerprints binary/SONAME/search metadata and the
 import/export catalog, so newly indexed providers trigger a conservative
 recheck. Stale automated dependency/symbol assertions are swept and one
