@@ -307,6 +307,11 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_app_sync.add_argument("--saved-disassembly", type=Path)
     sdk_app_sync.add_argument("--saved-status-chain", type=Path)
     sdk_app_sync.add_argument("--json", action="store_true")
+    sdk_request_abi = sdk_sub.add_parser("request-abi")
+    sdk_request_abi.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_request_abi_leads.json"))
+    sdk_request_abi.add_argument("--saved-libobj", type=Path)
+    sdk_request_abi.add_argument("--saved-view", type=Path)
+    sdk_request_abi.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -401,6 +406,14 @@ def main(argv: list[str] | None = None) -> int:
         result = trace_private_selector_elf(
             args.elf, max_region_bytes=args.region_bytes, entries=entries,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "request-abi":
+        from .request_abi import audit_request_abi
+        result = audit_request_abi(
+            args.fixture, saved_libobj=args.saved_libobj,
+            saved_view=args.saved_view,
         )
         _json_or_text(result, args.json)
         return 0
