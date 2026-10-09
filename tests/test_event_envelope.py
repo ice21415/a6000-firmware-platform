@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fwplatform.cli import main
 from fwplatform.event_envelope import (
-    FACTORY_SITES, FRONT_SITES, audit_model_execute_event,
+    FACTORY_SITES, FRONT_SITES, ALT_FRONT_SITES, audit_model_execute_event,
 )
 
 
@@ -18,11 +18,13 @@ ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "sdk" / "camera_3_21_model_execute_envelope.json"
 
 
-def synthetic_report(front=FRONT_SITES, factory=FACTORY_SITES):
+def synthetic_report(front=FRONT_SITES, factory=FACTORY_SITES, alternate=ALT_FRONT_SITES):
     def asm_lines(sites):
         return "\n".join(f"{site}: {opcode}" for site, opcode in sites) + "\n"
     return ("\nENTRY 0x12106e _ZN8ViewBase19requestModelExecuteEPKcmP9ParamList\n"
             + asm_lines(front)
+            + "\nENTRY 0x1250c0 _ZN13viewManagerIf19requestModelExecuteEPKcmP9ParamList\n"
+            + asm_lines(alternate)
             + "\nENTRY 0x7f0b0c _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList\n"
             + asm_lines(factory))
 
@@ -54,6 +56,8 @@ class ModelExecuteEventEnvelopeTests(unittest.TestCase):
         self.assertEqual(result["event_id"], "0x11004003")
         self.assertEqual(result["event_parameter_keys"], [7, 8])
         self.assertEqual(result["audit"]["front_end_opcode_sites_checked"], len(FRONT_SITES))
+        self.assertEqual(result["audit"]["alternate_front_end_opcode_sites_checked"], len(ALT_FRONT_SITES))
+        self.assertEqual(result["alternative_request_frontend_vma"], "0x1250c0")
         self.assertEqual(result["audit"]["factory_opcode_sites_checked"], len(FACTORY_SITES))
         self.assertFalse(result["audit"]["original_elf_instruction_bytes_verified"])
         self.assertFalse(result["modelcamera_dispatch_link_verified"])
@@ -137,6 +141,17 @@ class ModelExecuteEventEnvelopeTests(unittest.TestCase):
             "0x121076: ldr.w    sb, [r0, #0x7c]",
             "0x121076: ldr.w    sb, [r0, #0x80]"))
         with self.assertRaisesRegex(ValueError, "0x121076"):
+            self._run()
+
+    def test_alternate_frontend_static_transform_and_factory_callsite_proof(self):
+        self.disasm.write_text(synthetic_report().replace(
+            "0x1250e2: bl       #0x12d780",
+            "0x1250e2: bl       #0x12d782"))
+        with self.assertRaisesRegex(ValueError, "0x1250e2"):
+            self._run()
+        self.disasm.write_text(synthetic_report())
+        self.fixture["alternative_request_frontend"]["final_application_dispatch_verified"] = True
+        with self.assertRaisesRegex(ValueError, "unknown ABI"):
             self._run()
 
     def test_cli_never_creates_or_migrates_sqlite(self):
