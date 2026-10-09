@@ -94,6 +94,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 合成回歸測試涵蓋依賴範圍、匯出歧義、版本相容、缺失位址、catalog 更新與失敗交易。
 - 此階段僅擴充跨模組靜態研究證據，不代表完成 Sony 核心 API 的實際 ABI、語意或實機呼叫驗證。
 
+## Phase 3.10（Camera／Lens／Sensor 核心 API 證據圖譜調查）
+
+- 新增 `fw sdk investigate --domain Camera|Lens|Sensor|Media|UI|OSAL|Android|Networking`，依 ELF 匯出候選檢視具來源的直接 caller/callee、CFG、OSAL flow、JNI native 與 lifecycle 關係。
+- 函式關係必須使用明確的 `function_id`，不把相同虛擬位址、符號文字、queue ID 或 state machine 名稱誤當成已證實的關係。
+- Camera state machine 列為脈絡資料，明確指出沒有 function-to-state、camera ready 或 first-shot-ready 的獨立證據。
+- 輸出每個核心候選所需的 ABI、參數、呼叫、OSAL/JNI、執行語意之補證工作，支援私有 Ghidra／研究資料庫定向審查。
+- 依舊僅為靜態分析工具：缺乏合法取得韌體與獨立 runtime 語意證據時不能宣稱 Sony 原廠 Camera／Lens／Sensor 的核心 API 已還原或能安全呼叫。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
