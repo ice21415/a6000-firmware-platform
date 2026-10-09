@@ -4,6 +4,18 @@ This is a **descriptive reverse-engineering evidence model**, not an official So
 an executable firmware interface, or a hardware patching library. Symbol names, DEX
 method references, ABI guesses, and speculative OSAL messages are not proven APIs.
 
+The private-only family probe can summarize additional `ParamBase` RTTI/vtable
+and constructor evidence without publishing firmware bytes:
+
+```powershell
+python -m fwplatform.cli sdk parameter-family-probe --elf C:\private\libObj.so --json
+```
+
+It currently recognizes the 3.21 `PrmNumberList`, `PrmCntInfoList` and
+`PrmObjMsg` families. The output remains `runtime_verified=false` and
+`callable=false`; pointer ownership, allocator behavior and live ABI safety
+remain unknown. Keep the resulting JSON outside the public checkout.
+
 ## SDK domain coverage
 
 Domains are Camera, Lens, Sensor, Media, UI, OSAL, Android, Networking, and Other.

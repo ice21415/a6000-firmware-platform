@@ -23,6 +23,25 @@ The new type/lifetime contract is `sdk/parameter_types_lifetime_3_21.json`.
 | 0x7edcc6..0x7edd06 | assignment-like body releases old share, increments source count and shares pointers | Source-level method name not independently known |
 | 0x7ededa / 0x7edf36 / 0x7edf3c | replacement helper frees equal-key/type old element and erases its slot | Full set of mutation APIs remains unknown |
 
+### Additional ParamBase families — new primary checkpoint
+
+The new private-only `fwplatform.param_family_probe` was run against the
+authenticated ELF. It emits metadata only (no instruction bytes) and returned
+three classes. RTTI, the single-inheritance base relocation, vtable slots and
+constructor/destructor addresses are independent ELF_VMA observations.
+
+| Type | Primary ELF facts | Remaining limits |
+|---|---|---|
+| `PrmNumberList` | RTTI `0xfe7ed8`, vtable `0xfe7ee8`/address point `0xfe7ef0`, tag `10`, constructor `0xecdb8`; clone allocation witness `0x18`; vector-like words at `+0x0c/+0x10/+0x14`; slots `+8=0xed3a4`, `+12=0xece64`, `+16=0xece98` | element allocator, exception behavior and source-level virtual names remain UNKNOWN |
+| `PrmCntInfoList` | RTTI `0xfeb5a4`, vtable `0xfeb5b0`/address point `0xfeb5b8`, tag `9` written by helper `0x11d42c`; clone allocation witness `0x5c`; two dynamic collection regions at `+0x0c` and `+0x34`; slots `+8=0x11da18`, `+12=0x11d54c`, `+16=0x11d590` | collection element/allocator representation and complete copy semantics remain UNKNOWN |
+| `PrmObjMsg` | Local RTTI `0xfec488` with name `9PrmObjMsg`, local vtable `0xfec498`/address point `0xfec4a0`, tag `8`, constructor `0x12c754` stores incoming `MWF::ObjMsg*` at `+0x0c`; object-size witness `0x10`; slots `+8=0x12c784`, `+12=0x12c700`, `+16=0x12c740` | pointee ownership, `MWF::ObjMsg` ABI and runtime interposition remain UNKNOWN |
+
+The constructors do not write ParamList key `+0x08`; the observed key setter
+`0x7eda84` remains the only primary key-initialization witness. The vtable
+slot values use relocation symbol values when the file word is zero, preserving
+Thumb tags without conflating an ELF VMA with a runtime address. These are
+static type/layout contracts, not callable wrappers.
+
 PrmNumber payload is signed int under ARM32, supported jointly by RTTI,
 constructor, word stores and the named int setter. PrmBool payload is bool
 with byte stores. Discriminator 1 routes the existing query wrapper toward
@@ -50,10 +69,12 @@ observed decrement. The public snapshot parser's bounds, budget, null, type and
 canonical-bool checks are **self-authored protections**, not firmware behavior.
 No firmware or original opcodes/decompiler bodies are included in this report.
 
-New SDK functionality: `sdk parameter-types --json`, exact-type offline payload
-decoding, explicit load bias, descriptive C++ Number/Bool snapshot structures.
+New SDK functionality: `sdk parameter-types --json`,
+`sdk parameter-family-probe --elf <private-libObj.so> --json`, exact-type
+offline payload decoding, explicit load bias, and descriptive C++ Number/Bool,
+NumberList, CntInfoList and ObjMsg snapshot structures.
 Runtime-verified / callable interfaces remain **0**.
-This checkpoint: **215 synthetic tests passed**, exit 0; candidate header passed
+This checkpoint: **221 synthetic tests passed**, exit 0; candidate header passed
 the existing WSL g++ C++17 syntax check (host declarations only).
 
 

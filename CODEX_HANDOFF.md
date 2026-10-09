@@ -15,6 +15,18 @@ remain unknown. Offline decoder checks vptr+tag with explicit load bias;
 its guards are not Sony behavior. Next: other payload subtypes, source-level
 assignment identity, full mutation/COW and synchronization contracts.
 
+Latest private-only continuation also recovered three additional ParamBase
+families using `fwplatform/param_family_probe.py` and the SHA-pinned ELF:
+`PrmNumberList` (tag 10, RTTI `0xfe7ed8`, object-size witness `0x18`,
+embedded vector words at `+0x0c`), `PrmCntInfoList` (tag 9, RTTI `0xfeb5a4`,
+object-size witness `0x5c`, collection regions at `+0x0c` and `+0x34`), and
+`PrmObjMsg` (tag 8, local RTTI/vtable `0xfec488`/`0xfec498`, object-size
+witness `0x10`, incoming `MWF::ObjMsg*` stored at `+0x0c`). Their vtable clone
+and deleting-destructor slots are recorded in
+`sdk/parameter_types_lifetime_3_21.json`; these remain descriptive static
+layouts, with pointer ownership, allocator behavior and runtime callability
+UNKNOWN. The probe emits metadata only and publishes no firmware bytes.
+
 The old missing-primary-byte blocker below is historical and superseded.
 Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` and the current helper contracts.
 Authenticated private libObj.so has been read with Capstone. ParamList::get

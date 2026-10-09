@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- ParamBase family follow-up: added a private SHA-pinned metadata probe and
+  primary static contracts for `PrmNumberList` (tag 10), `PrmCntInfoList`
+  (tag 9), and `PrmObjMsg` (tag 8), including RTTI, vtable slots, clone and
+  destructor witnesses, conservative object-size/layout fields, and synthetic
+  contract validation. Pointer ownership, allocator behavior, runtime safety
+  and callable APIs remain unknown; 221 synthetic tests pass.
+
 - Derived payload/lifetime follow-up: primary constructor/RTTI/vtable evidence
   confirms PrmNumber signed-word and PrmBool byte payloads. Verified deleting
   destructor bindings, shared assignment-like count changes and replacement

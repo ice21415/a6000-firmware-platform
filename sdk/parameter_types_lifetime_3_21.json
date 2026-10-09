@@ -47,6 +47,103 @@
       "deleting_destructor": "0xe4840",
       "nondeleting_destructor": "0xe4750",
       "evidence_locators": ["ELF_VMA:0xe50ee", "ELF_VMA:0xe5100", "ELF_VMA:0xe5104", "ELF_RELOCATION:0x1033f7c", "ELF_RELOCATION:0xfe6e20", "ELF_VMA:0xe4846", "ELF_VMA:0xe484c"]
+    },
+    {
+      "name": "PrmNumberList",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe7ed8",
+      "rtti_name": "13PrmNumberList",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe7ee0",
+      "vtable": "0xfe7ee8",
+      "vptr_address_point": "0xfe7ef0",
+      "constructor": "0xecdb8",
+      "discriminator": 10,
+      "object_size_witness": 24,
+      "payload_offset": 12,
+      "payload_width": 12,
+      "payload_type": "embedded vector-like uint32 storage; begin/end/capacity words at +0x0c/+0x10/+0x14",
+      "clone_candidate": "0xed3a4",
+      "deleting_destructor": "0xece98",
+      "nondeleting_destructor": "0xece64",
+      "vtable_slots": {
+        "clone": "0xed3a4",
+        "nondeleting_destructor": "0xece64",
+        "deleting_destructor": "0xece98"
+      },
+      "method_evidence": {
+        "getList": "0xeccf4 returns this+0x0c",
+        "getNumber": "0xecd26 reads a uint32 element",
+        "getLength": "0xecd42 computes (end-begin)>>2",
+        "addNumber": "0xed1a2 appends a uint32 value"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0xecdb8", "ELF_VMA:0xecdd0", "ELF_VMA:0xed3a4", "ELF_VMA:0xece64", "ELF_VMA:0xece98", "ELF_VMA:0xfe7ed8", "ELF_VMA:0xfe7ee8", "ELF_RELOCATION:0xfe7ee0"]
+    },
+    {
+      "name": "PrmCntInfoList",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfeb5a4",
+      "rtti_name": "14PrmCntInfoList",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfeb5ac",
+      "vtable": "0xfeb5b0",
+      "vptr_address_point": "0xfeb5b8",
+      "constructor": "0x11d680",
+      "discriminator": 9,
+      "object_size_witness": 92,
+      "payload_offset": 12,
+      "payload_width": 80,
+      "payload_type": "two embedded dynamic collection regions at +0x0c and +0x34; element semantics remain descriptive",
+      "clone_candidate": "0x11da18",
+      "deleting_destructor": "0x11d590",
+      "nondeleting_destructor": "0x11d54c",
+      "vtable_slots": {
+        "clone": "0x11da18",
+        "nondeleting_destructor": "0x11d54c",
+        "deleting_destructor": "0x11d590"
+      },
+      "method_evidence": {
+        "getLength": "0x11d45a forwards to the +0x0c collection",
+        "getGroup": "0x11d4da reads from the +0x0c collection",
+        "getItem": "0x11d4cc reads from the +0x34 collection",
+        "setGroup": "0x11d4bc writes the +0x0c collection",
+        "setItem": "0x11d4ac writes the +0x34 collection",
+        "add": "0x11d90e appends one value to each collection"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0x11d42c", "ELF_VMA:0x11d680", "ELF_VMA:0x11d696", "ELF_VMA:0x11da18", "ELF_VMA:0x11d54c", "ELF_VMA:0x11d590", "ELF_VMA:0xfeb5a4", "ELF_VMA:0xfeb5b0", "ELF_RELOCATION:0xfeb5ac"]
+    },
+    {
+      "name": "PrmObjMsg",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfec488",
+      "rtti_name": "9PrmObjMsg",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfec490",
+      "vtable": "0xfec498",
+      "vptr_address_point": "0xfec4a0",
+      "constructor": "0x12c754",
+      "constructor_vtable_got": "0x10339f0",
+      "discriminator": 8,
+      "object_size_witness": 16,
+      "payload_offset": 12,
+      "payload_width": 4,
+      "payload_type": "pointer to MWF::ObjMsg; pointer ownership and pointee ABI remain UNKNOWN",
+      "clone_candidate": "0x12c784",
+      "deleting_destructor": "0x12c740",
+      "nondeleting_destructor": "0x12c700",
+      "vtable_slots": {
+        "clone": "0x12c784",
+        "nondeleting_destructor": "0x12c700",
+        "deleting_destructor": "0x12c740"
+      },
+      "method_evidence": {
+        "getParamTypeObjMsg": "0x12c77c reads the pointer at +0x0c",
+        "destructor": "0x12c700 releases the non-null +0x0c pointer before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0x12c754", "ELF_VMA:0x12c76c", "ELF_VMA:0x12c77c", "ELF_VMA:0x12c700", "ELF_VMA:0x12c740", "ELF_VMA:0xfec488", "ELF_VMA:0xfec498", "ELF_RELOCATION:0xfec490", "ELF_RELOCATION:0x10339f0"]
     }
   ],
   "lifetime": {
@@ -71,5 +168,5 @@
     "concurrent_access": "Runtime caller locking and scheduler assumptions UNKNOWN",
     "snapshot_parser_guards": "Self-authored bounds, budget, null-element and type validation; these do NOT describe Sony firmware protections"
   },
-  "limitations": ["No runtime execution", "Only two concrete payload types verified", "Discriminator alone does not prove type", "No blanket ABI completeness", "RTTI follows single-inheritance record candidates; no complete class hierarchy claim", "Other copy/mutation APIs and exception allocation behavior UNKNOWN"]
+  "limitations": ["No runtime execution", "Only PrmNumber and PrmBool payload semantics are verified; additional families remain layout-only", "Discriminator alone does not prove type", "No blanket ABI completeness", "RTTI follows single-inheritance record candidates; no complete class hierarchy claim", "Other copy/mutation APIs and exception allocation behavior UNKNOWN"]
 }

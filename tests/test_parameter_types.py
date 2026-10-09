@@ -45,3 +45,20 @@ class ParameterTypeTests(unittest.TestCase):
             struct.pack_into('<'+'I'*len(values), data, offset, *values)
         with self.assertRaises(ValueError):
             lookup_snapshot(data, base=0, list_address=16, key=55)
+
+    def test_additional_parambase_families_are_static_and_layout_scoped(self):
+        import json
+        from pathlib import Path
+        doc = json.loads((Path(__file__).resolve().parents[1] /
+                          'sdk/parameter_types_lifetime_3_21.json').read_text())
+        by_name = {item['name']: item for item in doc['types']}
+        self.assertEqual(by_name['PrmNumberList']['discriminator'], 10)
+        self.assertEqual(by_name['PrmNumberList']['object_size_witness'], 24)
+        self.assertEqual(by_name['PrmCntInfoList']['discriminator'], 9)
+        self.assertEqual(by_name['PrmCntInfoList']['object_size_witness'], 92)
+        self.assertEqual(by_name['PrmObjMsg']['discriminator'], 8)
+        self.assertEqual(by_name['PrmObjMsg']['payload_offset'], 12)
+        for name in ('PrmNumberList', 'PrmCntInfoList', 'PrmObjMsg'):
+            self.assertEqual(by_name[name]['verification'], 'PRIMARY_ELF_VERIFIED')
+            self.assertFalse(doc['runtime_verified'])
+            self.assertFalse(doc['callable'])
