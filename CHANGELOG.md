@@ -2,6 +2,9 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.17：區分 `ModelManager +0xa4` 的 word-nonzero 正規化（`0x7eaa14`）與 Appframework 上游 guard／`EOR 1` 反相（`0x7eeec8`），核對 18／18 個保存 ARM 指令文字位址，不再把該位元組欄位泛稱 Camera READY。
+- 匯整 `app-status-wait-chain.json` 次級研究中的共用 semaphore `0x830451` 及三條等待／completion helper 路徑，保留五處 status setter 呼叫點與未證實的事件 `0x11004003` 消費者。新增 `fw sdk app-sync`、獨立唯讀核對與 synthetic 測試。
+
 - Phase 3.16：從先前保存的 `libObj.so` Appframework 組語確認事件迴圈、guard、dispatch (`0x7eecac→0x7f21e8`)、cleanup 和 semaphore helper。明確拆分重疊 disassembly 掃描窗口，補上 loop 第二個派送 callsite，建立六個具名研究入口／26 個靜態文字核對位址。
 - 新增 `sdk event-loop`、唯讀 `fwplatform/app_event_loop.py`、保守的事件消費者／ABI 證據驗證與 synthetic 測試；未宣稱事件 `0x11004003` 已追到 Camera 接收者，也未執行 Sony 原始 ELF。
 
