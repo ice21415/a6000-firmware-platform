@@ -1,0 +1,46 @@
+// SHA-pinned targeted offline study; output must stay in private storage.
+import ghidra.app.script.GhidraScript;
+import ghidra.app.decompiler.*;
+import ghidra.program.model.address.*;
+import ghidra.program.model.listing.*;
+import ghidra.program.model.block.*;
+import java.io.*;
+public class ParamListTargets extends GhidraScript {
+ public void run() throws Exception {
+  String[] args=getScriptArgs();
+  if(args.length!=1 || !"8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a".equalsIgnoreCase(currentProgram.getExecutableSHA256()))
+   throw new IllegalArgumentException("Requires private output and pinned 3.21 libObj.so");
+  long[][] targets={{0x7eda8c,8},{0x7eda94,8},{0x7edab0,14},{0x7edabe,12},{0x7edaca,76},{0x42abcc,12},{0x42abdc,36},{0x42ac00,36},{0x7edc3e,42},{0x7edd08,46}};
+  DecompInterface dec=new DecompInterface();
+  try(PrintWriter out=new PrintWriter(new FileWriter(args[0]))) {
+   out.println("IMAGE_BASE="+currentProgram.getImageBase()+" LANGUAGE="+currentProgram.getLanguageID());
+   for(long[] target:targets){
+    Address a=currentProgram.getImageBase().add(target[0]);
+    Address end=a.add(target[1]-1);
+    clearListing(a,end);
+    currentProgram.getProgramContext().setValue(currentProgram.getRegister("TMode"),a,end,java.math.BigInteger.ONE);
+    disassemble(a);
+    Function f=getFunctionAt(a); if(f==null) f=createFunction(a,null);
+    if(f==null) throw new IllegalStateException("No function at "+a);
+    f.setBody(new AddressSet(a,end));
+   }
+   dec.openProgram(currentProgram);
+   for(long[] target:targets){
+    Address a=currentProgram.getImageBase().add(target[0]); Function f=getFunctionAt(a);
+    out.println("ELF_VMA="+Long.toHexString(target[0])+" GHIDRA="+a+" BODY="+f.getBody());
+    InstructionIterator instructions=currentProgram.getListing().getInstructions(f.getBody(),true);
+    while(instructions.hasNext()){Instruction ins=instructions.next();out.println(ins.getAddress()+" SIZE="+ins.getLength()+" "+ins);}
+    CodeBlockIterator blocks=new BasicBlockModel(currentProgram).getCodeBlocksContaining(f.getBody(),monitor);
+    while(blocks.hasNext()) {
+     CodeBlock block=blocks.next();out.println("BLOCK="+block.getMinAddress()+".."+block.getMaxAddress());
+     CodeBlockReferenceIterator refs=block.getDestinations(monitor);
+     while(refs.hasNext()){CodeBlockReference ref=refs.next();out.println("EDGE="+ref.getReferent()+" -> "+ref.getDestinationAddress()+" TYPE="+ref.getFlowType());}
+    }
+    DecompileResults result=dec.decompileFunction(f,30,monitor);
+    if(!result.decompileCompleted()) throw new IllegalStateException(result.getErrorMessage());
+    out.println(result.getDecompiledFunction().getC());
+   }
+   out.println("COMPLETE_TARGET_EXPORT");
+  } finally {dec.dispose();}
+ }
+}

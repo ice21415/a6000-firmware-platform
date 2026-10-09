@@ -765,3 +765,12 @@ Even an imported legacy row marked CALLABLE_VALIDATED cannot bypass audit.
 No NAND, WBI, bootloader, selector, or camera-runtime memory writes are exposed.
 No Sony firmware binaries or populated private evidence databases are shipped.
 Real firmware semantics and physical-device safety require independent evidence.
+# Primary ParamList lookup contracts
+
+`core_3_21_primary_helper_contracts.json` contains field-scoped primary/static
+evidence, including ParamList::get and adjacent query wrappers. Candidate C++
+declarations live in `paramlist_3_21_candidate.hpp`; they expose no native
+address binding. `fwplatform.paramlist_snapshot.lookup_snapshot` reads only
+self-contained offline memory bytes, with bounds checks and a resource budget.
+The returned payload word's concrete type is UNKNOWN. No runtime-safe API is
+provided. See `reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.

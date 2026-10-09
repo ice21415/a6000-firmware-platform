@@ -2,6 +2,12 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- ParamList continuation: recovered the 76-byte get body, first-match/null
+  returns, container/element prefix, shared-count destruction and wrapper
+  initialization from private primary bytes. ASCII-path Ghidra exits 0.
+  Added offline snapshot reader, candidate C++ declarations and regression
+  tests; concrete payload types and runtime callability remain unresolved.
+
 - Primary helper follow-up: authenticated the real private libObj.so and recovered
   the two requested Thumb bodies. Added relocation-bound PLT resolution,
   descriptive helper contracts, evidence validation and synthetic tests.

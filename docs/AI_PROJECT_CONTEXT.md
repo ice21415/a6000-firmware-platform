@@ -83,6 +83,13 @@ fw graph export --format graphml --output <graphml>
 與狀態機關係及 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。
 # Primary helper continuation (2026-10-09)
 
+Latest: `ParamListTargets.java` in an ASCII Ghidra installation exits 0.
+The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
+8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.
+Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
+Concrete payload types and runtime ABI remain unresolved; the older logging
+exit-1 paragraph below describes the preserved earlier attempt.
+
 Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` before repeating the handoff's
 missing-byte conclusion. Real private SHA-pinned libObj.so was read with Capstone.
 `fwplatform/elf_plt.py` resolves interworking PLT relocations;

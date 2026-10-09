@@ -47,7 +47,76 @@
       "ownership": "UNKNOWN",
       "thread_context": "UNKNOWN",
       "safe_to_call": false
+    },
+    {
+      "name": "ParamList::get",
+      "entry": "0x7edaca",
+      "symbol_value_thumb_tagged": "0x7edacb",
+      "symbol_size_bytes": 76,
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "const ParamList receiver; word +0 is pointer-container address",
+      "r1": "unsigned long key; matched against element word +8",
+      "r2": "unsigned long discriminator; matched against element word +4",
+      "r3": "No semantic use; preserved in stack frame",
+      "return": "First matching existing element pointer in r0, or null after exhausting array",
+      "declared_return_type": "UNKNOWN; ParamBase* candidate STATIC_INFERRED",
+      "output": "No writes to list or element in the examined get/helper paths",
+      "failure_paths": "No match or empty range returns null; invalid receiver/container/element is not guarded",
+      "ownership": "STATIC_INFERRED borrowed pointer; get does not acquire counter, allocate or clone",
+      "thread_context": "UNKNOWN; no synchronization in get or its four local helpers",
+      "evidence_locators": ["ELF_SYMBOL:0x7edacb:size=76", "ELF_VMA:0x7edad0", "ELF_VMA:0x7edafc", "ELF_VMA:0x7edb00", "ELF_VMA:0x7edb0a", "ELF_VMA:0x7edb10", "ELF_VMA:0x7edab0", "ELF_VMA:0x7edabe", "ELF_VMA:0x7eda90", "ELF_VMA:0x7eda98"],
+      "safe_to_call": false
+    },
+    {
+      "name": "opaque_lookup_view_initialization",
+      "entry": "0x42abcc",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "Writable view pointer, at least 8 bytes",
+      "r1": "Stored at view +4; later lookup treats this word as ParamList receiver",
+      "r2": "Overwritten with literal 0x00cc8cc0 and stored at view +0; caller value unused",
+      "r3": "No semantic use in local body",
+      "return": "r0 remains view address at machine level; declared return UNKNOWN",
+      "declared_return_type": "UNKNOWN",
+      "failure_paths": "No null check or error branch",
+      "ownership": "No reference increment in local initializer; lifetime UNKNOWN",
+      "evidence_locators": ["ELF_VMA:0x42abd2", "ELF_VMA:0x42abd4", "ELF_LITERAL:0x42abd8"],
+      "safe_to_call": false
+    },
+    {
+      "name": "adjacent_parameter_word_lookup",
+      "entry": "0x42abdc",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "Readable view pointer; list at +4",
+      "r1": "Forwarded key",
+      "r2": "Output address preserved in r4",
+      "r3": "Saved/restored, no semantic argument use",
+      "return": "0 on 32-bit output store; 1 on null list/output/lookup result",
+      "declared_return_type": "UNKNOWN",
+      "ownership": "Same local lookup helpers as 0x42ac00; no ownership acquisition",
+      "evidence_locators": ["ELF_VMA:0x42abdc", "ELF_VMA:0x42abe8", "ELF_VMA:0x42abee", "ELF_VMA:0x42abf2", "ELF_VMA:0x42abf4", "ELF_VMA:0x42abf8", "ELF_VMA:0x42abfc"],
+      "safe_to_call": false
+    },
+    {
+      "name": "discriminator_one_lookup_forwarder",
+      "entry": "0xe5b20",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "ParamList receiver forwarded",
+      "r1": "Key forwarded",
+      "r2": "Overwritten with discriminator 1",
+      "r3": "No local semantic use",
+      "return": "Tail-return of ParamList::get; existing matching element or null under local binding",
+      "declared_return_type": "UNKNOWN; pointer-shaped return",
+      "failure_paths": "Delegated to ParamList::get",
+      "ownership": "No local ownership acquisition",
+      "evidence_locators": ["ELF_VMA:0xe5b22", "ELF_VMA:0xe5b2a", "ELF_RELOCATION:0x102f0c8", "ELF_SYMBOL:0x7edacb"],
+      "safe_to_call": false
     }
   ],
-  "limitations": ["Research specifications only; no native wrapper", "Local symbol definition is not proof of runtime binding", "Ghidra decompiler guesses are not declared C++ types", "No Runtime Verification", "Underlying ParamList::get implementation and side effects remain to be reviewed"]
+  "limitations": ["Research specifications only; no native wrapper", "Local symbol definition is not proof of runtime binding", "Ghidra decompiler guesses are not declared C++ types", "No Runtime Verification", "Concrete payload subclass, mutation invalidation and full destruction contract remain unresolved"],
+  "layouts": {
+    "ParamList": {"0x0": "PRIMARY_ELF_VERIFIED container pointer", "0x4": "PRIMARY_ELF_VERIFIED shared-count pointer; destructor decrements count"},
+    "container": {"0x0": "PRIMARY_ELF_VERIFIED array begin", "0x4": "PRIMARY_ELF_VERIFIED array end", "0x8": "UNKNOWN"},
+    "element_prefix": {"0x0": "PRIMARY_ELF_VERIFIED virtual dispatch table pointer during cleanup", "0x4": "PRIMARY_ELF_VERIFIED discriminator from ParamBase C2 argument", "0x8": "PRIMARY_ELF_VERIFIED lookup key", "0xc": "PRIMARY_ELF_VERIFIED returned word; concrete type UNKNOWN"},
+    "ParamBase": {"constructor": "0xe50b4", "rtti_symbol": "_ZTI9ParamBase", "rtti_vma": "0xfe6e24", "vtable_vma": "0xfe6e30", "vtable_address_point": "0xfe6e38", "destruction_dispatch": "0x7edb64 invokes element vptr slot +8; deleting-destructor identity STATIC_INFERRED"}
+  }
 }

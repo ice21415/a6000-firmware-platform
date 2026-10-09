@@ -2,6 +2,23 @@
 
 ## Purpose
 
+## Current continuation checkpoint (2026-10-09)
+
+The old missing-primary-byte blocker below is historical and superseded.
+Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` and the current helper contracts.
+Authenticated private libObj.so has been read with Capstone. ParamList::get
+at ELF VMA 0x7edaca (Thumb-tagged symbol 0x7edacb, size 76) now has primary
+loop/return evidence and a successful ASCII-path Ghidra run (exit 0).
+It returns the first existing element matching words +4 and +8, or null.
+The +0x0c payload word remains concretely untyped. ParamList destructor uses
+a shared counter and element vptr +8 dispatch; borrowed-result semantics are
+STATIC_INFERRED, not runtime validated. See `fwplatform/paramlist_snapshot.py`
+for the strictly offline snapshot reader and `sdk/paramlist_3_21_candidate.hpp`
+for candidate declarations. Next: resolve concrete element subclasses and
+their deleting-destructor slots, mutations/copy-on-write and payload type mapping.
+Callable/runtime-verified core API count remains zero. Private raw exports and
+Ghidra projects are outside this public checkout.
+
 Continue static reverse engineering of the Sony ILCE-6000 (A6000)
 firmware 3.21 **core Camera SDK** in PR #1. This repository contains
 the public-safe, evidence-gated analysis tooling and SDK candidate
@@ -67,7 +84,7 @@ original private firmware.
 - SDK / research docs: `sdk/README.md`, `ROADMAP.md`,
   `reports/CORE_CAMERA_API_INVESTIGATION.md` and PR timeline comments.
 
-### The blocker, clearly
+### Historical blocker (resolved locally; retained for provenance)
 
 The ChatGPT-connected `a6000` Codex workspace can search/read **text**
 and reports, but its `read_file` interface returned `BINARY_FILE`
