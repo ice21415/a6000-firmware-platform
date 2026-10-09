@@ -135,6 +135,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.19（還原 `0x13200a` Camera action payload 參數用途）
+
+- `0x13200a` 雖無原始函式指令可讀，但保存的五個獨立 action 入口有**跨呼叫者資料流**：`0x4aea00`、`0x4bac78`、`0x4afc9c` 均從同一 getter 取得 `r0`，再以 `r1` 傳給共用 `0x42abcc` 包裝器。
+- `ActionExeAfRangeLimitDrive=0x4bac78` 中，該包裝器產生的物件會送往 `0x42ac00` 查詢參數鍵 **`0x3fe`／`0x3ff`**，且兩處均有 `Invalid ParamList` 分支。這建立了「ParamList 相容解析用途」的**結構約束**，但尚不能推定 getter 的宣告返回型別就是 `ParamList*`。
+- 另一個 action `0x4ae930` 把 getter 輸出交給 `0x44a284` 訊息建構；`pvt_ActionSetInit=0x4cf7a8` 也將傳入的 `r1` 交由相同 `0x42abcc` 包裝器。因此已由多個不同用途交叉確認 SetInit 第二引數為事件/參數 payload 類物件候選，非任意已知整數常數。
+- 新增 `sdk/camera_3_21_action_payload_leads.json`、`fwplatform/action_payload_abi.py`、`fw sdk action-payload`、合成測試；36 處靜態保存組語位址核對必須全部對上。**未有新原始 ELF 指令或完整 ABI 驗證。**
+- 最關鍵下一步：以原始 `libObj.so` 局部反組譯 `0x13200a`、`0x42abcc` 與 `0x42ac00`，確定 getter 來源、返回 C++ 型別、wrapper 轉換與 ParamList 生命週期；另外必須還原 `0x12d780` 與 UI→Camera 事件投遞。
+
 ## Phase 3.18（優先破解核心 API：具名 ABI 引數及 Camera action 內部呼叫）
 
 - **ABI 具體推進**：`ViewBase::requestModelExecute` (`0x12106e`) 及 `viewManagerIf::requestModelExecute` (`0x1250c0`) 的 Itanium mangling 都給出顯式參數 `char const*, unsigned long, ParamList*`，但符號名不含 static 與 return type。由保存的 ARM 暫存器資料流判定前者成員式 `r0=this,r1=name,r2=selector,r3=ParamList*`，後者更像靜態式 `r0=name,r1=selector,r2=ParamList*`。
