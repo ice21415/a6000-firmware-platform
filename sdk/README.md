@@ -161,6 +161,13 @@ callable firmware SDK without further independent evidence.
 
 ## Phase 3.10: inspect Camera, Lens, Sensor and adjacent core API candidates
 
+For a generated or stripped entry whose name does not contain a domain keyword,
+use `sdk inspect --function-id <id> --json`. This follows the exact function
+foreign key, exposes the unverified raw prototype, CFG/callsites, protocol
+roles, unresolved edges, and module-level state-machine context without
+claiming the function performs any camera state transition. The function ID
+is local to the research database, not a firmware address or runtime handle.
+
 Use `sdk investigate --domain Camera --json` or select Lens, Sensor,
 Media, UI, OSAL, Android or Networking. Add `--include-internal` to include
 non-exported named functions, `--binary-sha256` to scope one ELF and
