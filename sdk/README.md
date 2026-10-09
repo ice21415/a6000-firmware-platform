@@ -159,6 +159,47 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.19: constrain the Camera action payload ABI at `0x13200a`
+
+The next core ABI analysis traced the **same** opaque
+`libObj.so` helper `0x13200a` through **five distinct
+saved instruction entry regions**, instead of simply listing its
+addresses. Its `r0` result is forwarded as `r1` to
+the common `0x42abcc` wrapper from three
+actions (`0x4aea00`, `0x4bac78`, `0x4afc9c`).
+The `0x4bac78` path then queries the constructed
+wrapper via `0x42ac00` with key IDs **`0x3fe`**
+and **`0x3ff`** and has explicit **`Invalid
+ParamList`** branches on lookup errors. A separate
+action `0x4ae930` forwards the helper result to a
+message-construction function `0x44a284`. The
+`pvt_ActionSetInit=0x4cf7a8` function takes the
+opaque `r1` value from its caller, passes it into
+the very **same `0x42abcc` wrapper**, and
+calls the EE-neutral/prepare helpers.
+
+This adds a **structural type constraint** beyond
+"an untyped `r1` register": the action payload
+is used by ParamList-like lookup logic. But an
+argument consumed by that wrapper is **not proof**
+that `0x13200a` itself has the declared C++
+return type `ParamList*`; the wrapper may adapt
+another type. The implementations of `0x13200a`,
+`0x42abcc`, and `0x42ac00`, event ownership,
+lifetime and error ABI are still unknown.
+
+```powershell
+python -m fwplatform.cli sdk action-payload --json
+python -m fwplatform.cli sdk action-payload --saved-libobj C:\private\boot-static-analysis\model-camera-methods.txt --json
+```
+
+A read-only source-gated validator with **36 targeted instruction
+snippets from five independently labeled action entries**,
+synthetic mismatch tests and zero verified callable API assertions
+is committed. Original private ELF opcode bytes remain
+unavailable to the connected read-only workspace interface;
+this is **saved ARM text verification**, not a new binary decode.
+
 ## Phase 3.18: first typed *argument* ABI leads (no callable Camera ABI yet)
 
 This phase deliberately stops producing broad inventories and instead
