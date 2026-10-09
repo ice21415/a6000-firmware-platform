@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.10：新增 `sdk investigate` 對 Camera/Lens/Sensor/Media/UI/OSAL/Android/Networking 候選，交叉呈現有明確 FK 的 callsite、CFG/body range、OSAL、JNI 與 lifecycle 靜態證據。
+- 新增 `sdk inspect --function-id`，可針對 Ghidra 自動命名或無 Camera 字樣的內部函式研究，保留跨二進位位址歧義、未知 ABI 及模組 state-machine-only 脈絡。
+- 新增 `tests/test_core_api.py`（合成隔離、read-only、CLI、地址歧義、OSAL/JNI/狀態機），以及 Camera/Lens/Sensor/Media 研究缺口報告；沒有原廠韌體、實機 SDK 或 runtime 呼叫。
+- Phase 3.9：ELF 匯入解析只接受已確定 DT_NEEDED 依賴的唯一 export 位址／版本候選，採 catalog fingerprint 重掃及失敗回滾；SDK discover/draft 可列出 incoming import evidence ID。
+- Phase 3.8：強化 SDK ELF SHA／數值位址唯一性、匯出位址配對與重複候選審核，排除 SDK fixture 自我充當 ABI 證據。
+
+
 - Phase 3.7：新增受限、可恢復的 `analyze ghidra-batch` 多 ELF 計畫與選擇性本機執行工具。
 - 校驗 inventory SHA、避免危險來源路徑、限制分析批量與逾時；輸出保留在 firmware root 之外，不匯入 stale／截斷 JSONL。
 - 新增 synthetic batch planner、mock headless 寫入、失敗隔離與 resume skip 測試，沒有將原廠 firmware 納入 CI。
