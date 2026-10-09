@@ -135,6 +135,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.17（ModelManager +0xa4 狀態閘門與共用 semaphore）
+
+- 新核對 `libObj.so` 保存組語中的 `0x7eaa14`：讀取物件 `+0xa4`，將非零 word 正規化為 Boolean。上游 `0x7eeec8` 的 guard 未短路時又做 `EOR 1`，因此狀態零→queue gate 1、非零→gate 0；主事件迴圈在 gate 為零時才依保存的 `0x7ef188` 分支走向 `0x7eeefa`。不得把此欄位直接命名為 Camera READY。
+- 將獨立的保存 `app-status-wait-chain.json` 中 `0x830451` semaphore 三條等待包裝器，`0x7f21e8→0x7f0aa0`、`0x7f2210→0x7f099c`、`0x7f2238→0x7f0aac`，明確標記為 **次級研究報告**，非今次重新驗證的 ELF opcode 或此特定 `0x11004003` 事件接收者。
+- 五個 ModelManager 狀態 setter `0x7eb118` 呼叫點／狀態常數亦保留在次級報告；`0x7eaa68` 的 `0x40000/0x50000/0x70000` 鄰近比較不冒充同一個 C++ 入口。
+- 新增 `fwplatform/app_sync_research.py`、`sdk/camera_3_21_app_status_sync.json`、`sdk app-sync` 和 synthetic 測試，可選獨立核對保存組語文字與次級 JSON。從已連線工作區核對 18/18 個指定指令文字位址；不修改裝置、韌體或 SQLite。
+- 接下來要補的是原始二進位中 `0x7f21e8`、`0x7f2238` 及 `0x12d780` 的真正局部分析，尤其 `0x11004003` 事件的接收與 Camera dispatcher 完整鏈。
+
 ## Phase 3.16（Appframework 事件迴圈／投遞邊界）
 
 - 從保存 `libObj.so` 指令找到 `application_thread_body=0x7eeee8`、queue guard `0x7eeec8`、dispatch `0x7eecac→0x7f21e8`、semaphore helper `0x7f2210→0x7f099c`。
