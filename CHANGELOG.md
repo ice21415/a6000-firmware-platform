@@ -2,6 +2,11 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.4：新增 offline SDK contracts 匯入、完整性稽核與 Camera/Lens/Sensor/Media/UI/OSAL/Android/Networking domain readiness matrix。
+- 靜態狀態需函式與 ELF 身分唯一匹配，且來源 evidence 明確綁定相同 binary SHA-256 與 function address；不符時降級 CANDIDATE。
+- CLI 新增 `fw sdk import --fixture` 和 `fw sdk audit`；SDK export 忽略單純的 CALLABLE_VALIDATED 資料庫旗標，不宣稱實機可執行。
+- 新增 synthetic contract fixture 以及證據完整性、runtime 欄位拒絕、idempotence、rollback 測試。
+
 - Phase 3.3：JNI semantic graph 以精確 DEX path 和 evidence ID 配對，修正 JNI registration module ID 誤作 binary ID 的風險。
 - DEX parser 提供 bounded string/type/proto/method/class-def table 解析；class definition 和 method reference 分開記錄，不推定方法實作。
 - DEX `research_observation` 採交易回滾，新增跨 DEX、防錯誤索引、重跑與部分匯入失敗的合成回歸測試。
