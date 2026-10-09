@@ -40,6 +40,18 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 合成測試涵蓋跨 DEX 重名、錯誤來源、外鍵完整性、invalid table references、idempotency 與 rollback。
 - 仍無 method body 還原、原廠韌體實驗或實機 validation。
 
+## Phase 3.4（離線核心 SDK 契約與驗證）
+
+- 新增 SDK 合約 JSON fixture 匯入，明確定義 Camera、Lens、Sensor、Media、UI、OSAL、Android、Networking 領域。
+- 靜態驗證須唯一解析 ELF SHA-256 + function address，且 primary evidence locator 必須指向同一個 binary/function。
+- 含歧義或不完整證據的介面保留為 CANDIDATE，禁止由 fixture 宣稱 VERIFIED_RUNTIME/CALLABLE_VALIDATED。
+- `fw sdk import`、`fw sdk audit`、`fw sdk coverage`、`fw sdk build` 支援離線介面索引、缺口報告與每領域可稽核矩陣。
+- 即使資料庫欄位標為 CALLABLE_VALIDATED，SDK export 仍不推論實機可呼叫性；所有必需 API 分母 UNKNOWN。
+- 合成回歸測試涵蓋多來源證據、身份歧義、介面匯入回滾、重入和不實 runtime claim。
+
+核心逆向 SDK 的功能實作與實際 Sony camera firmware API 還原是兩個不同目標；
+在沒有獨立實機/韌體原始證據時，不宣稱 Camera/Lens/Sensor/Media/OSAL 的真實 ABI 或 runtime readiness。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
