@@ -369,6 +369,81 @@ coverage and makes the precise next piece of real private-file
 reverse-engineering reproducible without another whole-Ghidra run.
 
 
+## Phase 3.17: app status gate exact local Boolean semantics and semaphore wait leads
+
+Private original-`libObj.so` saved static ARM report
+`app-event-functions.txt` provides a useful refinement of
+the Appframework event loop. In the labeled `app_event_wait_or_check`
+scan, entry `0x7eaa14` loads `[r0+0xa4]` and executes a
+nonzero-to-Boolean test, with `IT NE / MOVNE r0,#1` before return.
+An adjacent, **not proven same-C++-function** region at
+`0x7eaa68` also reads `+0xa4` and compares against
+`0x50000`, `0x70000`, `0x40000` as candidate
+state selection.
+
+In the queue-state helper at `0x7eeec8`, the guard call
+`0x7eeed0→0x7f29ec` short circuits to return 0
+when its result is nonzero. Otherwise
+`0x7eeed8→0x7eaa14` reads the status, then
+`0x7eeedc EOR r0,#1` and `0x7eeee0 UXTB`
+invert/normalize it. Hence, **on the unshort-circuited
+path only**, status `+0xa4 == 0` yields queue result
+1, while nonzero yields queue result 0. The app thread
+at `0x7ef180` tests this returned queue result and
+uses `0x7ef188 BEQ 0x7eeefa` for the zero/sleep
+branch. Neither outcome proves physical Camera ready.
+
+Existing separate saved secondary report
+`app-status-wait-chain.json` says the following
+three wrappers use semaphore ID `0x830451` with
+indefinite wait argument `-1` and then call a helper:
+
+| Reported wrapper | Helper after wait | Known static caller |
+|---|---|---|
+| `0x7f21e8` | `0x7f0aa0` | `0x7eecb6` |
+| `0x7f2210` | `0x7f099c` | `0x7ef0c6` and `0x7ef15a` |
+| `0x7f2238` | `0x7f0aac` | `0x10b144` |
+
+Only `0x7f2210` was also reviewed through a saved
+instruction-level source in previous phases. The other
+two wait wrapper bodies and completion helpers **were
+not just now disassembled from the primary ELF**.
+That report also records the `0x7eb118`
+ModelManager `+0xa4` setter with five candidate
+state/callsite pairs: `0x7ec9b6→0x40000`,
+`0x7ed038→0x30000`, `0x7ed1d2→0x70000`,
+`0x7ed250→0x50000`, `0x7ed47c→0x40000`.
+The exact object C++ ABI and one-to-one relationship to
+Camera readiness have not been established.
+
+The new `sdk app-sync` proof-preserving command separates
+the two evidence tiers:
+
+```powershell
+python -m fwplatform.cli sdk app-sync --json
+python -m fwplatform.cli sdk app-sync --saved-disassembly C:\private\boot-static-analysis\app-event-functions.txt --saved-status-chain C:\private\boot-static-analysis\app-status-wait-chain.json --json
+```
+
+The connected workspace's **saved disassembly text**
+was reread: **18/18** narrowly specified instruction
+locations matched the expected Boolean/inversion
+and adjacent status comparison sites. This does
+not mean any original `libObj.so` bytes were
+redecoded in the current session. The saved secondary
+JSON is independently available for checking the
+semaphore graph, but its claims must not be promoted
+to primary-ELF opcode proof. The command never executes
+Sony firmware, writes SQLite or declares runtime-callable
+Camera APIs.
+
+There is still **no proven consumer of event
+`0x11004003`**, nor evidence that event key 7/8
+data reaches `ModelCamera::ActionGpSetSetting`.
+The newly clarified Boolean guard is a *separate*
+Appframework status-gate observation, not a substitute
+for the missing event route. Avoid disabling
+semaphores or altering `+0xa4` in any camera.
+ 
 ## Phase 3.16: Appframework loop boundary is now source-scoped (event consumer still unresolved)
 
 Connected private source `app-event-functions.txt` (saved static
