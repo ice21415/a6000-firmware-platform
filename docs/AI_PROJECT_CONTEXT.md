@@ -180,3 +180,11 @@ ownership/allocator pairing, exception behavior, clone C++ identity and
 runtime/callable status remain UNKNOWN. Its contract is
 `sdk/param_objmsg_3_21.json`; four synthetic fail-closed tests cover the
 metadata validator.
+
+The Camera prepare envelope probe at `0x125084` independently confirms a
+16-byte allocation, a zero-valued direct call to `0xf0fb0`, and key `6` passed
+with the new parameter object through the unique PLT binding of
+`Event::addParameter`. The tail target `0x7f25e0`, receiver identity, event
+delivery/completion and full constructor C++ identity remain UNKNOWN. Its
+contract is `sdk/camera_3_21_prepare_envelope.json`; runtime/callable flags
+remain false.

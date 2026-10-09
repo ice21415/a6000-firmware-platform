@@ -279,3 +279,12 @@ release and clone candidate. Pointee layout, ownership, allocator pairing,
 exception behavior and clone C++ identity remain UNKNOWN; runtime and callable
 claims remain false. The descriptive contract is
 `sdk/param_objmsg_3_21.json`, with four synthetic fail-closed tests.
+
+The next Camera checkpoint adds `fwplatform/camera_prepare_envelope_probe.py`
+and `fw sdk camera-prepare-envelope --elf <private-libObj.so>`. It validates
+the bounded `0x125084` path: 16-byte allocation, direct `0xf0fb0` call with
+`r1=0`, key `6` and the unique `Event::addParameter` PLT binding at `0xdd194`.
+The tail branch `0x7f25e0`, receiver identity, event delivery/completion and
+complete constructor ABI remain UNKNOWN; runtime and callable claims stay
+false. The descriptive contract is
+`sdk/camera_3_21_prepare_envelope.json`.

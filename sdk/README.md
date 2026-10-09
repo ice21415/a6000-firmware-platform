@@ -871,3 +871,18 @@ It verifies discriminator `8`, the constructor's `MWF::ObjMsg*` candidate
 store at `+0x0c`, the getter, the non-null destruction release sequence and a
 16-byte clone candidate. Pointee layout, allocator pairing, ownership,
 exception behavior, clone identity and runtime/callable safety remain UNKNOWN.
+
+## Camera prepare/event envelope checkpoint
+
+The `camera-prepare-envelope` probe validates the bounded helper at ELF VMA
+`0x125084`:
+
+```powershell
+python -m fwplatform.cli sdk camera-prepare-envelope --elf C:\private\libObj.so --json
+```
+
+It verifies a 16-byte allocation, a direct `0xf0fb0` constructor call with
+`r1=0`, and a key-6 call through the unique PLT binding for
+`Event::addParameter`. The tail branch to `0x7f25e0`, receiver identity,
+event delivery/completion and the constructor's complete C++ identity remain
+UNKNOWN; the result is never callable.

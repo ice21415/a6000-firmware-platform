@@ -178,3 +178,8 @@
   transform at `0x120168`: the low-12-bit guard, direct-return path and aligned
   `r2 + (r1 << 12) + r0` arithmetic are now recorded. C++ identity, return
   type, selector domain and downstream ModelCamera causality remain unknown.
+
+- Added the `camera-prepare-envelope` primary-ELF probe for `0x125084`.
+  It verifies the 16-byte allocation, zero-valued direct constructor call and
+  key-6 `Event::addParameter` PLT binding while keeping the `0x7f25e0` tail
+  target, receiver, delivery and completion semantics unresolved.

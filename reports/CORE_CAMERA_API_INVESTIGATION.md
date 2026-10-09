@@ -693,3 +693,21 @@ extraction, `0x12d780` selector transform and ModelCamera dispatcher
 still require private primary-ELF byte/code analysis. Queue presence
 is not a verified Camera API or evidence that Camera initialization
 waits on this semaphore.
+
+## Phase 3.23 — primary ELF prepare/event envelope at `0x125084`
+
+The private SHA-pinned ELF probe `fw sdk camera-prepare-envelope --elf
+<private-libObj.so>` validates the short helper at `0x125084` without executing
+firmware. It allocates 16 bytes through `0xdc100` (the unique PLT binding is
+`_Znwj`), calls local `0xf0fb0` with `r1=0`, moves the new object to `r2`,
+and calls `0xdd194` with key `6`. The `0xdd194` stub has one static relocation
+candidate, `_ZN5Event12addParameterEmP9ParamBase`; its runtime loader binding
+is still UNKNOWN. The helper then tail-branches to `0x7f25e0` after loading a
+receiver candidate from a global-linked location.
+
+The constructor identity is cross-family STATIC_INFERRED from the existing
+`PrmNumber` contract, while the allocation and Event symbol resolution are
+`VERIFIED_STATIC`. The tail target, receiver class, event ID, delivery and
+completion semantics, and complete C++ ABI remain UNKNOWN. The descriptive
+contract is `sdk/camera_3_21_prepare_envelope.json`; runtime and callable
+status remain false.
