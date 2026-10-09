@@ -58,7 +58,15 @@ class ParameterTypeTests(unittest.TestCase):
         self.assertEqual(by_name['PrmCntInfoList']['object_size_witness'], 92)
         self.assertEqual(by_name['PrmObjMsg']['discriminator'], 8)
         self.assertEqual(by_name['PrmObjMsg']['payload_offset'], 12)
-        for name in ('PrmNumberList', 'PrmCntInfoList', 'PrmObjMsg'):
+        self.assertEqual(by_name['PrmString']['discriminator'], 2)
+        self.assertEqual(by_name['PrmString']['object_size_witness'], 16)
+        self.assertEqual(by_name['PrmPoint']['discriminator'], 3)
+        self.assertEqual(by_name['PrmDimension']['discriminator'], 4)
+        self.assertEqual(by_name['PrmStruct']['discriminator'], 6)
+        self.assertEqual(by_name['PrmSet']['discriminator'], 7)
+        self.assertEqual(by_name['PrmSet']['object_size_witness'], 36)
+        for name in ('PrmNumberList', 'PrmCntInfoList', 'PrmObjMsg',
+                     'PrmString', 'PrmPoint', 'PrmDimension', 'PrmStruct', 'PrmSet'):
             self.assertEqual(by_name[name]['verification'], 'PRIMARY_ELF_VERIFIED')
             self.assertFalse(doc['runtime_verified'])
             self.assertFalse(doc['callable'])

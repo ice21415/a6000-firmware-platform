@@ -21,6 +21,109 @@ from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA, MAX_ELF_BYTES
 
 PARAM_FAMILY_TARGETS: tuple[dict[str, Any], ...] = (
     {
+        "name": "PrmBool",
+        "vtable_vma": 0xFE6E00,
+        "constructor_vma": 0xE50E8,
+        "constructor_end": 0xE5108,
+        "destructor_symbol": "_ZN7PrmBoolD1Ev",
+        "destructor_entry": 0xE4750,
+        "deleting_destructor_entry": 0xE4840,
+        "clone_entry": 0xE5110,
+        "discriminator": 5,
+        "allocation_size": 0x10,
+        "payload_kind": "canonical_bool_byte_at_plus_0x0c",
+        "payload_offsets": [0x0C],
+        "method_symbols": ["_ZN7PrmBool7setBoolEb"],
+    },
+    {
+        "name": "PrmNumber",
+        "vtable_vma": 0xFE8920,
+        "constructor_vma": 0xF0FB0,
+        "constructor_end": 0xF0FD0,
+        "destructor_entry": 0xF0F2C,
+        "deleting_destructor_entry": 0xF0F5C,
+        "clone_entry": 0xF1034,
+        "discriminator": 1,
+        "allocation_size": 0x10,
+        "payload_kind": "signed_int_word_at_plus_0x0c",
+        "payload_offsets": [0x0C],
+        "method_symbols": ["_ZN9PrmNumber9setNumberEi"],
+    },
+    {
+        "name": "PrmString",
+        "vtable_vma": 0xFE9638,
+        "constructor_vma": 0xFF9C8,
+        "constructor_end": 0xFFA06,
+        "destructor_entry": 0xFF954,
+        "deleting_destructor_entry": 0xFF980,
+        "clone_entry": 0xFFA18,
+        "discriminator": 2,
+        "allocation_size": 0x10,
+        "payload_kind": "owned_string_pointer_at_plus_0x0c_release_helper_0xdf098",
+        "payload_offsets": [0x0C],
+        "method_symbols": [],
+    },
+    {
+        "name": "PrmPoint",
+        "vtable_vma": 0xFE9610,
+        "constructor_vma": 0xFFA3C,
+        "constructor_end": 0xFFA66,
+        "destructor_entry": 0xFF904,
+        "deleting_destructor_entry": 0xFF940,
+        "clone_entry": 0xFFA70,
+        "discriminator": 3,
+        "allocation_size": 0x14,
+        "payload_kind": "two_32bit_words_at_plus_0x0c_and_plus_0x10",
+        "payload_offsets": [0x0C, 0x10],
+        "method_symbols": [],
+    },
+    {
+        "name": "PrmDimension",
+        "vtable_vma": 0xFE6E48,
+        "constructor_vma": 0xE5128,
+        "constructor_end": 0xE5152,
+        "destructor_symbol": "_ZN12PrmDimensionD1Ev",
+        "destructor_entry": 0xE4774,
+        "deleting_destructor_entry": 0xE4868,
+        "clone_entry": 0xE515C,
+        "discriminator": 4,
+        "allocation_size": 0x14,
+        "payload_kind": "two_32bit_words_at_plus_0x0c_and_plus_0x10",
+        "payload_offsets": [0x0C, 0x10],
+        "method_symbols": [],
+    },
+    {
+        "name": "PrmStruct",
+        "vtable_vma": 0xFE7400,
+        "constructor_vma": 0xE7260,
+        "constructor_end": 0xE7296,
+        "destructor_entry": 0xE7150,
+        "deleting_destructor_entry": 0xE717C,
+        "clone_entry": 0xE72A0,
+        "discriminator": 6,
+        "allocation_size": 0x14,
+        "payload_kind": "opaque_pointer_and_word_at_plus_0x0c_and_plus_0x10",
+        "payload_offsets": [0x0C, 0x10],
+        "method_symbols": [],
+    },
+    {
+        "name": "PrmSet",
+        "vtable_vma": 0x1019D18,
+        "constructor_vma": 0x7EFB00,
+        "constructor_end": 0x7EFB24,
+        "destructor_entry": 0x7EFB2C,
+        "deleting_destructor_entry": 0x7EFB58,
+        "clone_entry": 0x7EFBB4,
+        "discriminator": 7,
+        "allocation_size": 0x24,
+        "payload_kind": "opaque_embedded_24_byte_payload_at_plus_0x0c",
+        "payload_offsets": [0x0C],
+        "method_symbols": [
+            "_ZN6PrmSet6getSetEv",
+            "_ZN6PrmSet3GETEPK9ParamListm",
+        ],
+    },
+    {
         "name": "PrmNumberList",
         "vtable_symbol": "_ZTV13PrmNumberList",
         "constructor_symbol": "_ZN13PrmNumberListC1Ev",
@@ -109,6 +212,19 @@ def _read_u32(elf: ELFFile, address: int) -> int:
     return struct.unpack("<I", _read_bytes(elf, address, 4))[0]
 
 
+def _effective_u32(
+    elf: ELFFile,
+    relocations: dict[int, dict[str, Any]],
+    address: int,
+) -> int:
+    """Read a file word, falling back to its relocation symbol value."""
+    value = _read_u32(elf, address)
+    if value:
+        return value
+    relocation = relocations.get(address)
+    return int((relocation or {}).get("symbol_value", 0))
+
+
 def _symbols(elf: ELFFile) -> dict[str, tuple[int, int]]:
     result: dict[str, tuple[int, int]] = {}
     for section_name in (".dynsym", ".symtab"):
@@ -131,12 +247,85 @@ def _relocations(elf: ELFFile) -> dict[int, dict[str, Any]]:
         symbols = elf.get_section(section["sh_link"])
         for relocation in section.iter_relocations():
             symbol = symbols.get_symbol(relocation["r_info_sym"])
-            result[int(relocation["r_offset"])] = {
+            candidate = {
                 "type": int(relocation["r_info_type"]),
                 "symbol": symbol.name or None,
                 "symbol_value": int(symbol["st_value"]),
             }
+            offset = int(relocation["r_offset"])
+            existing = result.get(offset)
+            # RELATIVE relocations are often co-located with a named absolute
+            # relocation in partially linked ARM images.  Keep the row that
+            # carries an explicit symbol/value instead of silently replacing
+            # it with an anonymous zero-symbol record.
+            if existing is None or (
+                not existing.get("symbol") and candidate.get("symbol")
+            ) or (
+                not existing.get("symbol_value") and candidate.get("symbol_value")
+            ):
+                result[offset] = candidate
     return result
+
+
+def _discover_parambase_types(
+    elf: ELFFile,
+    symbols: dict[str, tuple[int, int]],
+    relocations: dict[int, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Enumerate RTTI/vtable records whose direct base is ParamBase.
+
+    This is deliberately independent of ``PARAM_FAMILY_TARGETS``.  The
+    profile supplies constructor/method hypotheses, while this pass derives
+    the class-name, base-relocation and vtable relationship from the ELF.
+    """
+    base_rtti = _vma_symbol(symbols, "_ZTI9ParamBase")
+    if base_rtti is None:
+        return []
+    typeinfos: set[int] = set()
+    for offset, relocation in relocations.items():
+        if relocation.get("symbol") == "_ZTI9ParamBase":
+            candidate = offset - 8
+            if candidate >= 8 and _section_for(elf, candidate + 4, 4):
+                typeinfos.add(candidate)
+
+    records: list[dict[str, Any]] = []
+    for typeinfo in sorted(typeinfos):
+        name_address = _effective_u32(elf, relocations, typeinfo + 4)
+        if not name_address:
+            continue
+        try:
+            rtti_name = _read_bytes(elf, name_address, 96).split(b"\0", 1)[0].decode("ascii")
+        except (UnicodeDecodeError, ValueError):
+            continue
+        if not rtti_name or rtti_name == "9ParamBase":
+            continue
+        try:
+            if _read_u32(elf, typeinfo) != 8:
+                continue
+        except (ValueError, struct.error):
+            continue
+        vtables = [
+            offset - 4
+            for offset, relocation in relocations.items()
+            if (int(relocation.get("symbol_value", 0)) & ~1) == (typeinfo & ~1)
+            and offset >= 4
+            and (offset - 4) % 4 == 0
+            and _section_for(elf, offset, 4)
+            and _section_for(elf, offset + 4, 4)
+            and _section_for(elf, offset - 4, 4)
+            and _read_u32(elf, offset - 4) == 0
+        ]
+        vtable = min(vtables) if vtables else None
+        records.append({
+            "name": rtti_name,
+            "rtti": hex(typeinfo),
+            "base_rtti": hex(base_rtti),
+            "vtable": hex(vtable) if vtable is not None else None,
+            "address_space": "ELF_VMA",
+            "verification": "PRIMARY_ELF_VERIFIED",
+            "evidence_scope": "direct_ParamBase_RTTI_relocation_and_vtable_typeinfo_relocation",
+        })
+    return records
 
 
 def _vma_symbol(symbols: dict[str, tuple[int, int]], name: str | None) -> int | None:
@@ -215,7 +404,11 @@ def _decode_constructor_observations(elf: ELFFile, entry: int, size: int) -> dic
         match = re.match(r"^r1,\s*#(0x[0-9a-f]+|[0-9]+)$", text)
         if match and instruction.mnemonic.lower() in {"mov", "movs", "mov.w"}:
             immediate_r1.append(int(match.group(1), 0))
-        if re.search(r"\[[^\]]+,\s*#0xc\]", text) and instruction.mnemonic.lower().startswith("str"):
+        # A post-index form such as ``str r3, [r0], #0xc`` writes at the
+        # current base (usually the vptr) and then advances the register; it
+        # is not evidence of a payload field at +0x0c.
+        payload_store = re.search(r"\[[^\]]+,\s*#0xc\]", text)
+        if payload_store and instruction.mnemonic.lower().startswith("str"):
             stores_plus_0c.append({
                 "instruction_vma": hex(instruction.address),
                 "width": "byte" if instruction.mnemonic.lower().startswith("strb") else "word",
@@ -238,12 +431,11 @@ def _vtable_record(
     relocations: dict[int, dict[str, Any]],
     vtable: int,
 ) -> dict[str, Any]:
-    typeinfo = _read_u32(elf, vtable + 4)
+    typeinfo = _effective_u32(elf, relocations, vtable + 4)
     slots: list[dict[str, Any]] = []
     for offset in (8, 12, 16):
-        target = _read_u32(elf, vtable + offset)
         relocation = relocations.get(vtable + offset)
-        effective_target = target or int((relocation or {}).get("symbol_value", 0))
+        effective_target = _effective_u32(elf, relocations, vtable + offset)
         slots.append({
             "offset": offset,
             "target_vma": hex(effective_target & ~1),
@@ -283,25 +475,36 @@ def probe_param_families(
             raise ValueError("expected ELF32 little-endian ARM")
         symbols = _symbols(elf)
         relocations = _relocations(elf)
+        discovered = _discover_parambase_types(elf, symbols, relocations)
         for spec in targets:
             name = str(spec["name"])
             vtable = _vma_symbol(symbols, spec.get("vtable_symbol")) or spec.get("vtable_vma")
             if vtable is None:
-                vtable = _find_vtable_for_typeinfo(elf, min(_typeinfo_candidates(elf, name)))
+                typeinfo_candidates = _typeinfo_candidates(elf, name)
+                if not typeinfo_candidates:
+                    raise ValueError(f"cannot locate RTTI for {name}")
+                vtable = _find_vtable_for_typeinfo(elf, min(typeinfo_candidates))
             if vtable is None:
                 raise ValueError(f"cannot locate vtable for {name}")
             constructor_name = spec.get("constructor_symbol")
             constructor = _vma_symbol(symbols, constructor_name)
+            if constructor is None and spec.get("constructor_vma") is not None:
+                constructor = int(spec["constructor_vma"]) & ~1
             if constructor is None:
-                raise ValueError(f"constructor symbol missing for {name}")
-            constructor_size = symbols[constructor_name][1]
-            typeinfo = _read_u32(elf, vtable + 4)
-            rtti_name_address = _read_u32(elf, typeinfo + 4)
+                raise ValueError(f"constructor location missing for {name}")
+            if constructor_name and constructor_name in symbols:
+                constructor_size = symbols[constructor_name][1]
+                constructor_boundary = "ELF_SYMBOL_SIZE"
+            elif spec.get("constructor_end") is not None:
+                constructor_size = int(spec["constructor_end"]) - constructor
+                constructor_boundary = "PROFILED_FUNCTION_END"
+            else:
+                raise ValueError(f"constructor size missing for {name}")
+            typeinfo = _effective_u32(elf, relocations, vtable + 4)
+            rtti_name_address = _effective_u32(elf, relocations, typeinfo + 4)
             rtti_name = _read_bytes(elf, rtti_name_address, 96).split(b"\0", 1)[0].decode("ascii")
-            base_rtti = _read_u32(elf, typeinfo + 8)
+            base_rtti = _effective_u32(elf, relocations, typeinfo + 8)
             base_relocation = relocations.get(typeinfo + 8)
-            if not base_rtti and base_relocation:
-                base_rtti = int(base_relocation.get("symbol_value", 0))
             vtable_record = _vtable_record(elf, symbols, relocations, vtable)
             observations = _decode_constructor_observations(elf, constructor, constructor_size)
             clone = int(spec["clone_entry"])
@@ -316,10 +519,15 @@ def probe_param_families(
                 "constructor": hex(constructor),
                 "constructor_symbol": constructor_name,
                 "constructor_size": constructor_size,
+                "constructor_boundary": constructor_boundary,
                 "constructor_observations": observations,
                 "discriminator": int(spec["discriminator"]),
                 "allocation_size_bytes": int(spec["allocation_size"]),
                 "clone_candidate": hex(clone),
+                "destructor_entry": hex(int(spec["destructor_entry"]))
+                if spec.get("destructor_entry") is not None else None,
+                "deleting_destructor_entry": hex(int(spec["deleting_destructor_entry"]))
+                if spec.get("deleting_destructor_entry") is not None else None,
                 "payload_kind": spec["payload_kind"],
                 "payload_offsets": [hex(int(x)) for x in spec["payload_offsets"]],
                 "method_symbols": [
@@ -337,6 +545,7 @@ def probe_param_families(
         "binary_sha256": digest,
         "address_space": "ELF_VMA",
         "types": records,
+        "discovered_parambase_types": discovered,
         "raw_instruction_bytes_published": False,
         "runtime_verified": False,
         "callable": False,

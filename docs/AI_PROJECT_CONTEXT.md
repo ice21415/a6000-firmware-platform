@@ -84,8 +84,9 @@ fw graph export --format graphml --output <graphml>
 # Primary helper continuation (2026-10-09)
 
 Newest checkpoint: `sdk/parameter_types_lifetime_3_21.json` describes real
-PrmNumber/PrmBool layouts plus primary RTTI/vtable/layout evidence for
-PrmNumberList, PrmCntInfoList and PrmObjMsg. Inspect
+PrmNumber/PrmBool layouts plus primary RTTI/vtable/layout evidence for all
+ten direct ParamBase-derived records, including PrmString, PrmPoint,
+PrmDimension, PrmStruct and PrmSet. Inspect
 `test_parameter_types.py` before changing offline decoding: tag alone is
 insufficient, Bool padding is not value, and relocated vptrs need load bias.
 Assignment-like sharing and replacement deletion are confirmed locally; get
@@ -93,11 +94,15 @@ results have no lifetime extension. External synchronization remains unknown.
 
 `fwplatform/param_family_probe.py` is a private SHA-pinned metadata extractor;
 it publishes no instruction bytes and always keeps runtime/callable flags false.
-The three new families have static object-size/layout witnesses only. Their
-collection allocator details, pointer ownership and complete copy paths remain
-UNKNOWN.
+Its independent discovery pass finds ten direct ParamBase-derived RTTI/vtable
+records. PrmString, PrmPoint, PrmDimension, PrmStruct and PrmSet now have
+static object-size/layout witnesses in addition to the earlier three families;
+their allocator/helper details, pointer ownership and complete copy paths
+remain UNKNOWN. Only PrmNumber and PrmBool payload semantics are decoded.
 
-Latest: `ParamListTargets.java` in an ASCII Ghidra installation exits 0.
+Latest: `ParamListTargets.java` in an ASCII Ghidra installation exits 0. The
+lifecycle profile exported 22 bounded targets, 342 instruction rows, 43 basic
+blocks and 72 CFG edges to a private output file.
 The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
@@ -110,6 +115,8 @@ missing-byte conclusion. Real private SHA-pinned libObj.so was read with Capston
 `fwplatform/elf_plt.py` resolves interworking PLT relocations;
 `fwplatform/primary_contracts.py` validates the additive descriptive SDK fixture.
 Targeted Ghidra instructions agree after image-base mapping, but tail-call
-decompilation is rejected and process exit 1 remains an environment limitation.
+decompilation is rejected. The earlier non-ASCII process exit 1 remains a
+preserved historical environment record; the ASCII rerun is the current
+successful path.
 No runtime/callable interface was validated. Next targets are the remaining
 ParamBase subclasses, source-level copy identity, and caller synchronization.

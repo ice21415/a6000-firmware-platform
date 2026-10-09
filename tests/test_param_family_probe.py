@@ -2,6 +2,7 @@
 import unittest
 
 from fwplatform.param_family_probe import (
+    PARAM_FAMILY_TARGETS,
     validate_param_family_contract,
     _target_symbol,
     _vma_symbol,
@@ -10,6 +11,14 @@ from fwplatform.private_thumb_research import EXPECTED_LIBOBJ_SHA
 
 
 class ParamFamilyProbeTests(unittest.TestCase):
+    def test_profile_covers_all_discovered_parambase_names(self) -> None:
+        names = {item['name'] for item in PARAM_FAMILY_TARGETS}
+        self.assertEqual(names, {
+            'PrmBool', 'PrmNumber', 'PrmString', 'PrmPoint',
+            'PrmDimension', 'PrmStruct', 'PrmSet', 'PrmObjMsg',
+            'PrmCntInfoList', 'PrmNumberList',
+        })
+
     def _contract(self) -> dict:
         return {
             "binary_sha256": EXPECTED_LIBOBJ_SHA,

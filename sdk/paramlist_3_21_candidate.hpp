@@ -29,6 +29,37 @@ static_assert(offsetof(PrmBoolSnapshotWords, payload) == 12);
 static_assert(sizeof(PrmNumberSnapshotWords) == 16);
 static_assert(sizeof(PrmBoolSnapshotWords) == 16);
 
+struct PrmStringSnapshotWords {
+    std::uint32_t vptr_address, discriminator_word, key_word;
+    std::uint32_t string_address;
+};
+struct PrmPointSnapshotWords {
+    std::uint32_t vptr_address, discriminator_word, key_word;
+    std::uint32_t word_0c, word_10;
+};
+struct PrmDimensionSnapshotWords {
+    std::uint32_t vptr_address, discriminator_word, key_word;
+    std::uint32_t word_0c, word_10;
+};
+struct PrmStructSnapshotWords {
+    std::uint32_t vptr_address, discriminator_word, key_word;
+    std::uint32_t opaque_word_0c, opaque_word_10;
+};
+struct PrmSetSnapshotWords {
+    std::uint32_t vptr_address, discriminator_word, key_word;
+    std::uint32_t opaque_payload[6];
+};
+static_assert(offsetof(PrmStringSnapshotWords, string_address) == 12);
+static_assert(offsetof(PrmPointSnapshotWords, word_0c) == 12);
+static_assert(offsetof(PrmDimensionSnapshotWords, word_0c) == 12);
+static_assert(offsetof(PrmStructSnapshotWords, opaque_word_0c) == 12);
+static_assert(offsetof(PrmSetSnapshotWords, opaque_payload) == 12);
+static_assert(sizeof(PrmStringSnapshotWords) == 16);
+static_assert(sizeof(PrmPointSnapshotWords) == 20);
+static_assert(sizeof(PrmDimensionSnapshotWords) == 20);
+static_assert(sizeof(PrmStructSnapshotWords) == 20);
+static_assert(sizeof(PrmSetSnapshotWords) == 36);
+
 // Additional static layouts recovered from the 3.21 ParamBase family.  The
 // collection members are deliberately named storage/words: their allocator,
 // iterator and ownership ABI has not been proven and these are not live views.

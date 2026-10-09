@@ -49,6 +49,156 @@
       "evidence_locators": ["ELF_VMA:0xe50ee", "ELF_VMA:0xe5100", "ELF_VMA:0xe5104", "ELF_RELOCATION:0x1033f7c", "ELF_RELOCATION:0xfe6e20", "ELF_VMA:0xe4846", "ELF_VMA:0xe484c"]
     },
     {
+      "name": "PrmString",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe9650",
+      "rtti_name": "9PrmString",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe9658",
+      "vtable": "0xfe9638",
+      "vptr_address_point": "0xfe9640",
+      "constructor": "0xff9c8",
+      "discriminator": 2,
+      "object_size_witness": 16,
+      "payload_offset": 12,
+      "payload_width": 4,
+      "payload_type": "pointer to an allocated string buffer; string ABI and allocator remain UNKNOWN",
+      "clone_candidate": "0xffa18 allocates 16 bytes and invokes the string constructor",
+      "deleting_destructor": "0xff980",
+      "nondeleting_destructor": "0xff954",
+      "vtable_slots": {
+        "clone": "0xffa18",
+        "nondeleting_destructor": "0xff954",
+        "deleting_destructor": "0xff980"
+      },
+      "method_evidence": {
+        "constructor": "0xff9c8 sets discriminator 2, allocates/copies a string and stores its pointer at +0x0c",
+        "destructor": "0xff954 releases a non-null +0x0c pointer through helper 0xdf098 before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0xff9c8", "ELF_VMA:0xff9f0", "ELF_VMA:0xff954", "ELF_VMA:0xff980", "ELF_VMA:0xffa18", "ELF_VMA:0xfe9650", "ELF_VMA:0xfe9638", "ELF_RELOCATION:0xfe9658"]
+    },
+    {
+      "name": "PrmPoint",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe9628",
+      "rtti_name": "8PrmPoint",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe9630",
+      "vtable": "0xfe9610",
+      "vptr_address_point": "0xfe9618",
+      "constructor": "0xffa3c",
+      "discriminator": 3,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "two 32-bit words at +0x0c/+0x10; coordinate semantics remain UNKNOWN",
+      "clone_candidate": "0xffa70 allocates 20 bytes and passes both payload words to the constructor",
+      "deleting_destructor": "0xff940",
+      "nondeleting_destructor": "0xff904",
+      "vtable_slots": {
+        "clone": "0xffa70",
+        "nondeleting_destructor": "0xff904",
+        "deleting_destructor": "0xff940"
+      },
+      "method_evidence": {
+        "constructor": "0xffa3c sets discriminator 3 and stores r1/r2 at +0x0c/+0x10"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0xffa3c", "ELF_VMA:0xffa58", "ELF_VMA:0xff904", "ELF_VMA:0xff940", "ELF_VMA:0xffa70", "ELF_VMA:0xfe9628", "ELF_VMA:0xfe9610", "ELF_RELOCATION:0xfe9630"]
+    },
+    {
+      "name": "PrmDimension",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe6e60",
+      "rtti_name": "12PrmDimension",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe6e68",
+      "vtable": "0xfe6e48",
+      "vptr_address_point": "0xfe6e50",
+      "constructor": "0xe5128",
+      "discriminator": 4,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "two 32-bit words at +0x0c/+0x10; dimension semantics remain UNKNOWN",
+      "clone_candidate": "0xe515c allocates 20 bytes and passes both payload words to the constructor",
+      "deleting_destructor": "0xe4868",
+      "nondeleting_destructor": "0xe4774",
+      "vtable_slots": {
+        "clone": "0xe515c",
+        "nondeleting_destructor": "0xe4774",
+        "deleting_destructor": "0xe4868"
+      },
+      "method_evidence": {
+        "constructor": "0xe5128 sets discriminator 4 and stores r1/r2 at +0x0c/+0x10"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0xe5128", "ELF_VMA:0xe5144", "ELF_VMA:0xe4774", "ELF_VMA:0xe4868", "ELF_VMA:0xe515c", "ELF_VMA:0xfe6e60", "ELF_VMA:0xfe6e48", "ELF_RELOCATION:0xfe6e68"]
+    },
+    {
+      "name": "PrmStruct",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe7418",
+      "rtti_name": "9PrmStruct",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe7420",
+      "vtable": "0xfe7400",
+      "vptr_address_point": "0xfe7408",
+      "constructor": "0xe7260",
+      "discriminator": 6,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "opaque pointer-like word plus word at +0x0c/+0x10; helpers and ownership remain UNKNOWN",
+      "clone_candidate": "0xe72a0 allocates 20 bytes and invokes the struct constructor",
+      "deleting_destructor": "0xe717c",
+      "nondeleting_destructor": "0xe7150",
+      "vtable_slots": {
+        "clone": "0xe72a0",
+        "nondeleting_destructor": "0xe7150",
+        "deleting_destructor": "0xe717c"
+      },
+      "method_evidence": {
+        "constructor": "0xe7260 sets discriminator 6, stores a helper-produced word at +0x0c and r2 at +0x10",
+        "destructor": "0xe7150 passes +0x0c to helper 0xe0768 before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0xe7260", "ELF_VMA:0xe7278", "ELF_VMA:0xe7288", "ELF_VMA:0xe7150", "ELF_VMA:0xe717c", "ELF_VMA:0xe72a0", "ELF_VMA:0xfe7418", "ELF_VMA:0xfe7400", "ELF_RELOCATION:0xfe7420"]
+    },
+    {
+      "name": "PrmSet",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0x1019d08",
+      "rtti_name": "6PrmSet",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0x1019d10",
+      "vtable": "0x1019d18",
+      "vptr_address_point": "0x1019d20",
+      "constructor": "0x7efb00",
+      "discriminator": 7,
+      "object_size_witness": 36,
+      "payload_offset": 12,
+      "payload_width": 24,
+      "payload_type": "opaque embedded 24-byte payload at +0x0c; helper ABI and fields remain UNKNOWN",
+      "clone_candidate": "0x7efbb4 allocates 36 bytes and invokes the payload copy path",
+      "deleting_destructor": "0x7efb58",
+      "nondeleting_destructor": "0x7efb2c",
+      "vtable_slots": {
+        "clone": "0x7efbb4",
+        "nondeleting_destructor": "0x7efb2c",
+        "deleting_destructor": "0x7efb58"
+      },
+      "method_evidence": {
+        "getSet": "0x7efae8 returns this+0x0c",
+        "GET": "0x7efaf0 forwards with discriminator 7",
+        "constructor": "0x7efb00 initializes the opaque payload through helper 0xffd22",
+        "destructor": "0x7efb2c passes the payload to helper 0xffe0c"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": ["ELF_VMA:0x7efae8", "ELF_VMA:0x7efaf0", "ELF_VMA:0x7efb00", "ELF_VMA:0x7efb18", "ELF_VMA:0x7efb2c", "ELF_VMA:0x7efb58", "ELF_VMA:0x7efbb4", "ELF_VMA:0x1019d08", "ELF_VMA:0x1019d18", "ELF_RELOCATION:0x1019d10"]
+    },
+    {
       "name": "PrmNumberList",
       "verification": "PRIMARY_ELF_VERIFIED",
       "rtti": "0xfe7ed8",

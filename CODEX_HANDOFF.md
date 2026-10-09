@@ -12,8 +12,9 @@ Concrete slot +8 deleting paths bind operator delete; assignment-like sharing
 and replacement deletion are confirmed. Borrowed pointers can be invalidated
 by replacement even while another list retains the container. Runtime locks
 remain unknown. Offline decoder checks vptr+tag with explicit load bias;
-its guards are not Sony behavior. Next: other payload subtypes, source-level
-assignment identity, full mutation/COW and synchronization contracts.
+its guards are not Sony behavior. Next: map the ten concrete families to
+verified ParamList construction/use sites, then resolve source-level assignment
+identity, full mutation/COW and synchronization contracts.
 
 Latest private-only continuation also recovered three additional ParamBase
 families using `fwplatform/param_family_probe.py` and the SHA-pinned ELF:
@@ -27,6 +28,14 @@ and deleting-destructor slots are recorded in
 layouts, with pointer ownership, allocator behavior and runtime callability
 UNKNOWN. The probe emits metadata only and publishes no firmware bytes.
 
+The follow-up RTTI/vtable discovery now finds ten direct ParamBase-derived
+records in the same ELF. It adds static constructor/layout witnesses for
+`PrmString` (tag 2), `PrmPoint` (tag 3), `PrmDimension` (tag 4), `PrmStruct`
+(tag 6), and `PrmSet` (tag 7). These include object-size witnesses and
+destructor slots, while string/helper ownership, semantic field types and
+runtime ABI remain UNKNOWN. `PrmNumber` and `PrmBool` remain the only payload
+semantics decoded beyond raw layout.
+
 The old missing-primary-byte blocker below is historical and superseded.
 Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` and the current helper contracts.
 Authenticated private libObj.so has been read with Capstone. ParamList::get
@@ -37,8 +46,11 @@ The +0x0c payload word remains concretely untyped. ParamList destructor uses
 a shared counter and element vptr +8 dispatch; borrowed-result semantics are
 STATIC_INFERRED, not runtime validated. See `fwplatform/paramlist_snapshot.py`
 for the strictly offline snapshot reader and `sdk/paramlist_3_21_candidate.hpp`
-for candidate declarations. Next: resolve concrete element subclasses and
-their deleting-destructor slots, mutations/copy-on-write and payload type mapping.
+for candidate declarations. Next: resolve concrete family usage sites,
+mutations/copy-on-write and payload type mapping beyond Number/Bool.
+The latest ASCII-path lifecycle export completed with exit 0 for 22 bounded
+targets (including the Point deleting destructor at 0xff904), 342 instruction
+rows, 43 basic blocks and 72 CFG edges; its raw output remains private.
 Callable/runtime-verified core API count remains zero. Private raw exports and
 Ghidra projects are outside this public checkout.
 

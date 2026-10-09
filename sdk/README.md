@@ -11,8 +11,10 @@ and constructor evidence without publishing firmware bytes:
 python -m fwplatform.cli sdk parameter-family-probe --elf C:\private\libObj.so --json
 ```
 
-It currently recognizes the 3.21 `PrmNumberList`, `PrmCntInfoList` and
-`PrmObjMsg` families. The output remains `runtime_verified=false` and
+It currently discovers ten direct 3.21 `ParamBase`-derived RTTI/vtable records
+and profiles `PrmBool`, `PrmNumber`, `PrmString`, `PrmPoint`, `PrmDimension`,
+`PrmStruct`, `PrmSet`, `PrmNumberList`, `PrmCntInfoList` and `PrmObjMsg`. The
+output remains `runtime_verified=false` and
 `callable=false`; pointer ownership, allocator behavior and live ABI safety
 remain unknown. Keep the resulting JSON outside the public checkout.
 
