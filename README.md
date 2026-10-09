@@ -173,6 +173,24 @@ python -m fwplatform.cli --db database/firmware.db query dex "Lcom/example/C;" -
 來源 evidence ID 同時符合時，建立 Java method 對應邊。解析字串時使用
 UTF-8 replacement 作為保守索引，尚未實作完整的 DEX MUTF-8 語意。
 
+## Phase 3.4：核心 SDK 描述性契約
+
+已增加 `fw sdk import --fixture <file>`、`fw sdk audit`、`fw sdk coverage` 和
+`fw sdk build` 工作流程，對 Camera、Lens、Sensor、Media、UI、OSAL、Android、
+Networking 類別提供可稽核的 SDK contract inventory。
+
+```powershell
+python -m fwplatform.cli --db database/private-copy.sqlite sdk import --fixture sdk/contracts.example.json --json
+python -m fwplatform.cli --db database/private-copy.sqlite sdk audit --json
+python -m fwplatform.cli --db database/private-copy.sqlite sdk coverage --json
+```
+
+每筆宣稱 VERIFIED_STATIC 的 contract 都必須唯一對應 firmware ELF SHA-256 與
+函式地址，且有獨立的來源 evidence 直接識別相同的 binary/function；無法驗證
+時降為 CANDIDATE。離線 SDK export 不會由資料庫狀態欄位推論實機可呼叫性。
+所需 SDK 核心 API 的總分母尚未建立，逆向完成度保持 UNKNOWN。
+詳細規格請見 [sdk/README.md](sdk/README.md)。
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和
