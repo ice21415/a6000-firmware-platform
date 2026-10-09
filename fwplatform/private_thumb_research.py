@@ -114,7 +114,14 @@ def _trace_thumb(fp: Any, elf: ELFFile, start: int, max_region: int) -> dict[str
                 queue.clear()
                 break
             try:
-                raw = _read_vma(fp, elf, address, 4, executable=True)
+                # A valid 16-bit Thumb return can be the last halfword
+                # inside PT_LOAD. Prefer four bytes for a Thumb-2 decode,
+                # but fall back to two only when the 4-byte VMA extends
+                # beyond file-backed executable memory.
+                try:
+                    raw = _read_vma(fp, elf, address, 4, executable=True)
+                except ValueError:
+                    raw = _read_vma(fp, elf, address, 2, executable=True)
             except ValueError:
                 reasons.add("NON_EXECUTABLE_OR_AMBIGUOUS_VMA")
                 break
@@ -223,7 +230,7 @@ def trace_private_selector_elf(
             # Ambiguous executable mappings are invalid, not partial successes.
             if not isinstance(entry, int) or isinstance(entry, bool) or entry <= 0 or entry & 1:
                 raise ValueError("Thumb function entry must be a positive even ELF VMA")
-            _read_vma(fp, elf, entry, 4, executable=True)
+            _read_vma(fp, elf, entry, 2, executable=True)
             report = _trace_thumb(fp, elf, entry, max_region_bytes)
             report["research_role_hint"] = role
             traced.append(report)
