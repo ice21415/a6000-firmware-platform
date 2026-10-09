@@ -241,6 +241,138 @@
         "runtime_callable_verified": false,
         "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
       }
+    },
+    {
+      "domain": "Camera",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "calling_convention": null,
+      "parameter_layout": null,
+      "return_semantics": null,
+      "name": "ModelCamera::ActionModelInitializeComp",
+      "address": "0x4ae660",
+      "review": {
+        "candidate_name_origin": "diagnostic_string_and_local_assembly",
+        "summary": "Initialization-complete handler sends helper parameter 0 at 0x4ae684/0x4ae686; does not automatically set camera prepare true.",
+        "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
+        "source_artifact_basenames": [
+          "CAMERA-PREPARE-LIFECYCLE.zh-TW.md",
+          "camera-prepare-audit.json"
+        ],
+        "address_space": "ELF_VMA",
+        "static_instruction_evidence_in_public_repo": false,
+        "independent_abi_evidence_available": false,
+        "runtime_callable_verified": false,
+        "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
+      }
+    },
+    {
+      "domain": "Camera",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "calling_convention": null,
+      "parameter_layout": null,
+      "return_semantics": null,
+      "name": "ModelCamera::ActionActive",
+      "address": "0x4b07dc",
+      "review": {
+        "candidate_name_origin": "diagnostic_string_and_local_assembly",
+        "summary": "Camera action 80 delegates to 0x132160 and may publish deferred model prepare; does not prove physical camera readiness.",
+        "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
+        "source_artifact_basenames": [
+          "CAMERA-PREPARE-LIFECYCLE.zh-TW.md",
+          "camera-prepare-audit.json"
+        ],
+        "address_space": "ELF_VMA",
+        "static_instruction_evidence_in_public_repo": false,
+        "independent_abi_evidence_available": false,
+        "runtime_callable_verified": false,
+        "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
+      }
+    },
+    {
+      "domain": "Camera",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "calling_convention": null,
+      "parameter_layout": null,
+      "return_semantics": null,
+      "name": "ModelCamera::active_completion_helper_candidate",
+      "address": "0x132160",
+      "review": {
+        "candidate_name_origin": "research_alias_from_local_assembly",
+        "summary": "Common completion helper can set lifecycle guard +0x81 and replay pending prepare +0x80 through setter; may issue event 0x11004015.",
+        "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
+        "source_artifact_basenames": [
+          "CAMERA-PREPARE-LIFECYCLE.zh-TW.md",
+          "camera-prepare-audit.json"
+        ],
+        "address_space": "ELF_VMA",
+        "static_instruction_evidence_in_public_repo": false,
+        "independent_abi_evidence_available": false,
+        "runtime_callable_verified": false,
+        "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
+      }
+    },
+    {
+      "domain": "Camera",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "calling_convention": null,
+      "parameter_layout": null,
+      "return_semantics": null,
+      "name": "ModelCamera::prepare_query_common_handler_candidate",
+      "address": "0x131c88",
+      "review": {
+        "candidate_name_origin": "research_alias_from_vtable_slot_11",
+        "summary": "Observed selector 0x7fffffff reads model byte +0x64 and packages a boolean; not a direct hardware-ready probe.",
+        "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
+        "source_artifact_basenames": [
+          "CAMERA-PREPARE-LIFECYCLE.zh-TW.md",
+          "camera-prepare-audit.json",
+          "model-camera-vtables.json"
+        ],
+        "address_space": "ELF_VMA",
+        "static_instruction_evidence_in_public_repo": false,
+        "independent_abi_evidence_available": false,
+        "runtime_callable_verified": false,
+        "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
+      }
+    },
+    {
+      "domain": "Camera",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "calling_convention": null,
+      "parameter_layout": null,
+      "return_semantics": null,
+      "name": "ModelCamera::clear_neutral_pending_candidate",
+      "address": "0x4b09d0",
+      "review": {
+        "candidate_name_origin": "research_alias_from_local_assembly",
+        "summary": "NeutrOff helper clears model +0x26fc pending byte; action 115 combines this with subsequent prepare recheck, but producer/relay pairing remains unresolved.",
+        "provenance": "Existing local 2026-10-07 offline ILCE-6000 3.21 instruction/vtable research; source files remain private",
+        "source_artifact_basenames": [
+          "CAMERA-NEUTRAL-AND-SETINIT.zh-TW.md",
+          "camera-prepare-audit.json"
+        ],
+        "address_space": "ELF_VMA",
+        "static_instruction_evidence_in_public_repo": false,
+        "independent_abi_evidence_available": false,
+        "runtime_callable_verified": false,
+        "evidence_limit": "No inferred calling convention, parameter/return layout, runtime safety or full event producer chain"
+      }
     }
-  ]
+  ],
+  "research_scope_notes": "Includes additional named/aliased internal function entry candidates from preserved local disassembly; no independent ABI or live execution was validated."
 }
