@@ -64,10 +64,10 @@ class CameraELFVerifierTests(unittest.TestCase):
         self.fields = [
             {"owner": "A", "kind": "FIELD_READ", "instruction_address": "0x1030",
              "instruction_immediate_offset": "0x7c", "object_field_offset": "0x26fc",
-             "inferred_base_adjustment": "0x2680"},
+             "inferred_base_adjustment": "0x2680", "width_bits": 8},
             {"owner": "B", "kind": "FIELD_WRITE_CONDITIONAL", "instruction_address": "0x1034",
              "instruction_immediate_offset": "0x80", "object_field_offset": "0x80",
-             "inferred_base_adjustment": "0x0"},
+             "inferred_base_adjustment": "0x0", "width_bits": 8},
         ]
 
     def tearDown(self):
