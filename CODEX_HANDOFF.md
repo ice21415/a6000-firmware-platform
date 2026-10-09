@@ -49,6 +49,18 @@ element types, bounds, allocator, exception and synchronization behavior stay
 UNKNOWN.
 The full public synthetic suite now passes 242 tests after these fixtures.
 
+The next primary-ELF checkpoint adds `fwplatform/camera_selector_probe.py`
+and `fw sdk camera-selector --elf <private-libObj.so>`. It validates
+`ELF_VMA 0x12d780`: the `[r0] == 0x40` branch calls the relocation-bound
+`IdGenerator::Get`, maps second-byte `M`/`V` to bases `0x12000000`/`0x13000000`,
+and calls `0x120168` with the model ID and original selector. The non-special
+branch constructs temporaries, checks for a null prepared object and invokes
+vtable slot `+8`; the null path returns `-1`. The transform, C++ identity,
+return type, helper semantics and ModelCamera causality are UNKNOWN. Its
+contract is `sdk/camera_3_21_selector_transform.json`; runtime and callable
+claims remain false. `tests/test_camera_selector_probe.py` contains four
+synthetic fail-closed checks.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current

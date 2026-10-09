@@ -143,6 +143,16 @@ The `parameter-cntinfolist` probe then validates twelve primary-ELF regions for
 regions, accessors, append, constructors and destruction. Its contract is
 `sdk/param_cntinfolist_3_21.json`; collection element types and safety remain
 unknown.
+The latest private checkpoint also validates the bounded Camera selector helper
+at `ELF_VMA 0x12d780` with `fw sdk camera-selector --elf <private-libObj.so>`.
+The exact SHA-pinned ELF shows a `[r0] == 0x40` branch that calls the
+relocation-bound `IdGenerator::Get`, selects `0x12000000` for second byte `M`
+and `0x13000000` for `V`, then calls `0x120168` with the model ID and original
+selector. The general branch reaches a guarded vtable-slot `+8` call and
+returns `-1` for a null prepared object. The transform, helper semantics,
+return type, ModelCamera causality, runtime behavior and callability are
+UNKNOWN; the SDK contract is descriptive only. Four synthetic fail-closed
+tests cover the metadata validator, and the private probe is never committed.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved

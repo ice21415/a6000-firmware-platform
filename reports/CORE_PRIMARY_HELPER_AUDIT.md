@@ -389,3 +389,27 @@ Current next blockers: establish the source-level identity and complete ABI of
 the assignment-like body, trace all mutation/copy paths and synchronization,
 and determine concrete payload ownership and runtime binding. The static
 contracts remain descriptive and `safe_to_call=false`.
+
+## Camera selector helper checkpoint (primary ELF, 2026-10-10)
+
+The private SHA-pinned `libObj.so` was read locally with Capstone through the
+bounded command `fw sdk camera-selector --elf <private-libObj.so> --json`.
+At ELF VMA `0x12d780`, the exact instruction sites verify two visible paths:
+
+- When byte `[r0]` is `0x40`, the helper calls the relocation-bound
+  `IdGenerator::Get` PLT at `0xdffb8`. The second byte selects base
+  `0x12000000` for `M` (`0x4d`) or `0x13000000` for `V` (`0x56`); other values
+  take the visible `-1` path. The local call at `0x120168` receives the model
+  ID in `r1`, the original selector in `r2`, and the selected base in `r0`.
+- Otherwise, the helper constructs local temporaries, checks a prepared object,
+  loads vtable slot `+8` and invokes it when non-null; a null object reaches
+  the visible `-1` path.
+
+These are `PRIMARY_ELF_VERIFIED` instruction/register facts only. The
+transformation at `0x120168`, helper and vtable identities, C++ return type,
+selector meaning, ModelCamera causality, ownership, runtime behavior and
+callability remain UNKNOWN. The descriptive contract is
+`sdk/camera_3_21_selector_transform.json`; `runtime_verified=false` and
+`callable=false` are enforced. Four synthetic fail-closed tests cover the
+validator, and the complete public suite now passes **246 tests**. No firmware
+bytes, disassembly export or private probe output is included in the repository.

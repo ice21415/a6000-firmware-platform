@@ -20,6 +20,12 @@
   collection accessors, append path, constructors and destruction while
   preserving unknown element, bounds, allocator and synchronization semantics.
 
+- Added the SHA-pinned `camera-selector` probe and descriptive contract for
+  the primary-ELF helper at `0x12d780`. It verifies the `0x40` model-token
+  branch, `M`/`V` base selection, the relocation-bound ID lookup and the
+  guarded normal-branch virtual dispatch. The transformation, C++ type,
+  downstream ModelCamera causality and runtime callability remain unknown.
+
 - ParamList factory caller checkpoint: added the private SHA-pinned
   `parameter-factory` probe. Four factory callsites now have bounded register
   provenance, null-result guards and success-path calls to the relocation-

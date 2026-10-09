@@ -52,6 +52,19 @@ python -m fwplatform.cli sdk parameter-cntinfolist --elf C:\private\libObj.so --
 Collection element types, bounds, allocator and synchronization behavior stay
 unknown, and the output is never a callable firmware interface.
 
+The `camera-selector` probe is a separate primary-ELF check for the bounded
+model/name selector helper at `ELF_VMA 0x12d780`:
+
+```powershell
+python -m fwplatform.cli sdk camera-selector --elf C:\private\libObj.so --json
+```
+
+It verifies the visible `0x40` branch, the `M`/`V` base constants, the
+relocation-bound `IdGenerator::Get` call and the normal branch's guarded
+virtual dispatch. The transformation at `0x120168`, the helper identities,
+the C++ return type and the relation to `ModelCamera` remain UNKNOWN.
+`runtime_verified=false` and `callable=false` are enforced by the probe.
+
 It reports element deletion, counter-zero cleanup and allocator relocation
 evidence. The assignment identity, copy-on-write behavior, locking and
 exception contract remain unknown by design.
