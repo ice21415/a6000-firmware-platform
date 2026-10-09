@@ -497,3 +497,50 @@ counter behavior and last-owner ParamList cleanup are machine-confirmed.
 but ownership and alias safety are only STATIC_INFERRED. `addParameter` and
 `getParameter` delegate through ARM/Thumb veneers to `ParamList::add/get`.
 Contract: `sdk/event_core_3_21.json`; runtime and callable flags remain false.
+
+## PrmSet embedded payload checkpoint — 2026-10-10
+
+The private SHA-pinned ELF probe `fwplatform/param_set_probe.py` adds a
+bounded, metadata-only check for the discriminator-7 `PrmSet` family. It
+verifies the named `getSet` entry at `0x7efae8`, the `GET` wrapper at
+`0x7efaf0`, the 36-byte constructor at `0x7efb00`, the clone path at
+`0x7efbb4`, both destructor paths, and the local payload initialization,
+copy and release helpers. The probe passes the full ELF hash
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a` and
+emits no firmware bytes.
+
+Primary instruction facts:
+
+- `getSet` returns the interior address `r0 + 0x0c` without loading or
+  allocating. Its source-level return type is UNKNOWN, so the result is
+  represented as a borrowed interior-pointer candidate.
+- `GET` fixes discriminator `7` and tail-branches through the existing
+  `ParamList::get` interworking veneer. The lookup return and ownership remain
+  UNKNOWN.
+- The constructor calls the relocation-bound `_ZN9ParamBaseC2Em` PLT with
+  discriminator `7`, stores the relocated vtable address point, and invokes
+  the default payload helper at `0xffd22`; the ParamList key at object `+0x08`
+  is not written in this bounded body.
+- The embedded payload occupies 24 bytes at object `+0x0c`. Its bounded
+  initializer zeroes relative offsets `+0x04`, `+0x08` and `+0x14`, then
+  writes self-linked sentinel pointers at relative `+0x0c` and `+0x10`.
+  Relative `+0x00` is not written by that helper and remains UNKNOWN.
+- The clone allocates a separate 36-byte object, passes source `+0x0c` to the
+  local payload-copy wrapper, and returns a destination-shaped value in `r0`.
+  The source-level clone return type and copy/container semantics remain
+  UNKNOWN.
+- Destruction routes the embedded payload through `0xffe0c`, then the local
+  ParamBase destruction path `0xe4734`; the deleting wrapper calls
+  `_ZdlPv` through its unique PLT binding.
+
+The exact PLT bindings are retained in `sdk/param_set_3_21.json` with
+`runtime_binding: UNKNOWN`. The payload is described only as an
+**ordered-container-like candidate**; no `std::set` claim is made. Element
+type, comparator, allocator pairing, exception behavior, interior-pointer
+invalidation, synchronization and runtime ABI remain UNKNOWN. The private
+ASCII Ghidra 12.1.3 `param-set` profile exited 0 with 13 bounded targets,
+161 instruction rows, 17 blocks and 33 CFG edges. The decompiler emitted
+ordinary undefined-type warnings for stripped code; this run is a static
+cross-check, not a complete source-level recovery. Runtime-verified and
+callable SDK counts remain zero. Four new fail-closed validator tests and the
+full public suite (275 tests) pass locally.

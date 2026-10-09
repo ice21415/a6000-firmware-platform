@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "type": "PrmSet",
+  "discriminator": 7,
+  "allocation_size_bytes": 36,
+  "verification": "PRIMARY_ELF_VERIFIED bounded methods and unique static bindings",
+  "layout": {
+    "+0x00": "ParamBase vptr address point",
+    "+0x04": "ParamBase discriminator candidate, initialized to 7 through ParamBaseC2",
+    "+0x08": "ParamBase key; not written by the bounded PrmSet constructor",
+    "+0x0c": "embedded 24-byte payload region",
+    "payload_relative": {
+      "+0x00": "not written by the bounded default initializer; UNKNOWN",
+      "+0x04": "zeroed field",
+      "+0x08": "zeroed field",
+      "+0x0c": "pointer to payload +0x04 sentinel",
+      "+0x10": "pointer to payload +0x04 sentinel",
+      "+0x14": "zeroed field"
+    },
+    "container_identity": "ordered-container-like payload candidate; source type and element type UNKNOWN"
+  },
+  "methods": {
+    "getSet": {
+      "entry": "0x7efae8",
+      "symbol": "_ZN6PrmSet6getSetEv",
+      "machine_return": "r0 + 0x0c",
+      "source_return_type": "UNKNOWN",
+      "ownership": "borrowed pointer candidate; no retain operation observed",
+      "safe_to_call": false
+    },
+    "GET": {
+      "entry": "0x7efaf0",
+      "symbol": "_ZN6PrmSet3GETEPK9ParamListm",
+      "inputs": ["const ParamList* candidate in r0", "unsigned long key candidate in r1"],
+      "lookup_discriminator": 7,
+      "target": "ParamList::get via interworking veneer",
+      "return_semantics": "delegated result; source return and ownership UNKNOWN",
+      "safe_to_call": false
+    },
+    "constructor": {
+      "entry": "0x7efb00",
+      "inputs": ["PrmSet receiver candidate in r0"],
+      "effects": "initializes ParamBase discriminator 7, vptr and embedded payload",
+      "safe_to_call": false
+    },
+    "destructor": {
+      "entry": "0x7efb2c",
+      "effects": "releases embedded payload through 0xffe0c and calls ParamBase destruction path 0xe4734",
+      "safe_to_call": false
+    },
+    "clone_candidate": {
+      "entry": "0x7efbb4",
+      "effects": "allocates 0x24-byte object and copies source payload through 0x63e8a6",
+      "source_return_type": "UNKNOWN",
+      "safe_to_call": false
+    }
+  },
+  "bindings": {
+    "param_base_constructor": {"plt": "0xe11a4", "got": "0x102e984", "symbol": "_ZN9ParamBaseC2Em", "runtime_binding": "UNKNOWN"},
+    "memset": {"plt": "0xde37c", "got": "0x102dae4", "symbol": "memset", "runtime_binding": "UNKNOWN"},
+    "allocator": {"plt": "0xdc100", "got": "0x102cffc", "symbol": "_Znwj", "runtime_binding": "UNKNOWN"},
+    "delete": {"plt": "0xdd620", "got": "0x102d6bc", "symbol": "_ZdlPv", "runtime_binding": "UNKNOWN"},
+    "paramlist_get": {"plt": "0xe2894", "got": "0x102f0c8", "symbol": "_ZNK9ParamList3getEmm", "runtime_binding": "UNKNOWN"}
+  },
+  "ownership": {
+    "payload": "embedded storage is released by the destructor; container allocator and element ownership UNKNOWN",
+    "getSet": "returns an interior pointer candidate; alias invalidation and synchronization UNKNOWN",
+    "clone": "fresh allocation and payload-copy path observed; exception and failure cleanup UNKNOWN",
+    "status": "STATIC_INFERRED"
+  },
+  "limitations": [
+    "No source-level proof that the payload is std::set or another named container",
+    "payload +0x00 is not written by the bounded default initializer",
+    "Element type, ordering/comparator, allocator pairing and exception paths UNKNOWN",
+    "Runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
+    "No runtime execution or device validation"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

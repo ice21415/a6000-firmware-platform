@@ -2,6 +2,14 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the private-only `parameter-set` primary-ELF probe and descriptive
+  contract. It verifies the discriminator-7 getter/GET wrapper, 36-byte
+  construction and clone paths, embedded 24-byte payload initialization with
+  sentinel links, and payload destruction/copy helpers. The payload remains
+  an ordered-container-like candidate with unknown source type, element type,
+  allocator, synchronization and runtime/callable status; no firmware bytes
+  are published.
+
 - Added the SHA-pinned `event-core` probe for Event construction, copying,
   destruction, ParamList replacement and parameter forwarding. It verifies
   the shared counter/layout fields and last-owner cleanup, while keeping

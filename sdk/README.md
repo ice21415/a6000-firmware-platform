@@ -960,3 +960,23 @@ last-owner cleanup, and the null/same-pointer/replacement branches of
 ARM/Thumb veneers. External ownership, alias safety, synchronization,
 runtime binding and callability remain UNKNOWN; the descriptive contract is
 `sdk/event_core_3_21.json`.
+
+## PrmSet embedded payload checkpoint
+
+The `parameter-set` probe records the discriminator-7 `PrmSet` family and its
+embedded payload without treating the payload as a confirmed C++ standard
+container:
+
+```powershell
+python -m fwplatform.cli sdk parameter-set --elf C:\private\libObj.so --json
+```
+
+Primary evidence confirms `getSet` returns the interior address `this + 0x0c`,
+the `GET` wrapper uses discriminator `7`, the constructor allocates 36 bytes,
+and the clone path copies the 24-byte embedded payload. The bounded payload
+initializer clears relative fields `+0x04`, `+0x08` and `+0x14` and creates
+self-linked sentinel pointers at `+0x0c` and `+0x10`; relative `+0x00` remains
+unknown. The payload is documented as an ordered-container-like candidate.
+Element type, comparator, allocator, alias invalidation, synchronization,
+runtime binding and source-level return types remain UNKNOWN. Contract:
+`sdk/param_set_3_21.json`; runtime and callable flags remain false.

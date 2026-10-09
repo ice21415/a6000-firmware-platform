@@ -345,3 +345,25 @@ symbols. `setParamList` may invalidate aliases when replacing a pointer;
 caller synchronization and ownership context remain unknown. Private Ghidra
 cross-check: exit 0, 77 instructions, 24 edges, 15 blocks. Four synthetic
 fail-closed tests cover identity, bindings and non-callable metadata.
+
+## Latest checkpoint: PrmSet embedded payload (2026-10-10)
+
+`fwplatform/param_set_probe.py` and `sdk/param_set_3_21.json` add a
+SHA-pinned private-ELF probe for the discriminator-7 `PrmSet` family. It
+confirms `getSet` returns the interior address `this+0x0c`, the GET wrapper
+uses discriminator 7, the constructor allocates 36 bytes and initializes an
+embedded 24-byte payload, and the clone/destructor paths copy/release that
+payload. Relative payload fields +0x04, +0x08 and +0x14 are zeroed; +0x0c and
++0x10 are self-linked sentinels; relative +0x00 remains UNKNOWN. The payload
+is intentionally called ordered-container-like, not `std::set`.
+
+The private ASCII Ghidra 12.1.3 `param-set` profile exited 0 with 13 bounded
+targets, 161 instruction rows, 17 blocks and 33 CFG edges. Source-level
+container type, element/comparator/allocator ABI, alias invalidation,
+exception paths, synchronization, runtime binding and callability remain
+UNKNOWN. Runtime-verified/callable SDK counts remain zero. Raw ELF, Ghidra
+project and instruction export remain private.
+
+The four new synthetic PrmSet validator tests and the complete local suite
+(275 tests) pass; this does not change the runtime-verified/callable count of
+zero.

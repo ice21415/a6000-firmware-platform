@@ -249,3 +249,15 @@ replacement branches. Parameter add/get forward to ParamList through
 ARM/Thumb interworking veneers. These facts do not prove external ownership,
 thread safety, runtime loader binding or callability. The targeted private
 Ghidra profile exits 0 with 77 instructions, 24 edges and 15 blocks.
+
+## Phase 3.28 — PrmSet embedded payload evidence
+
+`fwplatform/param_set_probe.py` adds the bounded `fw sdk parameter-set` probe
+and `sdk/param_set_3_21.json`. Primary ELF evidence confirms the discriminator-7
+`getSet`/GET methods, 36-byte construction, a 24-byte embedded payload, clone
+copy path and destructor path. The payload is documented only as an
+ordered-container-like candidate: source type, element type, comparator,
+allocator, alias and synchronization semantics remain UNKNOWN. The private
+ASCII Ghidra `param-set` profile exits 0 with 13 targets, 161 instruction rows,
+17 blocks and 33 CFG edges. Runtime verification and callable SDK counts remain
+zero.
