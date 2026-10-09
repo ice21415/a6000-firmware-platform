@@ -103,6 +103,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 輸出每個核心候選所需的 ABI、參數、呼叫、OSAL/JNI、執行語意之補證工作，支援私有 Ghidra／研究資料庫定向審查。
 - 依舊僅為靜態分析工具：缺乏合法取得韌體與獨立 runtime 語意證據時不能宣稱 Sony 原廠 Camera／Lens／Sensor 的核心 API 已還原或能安全呼叫。
 
+## Phase 3.11（Camera 靜態指令鏈與候選 SDK 合約）
+
+- 在已連線研究工作區定位合法保存的 3.21 `libObj.so`、Lens、Media、OSAL 與其他 ELF，確認原先阻塞點不是缺少 ELF，而是缺少完整、可重複的 ABI 證據鏈。
+- 根據既有 2026-10-07 的私有原始指令／vtable 核對，擴充 `sdk/camera_3_21_static_candidates.json` 至 14 個 Camera 入口候選，保留 SHA、ELF VMA、實際研究別名與來源檔案 basename。全部仍為 CANDIDATE／DESCRIPTIVE_ONLY，沒有虛構 ABI。
+- 新增 `sdk/camera_3_21_static_callgraph.json`：九條有保存研究來源的 direct call/tail branch、六筆欄位觀測、四條 bounded normalized selector transition、一個無法唯一解析的間接指派。
+- 新增唯讀 `fw sdk research` 與針對單一函式 `--focus` 的可稽核圖譜。驗證數值 VMA／指令目標一致、重複入口、偽造 ABI／runtime claim，以及證據檔名最小化；不把手工整理的報告當作公開獨立指令 byte 驗證。
+- Camera 等核心的真正 ABI／Lens、Sensor、Media 硬體語意及可呼叫性仍需獨立反組譯、ABI 與裝置行為核對；完成度分母仍 UNKNOWN。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
