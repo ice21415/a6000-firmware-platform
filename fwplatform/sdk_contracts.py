@@ -96,12 +96,42 @@ def _proves_signature(evidence: Any, values: dict[str, Any]) -> bool:
     return True
 
 
-def _lookup_function(db: Database, binary_sha: str, address: str) -> tuple[int | None, int | None, int | None]:
+def _address_value(address: Any) -> int | None:
+    """Compare numeric ELF addresses, not their hexadecimal spellings."""
+    if isinstance(address, bool) or not isinstance(address, (str, int)):
+        return None
+    try:
+        value = int(str(address).strip(), 0)
+    except ValueError:
+        return None
+    return value if value >= 0 else None
+
+
+def _function_index(
+    db: Database, binary_id: int, cache: dict[int, dict[int, list[Any]]],
+) -> dict[int, list[Any]]:
+    """Preserve address collisions in one binary instead of guessing an owner."""
+    if binary_id not in cache:
+        index: dict[int, list[Any]] = {}
+        for row in db.query("SELECT id,module_id,address FROM function WHERE binary_id=?", (binary_id,)):
+            address = _address_value(row["address"])
+            if address is not None:
+                index.setdefault(address, []).append(row)
+        cache[binary_id] = index
+    return cache[binary_id]
+
+
+def _lookup_function(
+    db: Database, binary_sha: str, address: str,
+    cache: dict[int, dict[int, list[Any]]] | None = None,
+) -> tuple[int | None, int | None, int | None]:
     binaries = db.query("SELECT id FROM binary WHERE lower(sha256)=?", (binary_sha,))
     if len(binaries) != 1:
         return None, None, None
     bid = int(binaries[0]["id"])
-    functions = db.query("SELECT id,module_id FROM function WHERE binary_id=? AND address=?", (bid, address))
+    normalized = _address_value(address)
+    functions = (_function_index(db, bid, cache if cache is not None else {}).get(normalized, [])
+                 if normalized is not None else [])
     if len(functions) != 1:
         return bid, None, None
     return bid, int(functions[0]["id"]), functions[0]["module_id"]
@@ -140,9 +170,12 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
         address = str(entry.get("address") or "")
         if address:
             try:
-                address = hex(int(address, 0))
+                parsed_address = int(address, 0)
+                if parsed_address < 0:
+                    raise ValueError("negative address")
+                address = hex(parsed_address)
             except ValueError as exc:
-                raise ValueError(f"SDK {name}: address must be hexadecimal or decimal") from exc
+                raise ValueError(f"SDK {name}: address must be a nonnegative hexadecimal or decimal value") from exc
         if address and not binary_sha:
             raise ValueError(f"SDK {name}: address requires binary_sha256")
         requested = entry.get("verification_status", "CANDIDATE")
@@ -169,6 +202,7 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
             "fields": text_fields,
         })
 
+    function_cache: dict[int, dict[int, list[Any]]] = {}
     db.connection.execute("SAVEPOINT sdk_contract_import")
     try:
         fixture_evidence = db.evidence(
@@ -181,7 +215,7 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
                   "verified_static": 0, "downgraded": 0}
         for item in prepared:
             binary_id, function_id, module_id = (
-                _lookup_function(db, item["binary_sha"], item["address"])
+                _lookup_function(db, item["binary_sha"], item["address"], function_cache)
                 if item["binary_sha"] and item["address"] else (None, None, None)
             )
             source_id = item["primary_evidence"]
@@ -244,6 +278,7 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
     """Review evidence/ABI/identity gaps without promoting any runtime claim."""
     records: list[dict[str, Any]] = []
     complete_static = 0
+    function_cache: dict[int, dict[int, list[Any]]] = {}
     for row in db.query("""SELECT s.*,e.status AS evidence_status,e.kind AS evidence_kind,
             e.source_sha256 AS evidence_sha256,e.excerpt AS evidence_excerpt,
             e.metadata_json AS evidence_metadata_json,
@@ -273,8 +308,16 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
             issues.append("UNRESOLVED_FUNCTION")
         elif row["function_binary_id"] != row["binary_id"]:
             issues.append("FUNCTION_BINARY_MISMATCH")
-        if row["function_address"] is not None and row["address"] != row["function_address"]:
+        if row["function_address"] is not None and _address_value(row["address"]) != _address_value(row["function_address"]):
             issues.append("FUNCTION_ADDRESS_MISMATCH")
+        if row["binary_id"] is not None and row["address"] is not None:
+            numeric_address = _address_value(row["address"])
+            matches = (_function_index(db, int(row["binary_id"]), function_cache).get(numeric_address, [])
+                       if numeric_address is not None else [])
+            if len(matches) > 1:
+                issues.append("AMBIGUOUS_FUNCTION_ADDRESS")
+            elif len(matches) == 1 and row["function_id"] is not None and int(matches[0]["id"]) != row["function_id"]:
+                issues.append("FUNCTION_IDENTITY_MISMATCH")
         if not row["abi"]:
             issues.append("ABI_UNKNOWN")
         if not row["parameter_layout"] or not row["return_semantics"]:
