@@ -83,6 +83,7 @@ def discover_sdk_candidates(
     candidates: list[dict[str, Any]] = []
     export_cache: dict[tuple[int, str], set[int]] = {}
     function_cache: dict[int, dict[int, list[Any]]] = {}
+    digest_unique_cache: dict[str, bool] = {}
     examined = 0
     saturated = False
     for row in db.query(sql, [*args, scan_limit]):
@@ -111,11 +112,18 @@ def discover_sdk_candidates(
             "excerpt": row["evidence_excerpt"], "source_sha256": row["evidence_sha256"],
             "metadata_json": row["evidence_metadata_json"],
         }
+        digest = str(row["binary_sha256"]).lower()
+        if digest not in digest_unique_cache:
+            digest_unique_cache[digest] = (len(db.query(
+                "SELECT id FROM binary WHERE lower(sha256)=?", (digest,),
+            )) == 1)
+        unique_binary_identity = digest_unique_cache[digest]
         numeric_address = _address_value(row["address"])
         unique_function_entry = (numeric_address is not None and len(
             _function_index(db, int(row["binary_id"]), function_cache).get(numeric_address, [])
         ) == 1)
-        location_bound = (unique_function_entry and row["evidence_status"] == "VERIFIED_STATIC"
+        location_bound = (unique_binary_identity and unique_function_entry
+                          and row["evidence_status"] == "VERIFIED_STATIC"
                           and _proves_function_location(
                               evidence, str(row["binary_sha256"]), str(row["address"])))
         hints_value = hints or ["Other"]
@@ -130,6 +138,7 @@ def discover_sdk_candidates(
             "identity_evidence_id": row["source_evidence_id"] if location_bound else None,
             "entry_location_evidence_valid": location_bound,
             "unique_function_entry": unique_function_entry,
+            "unique_binary_identity": unique_binary_identity,
             "api_status": "UNVERIFIED_CANDIDATE",
             "abi_status": "UNKNOWN",
             "parameter_layout_verified": False,
