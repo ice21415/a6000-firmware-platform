@@ -369,6 +369,57 @@ coverage and makes the precise next piece of real private-file
 reverse-engineering reproducible without another whole-Ghidra run.
 
 
+## Phase 3.20: `0x42ac00` has a caller-proven output parameter ABI *shape*
+
+This phase advances beyond the `ParamList`-compatible
+type category found in Phase 3.19. The private saved
+original-ELF instruction reports show two separate
+named Camera action entry regions using lookup helper
+`0x42ac00`:
+
+- `ActionExeAfRangeLimitDrive` (`0x4bac78`):
+  after `0x13200a` is passed to `0x42abcc`,
+  both queries set `r0=stack-local payload view`,
+  `r1=0x3fe/0x3ff`, `r2=address of 32-bit output slot`;
+  `cbz r0` branches past `Invalid ParamList`
+  logging on the zero result. The first output slot
+  at `[r7+0x34]` and second at `[r7+0x30]`
+  are read by the accepted path.
+- `ActionObjectFocusPosDisplayEvent` (`0x4afc9c`):
+  the same helper is called with `r0=stack-local view`,
+  `r1=0x1b8/0x1b9`, `r2=&[r7+0x14]`.
+  Its `cbnz r0` branches around reading this output.
+  On zero, `ldr r3,[r7+0x14]` then stores
+  to Camera object fields `+0x200` and `+0x204`.
+
+This supports three input-register roles and a
+zero-result **accepted** branch in sampled callers.
+It does NOT identify a declared `ParamList*`
+return type for `0x13200a`; nor does it prove
+that `r3` is an actual fourth parameter or establish
+the exact error return enum, lifetime, exception,
+or library-wide lookup behavior.
+
+The nearby but **separate** `pvt_ActionSetInit`
+helper `0x42abdc` is observed taking `r0` as
+stack view, `r1=0x12000005`, `r2` as
+the output pointer, and then checking `r0==0`
+and the output word `==1` before `EasyMode ON`
+logging. Its complete ABI must be analyzed
+independently; sharing a local address neighborhood
+does not prove equivalent prototypes.
+
+Added `sdk/camera_3_21_param_lookup_abi.json`,
+`fwplatform/param_lookup_abi.py`,
+`tests/test_param_lookup_abi.py` and
+`sdk param-lookup` CLI with 39 named saved-text
+instruction fingerprints spanning two action
+entries and one SetInit entry. All 39 were
+rechecked against the private earlier preserved
+static instructions (not against new Sony ELF
+machine bytes), and no executable firmware
+or device-control ABI is asserted.
+
 ## Phase 3.19: `0x13200a` is an action payload accessor used by ParamList-like parsing paths
 
 The previously opaque `r1` input to
