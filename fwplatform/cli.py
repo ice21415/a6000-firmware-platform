@@ -300,6 +300,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO, format="%(levelname)s %(message)s")
+    if args.command == "sdk" and args.sdk_command == "mock":
+        # Mock replay is pure: do not create or migrate a SQLite database.
+        from .sdk_mock import simulate_protocol
+        result = simulate_protocol(args.scenario)
+        _json_or_text(result, args.json)
+        return 0 if result["status"] == "PASS" else 2
     db = Database(args.db)
     db.migrate()
     try:
@@ -367,11 +373,6 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "sdk" and args.sdk_command == "audit":
             from .sdk_contracts import audit_sdk_contracts
             _json_or_text(audit_sdk_contracts(db), args.json)
-        elif args.command == "sdk" and args.sdk_command == "mock":
-            from .sdk_mock import simulate_protocol
-            result = simulate_protocol(args.scenario)
-            _json_or_text(result, args.json)
-            return 0 if result["status"] == "PASS" else 2
         elif args.command == "analyze" and args.analyze_command == "elf":
             from analyzers.runner import run_elf_batch
             _json_or_text(run_elf_batch(db, args.root, args.limit), args.json)
