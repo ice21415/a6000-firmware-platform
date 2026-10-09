@@ -64,6 +64,38 @@ def _proves_function_location(evidence: Any, sha256: str, address: str) -> bool:
         return False
 
 
+def _contract_value(value: Any) -> str:
+    """Compare JSON layouts canonically, retaining human-readable ABI strings."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except (TypeError, ValueError):
+            return value.strip()
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _proves_signature(evidence: Any, values: dict[str, Any]) -> bool:
+    """A primary static record must contain the same ABI and full call layout.
+
+    Address-level disassembly evidence alone is not evidence for a proposed
+    calling convention, parameter layout or return contract.
+    """
+    if evidence is None:
+        return False
+    try:
+        excerpt = json.loads(evidence["excerpt"] or "{}")
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(excerpt, dict):
+        return False
+    for field in ("abi", "parameter_layout", "return_semantics"):
+        if field not in excerpt or excerpt[field] is None or not values.get(field):
+            return False
+        if _contract_value(excerpt[field]) != _contract_value(values[field]):
+            return False
+    return True
+
+
 def _lookup_function(db: Database, binary_sha: str, address: str) -> tuple[int | None, int | None, int | None]:
     binaries = db.query("SELECT id FROM binary WHERE lower(sha256)=?", (binary_sha,))
     if len(binaries) != 1:
@@ -164,6 +196,7 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
                 function_id is not None and source is not None
                 and source["status"] == "VERIFIED_STATIC"
                 and _proves_function_location(source, item["binary_sha"], item["address"])
+                and _proves_signature(source, item["fields"])
                 and item["requested"] == "VERIFIED_STATIC"
             )
             status = "VERIFIED_STATIC" if eligible_static else (
@@ -229,6 +262,11 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
                      "metadata_json": row["evidence_metadata_json"]}
             if not _proves_function_location(proof, str(row["binary_sha256"] or ""), str(row["address"] or "")):
                 issues.append("PRIMARY_EVIDENCE_NOT_BOUND_TO_FUNCTION")
+            if not _proves_signature(proof, {
+                "abi": row["abi"], "parameter_layout": row["parameter_layout"],
+                "return_semantics": row["return_semantics"],
+            }):
+                issues.append("PRIMARY_EVIDENCE_NOT_BOUND_TO_ABI")
         if row["binary_id"] is None:
             issues.append("UNRESOLVED_BINARY")
         if row["function_id"] is None or row["function_binary_id"] is None:
