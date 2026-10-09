@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import struct
 from pathlib import Path
 from typing import Any
@@ -133,7 +134,8 @@ def analyze_dex(path: Path) -> dict[str, Any]:
     })
     method_like = sorted({value for value in strings if "(" in value and ")" in value})
     return {
-        "format": "dex", "version": version, "strings": strings,
+        "format": "dex", "version": version, "sha256": hashlib.sha256(data).hexdigest(),
+        "strings": strings,
         "class_descriptors": descriptors,
         "method_signature_candidates": method_like,
         "type_descriptors": types,
