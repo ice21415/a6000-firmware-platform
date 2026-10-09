@@ -190,7 +190,22 @@ python -m fwplatform.cli --db C:\private\firmware-copy.db sdk audit --json
 `sdk research` verifies *internal consistency* of ELF digests, candidate
 entry ownership, reported direct-branch targets, field observation and
 selector metadata. It rejects forged VERIFIED_STATIC/runtime/ABI assertions,
-numeric entry alias collisions and raw private source paths. A supplied `--compare-db` opens the SQLite research index read-only,
+numeric entry alias collisions and raw private source paths. **Phase 3.12 — independent read-only ELF opcode checks.** Supply
+`--verify-elf` pointing to the PRIVATE, original `libObj.so`; this verifies
+the complete expected SHA-256 before reading instructions through the
+ELF32 little-endian ARM executable `PT_LOAD` VMA mapping. It decodes only
+Thumb-2 direct `BL` and unconditional `B.W` target addresses plus
+`LDRB.W` / `STRB.W` unsigned-immediate byte field operations. A
+mismatch or unsupported encoding yields a nonzero CLI exit code; corrupted
+or differently hashed firmware is explicitly rejected. Only matched
+**instruction encodings and immediate displacements** are proven by this
+check. The `+0x2680` ModelCamera object-base adjustment and causal
+semantics of the field are separate research inferences, not established
+by reading one byte instruction. The verifier does not publish raw opcode
+bytes or run/call/modify any camera firmware; CI uses synthetic ELF32 ARM
+fixtures instead of a Sony binary.
+
+A supplied `--compare-db` opens the SQLite research index read-only,
 does not migrate it, and checks whether the exact ELF SHA, normalized
 function-entry VMA, and direct caller/callee IDs are present. Missing,
 ambiguous and mismatching entries remain explicit; successful index
