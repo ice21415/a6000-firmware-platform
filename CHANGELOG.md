@@ -2,6 +2,9 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.19：核心 ABI 逆向直接研究 `0x13200a` 的**回傳用途**；保存組語可見多個 Action 把該值交給 `0x42abcc`，其中一條接著用 `0x42ac00` 查 `0x3fe`／`0x3ff` 及走 `Invalid ParamList` 分支。另確認 SetInit 也接收同一 wrapper 的 payload。結論只達到 ParamList-compatible opaque value，未確認 C++ `ParamList*` 返回型別。
+- 新增 `sdk action-payload`、獨立 `fwplatform/action_payload_abi.py`、五個具名來源／36 個地址約束及 synthetic tests。禁止將回傳型別、runtime Camera API 或事件接收路徑冒充已驗證。
+
 - Phase 3.18：改以實際 ABI 引數還原優先。從保存的 `libObj.so` ARM 指令和 Itanium C++ 符號，區分 `ViewBase::requestModelExecute` 的成員函式式暫存器配置與 `viewManagerIf::requestModelExecute` 的靜態式配置；另推導 Event factory 的顯式參數型別與 Event 物件指標返回路徑，但不偽稱 C++ return type 或 owner 已驗證。
 - 新增 `ModelCamera::ActionGpSetSetting` 對 `0x0f01` 的內部 `pvt_ActionSetInit` `r0/r1` 引數來源核對、跨 ELF UI selector 引數交叉檢查，以及 `sdk request-abi`、typed candidate fixture 和 synthetic 測試；完整 Camera core API ABI 仍為 0 個，物件生命週期與原始 ELF opcode 驗證待完成。
 
