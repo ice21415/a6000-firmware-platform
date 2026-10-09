@@ -97,6 +97,24 @@ class CoreABIPrimaryByteProbeTests(unittest.TestCase):
         self.assertFalse(a["register_read_before_write_is_proven_abi"])
         self.assertFalse(b["return_cpp_type_verified"])
 
+    def test_actual_synthetic_memory_store_base_is_reported_but_not_abi(self):
+        result = self.probe()
+        getter, lookup = [
+            item["register_and_return_observations"]
+            for item in result["research_targets"]
+        ]
+        self.assertEqual(getter["r2_based_memory_write_sites_capped"], [])
+        self.assertIn("0x1020", lookup["r2_based_memory_write_sites_capped"])
+        sites = lookup["visited_memory_access_sites_capped"]
+        self.assertTrue(any(
+            row["site"] == "0x1020"
+            and row["memory_base_register"] == "r2"
+            and row["operation_direction_hint"] == "WRITE"
+            and row["memory_access_width_cpp_type_verified"] is False
+            for row in sites
+        ))
+        self.assertFalse(lookup["r2_based_store_is_proven_output_parameter"])
+
     def test_fingerprint_is_stable_and_changes_on_local_opcode_change(self):
         first = self.probe()["research_targets"]
         second = self.probe()["research_targets"]
