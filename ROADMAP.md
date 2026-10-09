@@ -81,6 +81,7 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - SDK discover 必須符合同一 ELF 的 export 名稱和數值 VMA，避免同名不同位址被誤列成匯出 API。
 - SDK import 將十六進位／十進位地址正規化並要求唯一函式入口；audit 會揭露既有合約中的數值地址歧義。
 - 重複 ELF SHA-256 不是唯一的 binary 身分；候選搜尋保留歧義，SDK draft 去除重複合約並保留來源路徑。
+- SDK fixture 自己不能成為獨立 ABI 驗證證據；舊資料中自我宣稱的 VERIFIED_STATIC 將被審核揭露、降級。
 - 合成測試驗證誤配、地址別名、歧義、重複 hash 與候選匯入；不代表完成實機 API 語意或 ABI 逆向。
 
 ## 下一階段
