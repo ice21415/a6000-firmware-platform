@@ -947,6 +947,25 @@ exception behavior and runtime binding remain UNKNOWN. The contract is
 `sdk/event_manager_init_3_21.json`, and both runtime verification and
 callability remain false.
 
+## EventManager::count checkpoint
+
+The `event-manager-count` probe validates the symbol-bound method
+`_ZN12EventManager5countEj` at `0x7ef9fc`:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-count --elf C:\private\libObj.so --json
+```
+
+The primary ELF confirms `r0` as the receiver candidate and `r1` as an
+unsigned index. The body loads a state pointer from `[receiver]`, reads one
+32-bit word at `[state + (index << 2)]`, passes that word through local helper
+`0x7f0aa0`, then performs the receiver cleanup path through `0x7ef902` before
+returning the helper result. No conditional index-bound check appears in this
+bounded body, so the valid state allocation and index range remain UNKNOWN.
+The C++ return type, helper semantics, ownership, loader binding, runtime
+safety and callability remain UNKNOWN/false. The descriptive contract is
+`sdk/event_manager_count_3_21.json`.
+
 ## Request-model Event factory checkpoint
 
 The `request-event-factory` probe verifies the symbol-bound factory at

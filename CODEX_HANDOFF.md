@@ -892,3 +892,27 @@ investigation target is a uniquely typed owner/construction path in a dependent
 ELF; do not treat this replacement helper as a callable SDK API. The complete
 local regression suite passes **357 tests**; this is public evidence-gate
 coverage only and does not add runtime-verified or callable APIs.
+
+## Latest continuation checkpoint — EventManager::count indexed-state boundary (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was checked without repeating the already
+recovered ParamList::get body. `fwplatform/event_manager_count_probe.py` now
+verifies the symbol `_ZN12EventManager5countEj` at even ELF VMA `0x7ef9fc`
+(`0x7ef9fd` Thumb value, 34 bytes). Capstone confirms `r0` as a receiver
+candidate and `r1` as an unsigned index, followed by the state pointer load,
+`[state + (index << 2)]` word access, helper `0x7f0aa0`, and cleanup helper
+`0x7ef902`. The helper result is returned in `r0`; the C++ return type remains
+UNKNOWN. No local conditional index-bound check is present in the bounded body,
+so state allocation, valid range, helper meaning, ownership, null behavior and
+runtime safety remain UNKNOWN. Runtime and callable flags stay false.
+
+The corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
+used `ARM:LE:32:v8`, image base `0x10000`, `-noanalysis`, and exited 0 with
+`COMPLETE_TARGET_EXPORT`: 13 instruction rows, one block and three call edges.
+The private project/export remains outside the public checkout. The next
+investigation target is resolving the helper/state ownership boundary without
+turning the indexed access into a safe callable API.
+
+The current full local `python -m unittest discover -s tests -v` run passed
+**362 tests**. This is public evidence-gate coverage only; it does not add
+runtime-verified or callable APIs.

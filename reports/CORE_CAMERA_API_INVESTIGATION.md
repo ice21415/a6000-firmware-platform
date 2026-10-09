@@ -824,3 +824,32 @@ Private ASCII Ghidra 12.1.3 targeted `-noanalysis` exited 0 and reproduced
 p-code warning occurred while decompiling the short add forwarder; the
 instruction and edge export completed and is treated as cross-check evidence,
 not complete semantic decompilation.
+
+## Phase 3.28 — EventManager::count indexed-state boundary
+
+The exact SHA-pinned `libObj.so` contains the symbol
+`_ZN12EventManager5countEj` at Thumb-tagged value `0x7ef9fd`, even ELF VMA
+`0x7ef9fc`, with a 34-byte extent. `fwplatform/event_manager_count_probe.py`
+confirms the AAPCS32 register shape supplied by the symbol and instructions:
+`r0` is an EventManager receiver candidate and `r1` is an unsigned index.
+The body calls `0x7ef8f4`, loads a state/container pointer from `[receiver]`,
+reads one 32-bit word using `[state + (index << 2)]`, passes that word to
+`0x7f0aa0`, then invokes `0x7ef902` before returning the helper result in
+`r0`. The C++ return type is not encoded by the mangled symbol.
+
+No conditional index-bound check occurs in this bounded body. This is a
+`PRIMARY_ELF_VERIFIED` instruction fact only; the valid allocation, index
+range, helper semantics, null behavior, ownership, loader binding and runtime
+safety remain `UNKNOWN`. The contract is
+`sdk/event_manager_count_3_21.json`; runtime verification and callability are
+false.
+
+The corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
+used `ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`. It exited 0 with
+`COMPLETE_TARGET_EXPORT`, 13 instruction rows, one basic block and three call
+edges. Ghidra's mapped body `0x7ff9fc..0x7ffa1d` agrees with Capstone after
+subtracting the image base. The private project/export is not checked in.
+
+The full local `python -m unittest discover -s tests -v` run passed **362
+tests** after this addition; this is synthetic/public evidence-gate coverage,
+not runtime verification or a callable-API count.

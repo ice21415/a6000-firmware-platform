@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "status": "PRIMARY_ELF_VERIFIED_EVENT_MANAGER_COUNT_EVIDENCE_ONLY",
+  "symbol": "_ZN12EventManager5countEj",
+  "entry": "0x7ef9fc",
+  "symbol_value_thumb_tagged": "0x7ef9fd",
+  "size_bytes": 34,
+  "abi_observation": {
+    "r0": "EventManager receiver candidate",
+    "r1": "unsigned index",
+    "return": "result from local helper 0x7f0aa0; C++ return type UNKNOWN",
+    "calling_convention": "ARM AAPCS32, Thumb, little endian",
+    "safe_to_call": false
+  },
+  "control_flow": {
+    "pre_access": "0x7efa04 -> 0x7ef8f4",
+    "state_base_load": "ldr r3,[r4] at 0x7efa08",
+    "indexed_word_load": "ldr.w r0,[r3,r5,lsl #2] at 0x7efa0a",
+    "post_access": "0x7efa0e -> 0x7f0aa0",
+    "receiver_cleanup": "0x7efa16 -> 0x7ef902",
+    "return": "loaded/helper result is moved to r0 at 0x7efa1a"
+  },
+  "safety": {
+    "local_bounds_check": "no conditional index-bound check observed in this bounded body",
+    "global_invariant": "UNKNOWN; state allocation and valid index range are not proven",
+    "null_receiver": "UNKNOWN; no runtime execution or general receiver guard is established"
+  },
+  "evidence": [
+    "ELF_SYMBOL:0x7ef9fd:size=34",
+    "ELF_VMA:0x7efa02",
+    "ELF_VMA:0x7efa04",
+    "ELF_VMA:0x7efa08",
+    "ELF_VMA:0x7efa0a",
+    "ELF_VMA:0x7efa0e",
+    "ELF_VMA:0x7efa16",
+    "ELF_VMA:0x7efa1a"
+  ],
+  "limitations": [
+    "The state pointer and valid index range are not source-level types",
+    "Helper 0x7f0aa0 semantics and any external bounds invariant remain UNKNOWN",
+    "No runtime, device, loader-binding or ownership verification",
+    "This contract is descriptive metadata, not a live firmware wrapper"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

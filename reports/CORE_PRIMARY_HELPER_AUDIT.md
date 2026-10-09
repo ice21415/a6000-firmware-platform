@@ -1286,3 +1286,31 @@ payload-scope promotion, concurrency promotion and runtime/callable claims.
 The complete local regression suite passes **357 tests** after this probe was
 added; this validates the public evidence gates and does not increase the
 runtime-verified or callable API counts.
+
+## EventManager::count indexed-state boundary — 2026-10-10
+
+The exact SHA-pinned primary ELF also contains the symbol
+`_ZN12EventManager5countEj` at Thumb value `0x7ef9fd`, even entry `0x7ef9fc`,
+with a 34-byte extent. The new bounded probe confirms `r0` as an EventManager
+receiver candidate and `r1` as an unsigned index. It calls `0x7ef8f4`, loads a
+state pointer from `[receiver]`, reads a 32-bit word at
+`[state + (index << 2)]`, passes that word through `0x7f0aa0`, then calls
+`0x7ef902` before moving the helper result to `r0`. The symbol does not encode
+the C++ return type.
+
+The indexed access has no local conditional bounds check in this bounded body.
+That is a `PRIMARY_ELF_VERIFIED` instruction fact, not a claim of an invalid
+index path or runtime memory safety. State allocation, valid index range,
+helper semantics, receiver validity, ownership, loader binding and concurrency
+remain `UNKNOWN`; `runtime_verified=false` and `callable=false`.
+
+The corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
+used `ARM:LE:32:v8`, image base `0x10000` and `-noanalysis`, exited 0 with
+`COMPLETE_TARGET_EXPORT`, 13 instruction rows, one basic block and three call
+edges. The mapped Ghidra body `0x7ff9fc..0x7ffa1d` agrees with Capstone after
+subtracting the image base. The private export/project remains outside the
+repository.
+
+The current full local `python -m unittest discover -s tests -v` run passes
+**362 tests**. These are synthetic/public evidence-gate tests; runtime
+verification and callable API counts remain 0.

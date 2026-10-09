@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — EventManager::count static ABI evidence
+
+- Added the SHA-pinned `fwplatform.event_manager_count_probe` and
+  `fw sdk event-manager-count`. It verifies the symbol-bound Thumb body at
+  `0x7ef9fc`, the `unsigned int` index from the mangled symbol, the indexed
+  32-bit state-word load, and the helper/cleanup sequence without exposing
+  Sony bytes or providing a callable wrapper.
+- Added `sdk/event_manager_count_3_21.json` and five fail-closed tests. The
+  bounded body has no local index-bound check; the valid state allocation,
+  index range, helper meaning, ownership and runtime safety remain UNKNOWN.
+- A corrected private ASCII-path Ghidra 12.1.3 `event-manager-count` profile
+  exited 0 with `COMPLETE_TARGET_EXPORT`, 13 instruction rows, 1 block and
+  3 call edges. The private project/export remains outside this repository.
+- The full local regression suite passes 362 tests; runtime-verified and
+  callable API counts remain 0.
+
 ## Unreleased — ParamList::add replacement and borrowed-lifetime evidence
 
 - Added the SHA-pinned `fwplatform.paramlist_add_probe` and

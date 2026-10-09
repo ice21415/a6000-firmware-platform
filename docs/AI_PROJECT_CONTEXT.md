@@ -241,6 +241,25 @@ Ghidra agree on instruction/layout facts only. A separate full Auto Analysis
 attempt was intentionally stopped before completion; it is not counted as a
 successful analysis.
 
+## EventManager::count evidence
+
+`fwplatform/event_manager_count_probe.py` and
+`sdk/event_manager_count_3_21.json` add a primary-ELF static contract for the
+symbol `_ZN12EventManager5countEj` at `ELF_VMA 0x7ef9fc` (Thumb value
+`0x7ef9fd`, 34 bytes). The symbol supplies an unsigned index parameter;
+Capstone verifies the receiver/index register shape, the state pointer load,
+the indexed word access `[state + (index << 2)]`, helper `0x7f0aa0`, and
+cleanup helper `0x7ef902`. There is no local conditional bounds check in the
+bounded body, so state allocation, valid index range, helper semantics,
+ownership and null/runtime safety stay UNKNOWN. The CLI is
+`fw sdk event-manager-count --elf <private-libObj.so> --json`.
+
+The private ASCII-path Ghidra 12.1.3 `event-manager-count` profile used
+`ARM:LE:32:v8`, image base `0x10000`, `-noanalysis`, and exited 0 with the
+complete marker, 13 instruction rows, one block and three call edges. The
+export is private; generated Ghidra names are not semantic API names. Runtime
+verification and callable SDK status remain false.
+
 ## Phase 3.26 — request-model Event factory
 
 `fwplatform/camera_request_event_probe.py` verifies the symbol-bound primary
