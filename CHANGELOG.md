@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — ParamBase foundation checkpoint
+
+- Added the SHA-pinned `parameter-base` probe and descriptive contract. It
+  verifies the ParamBase RTTI/vtable, pure-virtual clone slot, base
+  constructor `+0x00/+0x04` writes, base destructor/deleting-destructor path,
+  and the separate ParamList key setter at `0x7eda84`. It also indexes ten
+  direct derived RTTI relations. A private Ghidra 12.1.3 targeted run exited
+  0 with four targets, 31 instructions, four blocks and two CFG edges. No
+  ownership, exception, locking, runtime or callable claim is made.
+
 ## Unreleased — Phase 3 semantic-analysis
 
 - Extended the private-only `parameter-objmsg` probe with direct RTTI/vtable

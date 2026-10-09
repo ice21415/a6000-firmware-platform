@@ -521,3 +521,22 @@ pointer-plus-length candidate are preserved as memory-source observations; the
 Bool and Struct post-dispatch key values are candidates tied to their specific
 callsite, not a global key rule. Register values after allocator calls are
 reset to UNKNOWN. Runtime, ownership, locking and callable status remain false.
+
+## Current continuation checkpoint (2026-10-10) — ParamBase foundation
+
+`fwplatform/param_base_probe.py` and `sdk/param_base_3_21.json` now record the
+base RTTI/vtable and bounded constructor/destructor evidence from the exact
+SHA-pinned ELF. The base vtable prefix is `0xfe6e30` with address point
+`0xfe6e38`; clone slot `+8` is an ELF relocation to `__cxa_pure_virtual`, and
+the base destructor slots resolve to `0xe4734`/`0xe4854`. The base constructor
+at `0xe50b4` stores the discriminator candidate at `+0x04` and the base vptr
+at `+0x00`, with no bounded store to key `+0x08` or payload `+0x0c`. The key
+setter remains the separate `0x7eda84` witness.
+
+The probe independently discovers ten direct RTTI `+0x08` relocations to
+`_ZTI9ParamBase`. A private Ghidra 12.1.3 `ParamBaseTargets.java` targeted
+`-noanalysis` run exited 0 with four targets, 31 instruction rows, four blocks
+and two CFG edges. These are static facts only; source-level ownership,
+exception behavior, locking, runtime binding and callable SDK status remain
+unknown/false. Seven synthetic validator tests were added and the complete
+local suite now passes 312 tests.

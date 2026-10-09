@@ -852,3 +852,34 @@ reaching-definitions analysis; branch joins, loop-carried values,
 interprocedural sources, exception paths, ownership and concurrency remain
 UNKNOWN. The contract and CLI remain `runtime_verified=false` and
 `callable=false`.
+
+## ParamBase foundation and direct RTTI relations — 2026-10-10
+
+`fwplatform/param_base_probe.py` adds an independent SHA-pinned check of the
+base ABI foundation. It reads the authenticated ELF before decoding and keeps
+all addresses in `ELF_VMA`; the checked-in metadata contract is
+`sdk/param_base_3_21.json`.
+
+| Evidence | Static result | Boundary |
+|---|---|---|
+| Base RTTI `0xfe6e24`, vtable prefix `0xfe6e30`, address point `0xfe6e38` | RTTI name `9ParamBase`, offset-to-top `0`, clone slot `+8` relocates to `__cxa_pure_virtual`, destructor slots are `0xe4734` and `0xe4854` | Direct RTTI/vtable facts; source-level abstract-class declaration remains descriptive |
+| Base constructor `_ZN9ParamBaseC2Em` at `0xe50b5` / bounded body `0xe50b4` | Stores incoming `r1` at object `+0x04`, resolves the base vtable through GOT `0x1033a60`, and stores its address point at `+0x00` | `r0` destination and `r1` discriminator are register-shape facts; no source-level exception/ABI safety claim |
+| Base constructor bounded writes | No store to `+0x08` or `+0x0c` occurs in the verified body | This is scoped to the bounded body; derived constructors and ParamList insertion remain separate evidence |
+| Base destructor `0xe4734` | Restores the base vptr and returns without payload release | Does not establish when callers may invoke it or whether an object is otherwise valid |
+| Base deleting destructor `0xe4854` | Calls `0xe4734`, then the statically resolved `_ZdlPv` PLT `0xdd620` | Allocator interposition and ownership remain UNKNOWN |
+| Key setter `0x7eda84` | Separate `str r1,[r0,#8]` witness for the ParamList element key | Key assignment is not part of the ParamBase constructor |
+
+The same probe found **10** direct RTTI `+0x08` relations to `_ZTI9ParamBase`
+(`PrmBool`, `PrmNumber`, `PrmString`, `PrmPoint`, `PrmDimension`, `PrmStruct`,
+`PrmSet`, `PrmNumberList`, `PrmCntInfoList`, and `PrmObjMsg`). This is direct
+single-inheritance RTTI evidence for this ELF, not a complete hierarchy or a
+claim that all source-level virtual methods are recovered.
+
+The private ASCII-path Ghidra 12.1.3 targeted `ParamBaseTargets.java` run used
+`ARM:LE:32:v8`, image base `0x10000`, and `-noanalysis`. It exited `0` with
+four target bodies, 31 instruction rows, four blocks and two CFG edges. The
+raw export and project remain private. The public contract records this as a
+static cross-check only; runtime verification and callable SDK counts remain
+zero. Ownership, copy/assignment, exception handling, locking, concurrent
+access and derived payload semantics remain UNKNOWN. The new validator adds
+seven synthetic checks; the complete local suite now passes **312 tests**.

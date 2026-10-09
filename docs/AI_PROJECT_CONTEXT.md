@@ -390,3 +390,20 @@ halfword pair and Struct's pointer-plus-length candidate are recorded as
 memory-source observations, while Bool/Struct post-dispatch numeric keys are
 scoped to their callsites. Allocator calls clobber unknown registers in the
 summary. No runtime or callable API claim is made.
+
+## ParamBase foundation checkpoint (2026-10-10)
+
+`fwplatform/param_base_probe.py` provides the independent base-class evidence
+layer. Against the SHA-pinned private `libObj.so`, it verifies ParamBase RTTI
+`0xfe6e24`, vtable prefix/address point `0xfe6e30`/`0xfe6e38`, the
+`__cxa_pure_virtual` clone slot, destructor slots `0xe4734`/`0xe4854`, and
+the constructor's writes to vptr `+0x00` and discriminator `+0x04`. The
+bounded base constructor does not write key `+0x08` or payload `+0x0c`; the
+separate key setter is `0x7eda84`. Ten direct derived RTTI relations are
+recorded in `sdk/param_base_3_21.json`.
+
+The private `ParamBaseTargets.java` Ghidra 12.1.3 `-noanalysis` cross-check
+used `ARM:LE:32:v8`, image base `0x10000`, and exited 0 with four targets, 31
+instruction rows, four blocks and two CFG edges. This is targeted static
+evidence only. Ownership, copy/assignment, exception handling, locking,
+runtime binding and callable SDK status remain unknown/false.

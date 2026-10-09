@@ -1096,3 +1096,23 @@ interprocedural values, ownership and runtime safety remain unknown.
 
 To reproduce the private read-only probe against an authorized, SHA-matching
 ELF, use `python -m fwplatform.cli sdk parameter-family-callsite-probe --elf <private-libObj.so> --json`.
+
+## ParamBase foundation checkpoint
+
+The private-only `parameter-base` probe validates the base RTTI/vtable and
+bounded constructor/destructor paths without publishing firmware bytes:
+
+```powershell
+python -m fwplatform.cli sdk parameter-base --elf C:\private\libObj.so --json
+```
+
+The checked-in descriptive contract is `sdk/param_base_3_21.json`. It records
+base RTTI `0xfe6e24`, vtable prefix/address point `0xfe6e30`/`0xfe6e38`, the
+pure-virtual clone slot, base destructor slots `0xe4734`/`0xe4854`, and the
+constructor's bounded writes to `+0x00` and `+0x04`. No bounded base-constructor
+write to key `+0x08` or payload `+0x0c` was observed; key assignment remains a
+separate ParamList setter at `0x7eda84`. Ten direct derived RTTI relations are
+indexed. A private Ghidra 12.1.3 targeted cross-check exited 0 with four
+targets, 31 instructions, four blocks and two edges. Ownership, exception,
+locking, runtime binding and callable status remain unknown/false. The public
+regression suite now passes 312 tests.

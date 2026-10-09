@@ -334,6 +334,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_types = sdk_sub.add_parser("parameter-types")
     sdk_types.add_argument("--fixture", type=Path, default=Path("sdk/parameter_types_lifetime_3_21.json"))
     sdk_types.add_argument("--json", action="store_true")
+    sdk_base = sdk_sub.add_parser("parameter-base")
+    sdk_base.add_argument("--elf", type=Path, required=True)
+    sdk_base.add_argument("--expected-sha256", default=None)
+    sdk_base.add_argument("--json", action="store_true")
     sdk_family = sdk_sub.add_parser("parameter-family-probe")
     sdk_family.add_argument("--elf", type=Path, required=True)
     sdk_family.add_argument("--expected-sha256", default=None)
@@ -525,6 +529,15 @@ def main(argv: list[str] | None = None) -> int:
             or contract.get("callable") is not False):
             raise ValueError("Invalid descriptive type/lifetime contract")
         _json_or_text(contract, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-base":
+        from .param_base_probe import probe_param_base
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_base(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "parameter-family-usage":
         from .param_family_usage import validate_param_family_usage

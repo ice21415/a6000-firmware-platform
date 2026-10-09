@@ -15,6 +15,18 @@ struct ParamPrefixWords {
 };
 static_assert(sizeof(ParamListWords) == 8);
 static_assert(sizeof(ParamPrefixWords) == 16);
+
+// ParamBase evidence constants for firmware 3.21. These are ELF VMAs and
+// static-analysis locators, not host function pointers or callable wrappers.
+struct ParamBaseEvidenceConstants {
+    static constexpr std::uint32_t rtti_vma = 0x00fe6e24;
+    static constexpr std::uint32_t vtable_prefix_vma = 0x00fe6e30;
+    static constexpr std::uint32_t vtable_address_point = 0x00fe6e38;
+    static constexpr std::uint32_t constructor_vma = 0x000e50b4;
+    static constexpr std::uint32_t destructor_vma = 0x000e4734;
+    static constexpr std::uint32_t deleting_destructor_vma = 0x000e4854;
+    static constexpr std::uint32_t key_setter_vma = 0x007eda84;
+};
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::int32_t payload;
