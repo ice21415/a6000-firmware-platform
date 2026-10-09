@@ -80,6 +80,8 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertIsNone(audit["domain_matrix"]["Lens"]["core_reverse_engineering_complete"])
         sdk = build_sdk_index(self.db, self.root / "sdk.json")
         self.assertEqual(sdk["coverage"]["static_contract_complete"], 1)
+        self.assertEqual(sdk["interfaces"][0]["verification_status"], "VERIFIED_STATIC")
+        self.assertTrue(sdk["interfaces"][0]["static_contract_complete"])
         self.assertIsNone(sdk["coverage"]["callable_validated_interfaces"])
         self.assertTrue((self.root / "sdk.json").exists())
 
@@ -195,6 +197,11 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertIsNone(exported["coverage"]["runtime_verified_interfaces"])
         self.assertIsNone(exported["coverage"]["semantically_understood_functions"])
         self.assertEqual(exported["coverage"]["runtime_claimed_interfaces"], 1)
+        self.assertEqual(exported["interfaces"][0]["verification_status"], "UNKNOWN")
+        self.assertEqual(exported["interfaces"][0]["reported_verification_status"], "VERIFIED_RUNTIME")
+        self.assertEqual(exported["interfaces"][0]["runtime_safety"], "DESCRIPTIVE_ONLY")
+        self.assertEqual(exported["interfaces"][0]["reported_runtime_safety"], "CALLABLE_VALIDATED")
+        self.assertFalse(exported["interfaces"][0]["runtime_callable_verified"])
 
     def test_cli_import_and_audit(self) -> None:
         fixture = self._fixture([{"name": "display_state", "domain": "UI"}])
