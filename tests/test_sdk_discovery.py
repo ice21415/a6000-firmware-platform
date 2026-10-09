@@ -10,6 +10,8 @@ from pathlib import Path
 from fwplatform.cli import main
 from fwplatform.db import Database
 from fwplatform.sdk_discovery import discover_sdk_candidates
+from fwplatform.sdk_review import draft_sdk_review
+from fwplatform.sdk_contracts import import_sdk_contracts
 
 
 class SdkDiscoveryTests(unittest.TestCase):
@@ -96,6 +98,25 @@ class SdkDiscoveryTests(unittest.TestCase):
             discover_sdk_candidates(self.db, limit=0)
         with self.assertRaises(ValueError):
             discover_sdk_candidates(self.db, binary_sha256="not-a-hash")
+
+    def test_draft_roundtrip_is_explicit_candidate_not_verified_sdk(self):
+        output = self.root / "review.json"
+        result = draft_sdk_review(self.db, output, name="Camera", limit=10)
+        self.assertEqual(result["status"], "REVIEW_ONLY")
+        self.assertEqual(result["interfaces"], 2)
+        draft = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(draft["automatically_verified_api_count"], 0)
+        self.assertEqual({item["domain"] for item in draft["interfaces"]}, {"Other"})
+        self.assertEqual({item["verification_status"] for item in draft["interfaces"]}, {"CANDIDATE"})
+        self.assertTrue(all(item["abi"] is None for item in draft["interfaces"]))
+        self.assertEqual(len([item for item in draft["interfaces"]
+                              if "source_evidence_id" in item]), 1)
+        imported = import_sdk_contracts(self.db, output)
+        self.assertEqual(imported["interfaces"], 2)
+        self.assertEqual(imported["verified_static"], 0)
+        self.assertEqual(self.db.connection.execute(
+            "SELECT COUNT(*) FROM sdk_interface WHERE verification_status='VERIFIED_STATIC'"
+        ).fetchone()[0], 0)
 
     def test_cli_discover_is_read_only(self):
         output = io.StringIO()
