@@ -413,3 +413,24 @@ callability remain UNKNOWN. The descriptive contract is
 `callable=false` are enforced. Four synthetic fail-closed tests cover the
 validator, and the complete public suite now passes **246 tests**. No firmware
 bytes, disassembly export or private probe output is included in the repository.
+
+## PrmObjMsg lifecycle checkpoint (primary ELF, 2026-10-10)
+
+The exact SHA-pinned private ELF probe `fw sdk parameter-objmsg --elf
+<private-libObj.so> --json` validates five bounded regions. The constructor at
+`0x12c754` receives an `MWF::ObjMsg*` candidate in `r1`, stores it at `+0x0c`,
+sets discriminator `8` through the base initializer and stores the relocated
+vtable address point. The getter at `0x12c77c` returns the word at `+0x0c`.
+The non-deleting destructor at `0x12c700` checks that word, calls helper
+`0xddd94`, then the operator-delete PLT `0xdd620`, and invokes the local
+ParamBase destruction path `0xe4734`; the deleting wrapper at `0x12c740`
+performs the non-deleting path followed by `0xdd620`. A clone candidate at
+`0x12c784` allocates a 16-byte destination candidate, copies the payload via
+`0xe0388`, and retains a visible delete failure path.
+
+These are `PRIMARY_ELF_VERIFIED` instruction facts. The `MWF::ObjMsg` pointee
+layout, ownership transfer, allocator pairing, exception behavior, clone C++
+identity/return type, synchronization, runtime behavior and callability remain
+UNKNOWN. The descriptive contract is `sdk/param_objmsg_3_21.json` and its
+runtime/callable flags are false. Four synthetic fail-closed tests cover the
+metadata validator; no firmware bytes or private probe output is committed.

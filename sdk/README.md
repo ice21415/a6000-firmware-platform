@@ -858,3 +858,16 @@ callers. It also records the discriminator-5/3 lookup forwarders and the
 Bool/Point payload-word getters used by those branches; source-level ownership
 and helper semantics remain UNKNOWN. See
 `reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.
+
+## PrmObjMsg primary-ELF checkpoint
+
+The `parameter-objmsg` probe adds a bounded static check:
+
+```powershell
+python -m fwplatform.cli sdk parameter-objmsg --elf C:\private\libObj.so --json
+```
+
+It verifies discriminator `8`, the constructor's `MWF::ObjMsg*` candidate
+store at `+0x0c`, the getter, the non-null destruction release sequence and a
+16-byte clone candidate. Pointee layout, allocator pairing, ownership,
+exception behavior, clone identity and runtime/callable safety remain UNKNOWN.

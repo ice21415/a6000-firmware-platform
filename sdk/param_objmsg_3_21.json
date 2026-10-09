@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "type": "PrmObjMsg",
+  "verification": "PRIMARY_ELF_VERIFIED for bounded constructor, getter, clone and destruction observations",
+  "object": {
+    "discriminator": 8,
+    "payload_offset": "0x0c",
+    "payload": "MWF::ObjMsg* candidate",
+    "payload_ownership": "UNKNOWN",
+    "vptr_address_point": "0xfec4a0",
+    "object_size_witness": 16
+  },
+  "functions": {
+    "constructor": {"entry": "0x12c754", "symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE", "size": 40},
+    "getter": {"entry": "0x12c77c", "symbol": "_ZNK9PrmObjMsg18getParamTypeObjMsgEv", "size": 8},
+    "destructor": {"entry": "0x12c700", "size": 52},
+    "deleting_destructor": {"entry": "0x12c740", "size": 20},
+    "clone_candidate": {"entry": "0x12c784", "size": 52}
+  },
+  "lifetime": {
+    "getter": "returns the word at +0x0c without retaining ownership",
+    "destructor": "non-null payload takes helper 0xddd94 then operator-delete PLT 0xdd620 before ParamBase destruction",
+    "clone": "allocates a 16-byte destination candidate and copies the payload through helper 0xe0388",
+    "concurrency": "UNKNOWN",
+    "exception_behavior": "UNKNOWN",
+    "runtime_verified": false,
+    "callable": false
+  },
+  "limitations": [
+    "MWF::ObjMsg pointee layout and allocator pairing are unknown",
+    "clone candidate C++ identity and return type are not proven",
+    "static release sequence does not establish safe ownership transfer",
+    "no firmware or device execution"
+  ]
+}

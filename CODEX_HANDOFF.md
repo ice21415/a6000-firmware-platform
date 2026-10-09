@@ -264,3 +264,12 @@ operations. Keep private binaries and trace exports private.
 The handoff copies only technical context and file references
 from previous chats; it does NOT automatically sync private
 ChatGPT conversation transcripts or private file contents.
+
+The next ParamBase family checkpoint adds `fwplatform/param_objmsg_probe.py`
+and `fw sdk parameter-objmsg --elf <private-libObj.so>`. Five bounded
+primary-ELF regions validate `PrmObjMsg` discriminator `8`, the constructor's
+`MWF::ObjMsg*` candidate store at `+0x0c`, the getter, non-null destruction
+release and clone candidate. Pointee layout, ownership, allocator pairing,
+exception behavior and clone C++ identity remain UNKNOWN; runtime and callable
+claims remain false. The descriptive contract is
+`sdk/param_objmsg_3_21.json`, with four synthetic fail-closed tests.

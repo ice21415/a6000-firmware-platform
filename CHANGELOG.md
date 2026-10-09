@@ -167,3 +167,9 @@
 - 排除本機 SQLite、firmware、Ghidra project、raw JSONL、manifest 和 private runtime data。
 - 保留 Phase 2 工具、schema、mock、合成測試與清理後報告。
 - 採用 MIT License；公開發布只包含 allowlist 內容，不包含原廠韌體或私人研究資料。
+
+- Added the SHA-pinned `parameter-objmsg` probe and descriptive contract.
+  Five bounded regions verify `PrmObjMsg` construction, `+0x0c` getter,
+  non-null destruction, deleting destruction and the clone candidate. The
+  `MWF::ObjMsg` pointee, ownership, allocator pairing and runtime callability
+  remain unknown.

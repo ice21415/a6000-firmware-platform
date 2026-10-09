@@ -168,3 +168,11 @@ preserved historical environment record; the ASCII rerun is the current
 successful path.
 No runtime/callable interface was validated. Next targets are the remaining
 ParamBase subclasses, source-level copy identity, and caller synchronization.
+
+The `parameter-objmsg` probe now validates five bounded primary-ELF regions for
+`PrmObjMsg`: discriminator `8`, constructor input copied to `+0x0c`, the
+getter, non-null release path and clone candidate. The pointee layout,
+ownership/allocator pairing, exception behavior, clone C++ identity and
+runtime/callable status remain UNKNOWN. Its contract is
+`sdk/param_objmsg_3_21.json`; four synthetic fail-closed tests cover the
+metadata validator.
