@@ -260,7 +260,11 @@ def inspect_camera_research(
         "unresolved_external": [v for v in unresolved if v["owner"] in visible],
         "validation": {
             "addresses_and_reported_branch_targets_consistent": True,
-            "independent_instruction_bytes_checked": False,
+            "independent_instruction_bytes_checked": independent_elf_check is not None,
+            "independent_instruction_sites_match": (
+                independent_elf_check["all_checked_instruction_sites_match"]
+                if independent_elf_check is not None else None
+            ),
             "independent_abi_verified": False,
             "live_device_behavior_verified": False,
             "callsite_body_membership_verified": False,
