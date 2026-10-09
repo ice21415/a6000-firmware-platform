@@ -158,7 +158,7 @@ def inspect_camera_research(
         if offset > 0x100000:
             raise ValueError("field offset exceeds allowed model structure range")
         observed = obj.get("observed_value")
-        if observed is not None and (isinstance(observed, bool) or observed not in {0, 1}):
+        if observed is not None and (isinstance(observed, bool) or not isinstance(observed, int) or observed not in (0, 1)):
             raise ValueError("field value must be 0, 1 or UNKNOWN")
         fields.append({"owner": obj["owner"], "kind": obj["kind"], "offset": hex(offset),
                        "instruction_address": hex(_address(obj["instruction_address"], "field.instruction_address")),
