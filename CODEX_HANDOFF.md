@@ -4,6 +4,17 @@
 
 ## Current continuation checkpoint (2026-10-09)
 
+Latest continuation additionally resolves PrmNumber (discriminator 1, signed
+32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
+RTTI/base relocation, vtable and named setters. See the report's current
+derived-types checkpoint and `parameter_types_lifetime_3_21.json`.
+Concrete slot +8 deleting paths bind operator delete; assignment-like sharing
+and replacement deletion are confirmed. Borrowed pointers can be invalidated
+by replacement even while another list retains the container. Runtime locks
+remain unknown. Offline decoder checks vptr+tag with explicit load bias;
+its guards are not Sony behavior. Next: other payload subtypes, source-level
+assignment identity, full mutation/COW and synchronization contracts.
+
 The old missing-primary-byte blocker below is historical and superseded.
 Read `reports/CORE_PRIMARY_HELPER_AUDIT.md` and the current helper contracts.
 Authenticated private libObj.so has been read with Capstone. ParamList::get

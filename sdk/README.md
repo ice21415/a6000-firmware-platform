@@ -767,6 +767,13 @@ No Sony firmware binaries or populated private evidence databases are shipped.
 Real firmware semantics and physical-device safety require independent evidence.
 # Primary ParamList lookup contracts
 
+`parameter_types_lifetime_3_21.json` adds PrmNumber/PrmBool constructor, RTTI,
+vtable, payload and deletion evidence. Query it using `fw sdk parameter-types
+--json`. `decode_payload` requires an exact vptr+discriminator pair and explicit
+load bias for relocated addresses. It distinguishes signed int from one-byte
+bool and leaves unknown types unresolved. These checks belong to the offline
+parser, not Sony firmware. Shared lifetime does not protect against replacement.
+
 `core_3_21_primary_helper_contracts.json` contains field-scoped primary/static
 evidence, including ParamList::get and adjacent query wrappers. Candidate C++
 declarations live in `paramlist_3_21_candidate.hpp`; they expose no native

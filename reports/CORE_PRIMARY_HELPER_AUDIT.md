@@ -1,5 +1,62 @@
 # Core helper primary evidence — 2026-10-09
 
+## Derived types and lifetime — current checkpoint
+
+Original ELF hash revalidated. This round deliberately did not repeat get's
+previously recovered loop. ASCII Ghidra lifecycle profile exits 0; **12 new
+target bodies / 178 instruction addresses and sizes** match Capstone.
+The new type/lifetime contract is `sdk/parameter_types_lifetime_3_21.json`.
+
+| New witness | Primary result | Limitation |
+|---|---|---|
+| 0x7eda84 / 0x7eda88 | key setter writes original r1 at element +8 | Constructors do not initialize key in observed paths |
+| 0xf0fb0 / 0xf0fc8 | PrmNumber constructor sets discriminator 1 and stores word payload at +12 | Caller must establish valid ownership/key |
+| 0x10f9fc / symbol `_ZN9PrmNumber9setNumberEi` | 32-bit setter accepts signed int | Not all numeric IDs mapped to hardware meanings |
+| 0xe50e8 / 0xe5100 | PrmBool constructor sets discriminator 5 and stores byte at +12 | Remaining three bytes are not payload |
+| 0x426acc / symbol `_ZN7PrmBool7setBoolEb` | bool setter writes one byte | Noncanonical snapshot byte stays unknown |
+| RTTI 0xfe8938 / base relocation 0xfe8940 | PrmNumber derives from ParamBase | No complete hierarchy claim |
+| RTTI 0xfe6e18 / base relocation 0xfe6e20 | PrmBool derives from ParamBase | Other subtypes not decoded this round |
+| ctor GOT 0x10308f4 / 0x1033f7c | respective vptr address points 0xfe8928 / 0xfe6e08 | Runtime addresses require explicit load bias |
+| virtual slot +8 -> 0xf0f5c | Number destruction calls 0xf0f2c then operator delete | Runtime interposition unknown |
+| virtual slot +8 -> 0xe4840 | Bool destruction calls relocation-bound PrmBool D1 then operator delete | Runtime interposition unknown |
+| relocation 0x102d6bc | both delete calls bind `_ZdlPv` | Allocator implementation not analyzed |
+| 0x7edcc6..0x7edd06 | assignment-like body releases old share, increments source count and shares pointers | Source-level method name not independently known |
+| 0x7ededa / 0x7edf36 / 0x7edf3c | replacement helper frees equal-key/type old element and erases its slot | Full set of mutation APIs remains unknown |
+
+PrmNumber payload is signed int under ARM32, supported jointly by RTTI,
+constructor, word stores and the named int setter. PrmBool payload is bool
+with byte stores. Discriminator 1 routes the existing query wrapper toward
+number-like storage; tag alone is NOT a unique dynamic type proof.
+The offline decoder requires both vptr and discriminator, preserves unknown
+subtypes, and never interprets Bool padding as part of its value.
+
+### Validity and safety
+
+PRIMARY_ELF_VERIFIED: shared count uses ordinary loads/stores; assignment
+has a self-assignment guard, final count-zero destruction visits non-null
+elements, concrete tested virtual deletion paths call operator delete, and
+replacement can delete a previously returned element while a list still exists.
+STATIC_INFERRED: get's borrowed result requires an owner retaining storage and
+no deletion/replacement of that element. Holding another shared list does not
+protect an element from replacement in the same shared container.
+No detach was observed in the inspected assignment/add/replacement path;
+this is not a statement about every mutation API.
+UNVERIFIED: external locks, scheduler assumptions, concurrent-use correctness,
+all other mutation/copy paths, exception/allocation contracts and runtime ABI.
+
+Sony lookup has no null receiver/container/element guards. Query wrappers guard
+list/output only after reading wrapper +4. No counter-zero guard precedes the
+observed decrement. The public snapshot parser's bounds, budget, null, type and
+canonical-bool checks are **self-authored protections**, not firmware behavior.
+No firmware or original opcodes/decompiler bodies are included in this report.
+
+New SDK functionality: `sdk parameter-types --json`, exact-type offline payload
+decoding, explicit load bias, descriptive C++ Number/Bool snapshot structures.
+Runtime-verified / callable interfaces remain **0**.
+This checkpoint: **215 synthetic tests passed**, exit 0; candidate header passed
+the existing WSL g++ C++17 syntax check (host declarations only).
+
+
 ## ParamList continuation — latest checkpoint
 
 The installation was copied to an ASCII path and the new

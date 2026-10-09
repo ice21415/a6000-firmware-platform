@@ -2,6 +2,12 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Derived payload/lifetime follow-up: primary constructor/RTTI/vtable evidence
+  confirms PrmNumber signed-word and PrmBool byte payloads. Verified deleting
+  destructor bindings, shared assignment-like count changes and replacement
+  invalidation. Added typed offline decoding and guarded type/lifetime CLI.
+  Runtime and external synchronization remain unknown.
+
 - ParamList continuation: recovered the 76-byte get body, first-match/null
   returns, container/element prefix, shared-count destruction and wrapper
   initialization from private primary bytes. ASCII-path Ghidra exits 0.

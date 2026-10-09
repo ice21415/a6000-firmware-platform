@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "type_lifetime_contract": "sdk/parameter_types_lifetime_3_21.json",
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",

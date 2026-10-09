@@ -83,6 +83,13 @@ fw graph export --format graphml --output <graphml>
 與狀態機關係及 SDK evidence schema；任何實機研究都必須另行保留、不得自動同步到公開目錄。
 # Primary helper continuation (2026-10-09)
 
+Newest checkpoint: `sdk/parameter_types_lifetime_3_21.json` describes real
+PrmNumber/PrmBool layouts and concrete deleting-destructor bindings. Inspect
+`test_parameter_types.py` before changing offline decoding: tag alone is
+insufficient, Bool padding is not value, and relocated vptrs need load bias.
+Assignment-like sharing and replacement deletion are confirmed locally; get
+results have no lifetime extension. External synchronization remains unknown.
+
 Latest: `ParamListTargets.java` in an ASCII Ghidra installation exits 0.
 The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.

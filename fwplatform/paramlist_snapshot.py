@@ -44,7 +44,54 @@ def lookup_snapshot(memory: bytes, *, base: int, list_address: int,
     for slot in range(begin, end, 4):
         address = word(slot)
         # Firmware dereferences null elements; do not silently skip corruption.
+        if address == 0:
+            raise ValueError("Null element; firmware lookup has no null guard")
         tag, candidate_key = word(address + 4), word(address + 8)
         if tag == discriminator and candidate_key == key:
             return ParameterWords(address, word(address), tag, candidate_key, word(address + 12))
     return None
+
+
+@dataclass(frozen=True)
+class PayloadType:
+    name: str
+    discriminator: int
+    vtable_address_point: int
+    width: int
+    signed: bool = False
+
+
+# Primary constructor + RTTI/vtable witnesses; these are ELF VMAs.
+KNOWN_PAYLOAD_TYPES = (
+    PayloadType("PrmNumber", 1, 0xfe8928, 4, True),
+    PayloadType("PrmBool", 5, 0xfe6e08, 1),
+)
+
+
+def decode_payload(parameter: ParameterWords, *, load_bias: int = 0,
+                   types: tuple[PayloadType, ...] = KNOWN_PAYLOAD_TYPES) -> dict[str, object]:
+    """Decode only an exact unique vptr+discriminator pair in an offline record.
+
+    Unknown/padding/noncanonical bool values remain unknown; neither a tag nor
+    an ELF VMA alone proves the dynamic type of an arbitrary runtime object.
+    """
+    if not 0 <= load_bias <= 0xffffffff:
+        raise ValueError("Invalid ARM32 load bias")
+    matches = [t for t in types if t.discriminator == parameter.discriminator_word
+               and t.vtable_address_point + load_bias <= 0xffffffff
+               and t.vtable_address_point + load_bias == parameter.vptr]
+    if len(matches) != 1:
+        return {"type": "UNKNOWN", "value": None, "raw_word": parameter.payload_word,
+                "reason": "No unique vptr and discriminator match"}
+    matched = matches[0]
+    if matched.width not in (1, 4):
+        raise ValueError("Unsupported field width")
+    value = parameter.payload_word & ((1 << (8 * matched.width)) - 1)
+    if matched.signed and value & (1 << (8 * matched.width - 1)):
+        value -= 1 << (8 * matched.width)
+    if matched.name == "PrmBool" and value not in (0, 1):
+        return {"type": "PrmBool", "value": None, "raw_byte": value,
+                "reason": "Noncanonical bool representation"}
+    return {"type": matched.name, "value": bool(value) if matched.name == "PrmBool" else value,
+            "width": matched.width, "verification": "OFFLINE_SNAPSHOT_DECODED",
+            "runtime_verified": False}

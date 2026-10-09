@@ -331,6 +331,9 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_primary = sdk_sub.add_parser("primary-contracts")
     sdk_primary.add_argument("--fixture", type=Path, default=Path("sdk/core_3_21_primary_helper_contracts.json"))
     sdk_primary.add_argument("--json", action="store_true")
+    sdk_types = sdk_sub.add_parser("parameter-types")
+    sdk_types.add_argument("--fixture", type=Path, default=Path("sdk/parameter_types_lifetime_3_21.json"))
+    sdk_types.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -432,6 +435,16 @@ def main(argv: list[str] | None = None) -> int:
         contract = json.loads(args.fixture.read_text(encoding="utf-8"))
         result = {"validation": validate_primary_contracts(contract), "contract": contract}
         _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-types":
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        contract = json.loads(args.fixture.read_text(encoding="utf-8"))
+        if (contract.get("binary_sha256") != EXPECTED_LIBOBJ_SHA
+            or contract.get("address_space") != "ELF_VMA"
+            or contract.get("runtime_verified") is not False
+            or contract.get("callable") is not False):
+            raise ValueError("Invalid descriptive type/lifetime contract")
+        _json_or_text(contract, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "trace-selector":
         # Strictly private, bounded ELF file read; never migrate SQLite or execute code.
