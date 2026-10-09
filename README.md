@@ -24,6 +24,11 @@ NAND/WBI/bootloader 備份、私人 SQLite、原始反組譯 JSONL 或 runtime d
 - `callers`、`callees`、`callsite`、`xrefs`、`trace --depth` 等 CLI 查詢。
 - 描述性 SDK 和不寫入硬體的 modding-framework mock。
 
+Phase 3.9 亦強化跨 ELF 匯入符號解析：只在已解析的 `DT_NEEDED` 依賴內
+尋找唯一且版本相符的匯出候選，結果仍是 `CANDIDATE`；對重複位址、
+未知依賴或版本歧義保留 unresolved edge。SDK candidate discovery 會附上有
+來源的 incoming import 候選數量，方便後續人工分析 ABI。
+
 尚未完成的部分包括 runtime 驗證、完整 JNI/Java registration、OSAL queue producer/
 consumer、ioctl 參數結構、完整 indirect-call resolution，以及任何可部署到相機的
 modding adapter。Phase 3 analyzer 需要明確 fixture 或本機證據，不能由名稱或同值 ID
