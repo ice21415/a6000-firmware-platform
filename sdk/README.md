@@ -943,3 +943,20 @@ The event return pointer is a static shape observation; the declared return
 type, ownership, exception table, consumer delivery, runtime binding and
 callability remain UNKNOWN. The contract is
 `sdk/camera_request_event_3_21.json` and runtime/callable flags remain false.
+
+## Event object and lifetime checkpoint
+
+The `event-core` probe reads the primary ELF bodies for Event construction,
+copy, destruction, ParamList replacement and parameter forwarding:
+
+```powershell
+python -m fwplatform.cli sdk event-core --elf C:\private\libObj.so --json
+```
+
+It records the Event layout (`+0x00` shared counter pointer, `+0x04` event ID,
+`+0x08/+0x09` flags, `+0x0c` ParamList pointer), copy-counter behavior,
+last-owner cleanup, and the null/same-pointer/replacement branches of
+`setParamList`. `addParameter` and `getParameter` forward to ParamList through
+ARM/Thumb veneers. External ownership, alias safety, synchronization,
+runtime binding and callability remain UNKNOWN; the descriptive contract is
+`sdk/event_core_3_21.json`.

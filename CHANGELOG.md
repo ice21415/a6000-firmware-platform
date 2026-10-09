@@ -2,6 +2,12 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the SHA-pinned `event-core` probe for Event construction, copying,
+  destruction, ParamList replacement and parameter forwarding. It verifies
+  the shared counter/layout fields and last-owner cleanup, while keeping
+  aliasing, external ownership, synchronization, runtime binding and
+  callability unknown. Four fail-closed tests were added.
+
 - Added the SHA-pinned `request-event-factory` probe for the real
   `AbstractUtilityManager::createRequestModelExecuteEvent` body at
   `0x7f0b0c`. It verifies Event ID `0x11004003`, optional ParamList

@@ -485,3 +485,15 @@ callability remain UNKNOWN/false. Contract:
 Private ASCII Ghidra 12.1.3 targeted `-noanalysis` exited 0 and reproduced
 36 instruction rows and 12 edges at image-base-mapped address `0x800b0c`
 (`ELF_VMA 0x7f0b0c`).
+
+## Event core object checkpoint
+
+The SHA-pinned primary ELF now directly verifies the Event constructor, copy
+constructor, destructor, ParamList setter and parameter forwarders. Event
+layout candidates are `+0x00` shared counter pointer, `+0x04` event ID,
+`+0x08/+0x09` byte flags and `+0x0c` ParamList pointer. Copy/destruction
+counter behavior and last-owner ParamList cleanup are machine-confirmed.
+`setParamList` null/same-pointer/replacement branches are also confirmed,
+but ownership and alias safety are only STATIC_INFERRED. `addParameter` and
+`getParameter` delegate through ARM/Thumb veneers to `ParamList::add/get`.
+Contract: `sdk/event_core_3_21.json`; runtime and callable flags remain false.

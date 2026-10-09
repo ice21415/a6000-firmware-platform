@@ -238,3 +238,14 @@ consumer delivery, runtime binding and callability remain unresolved.
 The private Ghidra targeted profile exits 0 with 36 instruction rows and 12
 edges; it is not full-library Auto Analysis. The public contract remains
 runtime/callable false.
+
+## Phase 3.27 — Event object/lifetime evidence
+
+`fwplatform/event_core_probe.py` adds primary static contracts for six Event
+methods. The constructor creates a shared counter and ParamList storage; the
+copy constructor shares the counter/ParamList pointer; the destructor performs
+last-counter cleanup. `setParamList` has explicit null, same-pointer and
+replacement branches. Parameter add/get forward to ParamList through
+ARM/Thumb interworking veneers. These facts do not prove external ownership,
+thread safety, runtime loader binding or callability. The targeted private
+Ghidra profile exits 0 with 77 instructions, 24 edges and 15 blocks.

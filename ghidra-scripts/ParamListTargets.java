@@ -18,6 +18,8 @@ public class ParamListTargets extends GhidraScript {
     targets=new long[][]{{0x7ef894,0x4e}};
    } else if(args[1].equals("request-event-factory")) {
     targets=new long[][]{{0x7f0b0c,0x6c}};
+   } else if(args[1].equals("event-core")) {
+    targets=new long[][]{{0x7f17f8,0x34},{0x7f182c,0x20},{0x7f184c,0x2a},{0x7f1876,0x22},{0xf0f84,0x0e},{0x10d098,0x0e}};
    } else {
     throw new IllegalArgumentException("Unknown target profile");
    }

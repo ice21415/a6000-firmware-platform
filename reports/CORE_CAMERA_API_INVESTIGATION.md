@@ -790,3 +790,37 @@ base `0x10000`, ELF VMA `0x7f0b0c` mapped to program address `0x800b0c`; the
 export reproduced 36 instruction rows and 12 edges, including the conditional
 ParamList branch. Ghidra's decompiler retained undefined return/parameter
 categories and therefore serves as cross-checking control-flow evidence only.
+
+## Phase 3.27 — Event core object and ParamList ownership
+
+The exact SHA-pinned ELF now provides direct evidence for six Event methods:
+`Event::Event(unsigned long,unsigned char,unsigned char)` at `0x7f17f8`,
+copy construction at `0x7f182c`, destruction at `0x7f184c`,
+`setParamList` at `0x7f1876`, `addParameter` at `0xf0f84`, and
+`getParameter` at `0x10d098`.
+
+The constructor stores the event ID at `+0x04`, two byte flags at `+0x08`
+and `+0x09`, allocates a four-byte counter word at `+0x00` initialized to
+one, and allocates/constructs a ParamList candidate at `+0x0c`. The copy
+constructor copies these fields, shares the counter pointer and increments
+its pointed word; it copies the ParamList pointer without an observed clone.
+The destructor decrements the counter and, on zero, destructs/deletes the
+ParamList and then deletes the counter allocation. These are
+`PRIMARY_ELF_VERIFIED` machine facts; external aliases, concurrent access and
+complete ownership contracts remain UNKNOWN.
+
+`setParamList` treats null input as an observed no-op, avoids work for the
+same pointer, and destructs/deletes a different non-null old pointer before
+storing the replacement. This is a `STATIC_INFERRED` ownership/replacement
+contract because caller aliasing and shared-copy usage are not proven.
+`addParameter` loads Event `+0x0c` and forwards through an ARM/Thumb veneer
+to the relocation-bound `ParamList::add`; `getParameter` does the same for
+`ParamList::get`. Neither local forwarder adds a null guard. Contract:
+`sdk/event_core_3_21.json`; CLI:
+`fw sdk event-core --elf <private-libObj.so> --json`.
+
+Private ASCII Ghidra 12.1.3 targeted `-noanalysis` exited 0 and reproduced
+77 instruction rows, 24 edges and 15 blocks across the six targets. One
+p-code warning occurred while decompiling the short add forwarder; the
+instruction and edge export completed and is treated as cross-check evidence,
+not complete semantic decompilation.

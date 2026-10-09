@@ -336,3 +336,12 @@ type, ownership, consumer delivery, exception semantics, runtime binding and
 callability remain unknown/false. A private ASCII Ghidra targeted run exited
 0 and reproduced 36 instructions and 12 edges. Four synthetic fail-closed
 tests cover identity, event ID, binding and non-callable metadata.
+
+The Event core checkpoint adds `fwplatform/event_core_probe.py`,
+`sdk/event_core_3_21.json`, and `fw sdk event-core`. It verifies Event object
+fields, shared counter copy/destructor behavior, ParamList initialization and
+replacement branches, plus add/get forwarding to the existing ParamList
+symbols. `setParamList` may invalidate aliases when replacing a pointer;
+caller synchronization and ownership context remain unknown. Private Ghidra
+cross-check: exit 0, 77 instructions, 24 edges, 15 blocks. Four synthetic
+fail-closed tests cover identity, bindings and non-callable metadata.
