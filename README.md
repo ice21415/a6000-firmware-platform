@@ -128,6 +128,23 @@ python -m fwplatform.cli --db C:\private\firmware-copy.db analyze ghidra-batch -
 之外。此功能完全離線，不會寫入相機，也不代表完成整個 firmware 的 ABI、
 OSAL/JNI 或相機控制協定還原。
 
+## Phase 3.10：Camera、Lens、Sensor 核心 API 靜態調查
+
+`sdk investigate` 在本地證據資料庫中將 ELF 函式候選與**直接 function ID**
+綁定的 caller/callee、Ghidra CFG/body range、OSAL producer/consumer、JNI native
+bridge、lifecycle callback 交叉索引；Camera state machine 只提供**名稱搜尋脈絡**，
+不會因為同名或同位址而宣稱某函式觸發了某狀態轉移：
+
+```powershell
+python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Camera --limit 25 --json
+python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Lens --include-internal --limit 50 --json
+python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Sensor --json
+```
+
+輸出列出每條關係的 source evidence ID、狀態、截斷旗標，以及 ABI、函式 body、
+呼叫關係、OSAL/JNI 與 runtime 尚需的驗證。這是純唯讀調查，不載入相機 ELF，
+不生成可呼叫 SDK、不把符號名稱推測升級成 Camera/Lens/Sensor 真實 API 語意。
+
 ## 測試和報告
 
 CI 只使用合成資料：
