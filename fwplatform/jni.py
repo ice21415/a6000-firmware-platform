@@ -63,75 +63,82 @@ def import_jni_fixture(db: Database, fixture: Path) -> dict[str, Any]:
     payload = json.loads(fixture.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("JNI fixture must be a JSON object")
-    evidence_id = db.evidence(str(fixture), sha256_file(fixture), "jni_fixture", "document",
-                               json.dumps(payload, ensure_ascii=False, sort_keys=True), _status(payload),
-                               {"analyzer": "jni_bridge", "schema": payload.get("schema", 1)},
-                               evidence_type="jni_bridge", status_basis="explicit_fixture_status")
-    counts = {"java_methods": 0, "jni_bridges": 0, "resolved_native": 0, "unresolved": 0, "evidence_id": evidence_id}
-    java_ids: dict[tuple[str, str, str, str], int] = {}
-    for method in payload.get("java_methods", []):
-        if not isinstance(method, dict):
-            continue
-        class_name = str(method.get("class_name") or ""); name = str(method.get("method_name") or ""); signature = str(method.get("signature") or "")
-        if not class_name or not name or not signature:
-            continue
-        dex_path = str(method.get("dex_path") or "")
-        identity = f"java:{class_name}:{name}:{signature}:{dex_path}"
-        row_id = db.upsert("java_method", {"class_name": class_name, "method_name": name, "signature": signature,
-            "dex_path": dex_path, "status": _status(method), "source_evidence_id": evidence_id,
-            "identity_key": identity, "namespace": method.get("namespace"), "analyzer_version": "jni_bridge:1"}, ("identity_key",))
-        java_ids[(class_name, name, signature, dex_path)] = row_id
-        counts["java_methods"] += 1
-    for bridge in payload.get("jni_methods", payload.get("bridges", [])):
-        if not isinstance(bridge, dict):
-            continue
-        class_name = str(bridge.get("class_name") or ""); name = str(bridge.get("method_name") or ""); signature = str(bridge.get("signature") or "")
-        dex_path = str(bridge.get("dex_path") or "")
-        java_key = (class_name, name, signature, dex_path)
-        if java_key not in java_ids:
-            counts["unresolved"] += 1
-        native = bridge.get("native") or bridge.get("native_entry") or {}
-        native_id = _function(db, native)
-        module_id = _module(db, bridge.get("module"))
-        status = _status(bridge)
-        if native_id is not None:
-            counts["resolved_native"] += 1
-        elif native:
-            counts["unresolved"] += 1
-            status = "CANDIDATE" if status == "VERIFIED_STATIC" else status
-        native_entry = str(native.get("address") if isinstance(native, dict) else native or "")
-        address_space = str(bridge.get("address_space") or "")
-        # Addresses alone are not globally unique across firmware ELF images.
-        native_sha = str(native.get("binary_sha256") or "").lower() if isinstance(native, dict) else ""
-        if not native_sha and native_id is not None:
-            source = db.connection.execute(
-                "SELECT b.sha256 FROM function f JOIN binary b ON b.id=f.binary_id WHERE f.id=?",
-                (native_id,),
-            ).fetchone()
-            native_sha = str(source[0]).lower() if source else ""
-        if not native_sha and module_id is not None:
-            source = db.connection.execute(
-                "SELECT b.sha256 FROM module m JOIN binary b ON b.id=m.binary_id WHERE m.id=?",
-                (module_id,),
-            ).fetchone()
-            native_sha = str(source[0]).lower() if source else ""
-        # Unknown binary ownership is scoped to its evidence, never promoted
-        # to a cross-firmware native mapping solely because addresses match.
-        native_identity = native_sha or f"evidence:{evidence_id}"
-        identity = f"jni:{class_name}:{name}:{signature}:{dex_path}:{native_identity}:{native_entry}:{address_space}"
-        bridge_id = db.upsert("jni_bridge", {"class_name": class_name, "method_name": name, "signature": signature,
-            "native_entry": native_entry, "dex_path": dex_path,
-            "module_id": module_id, "status": status, "source_evidence_id": evidence_id,
-            "identity_key": identity, "native_function_id": native_id,
-            "address_space": address_space or None, "analyzer_version": "jni_bridge:2"}, ("identity_key",))
-        if java_key not in java_ids:
-            _unresolved(db, f"{identity}:java", "JNI_BRIDGE",
-                        f"Java method was not present in fixture: {class_name}.{name}{signature}",
-                        source_id=bridge_id, evidence_id=evidence_id, status="CANDIDATE")
-        if native_id is None:
-            _unresolved(db, f"{identity}:native", "JNI_NATIVE_ENTRY",
-                        "Native function reference was missing or not uniquely resolved",
-                        source_id=bridge_id, evidence_id=evidence_id, status="CANDIDATE")
-        counts["jni_bridges"] += 1
+    db.connection.execute("SAVEPOINT jni_fixture_import")
+    try:
+        evidence_id = db.evidence(str(fixture), sha256_file(fixture), "jni_fixture", "document",
+                                   json.dumps(payload, ensure_ascii=False, sort_keys=True), _status(payload),
+                                   {"analyzer": "jni_bridge", "schema": payload.get("schema", 1)},
+                                   evidence_type="jni_bridge", status_basis="explicit_fixture_status")
+        counts = {"java_methods": 0, "jni_bridges": 0, "resolved_native": 0, "unresolved": 0, "evidence_id": evidence_id}
+        java_ids: dict[tuple[str, str, str, str], int] = {}
+        for method in payload.get("java_methods", []):
+            if not isinstance(method, dict):
+                continue
+            class_name = str(method.get("class_name") or ""); name = str(method.get("method_name") or ""); signature = str(method.get("signature") or "")
+            if not class_name or not name or not signature:
+                continue
+            dex_path = str(method.get("dex_path") or "")
+            identity = f"java:{class_name}:{name}:{signature}:{dex_path}"
+            row_id = db.upsert("java_method", {"class_name": class_name, "method_name": name, "signature": signature,
+                "dex_path": dex_path, "status": _status(method), "source_evidence_id": evidence_id,
+                "identity_key": identity, "namespace": method.get("namespace"), "analyzer_version": "jni_bridge:1"}, ("identity_key",))
+            java_ids[(class_name, name, signature, dex_path)] = row_id
+            counts["java_methods"] += 1
+        for bridge in payload.get("jni_methods", payload.get("bridges", [])):
+            if not isinstance(bridge, dict):
+                continue
+            class_name = str(bridge.get("class_name") or ""); name = str(bridge.get("method_name") or ""); signature = str(bridge.get("signature") or "")
+            dex_path = str(bridge.get("dex_path") or "")
+            java_key = (class_name, name, signature, dex_path)
+            if java_key not in java_ids:
+                counts["unresolved"] += 1
+            native = bridge.get("native") or bridge.get("native_entry") or {}
+            native_id = _function(db, native)
+            module_id = _module(db, bridge.get("module"))
+            status = _status(bridge)
+            if native_id is not None:
+                counts["resolved_native"] += 1
+            elif native:
+                counts["unresolved"] += 1
+                status = "CANDIDATE" if status == "VERIFIED_STATIC" else status
+            native_entry = str(native.get("address") if isinstance(native, dict) else native or "")
+            address_space = str(bridge.get("address_space") or "")
+            # Addresses alone are not globally unique across firmware ELF images.
+            native_sha = str(native.get("binary_sha256") or "").lower() if isinstance(native, dict) else ""
+            if not native_sha and native_id is not None:
+                source = db.connection.execute(
+                    "SELECT b.sha256 FROM function f JOIN binary b ON b.id=f.binary_id WHERE f.id=?",
+                    (native_id,),
+                ).fetchone()
+                native_sha = str(source[0]).lower() if source else ""
+            if not native_sha and module_id is not None:
+                source = db.connection.execute(
+                    "SELECT b.sha256 FROM module m JOIN binary b ON b.id=m.binary_id WHERE m.id=?",
+                    (module_id,),
+                ).fetchone()
+                native_sha = str(source[0]).lower() if source else ""
+            # Unknown binary ownership is scoped to its evidence, never promoted
+            # to a cross-firmware native mapping solely because addresses match.
+            native_identity = native_sha or f"evidence:{evidence_id}"
+            identity = f"jni:{class_name}:{name}:{signature}:{dex_path}:{native_identity}:{native_entry}:{address_space}"
+            bridge_id = db.upsert("jni_bridge", {"class_name": class_name, "method_name": name, "signature": signature,
+                "native_entry": native_entry, "dex_path": dex_path,
+                "module_id": module_id, "status": status, "source_evidence_id": evidence_id,
+                "identity_key": identity, "native_function_id": native_id,
+                "address_space": address_space or None, "analyzer_version": "jni_bridge:2"}, ("identity_key",))
+            if java_key not in java_ids:
+                _unresolved(db, f"{identity}:java", "JNI_BRIDGE",
+                            f"Java method was not present in fixture: {class_name}.{name}{signature}",
+                            source_id=bridge_id, evidence_id=evidence_id, status="CANDIDATE")
+            if native_id is None:
+                _unresolved(db, f"{identity}:native", "JNI_NATIVE_ENTRY",
+                            "Native function reference was missing or not uniquely resolved",
+                            source_id=bridge_id, evidence_id=evidence_id, status="CANDIDATE")
+            counts["jni_bridges"] += 1
+    except Exception:
+        db.connection.execute("ROLLBACK TO SAVEPOINT jni_fixture_import")
+        db.connection.execute("RELEASE SAVEPOINT jni_fixture_import")
+        raise
+    db.connection.execute("RELEASE SAVEPOINT jni_fixture_import")
     db.commit()
     return counts
