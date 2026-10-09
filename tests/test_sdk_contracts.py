@@ -46,7 +46,8 @@ class OfflineSdkContractTests(unittest.TestCase):
         }, ("identity_key",))
         evidence_id = self.db.evidence(
             "synthetic-ghidra.jsonl", "c" * 64, "ghidra_jsonl", "function[0]",
-            "verified fixture instruction bytes", "VERIFIED_STATIC",
+            json.dumps({"binary_sha256": digest, "function_entry": "0x100",
+                        "prototype": "int study_get(void)"}), "VERIFIED_STATIC",
         )
         self.db.commit()
         return digest, function_id, evidence_id
@@ -79,6 +80,25 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertEqual(sdk["coverage"]["static_contract_complete"], 1)
         self.assertIsNone(sdk["coverage"]["callable_validated_interfaces"])
         self.assertTrue((self.root / "sdk.json").exists())
+
+    def test_unrelated_static_evidence_cannot_promote_sdk_contract(self) -> None:
+        digest, _, _ = self._function_with_evidence()
+        unrelated = self.db.evidence(
+            "wrong-firmware-ghidra.jsonl", "e" * 64, "ghidra_jsonl", "function[0]",
+            json.dumps({"binary_sha256": "b" * 64, "function_entry": "0x100"}),
+            "VERIFIED_STATIC",
+        )
+        self.db.commit()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": [],
+            "return_semantics": "int", "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": unrelated,
+        }])
+        result = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(result["downgraded"], 1)
+        self.assertEqual(result["verified_static"], 0)
+        self.assertEqual(audit_sdk_contracts(self.db)["static_contract_complete"], 0)
 
     def test_incomplete_static_claim_is_downgraded_not_guessed(self) -> None:
         digest, _, _ = self._function_with_evidence()
