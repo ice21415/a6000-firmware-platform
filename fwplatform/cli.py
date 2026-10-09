@@ -298,6 +298,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_envelope.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_execute_envelope.json"))
     sdk_envelope.add_argument("--saved-disassembly", type=Path)
     sdk_envelope.add_argument("--json", action="store_true")
+    sdk_trace = sdk_sub.add_parser("trace-selector")
+    sdk_trace.add_argument("--elf", type=Path, required=True)
+    sdk_trace.add_argument("--region-bytes", type=int, default=1536)
+    sdk_trace.add_argument("--json", action="store_true")
     sdk_frontends = sdk_sub.add_parser("request-frontends")
     sdk_frontends.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_request_frontends.json"))
     sdk_frontends.add_argument("--saved-disassembly", type=Path)
@@ -372,6 +376,12 @@ def main(argv: list[str] | None = None) -> int:
         result = audit_model_request_frontends(args.fixture,
             saved_disassembly=args.saved_disassembly,
             event_envelope=args.event_envelope)
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "trace-selector":
+        # Strictly private, bounded ELF file read; never migrate SQLite or execute code.
+        from .private_thumb_research import trace_private_selector_elf
+        result = trace_private_selector_elf(args.elf, max_region_bytes=args.region_bytes)
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "event-envelope":
