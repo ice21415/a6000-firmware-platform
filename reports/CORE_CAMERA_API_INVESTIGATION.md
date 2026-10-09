@@ -111,3 +111,40 @@ record 131 names `LensCommunicator_Init/Exit`; record 125 names
 `infra_cameraProfile_init/exit`. The record offsets `0xd76c` and
 `0xd664` are *not function-entry VMAs*. Actual Lens focus, aperture,
 sensor-imager, media pipeline and OSAL API signatures remain unknown.
+
+
+## Phase 3.12: private original ELF opcode verification
+
+The candidate graph can now be independently checked against a private
+Sony ILCE-6000 3.21 `libObj.so` using the read-only command:
+
+```powershell
+python -m fwplatform.cli sdk research --verify-elf C:\private\firmware\libObj.so --json
+```
+
+Verification requires the **exact full-file SHA-256**
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+`fwplatform/camera_elf_verify.py` maps ELF32 little-endian ARM executable
+program headers to ELF VMA and decodes restricted Thumb-2 `BL`/`B.W`
+branch offsets, `LDRB.W` and `STRB.W` immediate field operands. The saved
+Camera research now explicitly distinguishes the byte instruction's raw
+displacement `0x7c` from the *inferred* model-object offset `0x26fc`
+(the intermediate register base is considered to add `0x2680`).
+The opcode verifier can check `0x7c` but **cannot** on its own confirm
+the original object's identity or complete dataflow provenance.
+
+A failed exact digest or ambiguous executable VMA mapping prevents
+verification, and an opcode/target/offset mismatch returns an incomplete
+result with nonzero CLI status. The verifier does not publish original binary
+bytes, call firmware functions, modify ELF contents or access a camera.
+Synthetic ELF32/Thumb tests cover positive and negative relative branches,
+immediate fields, target corruption, ambiguous mappings and CLI failure.
+
+**Verification performed in CI:** only on generated synthetic ELF fixtures.
+**Verification of the private Sony source ELF:** not executed in the
+connected workspace by this patch, because the connected read-only workspace
+interface can list native binaries and read text, but does not expose byte
+reading or a command runner. Therefore no real 3.21 Sony opcode check count
+or ABI/runtime success claim is made here. Further local analysis should
+import the verified raw-byte observations as *static instruction evidence*,
+followed by separate ABI and event/OSAL causality review.
