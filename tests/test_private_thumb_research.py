@@ -132,7 +132,7 @@ class PrivateThumbResearchTests(unittest.TestCase):
             rc = main([
                 "--db", str(nonexisting_db), "sdk", "trace-selector",
                 "--elf", str(self.elf), "--expected-sha256", self.sha,
-                "--region-bytes", "64", "--json",
+                "--region-bytes", "64", "--entry", "0x1010", "--entry", "0x1020", "--json",
             ])
         self.assertEqual(rc, 0)
         self.assertFalse(nonexisting_db.exists())
