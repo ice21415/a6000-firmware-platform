@@ -11,7 +11,8 @@
     "saved_disassembly_basename": "app-event-functions.txt",
     "saved_context_basename": "libobj-appframework-chain.json",
     "original_elf_bytes_checked_in_current_session": false,
-    "live_event_tracing": false
+    "live_event_tracing": false,
+    "overlapping_function_windows": "Earlier saved app-event-functions.txt uses overlapping disassembly scans for queue-pop, dispatch, and cleanup entries; each labelled entry must be validated independently, and scan windows are not complete function boundaries."
   },
   "observed_functions": [
     {
@@ -58,13 +59,18 @@
           "vma": "0x7ef15a",
           "opcode_contains": "bl       #0x7f2210",
           "why": "second guarded helper call"
+        },
+        {
+          "vma": "0x7ef16e",
+          "opcode_contains": "bl       #0x7eecac",
+          "why": "second direct callsite to the candidate event dispatch thunk"
         }
       ]
     },
     {
       "name": "app_event_pop",
       "elf_vma": "0x7eec8c",
-      "role": "app-queue-count-and-dispatch-thunk",
+      "role": "queue-count-thunk-reports-only",
       "sites": [
         {
           "vma": "0x7eec92",
@@ -75,21 +81,50 @@
           "vma": "0x7eec98",
           "opcode_contains": "b.w      #0xdf82c",
           "why": "EventManager::count imported"
-        },
+        }
+      ]
+    },
+    {
+      "name": "app_event_dispatch",
+      "elf_vma": "0x7eecac",
+      "role": "queue-to-downstream-tail-branch",
+      "sites": [
         {
           "vma": "0x7eecac",
           "opcode_contains": "push     {r7, lr}",
-          "why": "candidate dispatch thunk entry within recorded function region"
+          "why": "bounded annotated dispatch entry"
         },
         {
           "vma": "0x7eecb0",
           "opcode_contains": "ldr      r0, [r0, #0x18]",
-          "why": "object/queue field before dispatch"
+          "why": "object pointer field forwarded to unknown downstream"
         },
         {
           "vma": "0x7eecb6",
           "opcode_contains": "b.w      #0x7f21e8",
-          "why": "local indirect dispatch target unresolved"
+          "why": "bounded direct tail to unresolved event dispatch target"
+        }
+      ]
+    },
+    {
+      "name": "app_event_cleanup",
+      "elf_vma": "0x7eecbc",
+      "role": "queue-cleanup-with-conditional-dispatch",
+      "sites": [
+        {
+          "vma": "0x7eece6",
+          "opcode_contains": "cmp      r0, #0",
+          "why": "checks bounded count helper result"
+        },
+        {
+          "vma": "0x7eecec",
+          "opcode_contains": "bl       #0x7eecac",
+          "why": "direct call to dispatch candidate from cleanup flow"
+        },
+        {
+          "vma": "0x7eecf2",
+          "opcode_contains": "bne      #0x7eecc8",
+          "why": "conditional retry within bounded cleanup scan"
         }
       ]
     },
@@ -181,6 +216,7 @@
     "Saved disassembly is a bounded report and may omit indirect edges and alternate queues",
     "Function labels app_event_* are local research labels, not vendor-declared ABI contracts",
     "Semaphore value and wait argument do not prove a physical startup stall",
-    "Do not represent any stage as verified runtime Camera functionality"
+    "Do not represent any stage as verified runtime Camera functionality",
+    "Source instruction slices overlap between app_event_pop, app_event_dispatch and app_event_cleanup; deduplicated VMAs are not additional unique original ELF opcode proofs."
   ]
 }
