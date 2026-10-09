@@ -55,7 +55,10 @@ def _query(db: Database, kind: str, term: str) -> list[dict[str, Any]]:
     elif kind == "dex":
         rows = db.query("""SELECT id,source_path,source_sha256,observation_type,locator,
             value_json,status,source_evidence_id FROM research_observation
-            WHERE observation_type IN ('dex_string','dex_descriptor_candidate','dex_signature_candidate')
+            WHERE observation_type IN (
+                'dex_string','dex_descriptor_candidate','dex_signature_candidate',
+                'dex_type_id','dex_class_definition','dex_method_reference'
+            )
             AND value_json LIKE ? ORDER BY source_path,id LIMIT 500""", [f"%{term}%"])
     else:
         raise ValueError(f"unsupported query kind: {kind}")
