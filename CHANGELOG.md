@@ -2,6 +2,11 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.5：加入純離線 `fw sdk mock --scenario`，以名稱空間隔離的命令與狀態轉移建立 deterministic tests；不觸及硬體。
+- 強化 SDK `VERIFIED_STATIC` 合約，要求 primary evidence 同時支持 ELF SHA、function address、ABI 與 parameter/return layout。
+- OSAL/JNI fixture 匯入改為整批 SQLite savepoint rollback；native role/function 綁定要求 ELF SHA，避免跨 binary name/address 誤配。
+- 新增合成 mock、異常中斷回滾、跨 ELF native 歸屬與 ABI 不一致 regression tests。
+
 - Phase 3.4：新增 offline SDK contracts 匯入、完整性稽核與 Camera/Lens/Sensor/Media/UI/OSAL/Android/Networking domain readiness matrix。
 - 靜態狀態需函式與 ELF 身分唯一匹配，且來源 evidence 明確綁定相同 binary SHA-256 與 function address；不符時降級 CANDIDATE。
 - CLI 新增 `fw sdk import --fixture` 和 `fw sdk audit`；SDK export 忽略單純的 CALLABLE_VALIDATED 資料庫旗標，不宣稱實機可執行。
