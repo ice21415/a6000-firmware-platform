@@ -19,9 +19,10 @@ synthetic tests 和文件；不要要求或提交私人 firmware。
 - `fwplatform/osal.py`、`fwplatform/jni.py`：evidence-bound OSAL/JNI fixture import。
 - `fwplatform/evidence_ingestion.py`：allowlisted、可重跑的 SyncAndroid/Camera historical evidence adapters；來源 hash、locator 和原始 status 會保留。
 - `fwplatform/phase3_1_reports.py`：從 SQLite 產生 Phase 3.1 稽核與 coverage 報告。
-- `analyzers/dex_analyzer.py`：保守 DEX header/string/class descriptor inventory。
+- `analyzers/dex_analyzer.py`：對 DEX header/string/type/proto/method/class_def tables 做邊界檢查與保守解析；method_id 僅是引用。
+- `fwplatform/dex_index.py`：將 DEX 表格的靜態結構觀測存入 SQLite，確保 SHA-256 與解析位元組一致，異常時 rollback。
 - `fwplatform/cli.py`：inventory、分析、protocol/state/API/semantic graph 查詢和報告命令。
-- `database/migrations/005_semantic_graph.sql`、`006_ranges_evidence.sql`、`fwplatform/migration_v5.py`、`migration_v6.py`：Phase 3/3.1 schema。
+- `database/migrations/005_semantic_graph.sql`、`006_ranges_evidence.sql`、`007_identity_repairs.sql`、`fwplatform/migration_v5.py`、`migration_v6.py`、`migration_v7.py`：Phase 3.1–3.3 schema。
 - `fwplatform/phase2_reports.py`：從 SQLite 產生 audit files。
 
 ## Ghidra pipeline
@@ -56,6 +57,8 @@ fw analyze ghidra --root <private-workspace> --binary <elf> --jsonl <output>
 fw analyze linkage --root <private-workspace>
 fw analyze osal --fixture <osal.json>
 fw analyze jni --fixture <jni.json>
+fw analyze dex --path <local.dex>
+fw query dex <name-or-descriptor>
 fw analyze semantic
 fw callers <function>
 fw callees <function>
