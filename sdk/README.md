@@ -37,6 +37,30 @@ The audit identifies missing primary evidence, binary and function ambiguity,
 inconsistent addresses, ABI gaps and incomplete return/parameter layouts.
 The domain matrix has UNKNOWN API denominators and UNKNOWN callable counts.
 
+## Phase 3.5: pure offline protocol mock
+
+A deterministic, explicitly defined mock transition table is available.
+It **does not** encode verified camera behavior or communicate with a camera.
+
+```powershell
+python -m fwplatform.cli --db database/private-copy.sqlite sdk mock --scenario sdk/mock_scenario.example.json --json
+```
+
+Each JSON scenario contains `schema_version: 1`, `initial_state`,
+`transitions` (each with `from`, `to`, `namespace`, `command`, optional
+`reply`), and `steps` (each with `namespace`, `command`, optional
+`expect_state`/`expect_reply`). Unrecognized transitions are reported as
+`UNRESOLVED_TRANSITION`, and failed assertions return nonzero exit status.
+The provided scenario uses explicit synthetic UI-ready and camera-ready
+states to keep them conceptually distinct.
+
+Static SDK contract verification also requires the *primary* evidence
+excerpt to identify the exact ELF SHA-256, function address, ABI, parameter
+layout, and return semantics. A function location alone cannot prove a
+callable signature. JNI and OSAL fixtures are all-or-nothing SQLite imports;
+function links require a binary fingerprint, not a name or virtual address
+without a known ELF identity.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
