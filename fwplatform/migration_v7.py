@@ -51,6 +51,11 @@ def _rebuild_without_legacy_unique(conn: sqlite3.Connection, table: str) -> None
 
 
 def _unique_identity(conn: sqlite3.Connection, table: str, candidates: list[tuple[int, str]]) -> None:
+    # Clear all old identities first so an upgrade cannot hit a transient
+    # UNIQUE conflict when two historical keys are reordered.
+    for row_id, _ in candidates:
+        conn.execute(f"UPDATE {_quote(table)} SET identity_key=? WHERE id=?",
+                     (f"migration-v7-pending:{table}:{row_id}", row_id))
     used: set[str] = set()
     for row_id, desired in candidates:
         key = desired if desired not in used else f"legacy:{table}:{row_id}"
