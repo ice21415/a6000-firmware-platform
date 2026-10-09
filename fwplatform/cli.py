@@ -290,6 +290,15 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_discover.add_argument("--include-generated", action="store_true")
     sdk_discover.add_argument("--limit", type=int, default=100)
     sdk_discover.add_argument("--json", action="store_true")
+    sdk_draft = sdk_sub.add_parser("draft")
+    sdk_draft.add_argument("--output", type=Path, required=True)
+    sdk_draft.add_argument("--firmware-version", default="3.21")
+    sdk_draft.add_argument("--name", default="")
+    sdk_draft.add_argument("--binary-sha256", default="")
+    sdk_draft.add_argument("--domain", default="")
+    sdk_draft.add_argument("--include-internal", action="store_true")
+    sdk_draft.add_argument("--limit", type=int, default=100)
+    sdk_draft.add_argument("--json", action="store_true")
     analyze = commands.add_parser("analyze"); analyze_sub = analyze.add_subparsers(dest="analyze_command", required=True)
     elf = analyze_sub.add_parser("elf"); elf.add_argument("--root", type=Path, required=True); elf.add_argument("--limit", type=int); elf.add_argument("--json", action="store_true")
     ghidra = analyze_sub.add_parser("ghidra"); ghidra.add_argument("--root", type=Path, required=True); ghidra.add_argument("--binary", type=Path, required=True); ghidra.add_argument("--jsonl", type=Path, required=True); ghidra.add_argument("--json", action="store_true")
@@ -387,6 +396,14 @@ def main(argv: list[str] | None = None) -> int:
                 db, name=args.name, binary_sha256=args.binary_sha256,
                 domain=args.domain, include_internal=args.include_internal,
                 include_generated=args.include_generated, limit=args.limit,
+            ), args.json)
+        elif args.command == "sdk" and args.sdk_command == "draft":
+            from .sdk_review import draft_sdk_review
+            _json_or_text(draft_sdk_review(
+                db, args.output, firmware_version=args.firmware_version,
+                name=args.name, binary_sha256=args.binary_sha256,
+                domain=args.domain, include_internal=args.include_internal,
+                limit=args.limit,
             ), args.json)
         elif args.command == "analyze" and args.analyze_command == "elf":
             from analyzers.runner import run_elf_batch
