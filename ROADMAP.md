@@ -98,6 +98,7 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 
 - 新增 `fw sdk investigate --domain Camera|Lens|Sensor|Media|UI|OSAL|Android|Networking`，依 ELF 匯出候選檢視具來源的直接 caller/callee、CFG、OSAL flow、JNI native 與 lifecycle 關係。
 - 函式關係必須使用明確的 `function_id`，不把相同虛擬位址、符號文字、queue ID 或 state machine 名稱誤當成已證實的關係。
+- 新增 `fw sdk inspect --function-id <db-id>`，可追蹤剝除名稱或 Ghidra 自動命名的確切函式，避免只依 Camera 等字串篩選遺漏內部核心候選。
 - Camera state machine 列為脈絡資料，明確指出沒有 function-to-state、camera ready 或 first-shot-ready 的獨立證據。
 - 輸出每個核心候選所需的 ABI、參數、呼叫、OSAL/JNI、執行語意之補證工作，支援私有 Ghidra／研究資料庫定向審查。
 - 依舊僅為靜態分析工具：缺乏合法取得韌體與獨立 runtime 語意證據時不能宣稱 Sony 原廠 Camera／Lens／Sensor 的核心 API 已還原或能安全呼叫。
