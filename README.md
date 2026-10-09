@@ -139,6 +139,7 @@ bridge、lifecycle callback 交叉索引；Camera state machine 只提供**名�
 python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Camera --limit 25 --json
 python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Lens --include-internal --limit 50 --json
 python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk investigate --domain Sensor --json
+python -m fwplatform.cli --db C:\\private\\firmware-copy.db sdk inspect --function-id 12345 --json
 ```
 
 輸出列出每條關係的 source evidence ID、狀態、截斷旗標，以及 ABI、函式 body、
