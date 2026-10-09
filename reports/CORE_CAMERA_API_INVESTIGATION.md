@@ -204,3 +204,67 @@ bounded MOVW immediate/BL target and Capstone text. It is read-only,
 does not launch REA/Ghidra or execute an ELF, and preserves the
 unresolved middle routing boundary. CI exercises synthetic examples
 rather than publishing private Sony instruction bytes.
+
+
+## Phase 3.14: recovered model-execute event envelope from preserved static code
+
+An additional original-firmware *saved instruction report*
+(`model-camera-methods.txt`) includes two critical `libObj.so`
+symbol/function regions not fully reconstructed in the earlier UI→Camera
+report:
+
+| Entry / callsite | Saved static observation | Evidence boundary |
+|---|---|---|
+| `0x12106e` | `ViewBase::requestModelExecute` front end | Named instruction region in original-target report |
+| `0x121082` | Call `IdGenerator::Get` using model-name input | Imported call symbol, not runtime ID |
+| `0x12108c` | Direct call `0x12d780` with model name and selector | Transformation semantics not recovered |
+| `0x121098` | Call imported `createRequestModelExecuteEvent` | Concrete dynamic relocation target not re-proven |
+| `0x1210a4` | Tail branch `View::requestApplicationExecute` | Queue consumer/dispatch remains unknown |
+| `0x7f0b0c` | Separately indexed factory implementation *with matching symbol name* | Exact binding to imported PLT remains unknown |
+| `0x7f0b1e` | Factory loads event ID `0x11004003` | Static event construction, not proof of delivery |
+| `0x7f0b26` | Calls `Event` constructor with byte arguments 2 and 0 | No ABI/ownership proof |
+| `0x7f0b2a–0x7f0b30` | Conditionally attaches incoming `ParamList` | Null guard observed, lifetime unknown |
+| `0x7f0b44–0x7f0b48` | Adds wrapped name-ID parameter under key `7` | Recipient parsing not traced |
+| `0x7f0b5c–0x7f0b60` | Adds wrapped transformed-selector parameter under key `8` | Not proven identical to caller's `0x0f01` |
+
+The saved ARM instruction register sequence shows the caller preserving
+the result of `IdGenerator::Get` and the result of the
+`0x12d780` helper separately before calling the factory symbol.
+The same-named factory candidate preserves those incoming values
+separately, makes wrapped parameter objects, and adds them to the
+event under IDs 7 and 8. This narrows the investigation from an
+entirely opaque `requestModelExecute` implementation to a **concrete
+event envelope creation and application submission boundary**.
+
+During this update the connected read-only private workspace was
+queried again at the two original saved disassembly regions. All
+**35 of the 35** opcode-text expectations embedded in the
+`fwplatform/event_envelope.py` report validator matched the
+stored, address-annotated instruction lines. This is confirmation of
+*saved text evidence*, **not a new read of every original ELF opcode**
+and not proof that the program executes this path during startup.
+
+To inspect the same source report without SQLite/device access:
+
+```powershell
+python -m fwplatform.cli sdk event-envelope --json
+python -m fwplatform.cli sdk event-envelope --saved-disassembly C:\private\boot-static-analysis\model-camera-methods.txt --json
+```
+
+The no-source invocation returns `EVENT_ENVELOPE_CANDIDATE_ONLY`.
+The saved source invocation audits exact imported symbol and PLT
+callsite text, bounded register lineage and Event constructor,
+optional ParamList and parameter key observations. It returns
+`SAVED_STATIC_EVENT_ENVELOPE_TEXT_MATCH` only if every site agrees;
+otherwise it fails closed. Tests use synthetic instruction text and
+do not publish original firmware.
+
+**Next high-value reverse-engineering targets**: recover the
+`0x12d780` model+selector transformation, resolve the imported
+factory/function identity through precise relocation evidence,
+follow `View::requestApplicationExecute` to the consumer of
+event `0x11004003`, determine the extraction of parameter keys
+7/8 and translation into the ModelCamera selector/action, then
+complete the independent ABI/return/error review. Until those steps
+are proven, `requestModelExecute` is not a general-purpose verified
+camera-control API and the core SDK is not complete.
