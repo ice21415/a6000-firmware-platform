@@ -47,7 +47,9 @@ class OfflineSdkContractTests(unittest.TestCase):
         evidence_id = self.db.evidence(
             "synthetic-ghidra.jsonl", "c" * 64, "ghidra_jsonl", "function[0]",
             json.dumps({"binary_sha256": digest, "function_entry": "0x100",
-                        "prototype": "int study_get(void)"}), "VERIFIED_STATIC",
+                        "prototype": "int study_get(void)", "abi": "AAPCS",
+                        "parameter_layout": {"args": []},
+                        "return_semantics": {"type": "int"}}), "VERIFIED_STATIC",
         )
         self.db.commit()
         return digest, function_id, evidence_id
@@ -99,6 +101,38 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertEqual(result["downgraded"], 1)
         self.assertEqual(result["verified_static"], 0)
         self.assertEqual(audit_sdk_contracts(self.db)["static_contract_complete"], 0)
+
+    def test_location_evidence_without_abi_does_not_verify_signature(self) -> None:
+        digest, _, _ = self._function_with_evidence()
+        location_only = self.db.evidence(
+            "location-only.jsonl", "f" * 64, "ghidra_jsonl", "function[0]",
+            json.dumps({"binary_sha256": digest, "function_entry": "0x100"}),
+            "VERIFIED_STATIC",
+        )
+        self.db.commit()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": {"args": []},
+            "return_semantics": {"type": "int"}, "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": location_only,
+        }])
+        result = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(result["downgraded"], 1)
+        self.assertEqual(audit_sdk_contracts(self.db)["static_contract_complete"], 0)
+
+    def test_abi_disagreement_downgrades_static_claim(self) -> None:
+        digest, _, evidence_id = self._function_with_evidence()
+        fixture = self._fixture([{
+            "name": "study_get", "domain": "Camera", "binary_sha256": digest,
+            "address": "0x100", "abi": "AAPCS", "parameter_layout": {"args": ["pointer"]},
+            "return_semantics": {"type": "int"}, "verification_status": "VERIFIED_STATIC",
+            "source_evidence_id": evidence_id,
+        }])
+        result = import_sdk_contracts(self.db, fixture)
+        self.assertEqual(result["downgraded"], 1)
+        self.assertEqual(self.db.connection.execute(
+            "SELECT verification_status FROM sdk_interface"
+        ).fetchone()[0], "CANDIDATE")
 
     def test_incomplete_static_claim_is_downgraded_not_guessed(self) -> None:
         digest, _, _ = self._function_with_evidence()
