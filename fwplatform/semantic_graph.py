@@ -50,7 +50,7 @@ def _node(db: Database, *, node_type: str, identity_key: str, entity_table: str 
           evidence_id: int | None = None, analyzer_version: str | None = None,
           metadata: dict[str, Any] | None = None, provenance_kind: str | None = None) -> int:
     status = status if status in {"VERIFIED_STATIC", "VERIFIED_RUNTIME", "INFERRED", "CANDIDATE", "UNKNOWN", "DISPROVEN"} else "UNKNOWN"
-    return db.upsert("semantic_node", {"node_type": node_type, "identity_key": identity_key,
+    node_id = db.upsert("semantic_node", {"node_type": node_type, "identity_key": identity_key,
         "entity_table": entity_table, "entity_id": entity_id, "label": label,
         "namespace": namespace, "binary_id": binary_id, "address": address,
         "address_space": address_space, "status": status,
@@ -58,6 +58,8 @@ def _node(db: Database, *, node_type: str, identity_key: str, entity_table: str 
         "analyzer_version": analyzer_version, "provenance_kind": provenance_kind or _provenance(db, evidence_id),
         "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
         ("identity_key",))
+    db.connection.execute("INSERT OR IGNORE INTO temp.sg_seen_nodes(id) VALUES (?)", (node_id,))
+    return node_id
 
 
 def _edge(db: Database, *, source_id: int, target_id: int | None, relation: str,
@@ -72,7 +74,7 @@ def _edge(db: Database, *, source_id: int, target_id: int | None, relation: str,
     identity = "edge:" + ":".join(str(value or "") for value in (
         source_id, target_id, relation, address_space, source_address, target_address,
         evidence_id, json.dumps(metadata or {}, sort_keys=True)))
-    return db.upsert("semantic_edge", {"identity_key": identity, "source_node_id": source_id,
+    edge_id = db.upsert("semantic_edge", {"identity_key": identity, "source_node_id": source_id,
         "target_node_id": target_id, "relation_type": relation, "source_binary_id": source_binary_id,
         "target_binary_id": target_binary_id, "address_space": address_space,
         "source_address": source_address, "target_address": target_address,
@@ -80,6 +82,8 @@ def _edge(db: Database, *, source_id: int, target_id: int | None, relation: str,
         "analyzer_version": analyzer_version, "provenance_kind": provenance_kind or _provenance(db, evidence_id),
         "metadata_json": json.dumps(metadata or {}, ensure_ascii=False, sort_keys=True)},
         ("identity_key",))
+    db.connection.execute("INSERT OR IGNORE INTO temp.sg_seen_edges(id) VALUES (?)", (edge_id,))
+    return edge_id
 
 
 def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{__version__}") -> dict[str, Any]:
@@ -91,7 +95,13 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
         "metadata_json": "{}"}, ("run_key",))
     nodes: dict[tuple[str, int], int] = {}
     binaries = {int(row["id"]): dict(row) for row in db.query("SELECT * FROM binary")}
+    db.connection.execute("SAVEPOINT semantic_graph_sync")
     try:
+        # Track rows touched in the current pass without changing stable IDs.
+        db.connection.execute("CREATE TEMP TABLE IF NOT EXISTS sg_seen_nodes (id INTEGER PRIMARY KEY)")
+        db.connection.execute("CREATE TEMP TABLE IF NOT EXISTS sg_seen_edges (id INTEGER PRIMARY KEY)")
+        db.connection.execute("DELETE FROM temp.sg_seen_nodes")
+        db.connection.execute("DELETE FROM temp.sg_seen_edges")
         for row in binaries.values():
             nodes[("binary", int(row["id"]))] = _node(db, node_type="Binary",
                 identity_key=f"binary:{row['sha256']}:{row['path']}", entity_table="binary", entity_id=int(row["id"]),
@@ -214,10 +224,19 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
             source = nodes.get(("driver_interface", row["interface_id"])); target = nodes.get(("ioctl", row["id"]))
             if source and target:
                 edge_count += 1; _edge(db, source_id=source, target_id=target, relation="INVOKES_IOCTL", status=_status(row), evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version)
+        # Sweep obsolete edges before nodes to preserve referential integrity.
+        db.connection.execute("DELETE FROM semantic_edge WHERE id NOT IN (SELECT id FROM temp.sg_seen_edges)")
+        db.connection.execute("DELETE FROM semantic_node WHERE id NOT IN (SELECT id FROM temp.sg_seen_nodes)")
+        db.connection.execute("DROP TABLE temp.sg_seen_edges")
+        db.connection.execute("DROP TABLE temp.sg_seen_nodes")
         db.connection.execute("UPDATE semantic_graph_run SET status='COMPLETE',completed_at=?,node_count=?,edge_count=?,error_text=NULL WHERE id=?", (utc_now(), len(nodes), edge_count, run_id))
+        db.connection.execute("RELEASE SAVEPOINT semantic_graph_sync")
         db.commit()
         return {"run_id": run_id, "status": "COMPLETE", "nodes": len(nodes), "edges": edge_count, "analyzer_version": analyzer_version}
     except Exception as exc:
+        # A failed pass must not replace the last successfully built graph.
+        db.connection.execute("ROLLBACK TO SAVEPOINT semantic_graph_sync")
+        db.connection.execute("RELEASE SAVEPOINT semantic_graph_sync")
         db.connection.execute("UPDATE semantic_graph_run SET status='FAILED',completed_at=?,error_text=? WHERE id=?", (utc_now(), str(exc), run_id))
         db.commit()
         raise
