@@ -100,6 +100,29 @@ python -m fwplatform.cli --db database/firmware.db analyze jni --fixture C:\path
 python -m fwplatform.cli --db database/firmware.db reports --phase3 --json
 ```
 
+## Phase 3.6：核心 API 候選發現與受控多 ELF 分析
+
+新指令只從現有資料庫提供來源可追溯的 API 候選，並明確保留未知 ABI、
+參數與相機 Runtime 語意。預設僅查詢非 Ghidra 自動命名的 ELF 匯出符號：
+
+```powershell
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk discover --domain Camera --limit 100 --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db sdk draft --name Lens --output C:\private\lens-review.json --json
+```
+
+Ghidra 受控批次的**預設為只產生計畫，不執行**；僅在本機合法取得 ELF
+與 Ghidra 都準備好時，使用 `--execute` 明確啟動：
+
+```powershell
+python -m fwplatform.cli --db C:\private\firmware-copy.db analyze ghidra-batch --root C:\private\firmware --limit 5 --json
+python -m fwplatform.cli --db C:\private\firmware-copy.db analyze ghidra-batch --root C:\private\firmware --limit 2 --execute --ghidra-root C:\tools\ghidra --project-dir C:\private\ghidra-projects --output-dir C:\private\ghidra-jsonl --json
+```
+
+每批有數量與逾時限制、ELF SHA-256 驗證及完整 JSONL 匯入檢查，
+已完成且未改變的 ELF 預設跳過；output/project 目錄必須位於 firmware root
+之外。此功能完全離線，不會寫入相機，也不代表完成整個 firmware 的 ABI、
+OSAL/JNI 或相機控制協定還原。
+
 ## 測試和報告
 
 CI 只使用合成資料：
