@@ -316,3 +316,54 @@ dependency**. The immediate next target is the code body of
 `0x12d780`, plus downstream local `0x125084`, App/Event delivery,
 and the parser of Event keys 7/8. Until these are independently checked
 there is no proven end-to-end UI→ModelCamera route or executable API.
+
+
+## Phase 3.15 — shared helper between two request frontends; private scoped ELF decoder
+
+The connected private research report contains **another distinct**
+`libObj.so` request entry:
+
+| Entry | Saved direct call | Reported target | Interpretation |
+|---|---|---|---|
+| `ViewBase::requestModelExecute` `0x12106e` | `0x12108c` | `0x12d780` | unknown selector/name helper |
+| `viewManagerIf::requestModelExecute` `0x1250c0` | `0x1250e2` | `0x12d780` | the **same exact local helper target** |
+| `ViewBase::requestModelExecute` | `0x121098` | `0xdfbdc` | named factory import stub |
+| `viewManagerIf::requestModelExecute` | `0x1250ee` | `0xdfbdc` | the **same exact import stub target** |
+| `ViewBase::requestModelExecute` | `0x1210a4` | `0xdb578` | named `View::requestApplicationExecute` tail |
+| `viewManagerIf::requestModelExecute` | `0x1250f6` | `0x125084` | tail target **not yet semantically identified** |
+
+Do **not** infer that the second frontend has the same original
+`r0` source/meaning as the first; the static calling context is not
+yet sufficiently established. The two routines do share a concrete
+*callsite destination* for `0x12d780` and the factory stub, which
+narrows where to focus the next static investigation.
+
+`sdk event-envelope --saved-disassembly` now checks exact
+function-entry annotation, branch/PLT target and register carry
+observations from **both** request entry points and the candidate
+factory. The connected workspace was read directly and **50/50**
+selected saved instruction *text* positions matched the validator
+(16 first frontend, 15 alternate frontend, 19 factory). These do
+**not** constitute 50 verified APIs, a new Ghidra run, original
+opcode-byte validation, or proof of event delivery.
+
+The new `fw sdk trace-selector --elf <private-libObj.so>` utility
+provides a bounded read-only Capstone analysis of the target
+`0x12d780` and follow-on candidate `0x125084`. It:
+- refuses a wrong full-file SHA-256 (pin:
+  `8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`);
+- requires a uniquely file-backed ELF32 LE ARM executable load
+  segment for the starting target; does not execute firmware;
+- bounds visited instructions, local branches and literal
+  interpretations; does not recursively follow external calls;
+- reports occurrences of the raw `0x11004003` word as unclassified
+  bytes, **not** event consumer cross-references;
+- leaves complete function CFG, helper semantics, ABI and physical
+  runtime callability explicitly UNVERIFIED.
+
+The connected read-file tool responds to raw `libObj.so` with
+`BINARY_FILE` and does not expose its 17,436,172 bytes, so
+**no new original Sony opcode analysis was run in this interaction**.
+The local Capstone analyzer has synthetic ELF32 ARM regression
+coverage and makes the precise next piece of real private-file
+reverse-engineering reproducible without another whole-Ghidra run.
