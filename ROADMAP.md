@@ -60,6 +60,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - native 函式解析需 binary SHA-256，不以全域 name/address 推斷關係；合成測試涵蓋重名 ELF。
 - 本階段的協定 mock 是測試替身，並非已完成 Sony camera runtime SDK；真實核心介面驗證仍需合法且可追溯的二進位與行為證據。
 
+## Phase 3.6（核心 SDK 符號審核佇列）
+
+- Ghidra JSONL 每筆 function 增加獨立的 entry locator、ELF SHA-256 與 binary provenance evidence，僅證實靜態函式位置，不將自動推測的 prototype 視為 ABI。
+- 新增 `fw sdk discover`，預設搜尋唯一 ELF export 對應的非自動命名函式；支援 exact binary SHA、名稱、domain 搜尋提示與受控 internal/generated 擴展。
+- 新增 `fw sdk draft` 產生可匯入但全為 CANDIDATE 的人工審核清單；任何 domain/ABI/語意都不會由函式名稱直接轉正。
+- 覆蓋合成多 binary 同名函式、無證據關係、函式定位、上限、重跑與草稿匯入回歸測試。
+- 完整核心 API 仍需合法取得的多 ELF 程式碼證據與獨立 ABI、JNI、OSAL 及狀態機確認；symbol inventory 無法替代語意逆向。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
