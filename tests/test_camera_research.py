@@ -162,6 +162,80 @@ class CameraResearchTests(unittest.TestCase):
         finally:
             database.close()
 
+    def test_readonly_private_db_crosscheck_matches_only_indexed_function_ids(self):
+        db_path = self.root / "private-copy.sqlite"
+        db = Database(db_path)
+        try:
+            db.migrate()
+            binary = db.upsert("binary", {
+                "path": "synthetic-libObj.so", "sha256": self.graph["binary_sha256"],
+                "size": 100, "format": "elf_executable_or_shared_library",
+            }, ("path",))
+            lookup = {}
+            for i, candidate in enumerate(self.catalog["interfaces"]):
+                lookup[candidate["name"]] = db.upsert("function", {
+                    "binary_id": binary, "identity_key": f"crosscheck:{i}",
+                    "address": candidate["address"], "name": candidate["name"],
+                }, ("identity_key",))
+            first = self.graph["static_calls"][0]
+            db.upsert("callsite", {
+                "identity_key": "synthetic:camera:callsite", 
+                "caller_id": lookup[first["caller"]],
+                "callee_id": lookup[first["callee"]],
+                "address": first["callsite"],
+                "target": self.catalog["interfaces"][2]["address"],
+                "kind": "call",
+            }, ("identity_key",))
+            db.commit()
+        finally:
+            db.close()
+        before = db_path.stat().st_mtime_ns
+        self._save()
+        report = inspect_camera_research(self.cat_path, self.graph_path,
+                                         compare_db=db_path)
+        proof = report["database_crosscheck"]
+        self.assertEqual(proof["status"], "READ_ONLY_INDEX_CROSSCHECK")
+        self.assertEqual(proof["binary_identity"], "UNIQUE_ELF_SHA")
+        self.assertEqual(proof["unique_indexed_function_entries"], 14)
+        self.assertEqual(proof["indexed_matching_callee_ids"], 1)
+        self.assertTrue(all(not row["abi_verified"] for row in proof["entries"]))
+        self.assertTrue(all(not row["independent_abi_verified"] for row in proof["calls"]))
+        self.assertEqual(db_path.stat().st_mtime_ns, before)
+
+    def test_readonly_crosscheck_detects_missing_and_ambiguous_binary(self):
+        missing_db = self.root / "absent.sqlite"
+        with self.assertRaises(FileNotFoundError):
+            self._inspect_db(missing_db)
+        self.assertFalse(missing_db.exists())
+        existing = self.root / "ambiguous.sqlite"
+        db = Database(existing)
+        try:
+            db.migrate()
+            for i in range(2):
+                db.upsert("binary", {
+                    "path": f"clone{i}.so", "sha256": self.graph["binary_sha256"],
+                    "size": 123, "format": "elf_executable_or_shared_library",
+                }, ("path",))
+            db.commit()
+        finally:
+            db.close()
+        report = self._inspect_db(existing)
+        cross = report["database_crosscheck"]
+        self.assertEqual(cross["binary_identity"], "AMBIGUOUS_ELF_SHA")
+        self.assertEqual(cross["binary_match_count"], 2)
+        self.assertEqual(cross["unique_indexed_function_entries"], 0)
+        self.assertEqual(cross["indexed_matching_callee_ids"], 0)
+
+    def _inspect_db(self, path: Path):
+        self._save()
+        return inspect_camera_research(self.cat_path, self.graph_path,
+                                       compare_db=path)
+
+    def test_non_scalar_field_is_rejected_with_validation_error(self):
+        self.graph["field_observations"][0]["observed_value"] = {"value": 1}
+        with self.assertRaisesRegex(ValueError, "field value"):
+            self._inspect()
+
 
 if __name__ == "__main__":
     unittest.main()
