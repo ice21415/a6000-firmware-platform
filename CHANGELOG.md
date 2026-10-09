@@ -2,6 +2,9 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.18：改以實際 ABI 引數還原優先。從保存的 `libObj.so` ARM 指令和 Itanium C++ 符號，區分 `ViewBase::requestModelExecute` 的成員函式式暫存器配置與 `viewManagerIf::requestModelExecute` 的靜態式配置；另推導 Event factory 的顯式參數型別與 Event 物件指標返回路徑，但不偽稱 C++ return type 或 owner 已驗證。
+- 新增 `ModelCamera::ActionGpSetSetting` 對 `0x0f01` 的內部 `pvt_ActionSetInit` `r0/r1` 引數來源核對、跨 ELF UI selector 引數交叉檢查，以及 `sdk request-abi`、typed candidate fixture 和 synthetic 測試；完整 Camera core API ABI 仍為 0 個，物件生命週期與原始 ELF opcode 驗證待完成。
+
 - Phase 3.17：區分 `ModelManager +0xa4` 的 word-nonzero 正規化（`0x7eaa14`）與 Appframework 上游 guard／`EOR 1` 反相（`0x7eeec8`），核對 18／18 個保存 ARM 指令文字位址，不再把該位元組欄位泛稱 Camera READY。
 - 匯整 `app-status-wait-chain.json` 次級研究中的共用 semaphore `0x830451` 及三條等待／completion helper 路徑，保留五處 status setter 呼叫點與未證實的事件 `0x11004003` 消費者。新增 `fw sdk app-sync`、獨立唯讀核對與 synthetic 測試。
 
