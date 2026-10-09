@@ -236,6 +236,26 @@ class CameraResearchTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "field value"):
             self._inspect()
 
+    def test_lens_and_camera_profile_lifecycle_leads_are_not_callable_functions(self):
+        leads = json.loads((ROOT / "sdk" / "core_3_21_lifecycle_research_leads.json"
+                            ).read_text(encoding="utf-8"))
+        self.assertEqual(leads["schema_version"], 1)
+        self.assertEqual(leads["function_abi_verified_count"], 0)
+        self.assertEqual(leads["lifecycle_callback_abi_verified_count"], 0)
+        self.assertEqual({x["domain"] for x in leads["entries"]}, {"Lens", "Camera"})
+        lens = next(x for x in leads["entries"] if x["domain"] == "Lens")
+        self.assertEqual(lens["callbacks"]["init"], "LensCommunicator_Init")
+        self.assertEqual(lens["callbacks"]["exit"], "LensCommunicator_Exit")
+        self.assertEqual(lens["imdb_entry_index"], 131)
+        for item in leads["entries"]:
+            self.assertIsNone(item["binary_sha256"])
+            self.assertIsNone(item["function_entries"])
+            self.assertIsNone(item["abi"])
+            self.assertEqual(item["verification_status"], "RESEARCH_LEAD")
+            self.assertFalse(item["runtime_callable"])
+        self.assertEqual({x["domain"] for x in leads["unresolved_domain_targets"]},
+                         {"Sensor", "Media", "OSAL"})
+
 
 if __name__ == "__main__":
     unittest.main()
