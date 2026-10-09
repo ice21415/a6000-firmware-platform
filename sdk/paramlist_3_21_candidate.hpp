@@ -87,8 +87,11 @@ struct PrmSetPayloadTreeWords {
 struct PrmSetTreeEvidenceConstants {
     static constexpr std::uint32_t node_size_bytes = 0x14;
     static constexpr std::uint32_t node_value_offset = 0x10;
+    static constexpr std::uint32_t node_value_width_bytes = 0x04;
     static constexpr std::uint32_t header_sentinel_offset = 0x04;
     static constexpr std::uint32_t node_count_offset = 0x14;
+    static constexpr std::uint32_t value_copy_helper_vma = 0x000ecd7a;
+    static constexpr std::uint32_t value_compare_helper_vma = 0x000efe6c;
 };
 static_assert(offsetof(PrmSetPayloadTreeWords, header_word_04) == 4);
 static_assert(offsetof(PrmSetPayloadTreeWords, node_count_14) == 20);

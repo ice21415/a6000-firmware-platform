@@ -590,3 +590,36 @@ The final local regression run after this checkpoint passed **318 tests**.
 Next investigation targets: identify a unique PrmSet mutation caller for
 `0xffe70`, recover the exact value/comparator type, and trace all exception and
 owner-release paths before any stronger ABI declaration is considered.
+
+## Continuation checkpoint — ParamSet value helpers and direct callsites (2026-10-10)
+
+The exact private ELF was re-verified before decoding. `fwplatform/param_set_probe.py`
+now records these additional primary static facts:
+
+- `0xecd7a` conditionally copies one 32-bit word from `[r2]` to `[r1]`.
+- `0xefe6c` compares one word at each value pointer with unsigned condition
+  codes and returns the lower-than result.
+- `0x63e796` supplies source node `+0x10` to the node constructor, copies the
+  source header word and clears destination links at `+8` and `+0xc`.
+- `0xffed0` is a bounded unique-insert wrapper with insertion branches at
+  `0xfff4e` and `0xfff86`.
+- A Capstone-confirmed Thumb `BL` scan found direct `0xffe70` callsites at
+  `0xfff4e`, `0xfff86` and `0x7f4402`. No one is identified as a PrmSet
+  mutator; function identity remains UNKNOWN rather than using nearest-address
+  assignment.
+
+The fresh private Ghidra 12.1.3 ASCII-path `param-set` export completed with
+`COMPLETE_TARGET_EXPORT`: 21 target bodies, 354 instruction rows, 49 blocks and
+97 edges, language `ARM:LE:32:v8`, image base `0x10000`, `-noanalysis`. Ghidra's
+decompiler independently showed `uint*` comparator operands and a one-word
+copy. The raw export/project remain private.
+
+The public SDK metadata/header and report now describe the one-word evidence,
+helper VMAs and direct callsites while keeping the source element alias,
+PrmSet mutation entry, ownership, exception paths, null/concurrency behavior,
+runtime binding and callable status UNKNOWN/false. Runtime-verified and
+callable API counts remain zero.
+
+Validation after this checkpoint: the ParamSet tests and complete local suite
+pass **321 tests**. Next target is a uniquely typed/cross-module caller for
+`PrmSet::getSet`, followed by exception and owner-release coverage.

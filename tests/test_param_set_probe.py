@@ -33,11 +33,17 @@ def _report():
                 "status": "PRIMARY_ELF_VERIFIED",
                 "node_size_bytes": 0x14,
                 "node_value_offset": 0x10,
+                "node_value_width_bytes": 4,
                 "header_sentinel_offset": 0x04,
                 "node_count_offset": 0x14,
                 "source_type": "UNKNOWN",
+                "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
                 "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
                 "insert_rebalance_binding": insert_binding,
+                "insert_callers": {
+                    "status": "PRIMARY_ELF_VERIFIED",
+                    "prmset_mutator_entry": "UNKNOWN",
+                },
             },
         },
         "observations": {
@@ -56,7 +62,14 @@ class ParamSetProbeTests(unittest.TestCase):
         self.assertEqual(tree["status"], "PRIMARY_ELF_VERIFIED")
         self.assertEqual(tree["node_size_bytes"], 0x14)
         self.assertEqual(tree["node_value_offset"], 0x10)
+        self.assertEqual(tree["node_value_width_bytes"], 4)
         self.assertEqual(tree["source_type"], "UNKNOWN")
+        self.assertEqual(tree["value_type"].split(";", 1)[0], "UNKNOWN")
+        self.assertEqual(tree["insert_callers"]["direct_callsite_addresses"], [
+            "0xfff4e", "0xfff86", "0x7f4402",
+        ])
+        self.assertEqual(tree["value_copy_evidence"]["entry"], "0xecd7a")
+        self.assertEqual(tree["value_compare_evidence"]["entry"], "0xefe6c")
         self.assertFalse(contract["runtime_verified"])
         self.assertFalse(contract["callable"])
 
@@ -93,6 +106,13 @@ class ParamSetProbeTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("tree_node_size", result["errors"])
 
+    def test_tree_value_width_is_evidence_gated(self):
+        report = _report()
+        report["payload_layout"]["tree_evidence"]["node_value_width_bytes"] = 8
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("tree_node_value_width", result["errors"])
+
     def test_tree_symbol_mismatch_is_rejected(self):
         report = _report()
         report["payload_layout"]["tree_evidence"]["insert_rebalance_binding"]["candidates"][0]["symbol"] = "_ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base"
@@ -120,6 +140,20 @@ class ParamSetProbeTests(unittest.TestCase):
         result = validate_param_set(report)
         self.assertFalse(result["valid"])
         self.assertIn("tree_source_type_promotion", result["errors"])
+
+    def test_exact_value_type_promotion_is_rejected(self):
+        report = _report()
+        report["payload_layout"]["tree_evidence"]["value_type"] = "uint32_t"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("tree_value_type_promotion", result["errors"])
+
+    def test_prmset_mutator_identity_remains_unknown(self):
+        report = _report()
+        report["payload_layout"]["tree_evidence"]["insert_callers"]["prmset_mutator_entry"] = "0x7f4390"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("tree_mutator_promotion", result["errors"])
 
 
 if __name__ == "__main__":

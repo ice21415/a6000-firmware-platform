@@ -39,7 +39,11 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "payload_tree_destroy_recursive", "entry": 0xFFD80, "size": 0x30},
     {"name": "payload_node_size", "entry": 0xFFE1C, "size": 0x1A},
     {"name": "payload_node_construct", "entry": 0xFFE4C, "size": 0x24},
+    {"name": "payload_value_copy", "entry": 0xECD7A, "size": 0x0C},
+    {"name": "payload_value_compare", "entry": 0xEFE6C, "size": 0x12},
     {"name": "payload_tree_insert", "entry": 0xFFE70, "size": 0x60},
+    {"name": "payload_tree_insert_unique", "entry": 0xFFED0, "size": 0xE6},
+    {"name": "payload_tree_copy_node", "entry": 0x63E796, "size": 0x1A},
     {"name": "payload_tree_copy", "entry": 0x63E83A, "size": 0x74},
     {"name": "payload_copy_wrapper", "entry": 0x63E8A6, "size": 0x0E},
     {"name": "payload_destroy_wrapper", "entry": 0xFFE0C, "size": 0x0E},
@@ -340,6 +344,132 @@ def _observe_node_construct(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_value_copy(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the helper used to populate a tree-node value slot.
+
+    This is deliberately a word-level fact.  The helper does not carry a
+    source-level C++ type, and its null destination branch is not a proof of
+    a complete exception-safe copy operation.
+    """
+    _require(rows, 0xECD7A, "push")
+    _require(rows, 0xECD7E, "cbz", target=0xECD84)
+    _require(rows, 0xECD80, "ldr", operands="r3, [r2]")
+    _require(rows, 0xECD82, "str", operands="r3, [r1]")
+    _require(rows, 0xECD84, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "inputs": {
+            "r1": "destination pointer candidate",
+            "r2": "source pointer candidate",
+        },
+        "operation": "if destination is non-null, copy exactly one 32-bit word from [r2] to [r1]",
+        "width_bytes": 4,
+        "source_type": "UNKNOWN",
+    }
+
+
+def _observe_value_compare(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the local comparator's unsigned word comparison semantics."""
+    _require(rows, 0xEFE6C, "ldr", operands="r0, [r2]")
+    _require(rows, 0xEFE6E, "ldr", operands="r3, [r1]")
+    _require(rows, 0xEFE72, "cmp", operands="r3, r0")
+    _require(rows, 0xEFE76, "ite", operands="hs")
+    _require(rows, 0xEFE78, "movhs", operands="r0, #0")
+    _require(rows, 0xEFE7A, "movlo", operands="r0, #1")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "inputs": {
+            "r1": "first value pointer candidate",
+            "r2": "second value pointer candidate",
+        },
+        "operation": "load one word from each pointer and return 1 iff unsigned [r1] < [r2]",
+        "width_bytes": 4,
+        "ordering": "unsigned word less-than candidate; exact source comparator type UNKNOWN",
+    }
+
+
+def _observe_tree_copy_node(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the bounded node-copy prefix used by the recursive tree copy."""
+    _require(rows, 0x63E796, "push")
+    _require(rows, 0x63E798, "mov", operands="r4, r1")
+    _require(rows, 0x63E79C, "add.w", operands="r1, r1, #0x10")
+    _require(rows, 0x63E7A0, "bl", target=0xFFE4C)
+    _require(rows, 0x63E7A4, "ldr", operands="r2, [r4]")
+    _require(rows, 0x63E7A6, "str", operands="r2, [r0]")
+    _require(rows, 0x63E7A8, "movs", immediate=0)
+    _require(rows, 0x63E7AA, "str", operands="r2, [r0, #8]")
+    _require(rows, 0x63E7AC, "str", operands="r2, [r0, #0xc]")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "operation": "construct a destination node from source value at source node +0x10, then copy the source header word",
+        "source_value_offset": 0x10,
+        "value_width_bytes": 4,
+        "cleared_link_offsets": [0x08, 0x0C],
+        "source_type": "UNKNOWN",
+    }
+
+
+def _thumb_bl_callers(fp: Any, elf: ELFFile, target: int) -> list[int]:
+    """Find direct Thumb BL encodings to *target* in the executable .text.
+
+    The scanner is intentionally conservative: it only accepts the 32-bit
+    Thumb BL encoding and then asks Capstone to decode the candidate.  It does
+    not infer a containing function when symbols or a complete function body
+    are unavailable.
+    """
+    section = elf.get_section_by_name(".text")
+    if section is None or not (int(section["sh_flags"]) & 4):
+        return []
+    offset = int(section["sh_offset"])
+    base = int(section["sh_addr"])
+    size = int(section["sh_size"])
+    fp.seek(offset)
+    data = fp.read(size)
+    decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
+    decoder.detail = True
+
+    def sign_extend(value: int, bits: int) -> int:
+        return value - (1 << bits) if value & (1 << (bits - 1)) else value
+
+    callers: list[int] = []
+    for index in range(0, max(0, len(data) - 4), 2):
+        first = int.from_bytes(data[index:index + 2], "little")
+        second = int.from_bytes(data[index + 2:index + 4], "little")
+        if (first & 0xF800) != 0xF000 or (second & 0xC000) != 0xC000:
+            continue
+        sign = (first >> 10) & 1
+        j1 = (second >> 13) & 1
+        j2 = (second >> 11) & 1
+        i1 = (~(j1 ^ sign)) & 1
+        i2 = (~(j2 ^ sign)) & 1
+        immediate = (
+            (sign << 24) | (i1 << 23) | (i2 << 22)
+            | ((first & 0x3FF) << 12) | ((second & 0x7FF) << 1)
+        )
+        caller = base + index
+        destination = caller + 4 + sign_extend(immediate, 25)
+        if destination != target:
+            continue
+        rows = list(decoder.disasm(data[index:index + 4], caller, count=1))
+        if rows and rows[0].mnemonic.lower() == "bl":
+            callers.append(caller)
+    return callers
+
+
+def _observe_tree_insert_callers(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    callers = _thumb_bl_callers(fp, elf, 0xFFE70)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "target": "0xffe70",
+        "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+        "direct_callsite_addresses": [f"0x{address:x}" for address in callers],
+        "direct_callsite_count": len(callers),
+        "prmset_mutator_entry": "UNKNOWN",
+        "prmset_relation": "UNKNOWN; no callsite is proven to consume PrmSet::getSet() in this ELF-only scan",
+        "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics",
+    }
+
+
 def _observe_tree_insert(rows: dict[int, Any], insert_binding: dict[str, Any]) -> dict[str, Any]:
     _require(rows, 0xFFE7E, "cbnz", target=0xFFE9C)
     _require(rows, 0xFFE80, "bl", target=0xFFC70)
@@ -357,6 +487,21 @@ def _observe_tree_insert(rows: dict[int, Any], insert_binding: dict[str, Any]) -
         "operation": "construct a node, call the ELF's comparator, then call libstdc++ tree insertion/rebalance",
         "insert_binding": insert_binding,
         "relation_scope": "generic ELF-local ordered-tree helper; direct PrmSet operation caller is not proven",
+    }
+
+
+def _observe_tree_insert_unique(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the bounded unique-insert wrapper's two insertion paths."""
+    _require(rows, 0xFFED0, "push.w")
+    _require(rows, 0xFFF4E, "bl", target=0xFFE70)
+    _require(rows, 0xFFF86, "bl", target=0xFFE70)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "operation": "walk/compare a tree and dispatch either duplicate or new-node insertion paths",
+        "direct_insert_helper": "0xffe70",
+        "insertion_paths": ["0xfff4e", "0xfff86"],
+        "source_tree_type": "UNKNOWN",
+        "caller_function_identity": "UNKNOWN; this helper is itself unnamed in the local symbol table",
     }
 
 
@@ -455,13 +600,26 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "payload_node_construct": _observe_node_construct(
                 _decode(fp, elf, 0xFFE4C, 0x24),
             ),
+            "payload_value_copy": _observe_value_copy(
+                _decode(fp, elf, 0xECD7A, 0x0C),
+            ),
+            "payload_value_compare": _observe_value_compare(
+                _decode(fp, elf, 0xEFE6C, 0x12),
+            ),
             "payload_tree_insert": _observe_tree_insert(
                 _decode(fp, elf, 0xFFE70, 0x60), bindings["rb_tree_insert_rebalance"],
+            ),
+            "payload_tree_insert_unique": _observe_tree_insert_unique(
+                _decode(fp, elf, 0xFFED0, 0xE6),
+            ),
+            "payload_tree_copy_node": _observe_tree_copy_node(
+                _decode(fp, elf, 0x63E796, 0x1A),
             ),
             "payload_tree_copy": _observe_tree_copy(_decode(fp, elf, 0x63E83A, 0x74)),
             "payload_copy_wrapper": _observe_copy_wrapper(_decode(fp, elf, 0x63E8A6, 0x0E)),
             "payload_destroy_wrapper": _observe_payload_destroy(_decode(fp, elf, 0xFFE0C, 0x0E)),
         }
+        observations["payload_tree_insert_callers"] = _observe_tree_insert_callers(fp, elf)
     return {
         "status": "LOCAL_PRIMARY_ELF_PRMSET_EVIDENCE_ONLY",
         "binary_file_sha256": digest,
@@ -498,13 +656,19 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
                 "status": "PRIMARY_ELF_VERIFIED",
                 "node_size_bytes": 0x14,
                 "node_value_offset": 0x10,
+                "node_value_width_bytes": 4,
                 "header_sentinel_offset": 0x04,
                 "node_count_offset": 0x14,
                 "insert_rebalance_binding": bindings["rb_tree_insert_rebalance"],
                 "erase_rebalance_binding": bindings["rb_tree_erase_rebalance"],
                 "source_type": "UNKNOWN",
+                "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
                 "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
                 "prmset_operation_path": "UNKNOWN; the bounded PrmSet lifecycle reaches shared helpers, not a named insert method",
+                "insert_callers": observations["payload_tree_insert_callers"],
+                "value_copy_evidence": observations["payload_value_copy"],
+                "value_compare_evidence": observations["payload_value_compare"],
+                "node_copy_evidence": observations["payload_tree_copy_node"],
             },
         },
         "bindings": bindings,
@@ -554,12 +718,16 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
             errors.append("tree_node_size")
         if tree.get("node_value_offset") != 0x10:
             errors.append("tree_node_value_offset")
+        if tree.get("node_value_width_bytes") != 4:
+            errors.append("tree_node_value_width")
         if tree.get("header_sentinel_offset") != 0x04:
             errors.append("tree_header_offset")
         if tree.get("node_count_offset") != 0x14:
             errors.append("tree_count_offset")
         if tree.get("source_type") != "UNKNOWN":
             errors.append("tree_source_type_promotion")
+        if not str(tree.get("value_type", "")).startswith("UNKNOWN"):
+            errors.append("tree_value_type_promotion")
         if not str(tree.get("likely_source_family", "")).startswith("STATIC_INFERRED"):
             errors.append("tree_source_family_status")
         insert = tree.get("insert_rebalance_binding")
@@ -571,6 +739,11 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
                 "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_"
             ):
                 errors.append("tree_insert_symbol")
+        callers = tree.get("insert_callers")
+        if not isinstance(callers, dict) or callers.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("tree_insert_callers")
+        elif callers.get("prmset_mutator_entry") != "UNKNOWN":
+            errors.append("tree_mutator_promotion")
     expected = {target["name"] for target in TARGETS}
     observations = report.get("observations")
     if not isinstance(observations, dict) or not expected.issubset(observations):

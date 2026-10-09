@@ -7,10 +7,12 @@
   Direct PLT/GOT checks identify six libstdc++ `_Rb_tree` traversal/rebalance
   imports; the public contract records an ordered-associative-tree-like model,
   not an exact source template or callable API.
-- Added descriptive `PrmSetPayloadTreeWords`/offset constants, a private
-  Ghidra `param-set` cross-check (exit 0, 17 targets, 243 instructions, 30
-  blocks, 60 CFG edges), five fail-closed tree evidence tests and a contract
-  round-trip check. Runtime
+- Added primary evidence for a one-word node value/copy path, an unsigned-order
+  comparator helper, a bounded unique-insert wrapper and three direct Thumb
+  callsites to `0xffe70`; no callsite is promoted to a PrmSet mutator.
+  The private Ghidra `param-set` cross-check now exits 0 with 21 targets, 354
+  instructions, 49 blocks and 97 CFG edges. Added descriptive width/helper
+  constants and three additional fail-closed promotion tests. Runtime
   verification and callable SDK counts remain zero; raw firmware and Ghidra
   output remain private.
 

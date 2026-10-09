@@ -952,3 +952,51 @@ public suite now passes **318 tests**. Remaining blockers are the source-level P
 element type, a unique PrmSet mutation caller for `0xffe70`, complete
 constructor/destructor exception paths, and any runtime/parallel safety
 property.
+
+## ParamSet value-width, comparator and caller evidence — 2026-10-10
+
+This continuation re-read the same SHA-pinned private ELF with Capstone and
+ran a fresh private Ghidra 12.1.3 targeted export. It did not repeat the
+already recovered `ParamList::get` control flow. The public probe records only
+metadata and addresses; no firmware bytes or decompiler text is checked in.
+
+### New primary-ELF facts
+
+| ELF VMA | Evidence | Result | Boundary |
+|---:|---|---|---|
+| `0xecd7a` | `cbz r1`; then `ldr r3,[r2]` and `str r3,[r1]` | the node-value copy helper transfers exactly one 32-bit word when the destination is non-null | source type, null-source behavior and exception semantics UNKNOWN |
+| `0xefe6c` | loads `[r2]` and `[r1]`, compares with ARM unsigned condition codes, returns 1 only for the lower first word | local tree comparator is an unsigned 32-bit word less-than candidate | this proves the helper's operand width/order, not a source-level `PrmSet` typedef |
+| `0x63e796` | adds `0x10` to the source node, calls `0xffe4c`, copies the source header word and clears destination links `+8/+0xc` | recursive copy path confirms a one-word value at node `+0x10` | exact node class, allocator and ownership UNKNOWN |
+| `0xffed0` | bounded tree walk calls `0xffe70` at `0xfff4e` and `0xfff86` | generic unique-insert wrapper has two insertion paths | local symbol/function identity and relation to `PrmSet` UNKNOWN |
+
+A bounded Thumb-`BL` scan over the executable `.text`, with Capstone
+confirmation at each candidate, found direct calls to `0xffe70` at
+`0xfff4e`, `0xfff86` and `0x7f4402`. No callsite was promoted to a
+`PrmSet` mutation entry: the scan cannot prove that any caller consumed the
+pointer returned by `PrmSet::getSet()`. This is preserved as UNKNOWN rather
+than using a nearest-function heuristic.
+
+### Ghidra cross-check
+
+The fresh ASCII-path project used Ghidra **12.1.3**, language
+`ARM:LE:32:v8`, image base `0x10000`, `-noanalysis`, and the exact private ELF
+hash. `ParamListTargets.java param-set` exited successfully with the
+`COMPLETE_TARGET_EXPORT` marker and exported **21** bounded target bodies,
+**354** instruction rows, **49** basic blocks and **97** CFG edges. The
+decompiler independently rendered the comparator as a `uint*` word comparison
+and the copy helper as a single `undefined4` assignment. These are static
+cross-checks only; this was not whole-program Auto Analysis and it provides no
+runtime or callable-API proof.
+
+The SDK contract `sdk/param_set_3_21.json` now records the one-word evidence,
+comparator/copy helper VMAs and the three direct insertion callsites. The
+descriptive header adds constants for the observed width and helper VMAs; it
+still does not expose a live `std::set`, a host-pointer cast or a callable
+wrapper. The targeted validator and complete local suite now pass **321
+tests**. Runtime-verified and callable core API counts remain **0**.
+
+The remaining blockers are narrower but unresolved: recover a cross-module or
+uniquely typed caller for `PrmSet::getSet`, identify the exact source element
+alias/comparator, and account for all constructor/destructor exception and
+owner-release paths. Null safety, concurrent access and runtime ABI behavior
+remain UNKNOWN.

@@ -7,7 +7,7 @@
   "type": "PrmSet",
   "discriminator": 7,
   "allocation_size_bytes": 36,
-  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle and ELF-local tree-helper facts; source container alias remains UNKNOWN",
+  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, and ELF-local tree-helper facts; source container alias remains UNKNOWN",
   "layout": {
     "+0x00": "ParamBase vptr address point",
     "+0x04": "ParamBase discriminator candidate, initialized to 7 through ParamBaseC2",
@@ -42,7 +42,41 @@
       },
       "source_type": "UNKNOWN",
       "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
-      "prmset_operation_path": "UNKNOWN; bounded PrmSet lifecycle reaches shared helpers, not a named insert method"
+      "prmset_operation_path": "UNKNOWN; bounded PrmSet lifecycle reaches shared helpers, not a named insert method",
+      "node_value_width_bytes": 4,
+      "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
+      "insert_callers": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "target": "0xffe70",
+        "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+        "direct_callsite_addresses": [
+          "0xfff4e",
+          "0xfff86",
+          "0x7f4402"
+        ],
+        "direct_callsite_count": 3,
+        "prmset_mutator_entry": "UNKNOWN",
+        "prmset_relation": "UNKNOWN; no callsite is proven to consume PrmSet::getSet() in this ELF-only scan",
+        "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics"
+      },
+      "value_copy_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0xecd7a",
+        "width_bytes": 4,
+        "source_type": "UNKNOWN"
+      },
+      "value_compare_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0xefe6c",
+        "width_bytes": 4,
+        "ordering": "unsigned word less-than candidate; exact source comparator type UNKNOWN"
+      },
+      "node_copy_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0x63e796",
+        "source_value_offset": 16,
+        "value_width_bytes": 4
+      }
     }
   },
   "methods": {
@@ -91,11 +125,16 @@
         "node_size": "0xffe1c",
         "node_construct": "0xffe4c",
         "insert": "0xffe70",
-        "copy": "0x63e83a"
+        "copy": "0x63e83a",
+        "value_copy": "0xecd7a",
+        "value_compare": "0xefe6c",
+        "insert_unique": "0xffed0",
+        "copy_node": "0x63e796"
       },
       "verification": "PRIMARY_ELF_VERIFIED for bounded instruction and relocation facts",
       "insert_scope": "generic ELF-local helper; direct PrmSet method identity UNKNOWN",
-      "safe_to_call": false
+      "safe_to_call": false,
+      "value_semantics": "The bounded node construction/copy path transfers one 32-bit word at node +0x10; the local comparator orders two such words with an unsigned comparison. The exact PrmSet source element type remains UNKNOWN."
     }
   },
   "bindings": {
@@ -175,16 +214,16 @@
   "limitations": [
     "No source-level proof that the payload is std::set or another named container",
     "payload +0x00 is not written by the bounded default initializer",
-    "Element type, ordering/comparator, allocator pairing and exception paths UNKNOWN",
-    "Runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
+    "The helper copies and compares one 32-bit word, but the exact PrmSet element typedef and source comparator remain UNKNOWN",
+    "No unique PrmSet mutation caller for 0xffe70 is proven; direct Thumb callsites are preserved as helper evidence only",
+    "Allocator pairing, exception paths, runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
     "No runtime execution or device validation",
-    "The 0xffe70 insertion helper is not directly named or uniquely connected to a PrmSet mutator in the bounded evidence",
     "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
     "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN"
   ],
   "runtime_verified": false,
   "callable": false,
-  "evidence_revision": "param-set-tree-helpers-2026-10-10",
+  "evidence_revision": "param-set-tree-value-helpers-2026-10-10",
   "inheritance": {
     "status": "PRIMARY_ELF_VERIFIED",
     "base_type": "ParamBase",

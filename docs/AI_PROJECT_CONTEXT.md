@@ -272,10 +272,10 @@ and `sdk/param_set_3_21.json`. Primary ELF evidence confirms the discriminator-7
 `getSet`/GET methods, 36-byte construction, a 24-byte embedded payload, clone
 copy path and destructor path. The payload is documented only as an
 ordered-container-like candidate: source type, element type, comparator,
-allocator, alias and synchronization semantics remain UNKNOWN. The private
-ASCII Ghidra `param-set` profile exits 0 with 17 targets, 243 instruction rows,
-30 blocks and 60 CFG edges. Runtime verification and callable SDK counts remain
-zero.
+allocator, alias and synchronization semantics remain UNKNOWN. The latest
+private ASCII Ghidra `param-set` profile exits 0 with 21 targets, 354
+instruction rows, 49 blocks and 97 CFG edges. Runtime verification and
+callable SDK counts remain zero.
 
 ## Phase 3.31 — PrmSet tree-helper and lifetime boundary
 
@@ -293,6 +293,13 @@ offsets, PLT/GOT identities, direct `6PrmSet` to `ParamBase` RTTI relation and
 all UNKNOWN boundaries. ParamList's shared counter and virtual element
 destruction imply that `ParamList::get`/`PrmSet::getSet` results are borrowed
 interior-pointer candidates; replacement or destruction can invalidate them.
+
+The follow-up value-helper probe records a one-word node value at `+0x10`, a
+Capstone/Ghidra-confirmed unsigned-order comparator at `0xefe6c`, a conditional
+single-word copy helper at `0xecd7a`, and direct `0xffe70` callsites at
+`0xfff4e`, `0xfff86` and `0x7f4402`. These facts do not identify the source
+typedef or prove that any caller is a PrmSet mutator; those relations remain
+UNKNOWN.
 Null behavior, synchronization, exception cleanup, runtime loader binding and
 callability remain unverified.
 
