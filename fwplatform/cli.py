@@ -287,6 +287,7 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_research.add_argument("--graph", type=Path, default=Path("sdk/camera_3_21_static_callgraph.json"))
     sdk_research.add_argument("--focus", default="")
     sdk_research.add_argument("--compare-db", type=Path)
+    sdk_research.add_argument("--verify-elf", type=Path)
     sdk_research.add_argument("--json", action="store_true")
     sdk_discover = sdk_sub.add_parser("discover")
     sdk_discover.add_argument("--name", default="")
@@ -356,9 +357,11 @@ def main(argv: list[str] | None = None) -> int:
         # Pure report validator: do not open/migrate any SQLite or firmware ELF.
         from .camera_research import inspect_camera_research
         result = inspect_camera_research(args.catalog, args.graph, focus=args.focus,
-                                         compare_db=args.compare_db)
+                                         compare_db=args.compare_db,
+                                         verify_elf=args.verify_elf)
         _json_or_text(result, args.json)
-        return 0
+        check = result["independent_elf_check"]
+        return 2 if check is not None and not check["all_checked_instruction_sites_match"] else 0
     db = Database(args.db)
     db.migrate()
     try:
