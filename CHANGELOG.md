@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.15：原始保存組語另找到 `viewManagerIf::requestModelExecute` (`0x1250c0`) 與 `ViewBase` 入口共享 `0x12d780` selector helper／`0xdfbdc` factory stub；兩入口＋event factory 共 50/50 靜態組語文本位址核對。
+- 新增 `fw sdk trace-selector` 與 `fwplatform/private_thumb_research.py`：嚴格本機 ELF SHA-256、ARM Thumb 區段邊界、局部控制流／常數及事件 word 掃描；合成 ARM ELF 測試不依賴 Sony 專有二進位。SHA 偏差或無唯一可執行映射直接拒絕。實際 Sony `0x12d780` 函式位元組、event consumer、完整 ABI 仍待原始 ELF 本機驗證。
+
+
 - Phase 3.15：已從私有保存的 `libObj.so` ARM 指令檔找到第二條 `viewManagerIf::requestModelExecute` 靜態路徑。與 `ViewBase` 前端共用 model-ID import `0xdffb8`、selector helper `0x12d780` 和 event factory `0xdfbdc`，但提交事件的尾分支不同（`0xdb578` vs `0x125084`）。新增可再現 `sdk request-frontends` 文本核對、fixture 與 synthetic 測試；保存的組語報告 **33/33** 位址及操作符符合，不視為新 ELF byte/ABI 證明。
 
 
