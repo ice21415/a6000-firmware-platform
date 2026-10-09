@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.11：在已連線 workspace 找到原本未定位的 Sony 3.21 Camera/Lens/Media 韌體 ELF；新增 14 個源自既有私有反組譯的 Camera 候選入口與 9 條報告層級直接呼叫／尾分支、6 筆 ModelCamera 欄位觀測、4 條 bounded selector 和 1 個 unresolved indirect dispatch。
+- `fw sdk research` 可純離線驗證指令目標與候選 ELF VMA 一致性、拒絕偽造的 ABI/VERIFIED/runtime 宣稱，並用 `--focus` 追蹤已記錄的 Camera call graph；回歸測試不分發韌體、沒有 live camera SDK 呼叫。
+
+
 - Phase 3.10：新增 `sdk investigate` 對 Camera/Lens/Sensor/Media/UI/OSAL/Android/Networking 候選，交叉呈現有明確 FK 的 callsite、CFG/body range、OSAL、JNI 與 lifecycle 靜態證據。
 - 新增 `sdk inspect --function-id`，可針對 Ghidra 自動命名或無 Camera 字樣的內部函式研究，保留跨二進位位址歧義、未知 ABI 及模組 state-machine-only 脈絡。
 - 新增 `tests/test_core_api.py`（合成隔離、read-only、CLI、地址歧義、OSAL/JNI/狀態機），以及 Camera/Lens/Sensor/Media 研究缺口報告；沒有原廠韌體、實機 SDK 或 runtime 呼叫。
