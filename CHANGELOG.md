@@ -2,6 +2,10 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.12：新增 `fw sdk research --verify-elf`，只讀原始私有 ELF，驗證 SHA-256、ELF32 ARM executable segment VMA、Thumb BL/B.W 直接分支與 LDRB.W/STRB.W byte displacement；失配非零退出，不執行任何 firmware code。另將 ModelCamera byte instruction immediate 與研究推論 object-root 調整量分開保存。
+- 增加純合成 ELF32/Thumb 負位移和欄位立即數回歸測試；沒有假定報告可直接提供 Sony ABI、parameters、return values 或 runtime callability。
+
+
 - Phase 3.11：在已連線 workspace 找到原本未定位的 Sony 3.21 Camera/Lens/Media 韌體 ELF；新增 14 個源自既有私有反組譯的 Camera 候選入口與 9 條報告層級直接呼叫／尾分支、6 筆 ModelCamera 欄位觀測、4 條 bounded selector 和 1 個 unresolved indirect dispatch。
 - `fw sdk research --compare-db` 支援對私有 SQLite 索引做唯讀身份及 callsite FK 比對，不自動修改 DB 或提高 ABI 驗證狀態；新增缺失與重複 ELF 身分的回歸測試。
 - `fw sdk research` 可純離線驗證指令目標與候選 ELF VMA 一致性、拒絕偽造的 ABI/VERIFIED/runtime 宣稱，並用 `--focus` 追蹤已記錄的 Camera call graph；回歸測試不分發韌體、沒有 live camera SDK 呼叫。
