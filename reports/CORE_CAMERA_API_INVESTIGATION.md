@@ -367,3 +367,62 @@ The connected read-file tool responds to raw `libObj.so` with
 The local Capstone analyzer has synthetic ELF32 ARM regression
 coverage and makes the precise next piece of real private-file
 reverse-engineering reproducible without another whole-Ghidra run.
+
+
+## Phase 3.16: Appframework loop boundary is now source-scoped (event consumer still unresolved)
+
+Connected private source `app-event-functions.txt` (saved static
+`libObj.so` ARM/Thumb instruction text) and
+`libobj-appframework-chain.json` include an **independent**
+Appframework loop/queue candidate. It is a follow-up investigation
+target for the `0x11004003` Event factory, not proof that the event is
+handled here.
+
+Six separately named source instruction regions now observed:
+
+| Saved named region | ELF VMA | Narrow observable effect |
+|---|---|---|
+| application_thread_body | `0x7eeee8` | checks queue state `0x7ef180→0x7eeec8`; directly calls dispatch candidate at `0x7ef0d4` and `0x7ef16e` |
+| app_event_pop | `0x7eec8c` | invokes count-like EventManager import from queue field `+0x10` |
+| app_event_dispatch | `0x7eecac` | passes object pointer loaded at `+0x18` onward via direct tail `0x7eecb6→0x7f21e8` |
+| app_event_cleanup | `0x7eecbc` | direct call at `0x7eecec→0x7eecac`, conditional further processing |
+| app_event_queue_receive | `0x7eeec8` | upstream guarded checks at `0x7eeed0→0x7f29ec` and `0x7eeed8→0x7eaa14` |
+| application_event_candidate | `0x7f2210` | semaphore `0x830451` around internal helper `0x7f099c` |
+
+**Source overlap correction:** the earlier `app-event-functions.txt`
+report includes overlapping bounded scans of `app_event_pop`,
+`app_event_dispatch`, and `app_event_cleanup`. The instructions
+around `0x7eecac` may recur in more than one scan window; that is
+not evidence of distinct runtime function executions or a whole CFG.
+The new `fwplatform/app_event_loop.py` validator demands each
+explicit `FUNCTION name address` header and checks its own
+instruction sites instead of treating scan overlap as proof.
+
+I re-read the saved original-firmware *text* report through the
+connected workspace and verified that **26/26 specified instruction
+locations match under their six named source headings**. This
+rechecks preexisting instruction *text*, not the Sony ELF primary
+instruction bytes. The connector currently declines to expose the
+original 17.4 MB `libObj.so` as binary data, and no live Ghidra
+session or camera event trace was run in this phase.
+
+```powershell
+python -m fwplatform.cli sdk event-loop --json
+python -m fwplatform.cli sdk event-loop --saved-disassembly C:\private\boot-static-analysis\app-event-functions.txt --json
+```
+
+Without `--saved-disassembly`, the CLI marks the output
+`APP_EVENT_LOOP_BOUNDARY_CANDIDATES_ONLY` and verifies no opcode
+sites. With saved source it checks the six named entry ranges and
+returns `SAVED_APP_EVENT_LOOP_TEXT_MATCH_EVENT_CONSUMER_UNPROVEN`.
+CI uses synthetic saved instruction samples; there is no proprietary
+Sony ELF or decompiled source in the repository.
+
+**Outstanding crucial edges:** the imported `View::requestApplicationExecute`
+and alternate viewManagerIf tail cannot yet be connected to this
+specific event queue; the `0x11004003` Event's actual consumer
+has not been found. The downstream `0x7f21e8` path, key 7/8
+extraction, `0x12d780` selector transform and ModelCamera dispatcher
+still require private primary-ELF byte/code analysis. Queue presence
+is not a verified Camera API or evidence that Camera initialization
+waits on this semaphore.
