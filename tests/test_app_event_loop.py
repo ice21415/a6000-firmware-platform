@@ -50,11 +50,11 @@ class AppEventLoopBoundaryTests(unittest.TestCase):
         return audit_application_event_loop(
             self.fixture_path, saved_disassembly=self.saved if source else None)
 
-    def test_source_scoped_22_observations_without_event_consumer_claim(self):
+    def test_source_scoped_26_observations_without_event_consumer_claim(self):
         result = self._inspect()
         self.assertEqual(result["status"], "SAVED_APP_EVENT_LOOP_TEXT_MATCH_EVENT_CONSUMER_UNPROVEN")
-        self.assertEqual(result["opcode_text_sites_checked"], 22)
-        self.assertEqual(result["function_regions_checked"], 4)
+        self.assertEqual(result["opcode_text_sites_checked"], 26)
+        self.assertEqual(result["function_regions_checked"], 6)
         self.assertTrue(result["saved_report_text_verified"])
         for unknown in ("original_elf_instruction_bytes_verified",
                         "queue_consumer_of_this_event_id_verified",
@@ -116,6 +116,18 @@ class AppEventLoopBoundaryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ambiguous"):
             self._inspect()
 
+    def test_overlapping_bounded_scan_must_not_replace_named_dispatch_region(self):
+        original = synthetic_saved_assembly()
+        self.saved.write_text(original.replace(
+            "FUNCTION app_event_dispatch 0x7eecac",
+            "FUNCTION other_unknown 0x7eecac"))
+        with self.assertRaisesRegex(ValueError, "app_event_dispatch"):
+            self._inspect()
+        self.saved.write_text(original.replace(
+            "0x7eecec: bl       #0x7eecac", "0x7eecec: bl       #0x7eecbc"))
+        with self.assertRaisesRegex(ValueError, "0x7eecec"):
+            self._inspect()
+
     def test_cli_reads_only_explicit_fixture_and_disassembly_no_db(self):
         db = self.root / "not-created.sqlite"
         out = io.StringIO()
@@ -126,7 +138,7 @@ class AppEventLoopBoundaryTests(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertFalse(db.exists())
         result = json.loads(out.getvalue())
-        self.assertEqual(result["opcode_text_sites_checked"], 22)
+        self.assertEqual(result["opcode_text_sites_checked"], 26)
         self.assertFalse(result["queue_consumer_of_this_event_id_verified"])
 
 
