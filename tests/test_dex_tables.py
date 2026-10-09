@@ -89,7 +89,7 @@ class DexStructureTests(unittest.TestCase):
             root = Path(directory)
             dex = root / "broken.dex"
             original = synthetic_structured_dex(dex)
-            for offset, format_, invalid in ((0x5A, "<H", 99), (0x58, "<I", 999)):
+            for offset, format_, invalid in ((0x9A, "<H", 99), (0x58, "<I", 999)):
                 data = bytearray(original)
                 struct.pack_into(format_, data, offset, invalid)
                 dex.write_bytes(data)
