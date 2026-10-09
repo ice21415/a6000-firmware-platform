@@ -20,18 +20,21 @@ MAX_SAVED_REPORT = 2 * 1024 * 1024
 
 FRONT_SITES = (
     ("0x121076", "ldr.w    sb, [r0, #0x7c]"),
+    ("0x12107a", "mov      r0, r1"),
+    ("0x12107c", "mov      sl, r2"),
     ("0x12107e", "mov      r5, r1"),
     ("0x121080", "mov      r6, r3"),
-    ("0x121082", "_ZN11IdGenerator3GetEPKc"),
+    ("0x121082", "blx      #0xdffb8 ; _ZN11IdGenerator3GetEPKc"),
     ("0x121086", "mov      r1, sl"),
+    ("0x121088", "mov      r8, r0"),
     ("0x12108a", "mov      r0, r5"),
     ("0x12108c", "bl       #0x12d780"),
     ("0x121090", "mov      r1, r8"),
     ("0x121092", "mov      r3, r6"),
     ("0x121094", "mov      r2, r0"),
     ("0x121096", "mov      r0, sb"),
-    ("0x121098", "_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList"),
-    ("0x1210a4", "_ZN4View25requestApplicationExecuteEP5Event"),
+    ("0x121098", "blx      #0xdfbdc ; _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList"),
+    ("0x1210a4", "b.w      #0xdb578 ; _ZN4View25requestApplicationExecuteEP5Event"),
 )
 FACTORY_SITES = (
     ("0x7f0b14", "mov      r6, r1"),
@@ -40,13 +43,19 @@ FACTORY_SITES = (
     ("0x7f0b1e", "literal 0x11004003"),
     ("0x7f0b20", "movs     r2, #2"),
     ("0x7f0b22", "movs     r3, #0"),
-    ("0x7f0b26", "_ZN5EventC1Emhh"),
+    ("0x7f0b26", "blx      #0xdb66c ; _ZN5EventC1Emhh"),
     ("0x7f0b2a", "cbz      r5, #0x7f0b34"),
-    ("0x7f0b30", "_ZN5Event12setParamListEP9ParamList"),
+    ("0x7f0b2e", "mov      r1, r5"),
+    ("0x7f0b30", "blx      #0xde3a4 ; _ZN5Event12setParamListEP9ParamList"),
+    ("0x7f0b3a", "mov      r1, r6"),
+    ("0x7f0b3e", "bl       #0xf0fb0"),
+    ("0x7f0b42", "mov      r2, r5"),
     ("0x7f0b44", "movs     r1, #7"),
-    ("0x7f0b48", "_ZN5Event12addParameterEmP9ParamBase"),
+    ("0x7f0b48", "blx      #0xdd194 ; _ZN5Event12addParameterEmP9ParamBase"),
+    ("0x7f0b52", "mov      r1, r8"),
+    ("0x7f0b56", "bl       #0xf0fb0"),
     ("0x7f0b5c", "movs     r1, #8"),
-    ("0x7f0b60", "_ZN5Event12addParameterEmP9ParamBase"),
+    ("0x7f0b60", "blx      #0xdd194 ; _ZN5Event12addParameterEmP9ParamBase"),
 )
 
 
