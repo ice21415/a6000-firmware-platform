@@ -90,6 +90,103 @@ class Phase3Tests(unittest.TestCase):
             self.assertIsNotNone(row); self.assertIn("candidate_binary_ids", row[0])
             db.close()
 
+
+    def test_linkage_resolves_origin_parent_paths_without_double_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for sub in ("app", "lib", "other"):
+                (root / sub).mkdir()
+            for rel in ("app/main.so", "lib/libdep.so", "other/libdep.so"):
+                (root / rel).write_bytes(rel.encode())
+            db = self._db(root)
+            for rel in ("app/main.so", "lib/libdep.so", "other/libdep.so"):
+                path = root / rel
+                db.connection.execute(
+                    "INSERT INTO binary(path,sha256,size,format,analysis_status,metadata_json) VALUES(?,?,?,?,?,?)",
+                    (rel, sha256_file(path), path.stat().st_size, "elf_executable_or_shared_library", "INVENTORIED", "{}"),
+                )
+            db.commit()
+
+            def fake(path: Path) -> ElfMetadata:
+                if path.name == "main.so":
+                    return ElfMetadata(needed=("libdep.so",), soname="main.so", runpath=("$ORIGIN/../lib",))
+                return ElfMetadata(soname="libdep.so")
+
+            with patch("fwplatform.linkage._elf_metadata", side_effect=fake):
+                result = analyze_linkage(db, root)
+            self.assertEqual(result["needed"], 1)
+            self.assertEqual(result["ambiguous_dependencies"], 0)
+            target = db.connection.execute(
+                "SELECT b.path FROM module_dependency d "
+                "JOIN module m ON m.id=d.to_module_id "
+                "JOIN binary b ON b.id=m.binary_id"
+            ).fetchone()
+            self.assertIsNotNone(target)
+            self.assertEqual(target["path"], "lib/libdep.so")
+            db.close()
+
+    def test_semantic_graph_sweeps_stale_relations_and_rolls_back_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            db = self._db(Path(directory))
+
+            def module(name: str) -> int:
+                return db.upsert("module", {
+                    "name": name, "identity_key": f"fixture:{name}", "status": "VERIFIED_STATIC",
+                    "confidence_id": db.confidence_id("VERIFIED_STATIC"),
+                }, ("identity_key",))
+
+            source, old, new = (module(name) for name in ("source", "old", "new"))
+            dependency = db.upsert("module_dependency", {
+                "identity_key": "fixture:dependency", "from_module_id": source,
+                "to_module_id": old, "kind": "DT_NEEDED", "dependency_name": "libdep.so",
+                "status": "VERIFIED_STATIC",
+            }, ("identity_key",))
+            db.commit()
+            sync_semantic_graph(db)
+            original = db.connection.execute(
+                "SELECT e.id, n.entity_id FROM semantic_edge e "
+                "JOIN semantic_node n ON n.id=e.target_node_id "
+                "WHERE e.relation_type='DEPENDS_ON'"
+            ).fetchone()
+            self.assertEqual(original["entity_id"], old)
+            sync_semantic_graph(db)
+            stable = db.connection.execute(
+                "SELECT id FROM semantic_edge WHERE relation_type='DEPENDS_ON'"
+            ).fetchone()[0]
+            self.assertEqual(stable, original["id"])
+
+            db.connection.execute("UPDATE module_dependency SET to_module_id=? WHERE id=?", (new, dependency))
+            with patch("fwplatform.semantic_graph._edge", side_effect=RuntimeError("synthetic failure")):
+                with self.assertRaisesRegex(RuntimeError, "synthetic failure"):
+                    sync_semantic_graph(db)
+            self.assertEqual(db.connection.execute(
+                "SELECT COUNT(*) FROM semantic_edge WHERE relation_type='DEPENDS_ON'"
+            ).fetchone()[0], 1)
+            self.assertEqual(db.connection.execute(
+                "SELECT status FROM semantic_graph_run ORDER BY id DESC LIMIT 1"
+            ).fetchone()[0], "FAILED")
+
+            sync_semantic_graph(db)
+            edges = db.connection.execute(
+                "SELECT n.entity_id FROM semantic_edge e "
+                "JOIN semantic_node n ON n.id=e.target_node_id "
+                "WHERE e.relation_type='DEPENDS_ON'"
+            ).fetchall()
+            self.assertEqual([row[0] for row in edges], [new])
+            db.connection.execute("DELETE FROM module_dependency WHERE id=?", (dependency,))
+            sync_semantic_graph(db)
+            self.assertEqual(db.connection.execute(
+                "SELECT COUNT(*) FROM semantic_edge WHERE relation_type='DEPENDS_ON'"
+            ).fetchone()[0], 0)
+            db.connection.execute("DELETE FROM module WHERE id=?", (old,))
+            sync_semantic_graph(db)
+            self.assertEqual(db.connection.execute(
+                "SELECT COUNT(*) FROM semantic_node WHERE entity_table='module' AND entity_id=?",
+                (old,),
+            ).fetchone()[0], 0)
+            self.assertEqual(db.connection.execute("PRAGMA foreign_key_check").fetchall(), [])
+            db.close()
+
     def test_osal_fixture_and_jni_fixture_are_evidence_bound(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); binary = root / "libSyncAndroid.so"; binary.write_bytes(b"native")
