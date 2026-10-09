@@ -134,6 +134,8 @@ def run_ghidra_batch(
         binary = Path(item["file_path"])
         output = output_dir / f"ghidra-{item['binary_id']}-{digest[:16]}.jsonl"
         try:
+            # Refuse to import stale output left by an earlier failed Ghidra job.
+            output.unlink(missing_ok=True)
             # Revalidate immediately before execution to avoid stale manifest.
             if sha256_file(binary) != digest:
                 raise ValueError("binary changed before Ghidra execution")
