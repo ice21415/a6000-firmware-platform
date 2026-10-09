@@ -524,3 +524,20 @@ locking and callable safety remain unknown/false.
 
 Use `fw sdk parameter-set-callers --json` to validate the checked-in contract,
 or supply private `--ghidra-export` and `--elf` inputs for a local reparse.
+
+## PrmSet vtable metadata checkpoint (2026-10-10)
+
+`fwplatform.param_set_probe` now reads PrmSet RTTI/vtable words only from a
+unique file-backed ELF `PT_LOAD`. The SHA-pinned private run verifies the
+prefix `0x1019d18`, RTTI `0x1019d08`, address point `0x1019d20`, and Thumb
+targets `0x7efbb4`, `0x7efb2c`, `0x7efb58` (raw words `0x7efbb5`, `0x7efb2d`,
+`0x7efb59`). Target addresses are primary static facts; clone/destructor role
+labels are static inferences from the bounded bodies and vtable slot position.
+The sanitized result is in `sdk/param_set_3_21.json`, with descriptive
+constants in `sdk/paramlist_3_21_candidate.hpp`. The constructor still has no
+observed key `+0x08` store; key initialization remains scoped to `0x7eda84`.
+The same contract separates bounded no-null-guard observations from unknown
+invalid-node, alias-invalidation and concurrency behavior. Runtime verification
+and callable API counts remain zero. A fresh private ASCII-path Ghidra
+`ParamListTargets.java param-set` run exited 0 with 28 target bodies, 375
+instruction rows, 55 blocks and 96 CFG edges; its export remains private.

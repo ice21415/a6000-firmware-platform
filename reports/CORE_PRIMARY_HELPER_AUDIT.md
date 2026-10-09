@@ -1166,3 +1166,44 @@ specific source-level class owns it. `prmset_mutator_entry` and
 exports, hash/address-space mismatches, duplicate references and a callsite
 outside its reported (possibly non-contiguous) body ranges. Runtime ownership,
 exception cleanup, locking and callable safety remain unknown.
+
+### PrmSet RTTI/vtable word confirmation — 2026-10-10
+
+The exact SHA-pinned primary ELF was read again in a separate data-only pass;
+the previously recovered `ParamList::get` control flow was not repeated. The
+new `fwplatform.param_set_probe` reader accepts only a unique file-backed
+`PT_LOAD`, so vtable words cannot be confused with instructions or zero-filled
+runtime storage. It verified the `PrmSet` prefix and address point:
+
+| ELF VMA | File word / target | Evidence level |
+|---:|---|---|
+| `0x1019d18` | offset-to-top `0x0` | `PRIMARY_ELF_VERIFIED` |
+| `0x1019d1c` | RTTI pointer `0x1019d08` (`6PrmSet`) | `PRIMARY_ELF_VERIFIED` |
+| `0x1019d20` | Thumb-tagged target `0x7efbb5`, body entry `0x7efbb4` | target `PRIMARY_ELF_VERIFIED`; clone role `STATIC_INFERRED` |
+| `0x1019d24` | Thumb-tagged target `0x7efb2d`, body entry `0x7efb2c` | target `PRIMARY_ELF_VERIFIED`; destructor role `STATIC_INFERRED` |
+| `0x1019d28` | Thumb-tagged target `0x7efb59`, body entry `0x7efb58` | target `PRIMARY_ELF_VERIFIED`; deleting role `STATIC_INFERRED` |
+
+The independent `param_family_probe` reports the same three slot targets and
+the direct RTTI `+0x08` relocation to `_ZTI9ParamBase`. The existing private
+Ghidra 12.1.3 lifecycle/caller profiles contain bounded bodies for the clone
+and both destructor targets and exit successfully; a fresh isolated ASCII-path
+`ParamListTargets.java param-set` run against the same ELF also exited `0` with
+the complete marker, 28 target bodies, 375 instruction rows, 55 blocks and 96
+edges. Ghidra function labels are not used as semantic names. This is a
+cross-check of target bodies and address-space mapping, not runtime dispatch
+proof.
+
+The probe now exposes the metadata through `inheritance.vtable_slots` and the
+descriptive header constants in `sdk/paramlist_3_21_candidate.hpp`. Slot
+positions and target addresses are preserved, while the source-level virtual
+declarations, exception cleanup, allocator pairing and dispatch ABI remain
+`UNKNOWN`/`STATIC_INFERRED` as stated. The constructor still has no observed
+write to element key `+0x08`; the separate key setter at `0x7eda84` remains the
+only direct key-initialization witness. The three new fail-closed tests reject a missing slot, an untagged/wrong slot
+word or an unsafe concurrency promotion. Runtime-verified and callable
+core API counts remain **0**.
+The complete local synthetic suite passes **343 tests** after the vtable and safety validator additions.
+The contract also records bounded null-guard observations, borrowed-pointer
+invalidation, invalid-node behavior and concurrency as separate safety fields;
+only the first two bounded no-guard observations are primary/static facts and
+none is a runtime-safety guarantee.

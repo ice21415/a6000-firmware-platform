@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — PrmSet RTTI/vtable word verification
+
+- Added a SHA-pinned, file-backed `PT_LOAD` reader to the private PrmSet probe.
+  It verifies the `PrmSet` RTTI/vtable prefix, concrete slot targets and
+  Thumb tags without decoding data as instructions.
+- Added evidence-gated `inheritance.vtable_slots`, descriptive SDK constants
+  and fail-closed tests for missing, wrong or untagged slot words. Slot target
+  addresses are `PRIMARY_ELF_VERIFIED`; source-level clone/destructor roles,
+  ownership, runtime dispatch and callable status remain unverified.
+- Added structured safety boundaries for the bounded getter/destructor guard
+  observations, borrowed-pointer invalidation, invalid elements and
+  concurrency. Unknown behavior remains unknown and `runtime_safe` is false.
+- Re-ran the bounded private Ghidra `param-set` profile on the pinned ELF;
+  exit 0, complete marker, 28 target bodies, 375 instructions, 55 blocks and
+  96 CFG edges. The export remains outside the public repository.
+
 ## Unreleased — address-space-aware ParamSet helper callers
 
 - Added the metadata-only `TargetCallers.java` exporter and bounded caller

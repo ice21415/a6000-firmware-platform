@@ -27,6 +27,42 @@ def _report():
             "base_type": "ParamBase",
             "rtti_name": "6PrmSet",
             "vtable_address_point": "0x1019d20",
+            "vtable_slots": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "address_space": "ELF_VMA",
+                "vtable_prefix_vma": "0x1019d18",
+                "address_point_vma": "0x1019d20",
+                "prefix": {
+                    "offset_to_top": "0x0",
+                    "typeinfo_pointer": "0x1019d08",
+                },
+                "slots": {
+                    "+0x00": {
+                        "role": "clone_candidate",
+                        "entry_vma": "0x7efbb4",
+                        "raw_thumb_value": "0x7efbb5",
+                        "thumb_tag": True,
+                        "status": "PRIMARY_ELF_VERIFIED",
+                        "address_space": "ELF_VMA",
+                    },
+                    "+0x04": {
+                        "role": "nondeleting_destructor",
+                        "entry_vma": "0x7efb2c",
+                        "raw_thumb_value": "0x7efb2d",
+                        "thumb_tag": True,
+                        "status": "PRIMARY_ELF_VERIFIED",
+                        "address_space": "ELF_VMA",
+                    },
+                    "+0x08": {
+                        "role": "deleting_destructor",
+                        "entry_vma": "0x7efb58",
+                        "raw_thumb_value": "0x7efb59",
+                        "thumb_tag": True,
+                        "status": "PRIMARY_ELF_VERIFIED",
+                        "address_space": "ELF_VMA",
+                    },
+                },
+            },
         },
         "payload_layout": {
             "header_layout": {
@@ -55,6 +91,24 @@ def _report():
                     "prmset_mutator_entry": "UNKNOWN",
                 },
             },
+        },
+        "safety_boundaries": {
+            "get_set_null_receiver": {
+                "status": "PRIMARY_ELF_VERIFIED",
+            },
+            "get_set_lifetime": {
+                "status": "STATIC_INFERRED",
+            },
+            "destructor_payload_guard": {
+                "status": "PRIMARY_ELF_VERIFIED",
+            },
+            "invalid_element": {
+                "status": "UNKNOWN",
+            },
+            "concurrency": {
+                "status": "UNKNOWN",
+            },
+            "runtime_safe": False,
         },
         "observations": {
             target["name"]: {"status": "PRIMARY_ELF_VERIFIED"}
@@ -88,8 +142,18 @@ class ParamSetProbeTests(unittest.TestCase):
         ])
         self.assertEqual(tree["value_copy_evidence"]["entry"], "0xecd7a")
         self.assertEqual(tree["value_compare_evidence"]["entry"], "0xefe6c")
+        inheritance = contract["inheritance"]
+        slots = inheritance["vtable_slots"]
+        self.assertEqual(slots["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(slots["address_space"], "ELF_VMA")
+        self.assertEqual(slots["prefix"]["typeinfo_pointer"], "0x1019d08")
+        self.assertEqual(slots["slots"]["+0x00"]["raw_thumb_value"], "0x7efbb5")
+        self.assertEqual(slots["slots"]["+0x04"]["raw_thumb_value"], "0x7efb2d")
+        self.assertEqual(slots["slots"]["+0x08"]["raw_thumb_value"], "0x7efb59")
         self.assertFalse(contract["runtime_verified"])
         self.assertFalse(contract["callable"])
+        self.assertFalse(contract["safety_boundaries"]["runtime_safe"])
+        self.assertEqual(contract["safety_boundaries"]["concurrency"]["status"], "UNKNOWN")
 
     def test_static_report_is_valid(self):
         result = validate_param_set(_report())
@@ -165,6 +229,27 @@ class ParamSetProbeTests(unittest.TestCase):
         result = validate_param_set(report)
         self.assertFalse(result["valid"])
         self.assertIn("inheritance_vtable", result["errors"])
+
+    def test_vtable_slot_target_or_thumb_tag_is_rejected(self):
+        report = _report()
+        report["inheritance"]["vtable_slots"]["slots"]["+0x08"]["raw_thumb_value"] = "0x7efb58"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("inheritance_vtable_slot_raw:+0x08", result["errors"])
+
+    def test_missing_vtable_slot_evidence_is_rejected(self):
+        report = _report()
+        del report["inheritance"]["vtable_slots"]["slots"]["+0x04"]
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("inheritance_vtable_slot:+0x04", result["errors"])
+
+    def test_safety_promotion_is_rejected(self):
+        report = _report()
+        report["safety_boundaries"]["concurrency"]["status"] = "PRIMARY_ELF_VERIFIED"
+        result = validate_param_set(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("safety_status:concurrency", result["errors"])
 
     def test_exact_source_type_promotion_is_rejected(self):
         report = _report()

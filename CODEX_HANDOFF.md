@@ -751,3 +751,33 @@ in.
 The new synthetic caller-parser/CLI tests pass. Next target remains a uniquely
 typed ParamSet mutation/owner path; do not promote the generic ordered-tree
 helper or generated labels to a source-level API.
+
+## Continuation checkpoint — PrmSet vtable word verification (2026-10-10)
+
+The exact private `libObj.so` was re-read after validating SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`. This
+checkpoint did not repeat the `ParamList::get` recovery. A new bounded data
+reader in `fwplatform/param_set_probe.py` requires a unique file-backed
+`PT_LOAD` and verifies the PrmSet vtable prefix `0x1019d18`, RTTI pointer
+`0x1019d08`, and address point `0x1019d20`.
+
+The three file words are `0x7efbb5`, `0x7efb2d` and `0x7efb59`, respectively
+mapping to body entries `0x7efbb4` (clone candidate), `0x7efb2c` (non-deleting
+destructor candidate) and `0x7efb58` (deleting destructor candidate). Target
+words and Thumb tags are `PRIMARY_ELF_VERIFIED`; the source-level virtual-role
+labels remain `STATIC_INFERRED`. `param_family_probe` independently reports
+the same targets. A fresh isolated ASCII-path `ParamListTargets.java
+param-set` run against the same ELF exited 0 with `COMPLETE_TARGET_EXPORT`, 28
+target bodies, 375 instruction rows, 55 blocks and 96 edges. No raw bytes,
+Ghidra output or private path was added to the repository.
+
+`sdk/param_set_3_21.json` now carries `inheritance.vtable_slots` and the
+descriptive header exposes ELF VMA/Thumb-tag constants. The constructor still
+has no observed `+0x08` key store; `0x7eda84` remains the direct key-setter
+witness. New fail-closed tests reject missing slots and wrong/untagged values.
+The private probe returned `validation={'valid': True, 'errors': []}` and the
+targeted ParamSet suite passes 18 tests. The complete local suite passes 343
+tests. Runtime verification and callable API counts remain zero.
+The contract also keeps bounded null-guard observations separate from unknown
+invalid-node, alias-invalidation and concurrency behavior; none is a runtime
+safety guarantee.

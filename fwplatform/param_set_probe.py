@@ -79,6 +79,31 @@ def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
     return data
 
 
+def _read_filebacked_u32(fp: Any, elf: ELFFile, address: int) -> int:
+    """Read one little-endian word from a unique file-backed PT_LOAD.
+
+    Vtable and RTTI words are data, not executable instructions.  Keeping this
+    reader separate from ``_read_exec_range`` prevents a data address from
+    being accidentally decoded as Thumb code and rejects ambiguous or
+    zero-fill-only mappings instead of guessing a file offset.
+    """
+    offsets: list[int] = []
+    for segment in elf.iter_segments():
+        if segment["p_type"] != "PT_LOAD":
+            continue
+        base = int(segment["p_vaddr"])
+        count = int(segment["p_filesz"])
+        if base <= address and address + 4 <= base + count:
+            offsets.append(int(segment["p_offset"]) + address - base)
+    if len(offsets) != 1:
+        raise ValueError(f"ELF_VMA 0x{address:x} is not uniquely file-backed")
+    fp.seek(offsets[0])
+    data = fp.read(4)
+    if len(data) != 4:
+        raise ValueError(f"truncated data word at ELF_VMA 0x{address:x}")
+    return int.from_bytes(data, "little")
+
+
 def _decode(fp: Any, elf: ELFFile, entry: int, size: int) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
@@ -154,6 +179,61 @@ def _observe_get(rows: dict[int, Any], binding: dict[str, Any]) -> dict[str, Any
         "forwarding": "tail branch through the ParamList::get interworking veneer",
         "target_binding": binding,
         "return": "delegated lookup result; source return and ownership UNKNOWN",
+    }
+
+
+def _observe_prmset_vtable(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    """Verify the concrete PrmSet RTTI/vtable words in the primary ELF.
+
+    The slot addresses and Thumb tags are direct file facts.  The labels
+    ``clone candidate`` and destructor roles describe the bounded target
+    bodies and Itanium-style slot positions; they do not create a callable
+    source-level C++ declaration.
+    """
+    prefix = 0x1019D18
+    address_point = 0x1019D20
+    rtti = 0x1019D08
+    prefix_words = [
+        _read_filebacked_u32(fp, elf, prefix),
+        _read_filebacked_u32(fp, elf, prefix + 4),
+    ]
+    if prefix_words != [0, rtti]:
+        raise ValueError("PrmSet vtable prefix/RTTI word mismatch")
+    expected = (
+        (0x00, "clone_candidate", 0x7EFBB4, "bounded clone allocation/copy body"),
+        (0x04, "nondeleting_destructor", 0x7EFB2C, "bounded payload-release destructor body"),
+        (0x08, "deleting_destructor", 0x7EFB58, "bounded destructor-plus-delete body"),
+    )
+    slots: dict[str, Any] = {}
+    for offset, role, entry, role_evidence in expected:
+        raw = _read_filebacked_u32(fp, elf, address_point + offset)
+        if (raw & ~1) != entry or (raw & 1) != 1:
+            raise ValueError(f"PrmSet vtable slot +0x{offset:x} mismatch")
+        slots[f"+0x{offset:02x}"] = {
+            "role": role,
+            "role_status": "STATIC_INFERRED",
+            "entry_vma": f"0x{entry:x}",
+            "raw_thumb_value": f"0x{raw:x}",
+            "thumb_tag": True,
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA",
+            "evidence": role_evidence,
+        }
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA",
+        "vtable_prefix_vma": f"0x{prefix:x}",
+        "address_point_vma": f"0x{address_point:x}",
+        "prefix": {
+            "offset_to_top": "0x0",
+            "typeinfo_pointer": f"0x{prefix_words[1]:x}",
+            "status": "PRIMARY_ELF_VERIFIED",
+        },
+        "slots": slots,
+        "source_level_semantics": (
+            "slot positions and target bodies are statically observed; exact source "
+            "virtual declarations and runtime dispatch remain UNKNOWN"
+        ),
     }
 
 
@@ -671,6 +751,7 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "payload_copy_wrapper": _observe_copy_wrapper(_decode(fp, elf, 0x63E8A6, 0x0E)),
             "payload_destroy_wrapper": _observe_payload_destroy(_decode(fp, elf, 0xFFE0C, 0x0E)),
         }
+        prmset_vtable = _observe_prmset_vtable(fp, elf)
         observations["payload_tree_insert_callers"] = _observe_tree_insert_callers(fp, elf)
     return {
         "status": "LOCAL_PRIMARY_ELF_PRMSET_EVIDENCE_ONLY",
@@ -688,6 +769,7 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "vtable_address_point": "0x1019d20",
             "relation": "direct RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relation",
             "source": "cross-checked against param_base_3_21.json; source class declaration remains descriptive",
+            "vtable_slots": prmset_vtable,
         },
         "payload_layout": {
             "object_base": "+0x0c",
@@ -760,6 +842,32 @@ def probe_param_set(elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SH
             "destructor": "releases embedded payload then calls ParamBase destruction path",
             "status": "STATIC_INFERRED; container allocator, aliases, exceptions and synchronization UNKNOWN",
         },
+        "safety_boundaries": {
+            "get_set_null_receiver": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "observation": "the bounded 0x7efae8 body has no local null check before adding +0x0c",
+                "scope": "bounded body only; caller preconditions and runtime fault behavior UNKNOWN",
+            },
+            "get_set_lifetime": {
+                "status": "STATIC_INFERRED",
+                "observation": "the getter returns an interior payload address and performs no retain operation",
+                "alias_invalidation": "UNKNOWN",
+            },
+            "destructor_payload_guard": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "observation": "the short 0x7efb2c wrapper has no local null branch before delegating payload release",
+                "delegate_semantics": "UNKNOWN",
+            },
+            "invalid_element": {
+                "status": "UNKNOWN",
+                "observation": "recursive release observes null child-link termination only; invalid node behavior is not recovered",
+            },
+            "concurrency": {
+                "status": "UNKNOWN",
+                "observation": "the bounded PrmSet targets do not prove a lock, atomic counter or scheduler contract",
+            },
+            "runtime_safe": False,
+        },
         "runtime_verified": False,
         "callable": False,
     }
@@ -788,6 +896,47 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
             errors.append("inheritance_identity")
         if inheritance.get("vtable_address_point") != "0x1019d20":
             errors.append("inheritance_vtable")
+        slots = inheritance.get("vtable_slots")
+        if not isinstance(slots, dict) or slots.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("inheritance_vtable_slots")
+        else:
+            if slots.get("address_space") != "ELF_VMA":
+                errors.append("inheritance_vtable_slots_address_space")
+            if slots.get("vtable_prefix_vma") != "0x1019d18":
+                errors.append("inheritance_vtable_prefix")
+            if slots.get("address_point_vma") != "0x1019d20":
+                errors.append("inheritance_vtable_address_point")
+            prefix = slots.get("prefix")
+            if not isinstance(prefix, dict) or prefix.get("offset_to_top") != "0x0" or prefix.get("typeinfo_pointer") != "0x1019d08":
+                errors.append("inheritance_vtable_prefix_words")
+            expected_slots = {
+                "+0x00": ("clone_candidate", "0x7efbb4"),
+                "+0x04": ("nondeleting_destructor", "0x7efb2c"),
+                "+0x08": ("deleting_destructor", "0x7efb58"),
+            }
+            actual_slots = slots.get("slots")
+            if not isinstance(actual_slots, dict):
+                errors.append("inheritance_vtable_slot_map")
+            else:
+                for offset, (role, entry) in expected_slots.items():
+                    slot = actual_slots.get(offset)
+                    if not isinstance(slot, dict):
+                        errors.append(f"inheritance_vtable_slot:{offset}")
+                        continue
+                    if slot.get("status") != "PRIMARY_ELF_VERIFIED":
+                        errors.append(f"inheritance_vtable_slot_status:{offset}")
+                    if slot.get("address_space") != "ELF_VMA":
+                        errors.append(f"inheritance_vtable_slot_space:{offset}")
+                    if slot.get("role") != role or slot.get("entry_vma") != entry:
+                        errors.append(f"inheritance_vtable_slot_target:{offset}")
+                    if slot.get("thumb_tag") is not True:
+                        errors.append(f"inheritance_vtable_slot_thumb:{offset}")
+                    raw = slot.get("raw_thumb_value")
+                    try:
+                        if int(str(raw), 16) != (int(entry, 16) | 1):
+                            errors.append(f"inheritance_vtable_slot_raw:{offset}")
+                    except (TypeError, ValueError):
+                        errors.append(f"inheritance_vtable_slot_raw:{offset}")
     payload_layout = report.get("payload_layout")
     header = payload_layout.get("header_layout") if isinstance(payload_layout, dict) else None
     if not isinstance(header, dict):
@@ -845,6 +994,22 @@ def validate_param_set(report: dict[str, Any]) -> dict[str, Any]:
             errors.append("tree_insert_callers")
         elif callers.get("prmset_mutator_entry") != "UNKNOWN":
             errors.append("tree_mutator_promotion")
+    safety = report.get("safety_boundaries")
+    if not isinstance(safety, dict):
+        errors.append("missing_safety_boundaries")
+    else:
+        if safety.get("runtime_safe") is not False:
+            errors.append("safety_runtime_promotion")
+        for name, expected_status in (
+            ("get_set_null_receiver", "PRIMARY_ELF_VERIFIED"),
+            ("get_set_lifetime", "STATIC_INFERRED"),
+            ("destructor_payload_guard", "PRIMARY_ELF_VERIFIED"),
+            ("invalid_element", "UNKNOWN"),
+            ("concurrency", "UNKNOWN"),
+        ):
+            item = safety.get(name)
+            if not isinstance(item, dict) or item.get("status") != expected_status:
+                errors.append(f"safety_status:{name}")
     expected = {target["name"] for target in TARGETS}
     observations = report.get("observations")
     if not isinstance(observations, dict) or not expected.issubset(observations):

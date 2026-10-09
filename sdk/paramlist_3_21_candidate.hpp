@@ -72,6 +72,21 @@ static_assert(sizeof(PrmDimensionSnapshotWords) == 20);
 static_assert(sizeof(PrmStructSnapshotWords) == 20);
 static_assert(sizeof(PrmSetSnapshotWords) == 36);
 
+// PrmSet RTTI/vtable metadata recovered from the SHA-pinned 3.21 ELF.  The
+// function addresses are ELF VMAs and the odd values below are Thumb-tagged
+// words read from the file-backed vtable; they are not host function pointers.
+struct PrmSetEvidenceConstants {
+    static constexpr std::uint32_t rtti_vma = 0x01019d08;
+    static constexpr std::uint32_t vtable_prefix_vma = 0x01019d18;
+    static constexpr std::uint32_t vtable_address_point = 0x01019d20;
+    static constexpr std::uint32_t clone_candidate_vma = 0x007efbb4;
+    static constexpr std::uint32_t nondeleting_destructor_vma = 0x007efb2c;
+    static constexpr std::uint32_t deleting_destructor_vma = 0x007efb58;
+    static constexpr std::uint32_t clone_candidate_raw_thumb = 0x007efbb5;
+    static constexpr std::uint32_t nondeleting_destructor_raw_thumb = 0x007efb2d;
+    static constexpr std::uint32_t deleting_destructor_raw_thumb = 0x007efb59;
+};
+
 // The following words describe the bounded ELF-local tree evidence inside a
 // PrmSet payload.  They are not a std::set declaration and must not be used
 // as host pointers or live camera objects.  The source alias, comparator,

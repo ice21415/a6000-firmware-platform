@@ -71,7 +71,7 @@
       "insert_callers": {
         "status": "PRIMARY_ELF_VERIFIED",
         "caller_metadata_contract": "sdk/param_set_tree_callers_3_21.json",
-        "caller_metadata_summary": "Ghidra caller ranges are recorded separately from Capstone callsite facts; generated labels are non-semantic and a Capstone-only 0xfffc0 caller remains unresolved",
+        "caller_metadata_summary": "Ghidra caller ranges are recorded separately from Capstone callsite facts; all eight normalized callsites agree across the two sources, generated labels are non-semantic, and the generic helper's PrmSet ownership remains UNKNOWN",
         "target": "0xffe70",
         "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
         "direct_callsite_addresses": [
@@ -249,9 +249,35 @@
     "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
     "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN"
   ],
+  "safety_boundaries": {
+    "get_set_null_receiver": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "observation": "the bounded 0x7efae8 body has no local null check before adding +0x0c",
+      "scope": "bounded body only; caller preconditions and runtime fault behavior UNKNOWN"
+    },
+    "get_set_lifetime": {
+      "status": "STATIC_INFERRED",
+      "observation": "the getter returns an interior payload address and performs no retain operation",
+      "alias_invalidation": "UNKNOWN"
+    },
+    "destructor_payload_guard": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "observation": "the short 0x7efb2c wrapper has no local null branch before delegating payload release",
+      "delegate_semantics": "UNKNOWN"
+    },
+    "invalid_element": {
+      "status": "UNKNOWN",
+      "observation": "recursive release observes null child-link termination only; invalid node behavior is not recovered"
+    },
+    "concurrency": {
+      "status": "UNKNOWN",
+      "observation": "the bounded PrmSet targets do not prove a lock, atomic counter or scheduler contract"
+    },
+    "runtime_safe": false
+  },
   "runtime_verified": false,
   "callable": false,
-  "evidence_revision": "param-set-header-node-lifetime-2026-10-10",
+  "evidence_revision": "param-set-vtable-and-header-2026-10-10",
   "inheritance": {
     "status": "PRIMARY_ELF_VERIFIED",
     "base_type": "ParamBase",
@@ -260,6 +286,50 @@
     "vtable_prefix_vma": "0x1019d18",
     "vtable_address_point": "0x1019d20",
     "relation": "direct RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relation",
-    "source": "sdk/param_base_3_21.json direct_derived; exact source class declaration remains descriptive"
+    "source": "sdk/param_base_3_21.json direct_derived; exact source class declaration remains descriptive",
+    "vtable_slots": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "vtable_prefix_vma": "0x1019d18",
+      "address_point_vma": "0x1019d20",
+      "prefix": {
+        "offset_to_top": "0x0",
+        "typeinfo_pointer": "0x1019d08",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "slots": {
+        "+0x00": {
+          "role": "clone_candidate",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efbb4",
+          "raw_thumb_value": "0x7efbb5",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded clone allocation/copy body"
+        },
+        "+0x04": {
+          "role": "nondeleting_destructor",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efb2c",
+          "raw_thumb_value": "0x7efb2d",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded payload-release destructor body"
+        },
+        "+0x08": {
+          "role": "deleting_destructor",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efb58",
+          "raw_thumb_value": "0x7efb59",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded destructor-plus-delete body"
+        }
+      },
+      "source_level_semantics": "slot positions and target bodies are statically observed; exact source virtual declarations and runtime dispatch remain UNKNOWN"
+    }
   }
 }
