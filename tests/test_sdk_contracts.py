@@ -203,6 +203,26 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertEqual(exported["interfaces"][0]["reported_runtime_safety"], "CALLABLE_VALIDATED")
         self.assertFalse(exported["interfaces"][0]["runtime_callable_verified"])
 
+    def test_legacy_unaudited_static_claim_is_downgraded_on_export(self) -> None:
+        digest, function_id, evidence_id = self._function_with_evidence()
+        binary_id = self.db.connection.execute(
+            "SELECT binary_id FROM function WHERE id=?", (function_id,)
+        ).fetchone()[0]
+        self.db.upsert("sdk_interface", {
+            "identity_key": "legacy:unverified-abi", "name": "legacy_get", "domain": "Camera",
+            "binary_id": binary_id, "function_id": function_id, "address": "0x100",
+            "abi": "UNKNOWN_ABI", "parameter_layout": "[]", "return_semantics": "int",
+            "verification_status": "VERIFIED_STATIC", "runtime_safety": "DESCRIPTIVE_ONLY",
+            "source_evidence_id": evidence_id,
+        }, ("identity_key",))
+        self.db.commit()
+        exported = build_sdk_index(self.db, self.root / "legacy.json")
+        self.assertEqual(exported["interfaces"][0]["verification_status"], "CANDIDATE")
+        self.assertEqual(exported["interfaces"][0]["reported_verification_status"], "VERIFIED_STATIC")
+        self.assertFalse(exported["interfaces"][0]["static_contract_complete"])
+        self.assertIn("PRIMARY_EVIDENCE_NOT_BOUND_TO_ABI",
+                      exported["contract_audit"]["records"][0]["issues"])
+
     def test_cli_import_and_audit(self) -> None:
         fixture = self._fixture([{"name": "display_state", "domain": "UI"}])
         self.db.close()
