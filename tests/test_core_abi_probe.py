@@ -16,7 +16,8 @@ from fwplatform.private_thumb_research import EXPECTED_LIBOBJ_SHA
 
 
 def synthetic_arm_elf(path: Path, *, second_result: int = 1,
-                      code_flags: int = 5, duplicate: bool = False) -> str:
+                      code_flags: int = 5, duplicate: bool = False,
+                      final_halfword_return: bool = False) -> str:
     """Make tiny ELF with pure synthetic code at two artificial VMAs."""
     data = bytearray(0x400)
     ident = b"\x7fELF" + bytes([1, 1, 1]) + bytes(9)
@@ -33,6 +34,10 @@ def synthetic_arm_elf(path: Path, *, second_result: int = 1,
     data[at(0x1010):at(0x1014)] = bytes.fromhex("08467047")
     # STR r1,[r2] ; MOVS r0,#N ; BX LR
     data[at(0x1020):at(0x1026)] = bytes([0x11, 0x60, second_result << 0, 0x20, 0x70, 0x47])
+    if final_halfword_return:
+        # The final two bytes of an executable PT_LOAD are a complete
+        # Thumb BX LR. Requiring four bytes would incorrectly reject it.
+        data[at(0x117e):at(0x1180)] = bytes.fromhex("7047")
     path.write_bytes(data)
     return hashlib.sha256(data).hexdigest()
 
@@ -126,6 +131,21 @@ class CoreABIPrimaryByteProbeTests(unittest.TestCase):
                             third[1]["register_and_return_observations"]["visited_instruction_bytes_sha256"])
         self.assertEqual(first[0]["register_and_return_observations"]["visited_instruction_bytes_sha256"],
                          third[0]["register_and_return_observations"]["visited_instruction_bytes_sha256"])
+
+    def test_valid_two_byte_thumb_return_on_final_load_halfword(self):
+        self.sha = synthetic_arm_elf(self.elf, final_halfword_return=True)
+        region = self.probe(
+            targets=(("boundary_return", 0x117e),), region_bytes=16
+        )["research_targets"][0]
+        self.assertEqual(region["visited_instructions"], 1)
+        self.assertEqual(
+            region["register_and_return_observations"]["observed_return_sites_capped"],
+            ["0x117e"],
+        )
+        self.assertNotIn(
+            "NON_EXECUTABLE_OR_AMBIGUOUS_VMA",
+            region["incompleteness_reasons"],
+        )
 
     def test_prohibited_or_ambiguous_code_mapping_is_fail_closed(self):
         self.sha = synthetic_arm_elf(self.elf, duplicate=True)
