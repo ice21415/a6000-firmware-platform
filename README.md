@@ -154,6 +154,25 @@ python -m fwplatform.cli --db database/firmware.db query dex SyncAndroid --json
 `dex_descriptor_candidate` 和 `dex_signature_candidate` 仍為 CANDIDATE，
 不代表 Java class/method 或 JNI bridge 已獲證實。此流程不會對相機寫入資料。
 
+## Phase 3.3：DEX 結構化證據與 JNI 交叉驗證
+
+`fw analyze dex` 現在會同時解析 DEX `type_ids`、`class_defs`、`proto_ids`
+與 `method_ids`，並將結果記錄成可查詢的 `research_observation`：
+`dex_type_id`、`dex_class_definition`、`dex_method_reference`。輸入的表格
+邊界、型別索引及原型參照都會檢查，匯入中途失敗會回滾 SQLite 寫入。
+例如：
+
+```powershell
+python -m fwplatform.cli --db database/firmware.db analyze dex --path C:\\path\\to\\classes.dex --json
+python -m fwplatform.cli --db database/firmware.db query dex "Lcom/example/C;" --json
+```
+
+**證據邊界**：DEX `class_def` 證明此 DEX 含有一個 class definition；
+`method_id` 只證明存在方法**引用**，不能證明方法有程式碼或 JNI
+實作。JNI 語意圖譜只會在 method class/name/signature、DEX 路徑和
+來源 evidence ID 同時符合時，建立 Java method 對應邊。解析字串時使用
+UTF-8 replacement 作為保守索引，尚未實作完整的 DEX MUTF-8 語意。
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和
