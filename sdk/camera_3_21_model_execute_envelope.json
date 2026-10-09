@@ -81,7 +81,7 @@
       {
         "address": "0x7f0b2a",
         "role": "OPTIONAL_PARAMLIST_GUARD",
-        "instruction_contains": "cbz      r5"
+        "instruction_contains": "cbz      r5, #0x7f0b34"
       },
       {
         "address": "0x7f0b30",
