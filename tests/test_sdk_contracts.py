@@ -158,6 +158,9 @@ class OfflineSdkContractTests(unittest.TestCase):
         self.assertIn("RUNTIME_CLAIM_REQUIRES_INDEPENDENT_VALIDATION", audit["records"][0]["issues"])
         exported = build_sdk_index(self.db, self.root / "index.json")
         self.assertIsNone(exported["coverage"]["callable_validated_interfaces"])
+        self.assertIsNone(exported["coverage"]["runtime_verified_interfaces"])
+        self.assertIsNone(exported["coverage"]["semantically_understood_functions"])
+        self.assertEqual(exported["coverage"]["runtime_claimed_interfaces"], 1)
 
     def test_cli_import_and_audit(self) -> None:
         fixture = self._fixture([{"name": "display_state", "domain": "UI"}])
