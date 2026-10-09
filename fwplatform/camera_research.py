@@ -63,6 +63,7 @@ def _array(data: dict[str, Any], name: str) -> list[Any]:
 
 def inspect_camera_research(
     catalog: Path, graph: Path, *, focus: str = "",
+    compare_db: Path | None = None,
 ) -> dict[str, Any]:
     """Check normalized addresses/branches and show a static review subgraph.
 
@@ -213,6 +214,10 @@ def inspect_camera_research(
                     todo.append(edge["callee"])
     else:
         visible = set(functions)
+    database_crosscheck = None
+    if compare_db is not None:
+        from .camera_db_crosscheck import crosscheck_camera_database
+        database_crosscheck = crosscheck_camera_database(compare_db, sha, functions, calls)
     return {
         "status": "RESEARCH_GRAPH_INTERNALLY_CONSISTENT",
         "firmware_version": inventory["firmware_version"],
@@ -236,6 +241,7 @@ def inspect_camera_research(
             "callsite_body_membership_verified": False,
             "complete_sdk_api_denominator": None,
         },
+        "database_crosscheck": database_crosscheck,
         "callable_camera_apis": None,
         "rule": "A consistent report is not proof of a callable SDK or a verified camera control API.",
     }
