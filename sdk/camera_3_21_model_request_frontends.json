@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "scope": "TWO_REQUEST_FRONTENDS_SHARED_SELECTOR_HELPER_AND_FACTORY",
+  "binary_name": "libObj.so",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "saved_source_artifact": "model-camera-methods.txt",
+  "saved_report_only": true,
+  "independent_raw_elf_bytes_checked": false,
+  "recorded_frontends": [
+    {
+      "caller_kind": "VIEWBASE",
+      "symbol": "_ZN8ViewBase19requestModelExecuteEPKcmP9ParamList",
+      "entry_vma": "0x12106e",
+      "name_identifier_import": {
+        "site": "0x121082",
+        "target": "0xdffb8",
+        "name": "_ZN11IdGenerator3GetEPKc"
+      },
+      "selector_transform": {
+        "site": "0x12108c",
+        "target": "0x12d780",
+        "arguments_observed": {
+          "r0": "name_arg",
+          "r1": "selector_arg"
+        },
+        "output_register": "r0",
+        "semantics": "UNKNOWN"
+      },
+      "envelope_import": {
+        "site": "0x121098",
+        "target": "0xdfbdc",
+        "name": "_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+        "r1_origin": "name_identifier_result",
+        "r2_origin": "selector_transform_result",
+        "r3_origin": "paramlist_arg",
+        "receiver_binding": "UNVERIFIED_DYNAMIC_LINK"
+      },
+      "submit": {
+        "site": "0x1210a4",
+        "target": "0xdb578",
+        "form": "TAIL_BRANCH",
+        "symbol": "_ZN4View25requestApplicationExecuteEP5Event",
+        "actual_target_and_delivery": "UNVERIFIED_RUNTIME"
+      },
+      "target_pointer_origin": "this_plus_0x7c"
+    },
+    {
+      "caller_kind": "VIEW_MANAGER_INTERFACE",
+      "symbol": "_ZN13viewManagerIf19requestModelExecuteEPKcmP9ParamList",
+      "entry_vma": "0x1250c0",
+      "name_identifier_import": {
+        "site": "0x1250d8",
+        "target": "0xdffb8",
+        "name": "_ZN11IdGenerator3GetEPKc"
+      },
+      "selector_transform": {
+        "site": "0x1250e2",
+        "target": "0x12d780",
+        "arguments_observed": {
+          "r0": "name_arg",
+          "r1": "selector_arg"
+        },
+        "output_register": "r0",
+        "semantics": "UNKNOWN"
+      },
+      "envelope_import": {
+        "site": "0x1250ee",
+        "target": "0xdfbdc",
+        "name": "_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+        "r1_origin": "name_identifier_result",
+        "r2_origin": "selector_transform_result",
+        "r3_origin": "paramlist_arg",
+        "receiver_binding": "UNVERIFIED_DYNAMIC_LINK"
+      },
+      "submit": {
+        "site": "0x1250f6",
+        "target": "0x125084",
+        "form": "TAIL_BRANCH",
+        "symbol": null,
+        "actual_target_and_delivery": "UNVERIFIED_LOCAL_CALLEE"
+      },
+      "target_pointer_origin": "indirection_via_global_at_0x102cbd0"
+    }
+  ],
+  "shared_observation": {
+    "selector_transform_entry_candidate": "0x12d780",
+    "named_factory_import_target": "0xdfbdc",
+    "model_identifier_import_target": "0xdffb8",
+    "dataflow_equivalence": "IDENTICAL_CALL_INPUT_ROLES_IN_REPORTED_ARM_REGISTERS",
+    "function_signature_verified": false,
+    "selector_transform_semantics_verified": false,
+    "factory_plt_to_impl_relocation_verified": false,
+    "consumer_verified": false
+  },
+  "blockers": [
+    "Inspect original ELF code body for 0x12d780; two callers alone cannot identify the transform",
+    "Resolve runtime import binding to independently found factory implementation at 0x7f0b0c",
+    "Disassemble ViewManager internal target 0x125084 and imported View::requestApplicationExecute path",
+    "Find Event 0x11004003 receiver and Event keys 7/8 parser before connecting ModelCamera actions",
+    "Validate calling conventions, ownership, error codes and thread context separately"
+  ],
+  "sdk_callable_api_count": 0,
+  "verified_complete_api_contracts": 0
+}
