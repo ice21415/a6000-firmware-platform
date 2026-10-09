@@ -131,7 +131,7 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
                          ("state", "State", "value", "name"), ("java_method", "JavaMethod", None, "method_name"),
                          ("jni_bridge", "JNIEntry", "native_entry", "method_name"), ("driver_interface", "Driver", None, "name"),
                          ("ioctl", "Ioctl", "request_id", "name"), ("configuration_key", "ConfigurationKey", None, "key"))
-        java_nodes: dict[tuple[str, str, str], int] = {}
+        java_nodes: dict[tuple[str, str, str, str], tuple[int, int | None]] = {}
         for table, node_type, address_column, label_column in simple_tables:
             for row in db.query(f"SELECT * FROM {table}"):
                 identity = row["identity_key"] if "identity_key" in row.keys() and row["identity_key"] else f"{table}:{row['id']}"
@@ -143,7 +143,9 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
                     status=_status(row), evidence_id=row["source_evidence_id"] if "source_evidence_id" in row.keys() else None,
                     analyzer_version=analyzer_version)
                 if table == "java_method":
-                    java_nodes[(str(row["class_name"] or ""), str(row["method_name"] or ""), str(row["signature"] or ""))] = nodes[(table, int(row["id"]))]
+                    java_key = (str(row["class_name"] or ""), str(row["method_name"] or ""),
+                                str(row["signature"] or ""), str(row["dex_path"] or ""))
+                    java_nodes[java_key] = (nodes[(table, int(row["id"]))], row["source_evidence_id"])
 
         edge_count = 0
         for row in db.query("SELECT * FROM callsite"):
@@ -206,20 +208,32 @@ def sync_semantic_graph(db: Database, analyzer_version: str = f"semantic-graph:{
                 edge_count += 1; _edge(db, source_id=source, target_id=target, relation="TRANSITIONS_TO", status=_status(row), evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version, metadata={"event_id": row["event_id"], "action": row["action"]})
         for row in db.query("SELECT * FROM jni_bridge"):
             source = nodes.get(("jni_bridge", row["id"]))
-            target = java_nodes.get((str(row["class_name"] or ""), str(row["method_name"] or ""), str(row["signature"] or "")))
+            # A method name/signature can occur in multiple DEX files. Link
+            # only if both the exact DEX source and the fixture evidence agree;
+            # a same-name method elsewhere is not proof of this bridge.
+            java_key = (str(row["class_name"] or ""), str(row["method_name"] or ""),
+                        str(row["signature"] or ""), str(row["dex_path"] or ""))
+            java_match = java_nodes.get(java_key)
+            target = (java_match[0] if java_match and row["source_evidence_id"] is not None
+                      and java_match[1] == row["source_evidence_id"] else None)
             native = nodes.get(("function", row["native_function_id"])) if row["native_function_id"] else None
             registration = nodes.get(("function", row["registration_function_id"])) if "registration_function_id" in row.keys() and row["registration_function_id"] else None
             if registration and source:
                 edge_count += 1
                 _edge(db, source_id=registration, target_id=source, relation="REGISTERS_CALLBACK", status=_status(row),
-                      source_binary_id=row["module_id"], source_address=row["method_lookup_address"],
+                      source_binary_id=(db.connection.execute(
+                          "SELECT binary_id FROM function WHERE id=?", (row["registration_function_id"],)
+                      ).fetchone() or [None])[0], source_address=row["method_lookup_address"],
                       evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version,
                       metadata={"direction": row["direction"] if "direction" in row.keys() else "unknown", "role": "jni_registration"})
             if native and source:
                 edge_count += 1
                 _edge(db, source_id=native, target_id=source, relation="JNI_BRIDGE", status=_status(row), evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version, metadata={"direction": "native_to_jni"})
             if source and target:
-                edge_count += 1; _edge(db, source_id=source, target_id=target, relation="JNI_BRIDGE", status=_status(row), evidence_id=row["source_evidence_id"], analyzer_version=analyzer_version)
+                edge_count += 1; _edge(db, source_id=source, target_id=target, relation="JNI_BRIDGE",
+                                       status=_status(row), evidence_id=row["source_evidence_id"],
+                                       analyzer_version=analyzer_version,
+                                       metadata={"dex_path": java_key[3], "java_evidence_match": True})
         for row in db.query("SELECT * FROM ioctl"):
             source = nodes.get(("driver_interface", row["interface_id"])); target = nodes.get(("ioctl", row["id"]))
             if source and target:
