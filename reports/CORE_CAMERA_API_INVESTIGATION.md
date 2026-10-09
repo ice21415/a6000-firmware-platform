@@ -369,6 +369,42 @@ coverage and makes the precise next piece of real private-file
 reverse-engineering reproducible without another whole-Ghidra run.
 
 
+## Phase 3.19: `0x13200a` is an action payload accessor used by ParamList-like parsing paths
+
+The previously opaque `r1` input to
+`pvt_ActionSetInit` has now been tracked through *other*
+Camera action callers from the private saved `libObj.so`
+instruction report:
+
+| Named bounded action entry | Static register path after `0x13200a` | Strongest warranted inference |
+|---|---|---|
+| `ActionExeTest` `0x4aea00` | `r0→r1`, call `0x42abcc`; later constructs a separate `ParamList` | Shared wrapper takes getter payload |
+| `ActionExeAfRangeLimitDrive` `0x4bac78` | `r0→r1`, call `0x42abcc`, then calls `0x42ac00` using keys `0x3fe` and `0x3ff` | **Explicit `Invalid ParamList`** error branches if selected lookups fail |
+| `ActionObjectFocusPosDisplayEvent` `0x4afc9c` | `r0→r1`, call `0x42abcc`, then `0x42ac00` | Same parser-like helper family |
+| `ActionObjectNotifyMfDistance` `0x4ae930` | `r0→r1`, call `0x44a284` with `r2=0x3100,r3=0x8517` | Payload forwarded to a message-construction helper |
+| `pvt_ActionSetInit` `0x4cf7a8` | entry `r1→sl`, then `sl→r1` for `0x42abcc`; follows with `0x4b1a20` and `0x4b096c` | **The same wrapper** is used for the `0x0f01` SetInit second argument |
+
+The shared `0x42abcc` target and explicit
+ParamList-oriented lookup-error branches provide
+a much narrower structural contract for the
+`0x13200a` getter result than the prior phase:
+**an opaque action payload consumed by ParamList-like
+processing**. It may be a `ParamList*`, another
+`ParamBase` carrier or an adapter input; there is
+not yet source-level or original-ELF-body evidence for
+its declared C++ type. The full implementation of
+`0x42abcc`/`0x42ac00` must be decoded before
+concluding which structure is being wrapped and who
+owns it. Do not treat a log string alone as complete
+type or calling-convention proof.
+
+`sdk action-payload --saved-libobj ... --json`
+now checks all **36 selected text snippets across these five
+distinct action entries**; without private saved text,
+the fixture stays an unverified candidate. Both status
+paths assert **zero callable core APIs** and do not
+touch a live camera or modify Sony firmware.
+
 ## Phase 3.18: typed request-bridge arguments and first ModelCamera internal argument shape
 
 This phase prioritizes ABI reconstruction over additional broad
