@@ -2,6 +2,9 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.16：從先前保存的 `libObj.so` Appframework 組語確認事件迴圈、guard、dispatch (`0x7eecac→0x7f21e8`)、cleanup 和 semaphore helper。明確拆分重疊 disassembly 掃描窗口，補上 loop 第二個派送 callsite，建立六個具名研究入口／26 個靜態文字核對位址。
+- 新增 `sdk event-loop`、唯讀 `fwplatform/app_event_loop.py`、保守的事件消費者／ABI 證據驗證與 synthetic 測試；未宣稱事件 `0x11004003` 已追到 Camera 接收者，也未執行 Sony 原始 ELF。
+
 - Phase 3.15：原始保存組語另找到 `viewManagerIf::requestModelExecute` (`0x1250c0`) 與 `ViewBase` 入口共享 `0x12d780` selector helper／`0xdfbdc` factory stub；兩入口＋event factory 共 50/50 靜態組語文本位址核對。
 - 新增 `fw sdk trace-selector` 與 `fwplatform/private_thumb_research.py`：嚴格本機 ELF SHA-256、ARM Thumb 區段邊界、局部控制流／常數及事件 word 掃描；合成 ARM ELF 測試不依賴 Sony 專有二進位。SHA 偏差或無唯一可執行映射直接拒絕。實際 Sony `0x12d780` 函式位元組、event consumer、完整 ABI 仍待原始 ELF 本機驗證。
 
