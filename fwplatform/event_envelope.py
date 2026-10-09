@@ -36,6 +36,24 @@ FRONT_SITES = (
     ("0x121098", "blx      #0xdfbdc ; _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList"),
     ("0x1210a4", "b.w      #0xdb578 ; _ZN4View25requestApplicationExecuteEP5Event"),
 )
+ALT_FRONT_SITES = (
+    ("0x1250c6", "mov      r4, r2"),
+    ("0x1250ce", "mov      r5, r0"),
+    ("0x1250d0", "mov      sb, r1"),
+    ("0x1250d4", "ldr.w    r8, [r3]"),
+    ("0x1250d8", "blx      #0xdffb8 ; _ZN11IdGenerator3GetEPKc"),
+    ("0x1250dc", "mov      r1, sb"),
+    ("0x1250de", "mov      r6, r0"),
+    ("0x1250e0", "mov      r0, r5"),
+    ("0x1250e2", "bl       #0x12d780"),
+    ("0x1250e6", "mov      r1, r6"),
+    ("0x1250e8", "mov      r3, r4"),
+    ("0x1250ea", "mov      r2, r0"),
+    ("0x1250ec", "mov      r0, r8"),
+    ("0x1250ee", "blx      #0xdfbdc ; _ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList"),
+    ("0x1250f6", "b.w      #0x125084"),
+)
+
 FACTORY_SITES = (
     ("0x7f0b14", "mov      r6, r1"),
     ("0x7f0b16", "mov      r8, r2"),
@@ -128,6 +146,25 @@ def audit_model_execute_event(
         raise ValueError("event envelope must be a report-only unresolved candidate")
     identity = fixture.get("binary")
     frontend, factory = fixture.get("request_frontend"), fixture.get("factory_implementation_lead")
+    alternate = fixture.get("alternative_request_frontend")
+    if not isinstance(alternate, dict) or (
+        alternate.get("name") != "viewManagerIf::requestModelExecute"
+        or alternate.get("entry_vma") != "0x1250c0"
+        or alternate.get("this_pointer_or_original_r0_meaning") != "UNKNOWN"
+        or alternate.get("same_local_direct_transform_helper_as_ViewBase") is not True
+        or alternate.get("same_factory_import_stub_address_as_ViewBase") is not True
+        or alternate.get("final_application_dispatch_verified") is not False
+    ):
+        raise ValueError("alternate frontend requires a source-scoped unknown ABI and no consumer claim")
+    alt_expected = (
+        ("0x1250d8", "0xdffb8"), ("0x1250e2", "0x12d780"),
+        ("0x1250ee", "0xdfbdc"), ("0x1250f6", "0x125084"),
+    )
+    alt_items = alternate.get("observed_sites")
+    if not isinstance(alt_items, list) or len(alt_items) != 4 or [
+        (x.get("site"), x.get("target")) for x in alt_items if isinstance(x, dict)
+    ] != list(alt_expected):
+        raise ValueError("alternate frontend reported callsite targets are inconsistent")
     if not all(isinstance(x, dict) for x in (identity, frontend, factory)):
         raise ValueError("event envelope is missing identity/front-end/factory")
     if not SHA.fullmatch(str(identity.get("sha256") or "")) or identity.get("name") != "libObj.so":
@@ -181,7 +218,9 @@ def audit_model_execute_event(
     if not isinstance(gaps, list) or len(gaps) < 4 or not all(isinstance(x, str) and x.strip() for x in gaps):
         raise ValueError("missing model request routing limitations")
     observed: dict[str, Any] = {
-        "front_end_opcode_sites_checked": 0, "factory_opcode_sites_checked": 0,
+        "front_end_opcode_sites_checked": 0,
+        "alternate_front_end_opcode_sites_checked": 0,
+        "factory_opcode_sites_checked": 0,
         "report_text_verified": False, "original_elf_instruction_bytes_verified": False,
     }
     if saved_disassembly is not None:
@@ -190,12 +229,15 @@ def audit_model_execute_event(
             raise ValueError("saved disassembly report missing or exceeds 2 MiB")
         source = path.read_text(encoding="utf-8")
         front = _entry_instructions(source, 0x12106e, "_ZN8ViewBase19requestModelExecute")
+        alt = _entry_instructions(source, 0x1250c0, "_ZN13viewManagerIf19requestModelExecute")
         implementation = _entry_instructions(
             source, 0x7f0b0c, "_ZN22AbstractUtilityManager30createRequestModelExecuteEvent")
         _check_sites(front, FRONT_SITES)
+        _check_sites(alt, ALT_FRONT_SITES)
         _check_sites(implementation, FACTORY_SITES)
         observed = {
             "front_end_opcode_sites_checked": len(FRONT_SITES),
+            "alternate_front_end_opcode_sites_checked": len(ALT_FRONT_SITES),
             "factory_opcode_sites_checked": len(FACTORY_SITES),
             "report_text_verified": True,
             "original_elf_instruction_bytes_verified": False,
@@ -205,6 +247,8 @@ def audit_model_execute_event(
                   else "EVENT_ENVELOPE_CANDIDATE_ONLY",
         "elf_sha256_reported": identity["sha256"],
         "request_frontend_vma": frontend["entry_vma"],
+        "alternative_request_frontend_vma": alternate["entry_vma"],
+        "same_reported_helper_and_factory_stub_targets": True,
         "factory_implementation_lead_vma": factory["entry_vma"],
         "event_id": factory["event_id"],
         "event_parameter_keys": [7, 8],
