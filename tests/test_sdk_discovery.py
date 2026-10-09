@@ -129,6 +129,39 @@ class SdkDiscoveryTests(unittest.TestCase):
         self.assertEqual(self.db.connection.execute("SELECT COUNT(*) FROM sdk_interface").fetchone()[0], 0)
         self.assertEqual(self.db.connection.execute("PRAGMA foreign_key_check").fetchall(), [])
 
+    def test_export_name_alone_cannot_bind_wrong_function_address(self):
+        binary_id = self.db.connection.execute(
+            "SELECT id FROM binary WHERE sha256=?", (self.digest,)
+        ).fetchone()[0]
+        self.db.upsert("function", {
+            "binary_id": binary_id, "identity_key": "decoy:0x400",
+            "name": "Camera_capture", "address": "0x400",
+        }, ("identity_key",))
+        self.db.connection.execute(
+            "UPDATE import_export SET address='0x0100' WHERE binary_id=? AND name='Camera_capture'",
+            (binary_id,),
+        )
+        self.db.commit()
+        result = discover_sdk_candidates(self.db, name="Camera_capture", limit=20)
+        self.assertEqual(result["returned"], 2)
+        self.assertEqual({x["address"] for x in result["candidates"]}, {"0x100"})
+        self.assertTrue(result["candidates"][0]["unique_function_entry"])
+
+    def test_duplicate_numeric_function_entry_disables_location_proof(self):
+        binary_id = self.db.connection.execute(
+            "SELECT id FROM binary WHERE sha256=?", (self.digest,)
+        ).fetchone()[0]
+        self.db.upsert("function", {
+            "binary_id": binary_id, "identity_key": "ambiguous:0x0100",
+            "name": "Camera_capture_alias", "address": "0x0100",
+        }, ("identity_key",))
+        self.db.commit()
+        result = discover_sdk_candidates(self.db, binary_sha256=self.digest)
+        self.assertEqual(result["returned"], 1)
+        self.assertFalse(result["candidates"][0]["unique_function_entry"])
+        self.assertFalse(result["candidates"][0]["entry_location_evidence_valid"])
+        self.assertIsNone(result["candidates"][0]["identity_evidence_id"])
+
 
 if __name__ == "__main__":
     unittest.main()
