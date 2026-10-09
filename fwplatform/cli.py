@@ -358,6 +358,7 @@ def main(argv: list[str] | None = None) -> int:
             audit = audit_sdk_contracts(db)
             _json_or_text({"interfaces": [dict(row) for row in rows],
                            "static_contract_complete": audit["static_contract_complete"],
+                           "domain_matrix": audit["domain_matrix"],
                            "runtime_callable_validated": None}, args.json)
         elif args.command == "sdk" and args.sdk_command == "import":
             from .sdk_contracts import import_sdk_contracts
