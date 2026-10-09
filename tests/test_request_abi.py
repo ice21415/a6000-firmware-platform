@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fwplatform.cli import main
 from fwplatform.request_abi import (
-    EXPECTED_ABI, REGISTER_SITES, UI_SITES,
+    EXPECTED_ABI, REGISTER_SITES, CORE_CAMERA_SITES, UI_SITES,
     audit_request_abi, demangle_aapcs_parameter_types,
 )
 
@@ -27,6 +27,13 @@ def synthetic_libobj(entries=None):
                       if x["entry_vma"] == addr)
         contents.append(f"ENTRY {addr} {symbol}")
         for vma, op in REGISTER_SITES[addr]:
+            if entries and vma in entries:
+                op = entries[vma]
+            contents.append(f"{vma}: {op}")
+        contents.append("")
+    for entry, sites in CORE_CAMERA_SITES.items():
+        contents.append(f"ENTRY {entry} ")
+        for vma, op in sites:
             if entries and vma in entries:
                 op = entries[vma]
             contents.append(f"{vma}: {op}")
@@ -94,6 +101,11 @@ class RequestParameterABITests(unittest.TestCase):
         self.assertEqual(result["saved_libobj_register_sites_checked"],
                          sum(len(v) for v in REGISTER_SITES.values()))
         self.assertEqual(result["saved_view_ui_sites_checked"], len(UI_SITES))
+        self.assertEqual(result["saved_modelcamera_internal_sites_checked"],
+                         sum(len(v) for v in CORE_CAMERA_SITES.values()))
+        self.assertEqual(result["modelcamera_internal_call"]["selector_equal_to"], "0x0f01")
+        self.assertEqual(result["modelcamera_internal_call"]["entry_vma"], "0x4cf7a8")
+        self.assertFalse(result["modelcamera_internal_call"]["native_parameter_types_verified"])
         self.assertEqual(len(result["entrypoint_parameter_prototypes"]), 3)
         instance, static, factory = result["entrypoint_parameter_prototypes"]
         self.assertEqual(instance["method_form"], "INSTANCE_METHOD_CANDIDATE")
@@ -122,6 +134,26 @@ class RequestParameterABITests(unittest.TestCase):
                          "ONE_SAVED_ELF_TEXT_CHECK_MATCH")
         self.assertEqual(self._audit(obj=False, view=True)["status"],
                          "ONE_SAVED_ELF_TEXT_CHECK_MATCH")
+
+    def test_modelcamera_dispatch_proves_only_two_register_sources_not_types(self):
+        for vma, changed in [
+            ("0x4cfbb8", "bl       #0x13200c"),
+            ("0x4cfbbc", "mov      r4, r1"),
+            ("0x4cfbc0", "bl       #0x131fd4"),
+            ("0x4cfe8a", "movw     r3, #0xf02"),
+            ("0x4cfe90", "bne.w    #0x4d02c2"),
+            ("0x4cfe96", "mov      r1, r3"),
+            ("0x4cfe98", "bl       #0x4cf7b0"),
+            ("0x4cf7ac", "mov      sl, r0"),
+            ("0x4cf7ee", "mov      r1, r4"),
+        ]:
+            self.libobj.write_text(synthetic_libobj({vma: changed}))
+            with self.subTest(vma=vma), self.assertRaisesRegex(ValueError, vma):
+                self._audit(view=False)
+        self.libobj.write_text(synthetic_libobj())
+        self.data["core_camera_internal_dispatch"]["parameter1_type_verified"] = True
+        with self.assertRaisesRegex(ValueError, "untyped static lead"):
+            self._audit(obj=False, view=False)
 
     def test_static_entry_drops_original_r3_and_passes_original_r2_as_paramlist(self):
         self.libobj.write_text(synthetic_libobj({
