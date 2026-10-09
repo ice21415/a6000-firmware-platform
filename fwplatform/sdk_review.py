@@ -38,7 +38,8 @@ def draft_sdk_review(
             "abi": None,
             "parameter_layout": None,
             "return_semantics": None,
-            "source_evidence_id": row["identity_evidence_id"],
+            **({"source_evidence_id": row["identity_evidence_id"]}
+               if row["identity_evidence_id"] is not None else {}),
             "review": {
                 "domain_search_hints": row["domain_search_hints"],
                 "location_evidence_valid": row["entry_location_evidence_valid"],
