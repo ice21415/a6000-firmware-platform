@@ -142,6 +142,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 新增 `sdk/camera_3_21_model_request_frontends.json`、`fw sdk request-frontends --saved-disassembly ...` 和 10 組合成測試，明確辨識兩種 frontend/receiver provenance，並核對保存指令的 33 個文字地址：連線的私有研究檔核對 **33/33 符合**。這是既存組語報告，不是本輪原始 ELF byte scan。
 - 真正未解：`0x12d780` 指令本體、`0x125084` 實際投遞、`0x11004003` 消費端、Event 7/8 解碼、動態符號解析與 Camera 動作映射；API 數量／ABI 驗證不因此升級。
 
+## Phase 3.15（另一個 request frontend ＋ 具 SHA 鎖定的本機局部 Thumb 研究）
+
+- 從私人保存的原始 `libObj.so` 組語新增第二個入口：`viewManagerIf::requestModelExecute=0x1250c0`，呼叫相同 helper `0x12d780` 及相同事件工廠匯入 stub `0xdfbdc`；末端的 `0x125084` 仍屬語意未明的尾分支，不能冒充 Camera 消費端。
+- `sdk event-envelope` 現在從同一份組語來源逐項檢查 2 個前端＋工廠共 50 處地址與寄存器／呼叫目標（16＋15＋19）；已透過連線工作區對原有保存文字做 50/50 直接核對，**不是重新驗證原始 ELF 機器碼或完成 50 個 API**。
+- 新增 `fwplatform/private_thumb_research.py` 與 `fw sdk trace-selector --elf <private-libObj.so>`：強制 SHA-256、ELF32 ARM 唯一執行段映射與小範圍 Capstone Thumb CFG 工作量限制，可聚焦 `0x12d780`／`0x125084`，另外分開標示事件 `0x11004003` 的 raw word occurrences 與真正未查明的 consumer。
+- 連線 workspace 讀取介面明確回覆 `BINARY_FILE`，沒有直接回傳 `libObj.so` 位元組；因此新的 Capstone local tracer **只經合成 ELF 單元測試**，沒有在此聊天中對私有 Sony ELF 執行。不可把 local tracer 的存在當成 helper 真正已還原。
+- 下一步要由 private original ELF 窄範圍指令輸出確認 helper 轉換、外部符號的 dynamic relocation、`0x11004003` 事件的消費者與 UI→Camera 跨模組處理。ABI／return/error 與實機 callability 仍未驗證。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
