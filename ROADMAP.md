@@ -31,6 +31,15 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 新增 `fw analyze dex --path` 和 `fw query dex`，只將 DEX 字串與候選索引保存為有來源的研究觀測。
 - 真實韌體、多 ELF Ghidra trace、訊息收發語意及 camera runtime 行為仍需獨立證據與驗證。
 
+## Phase 3.3（DEX 結構索引／JNI 關係精確性）
+
+- DEX parser 驗證 string/type/proto/method/class_def 表格邊界，保留 class definition 與 method reference 的區別。
+- 新的 type/class/method-ref 觀測資料以原始 DEX SHA-256 作為來源，匯入採用 SQLite savepoint。
+- JNI semantic edges 僅在 class/name/signature、DEX path 與證據 ID 全部吻合時建立。
+- JNI 註冊關係的 binary provenance 取自函式所屬 binary，而非 module row ID。
+- 合成測試涵蓋跨 DEX 重名、錯誤來源、外鍵完整性、invalid table references、idempotency 與 rollback。
+- 仍無 method body 還原、原廠韌體實驗或實機 validation。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
