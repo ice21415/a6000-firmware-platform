@@ -159,6 +159,52 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.14: recover model-request event envelope (saved static assembly)
+
+An additional previously saved original-ELF ARM/Thumb report for `libObj.so`
+provides a **new, intermediate part** of the previously unknown UI→Camera
+routing. `ViewBase::requestModelExecute` (`0x12106e`) calls the model
+name `IdGenerator::Get` at `0x121082`, an **unresolved transformation
+helper** `0x12d780` at `0x12108c`, the symbolic
+`AbstractUtilityManager::createRequestModelExecuteEvent` import at
+`0x121098`, and tail-branches to
+`View::requestApplicationExecute` at `0x1210a4`. This is a source
+code-path observation, **not** proof that the separately found factory
+implementation is the function dynamically linked by the import.
+
+The independently found, same-named
+`AbstractUtilityManager::createRequestModelExecuteEvent` implementation
+candidate at `0x7f0b0c` builds an `Event` with reported event ID
+`0x11004003` and constructor byte values 2 and 0. If its incoming
+`ParamList` is non-null, it calls `Event::setParamList`. It additionally
+creates two event parameters under **keys 7 and 8**:
+
+- Key 7: the model-name identifier value passed into the factory.
+- Key 8: the output of the unresolved `0x12d780` selector helper.
+
+These are *static caller-register-flow hypotheses and observed
+`Event::addParameter` sites*, not a verified transferable wire format,
+application queue consumer, symbol relocation binding, parameter
+ownership contract, or callable ABI. In particular **key 8's numeric
+value cannot safely be equated to `0x0f01`** without disassembling
+the `0x12d780` transformation and its recipient. The eventual
+`ModelCamera::ActionGpSetSetting` linkage is still missing.
+
+```powershell
+python -m fwplatform.cli sdk event-envelope --json
+python -m fwplatform.cli sdk event-envelope --saved-disassembly C:\private\boot-static-analysis\model-camera-methods.txt --json
+```
+
+`sdk event-envelope` cross-checks **reported instruction text**
+exactly (function boundaries, register carries, PLT/branch target annotations,
+event constructor and parameter keys) when a saved report is available.
+Without that report it explicitly states `EVENT_ENVELOPE_CANDIDATE_ONLY`.
+The tool runs before any SQLite migration and never opens, writes or
+executes firmware. Synthetic tests reject miswired registers, changed
+key identifiers, invented dynamic binding, and misleading ABI status.
+It does **not** authenticate instruction bytes against a fresh private
+original ELF; Phase 3.12's separate `--verify-elf` is needed for that.
+
 ## Phase 3.13: REA/Ghidra saved UI-to-Camera endpoint audit
 
 The connected private research workspace contains saved
