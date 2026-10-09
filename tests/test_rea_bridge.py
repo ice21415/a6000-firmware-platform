@@ -49,7 +49,7 @@ class REABridgeTests(unittest.TestCase):
         self.fixture["camera"].update({
             "dispatcher_elf_vma": "0x3000", "source_bytes_elf_vma": "0x3000",
             "compare_selector_instruction_elf_vma": "0x3000",
-            "branch_instruction_elf_vma": "0x3010",
+            "branch_instruction_elf_vma": "0x300e",
             "selector": "0x1234", "callee_elf_vma": "0x3100",
         })
         self.path = self.root / "bridge.json"
@@ -60,7 +60,9 @@ class REABridgeTests(unittest.TestCase):
             'requestModelExecuteEPKcmP9ParamList(param_2,"model/CAMERA",0x1234,iVar3);\n'
             'requestModelExecuteEPKcmP9ParamList(param_2,"model/STILL_REC",0x1234,iVar12);\n'
         )
-        raw = encode_movw(3, 0x1234) + bytes(12) + encode_bl(0x3010, 0x3100)
+        raw = (encode_movw(3, 0x1234) + struct.pack("<H", 0x4298)
+               + struct.pack("<HH", 0xF040, 0x8000)
+               + bytes(4) + encode_bl(0x300e, 0x3100))
         self.audit = {
             "source_sha256": self.fixture["camera"]["sha256"],
             "evidence_type": "raw-ELF-Capstone-static-audit-not-REA",
@@ -68,7 +70,7 @@ class REABridgeTests(unittest.TestCase):
                 "ELF_address": "0x3000", "bytes": raw.hex(),
                 "instructions": [
                     {"address": "0x3000", "mnemonic": "movw", "operands": "r3, #0x1234"},
-                    {"address": "0x3010", "mnemonic": "bl", "operands": "#0x3100"},
+                    {"address": "0x300e", "mnemonic": "bl", "operands": "#0x3100"},
                 ],
             }],
         }
@@ -107,7 +109,7 @@ class REABridgeTests(unittest.TestCase):
         self.assertEqual(report["saved_ui_callsite_counts"]["ui_camera_selector_request_sites"], 1)
         self.assertEqual(report["saved_ui_callsite_counts"]["ui_still_selector_request_sites"], 1)
         self.assertEqual(report["saved_artifact_checks"]["camera_saved_raw_instruction_slice"],
-                         "THUMB_MOVW_SELECTOR_AND_BL_TARGET_MATCH")
+                         "THUMB_MOVW_CMP_BNE_GUARD_AND_BL_TARGET_MATCH")
         self.assertFalse(report["end_to_end_message_delivery_verified"])
         self.assertFalse(report["independent_full_original_elf_checked_now"])
         self.assertFalse(report["sony_abi_verified"])
@@ -144,6 +146,7 @@ class REABridgeTests(unittest.TestCase):
     def test_raw_movw_and_branch_target_and_audit_metadata_are_not_self_attesting(self):
         self.assertTrue(_verify_saved_movw(encode_movw(3, 0x1234), 0x1234))
         self.assertFalse(_verify_saved_movw(encode_movw(3, 0x1235), 0x1234))
+        self.assertFalse(_verify_saved_movw(encode_movw(2, 0x1234), 0x1234))
         self.assertFalse(_verify_saved_movw(bytes(4), 0x1234))
         with self.assertRaisesRegex(ValueError, "Capstone metadata"):
             self.audit["ranges"][0]["instructions"][1]["operands"] = "#0x3200"
@@ -153,6 +156,13 @@ class REABridgeTests(unittest.TestCase):
         raw[-1] ^= 1
         self.audit["ranges"][0]["bytes"] = raw.hex()
         with self.assertRaisesRegex(ValueError, "BL target"):
+            self._inspect()
+
+    def test_cmp_and_conditional_branch_guard_must_match_raw_bytes(self):
+        raw = bytearray.fromhex(self.audit["ranges"][0]["bytes"])
+        raw[4:6] = bytes(2)
+        self.audit["ranges"][0]["bytes"] = raw.hex()
+        with self.assertRaisesRegex(ValueError, "CMP/BNE"):
             self._inspect()
 
     def test_ui_saved_decompiler_count_checked_not_equated_to_runtime_frequency(self):
