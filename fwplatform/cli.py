@@ -338,6 +338,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_family.add_argument("--elf", type=Path, required=True)
     sdk_family.add_argument("--expected-sha256", default=None)
     sdk_family.add_argument("--json", action="store_true")
+    sdk_factory = sdk_sub.add_parser("parameter-factory")
+    sdk_factory.add_argument("--elf", type=Path, required=True)
+    sdk_factory.add_argument("--expected-sha256", default=None)
+    sdk_factory.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -454,6 +458,15 @@ def main(argv: list[str] | None = None) -> int:
         from .param_family_probe import probe_param_families
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_param_families(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-factory":
+        from .param_factory_probe import probe_param_factory_callers
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_factory_callers(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

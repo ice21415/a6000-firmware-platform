@@ -226,10 +226,60 @@
         }
       ],
       "callers": ["ELF_VMA:0x4cf9be", "ELF_VMA:0x60ece0", "ELF_VMA:0x66d574", "ELF_VMA:0x682a88"],
+      "caller_argument_provenance": {
+        "0x4cf9be": {"r0": "r7+0x6a0", "r1": "dynamic_load[r3+0x4]", "r2": "dynamic_load[r3+0x8]", "result_guard": "cmp r0,#0 at 0x4cf9ca", "post_success": "ParamList::add via PLT 0xdfdc0 at 0x4cfa90"},
+        "0x60ece0": {"r0": "r7+0x0c", "r1": "dynamic_load[r3+0x4]", "r2": "dynamic_load[r3+0x8]", "result_guard": "cbnz r0 at 0x60ecea", "post_success": "ParamList::add via PLT 0xdfdc0 at 0x60ed48"},
+        "0x66d574": {"r0": "r7+0x30", "r1": "dynamic_load[r3+0x4]", "r2": "dynamic_load[r3+0x8]", "result_guard": "cmp r0,#0 at 0x66d57a", "post_success": "ParamList::add via PLT 0xdfdc0 at 0x66d614"},
+        "0x682a88": {"r0": "register_copy sb", "r1": "dynamic_load[r4+r2<<3]", "r2": "dynamic_load[r3+0x4]", "result_guard": "cbnz r0 at 0x682a8e", "post_success": "ParamList::add via PLT 0xdfdc0 at 0x682b08"}
+      },
+      "caller_provenance_status": "STATIC_INFERRED; instruction sites are PRIMARY_ELF_VERIFIED, dynamic table values remain UNKNOWN",
+      "paramlist_add_binding": {"plt_entry": "0xdfdc0", "got_slot": "0x102e340", "symbol": "_ZN9ParamList3addEmP9ParamBase", "local_definition": "0x7ee0e6", "runtime_binding": "UNKNOWN"},
       "failure_paths": "Unsupported r2 or a type-specific source helper returning null reaches r0=0; wrapper dereference and helper contracts remain unguarded/UNKNOWN",
       "ownership": "Fresh allocation is observed on success; caller destruction, transfer and exception behavior remain UNKNOWN",
       "thread_context": "UNKNOWN",
       "evidence_locators": ["ELF_SYMBOL:0x42acd4:bounded=0x82", "ELF_VMA:0x42acd4", "ELF_VMA:0x42ad52", "GHIDRA_PRIVATE_EXPORT:ParamListTargets:core-v2:COMPLETE_TARGET_EXPORT"],
+      "safe_to_call": false
+    },
+    {
+      "name": "ParamList::add",
+      "entry": "0x7ee0e6",
+      "symbol_value_thumb_tagged": "0x7ee0e7",
+      "symbol_size_bytes": 48,
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "ParamList receiver; local body forwards it to replacement and storage helpers",
+      "r1": "unsigned long key; passed to the ParamBase key setter at 0x7eda84",
+      "r2": "ParamBase pointer saved in the local frame and inserted into the container on the non-null path",
+      "r3": "No semantic use in the bounded local body",
+      "return": "No explicit semantic return value is established by the local body",
+      "declared_return_type": "UNKNOWN; Itanium symbol does not encode the C++ return type",
+      "effects": "Calls 0x7ededa; on its nonzero path sets the incoming object's key and calls 0x7ee0b8 to insert it",
+      "replacement_behavior": "The inspected helper can invoke the existing element's virtual deletion slot +8 when key and discriminator match, then remove that slot",
+      "ownership": "Container ownership transfer and exception behavior remain UNKNOWN; replacement can invalidate an earlier borrowed element",
+      "thread_context": "UNKNOWN; no lock or atomic operation in the bounded body",
+      "evidence_locators": ["ELF_SYMBOL:0x7ee0e7:size=48", "ELF_VMA:0x7ee0ec", "ELF_VMA:0x7ee0f2", "ELF_VMA:0x7ee102", "ELF_VMA:0x7ee10a", "ELF_RELOCATION:0x102e340"],
+      "add_binding": {
+        "plt_entry": "0xdfdc0",
+        "got_slot": "0x102e340",
+        "symbol": "_ZN9ParamList3addEmP9ParamBase",
+        "local_definition": "0x7ee0e6",
+        "runtime_symbol_interposition": "UNKNOWN"
+      },
+      "safe_to_call": false
+    },
+    {
+      "name": "ParamList::add_storage_helper_candidate",
+      "entry": "0x7ee0b8",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "r0": "Container pointer; local body reads begin/end at offsets +4/+8",
+      "r1": "Pointer to a local slot containing the new ParamBase pointer",
+      "r2": "Not semantically typed beyond forwarding to the storage helper",
+      "r3": "No semantic use in the bounded local body",
+      "return": "No semantic return value is established",
+      "declared_return_type": "UNKNOWN",
+      "effects": "Appends through 0x7edc08 when capacity exists; otherwise allocates/rebuilds through 0x7edb92 and 0x7edff4",
+      "ownership": "Container storage mutation is static evidence; allocator pairing, exception behavior and synchronization remain UNKNOWN",
+      "thread_context": "UNKNOWN",
+      "evidence_locators": ["ELF_VMA:0x7ee0bc", "ELF_VMA:0x7ee0c8", "ELF_VMA:0x7ee0d6", "ELF_VMA:0x7ee0e0"],
       "safe_to_call": false
     }
   ],

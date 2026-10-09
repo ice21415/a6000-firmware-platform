@@ -11,6 +11,18 @@ and constructor evidence without publishing firmware bytes:
 python -m fwplatform.cli sdk parameter-family-probe --elf C:\private\libObj.so --json
 ```
 
+The factory-caller probe records only bounded argument provenance, result
+guards and relocation identity for the four known `0x42acd4` callsites:
+
+```powershell
+python -m fwplatform.cli sdk parameter-factory --elf C:\private\libObj.so --json
+```
+
+Its `PRIMARY_ELF_VERIFIED` fields identify decoded instruction sites and PLT
+relocations. Register values loaded from dynamic tables are
+`STATIC_INFERRED`; no result is runtime-callable and no ownership or locking
+guarantee is implied.
+
 It currently discovers ten direct 3.21 `ParamBase`-derived RTTI/vtable records
 and profiles `PrmBool`, `PrmNumber`, `PrmString`, `PrmPoint`, `PrmDimension`,
 `PrmStruct`, `PrmSet`, `PrmNumberList`, `PrmCntInfoList` and `PrmObjMsg`. The

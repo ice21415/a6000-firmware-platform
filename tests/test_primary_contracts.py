@@ -32,6 +32,16 @@ class PrimaryContractTests(unittest.TestCase):
         self.assertEqual(helpers["point_payload_word_0c_getter"]["entry"], "0xfe9ae")
         self.assertEqual(helpers["point_payload_word_10_getter"]["entry"], "0xfe9b6")
 
+    def test_paramlist_add_contract_keeps_replacement_and_ownership_unknown(self):
+        add = next(item for item in self.contract["interfaces"]
+                   if item["name"] == "ParamList::add")
+        self.assertEqual(add["entry"], "0x7ee0e6")
+        self.assertEqual(add["add_binding"]["symbol"], "_ZN9ParamList3addEmP9ParamBase")
+        self.assertFalse(add["safe_to_call"])
+        self.assertTrue(add["declared_return_type"].startswith("UNKNOWN"))
+        self.assertIn("ownership", add)
+        self.assertIn("UNKNOWN", add["ownership"])
+
     def test_static_status_cannot_enable_runtime(self):
         for field in ("runtime_verified", "callable"):
             doc = copy.deepcopy(self.contract)

@@ -2,6 +2,15 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- ParamList factory caller checkpoint: added the private SHA-pinned
+  `parameter-factory` probe. Four factory callsites now have bounded register
+  provenance, null-result guards and success-path calls to the relocation-
+  resolved `_ZN9ParamList3addEmP9ParamBase` PLT (`0xdfdc0`, GOT `0x102e340`).
+  The local add/replacement/storage bodies are descriptive static contracts;
+  dynamic table values, ownership, locking and runtime callability remain
+  unknown. Added synthetic fail-closed tests and expanded the targeted Ghidra
+  profile without publishing firmware bytes.
+
 - ParamBase family follow-up: extended the private SHA-pinned metadata probe
   with independent RTTI/vtable discovery and primary static contracts for all
   ten direct ParamBase-derived records. Added constructor/layout witnesses for

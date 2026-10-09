@@ -114,8 +114,19 @@ runtime safety remain unknown.
 The supporting forwarders/getters are bounded at `0x120970`, `0x120968`,
 `0xfe9be`, `0xfe9ae` and `0xfe9b6`; the latest private core export has 16
 targets, 198 instruction rows, 46 blocks and 73 edges.
+The new `fw sdk parameter-factory --elf <private-libObj.so>` probe confirms
+four factory callers prepare dynamic table-derived `r1/r2` values, guard the
+factory result, and call the relocation-resolved `ParamList::add` PLT
+(`0xdfdc0`, GOT `0x102e340`) on success. Its local implementation is the
+48-byte Thumb symbol `0x7ee0e7` at `0x7ee0e6`; replacement can dispatch an
+existing element's virtual deletion slot before insertion. Values, ownership,
+locking and runtime callability remain unknown. This is metadata-only output;
+the private probe result must stay outside the public checkout.
 The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.
+The follow-up ASCII Ghidra run covering factory plus mutation/storage targets
+exited 0 with 19 bounded targets, 292 instruction rows, 66 blocks and 112
+edges. It remains targeted evidence rather than full-libObj analysis.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.
 Other payload families, complete mutation/copy paths and runtime ABI remain
 unresolved; the older logging exit-1 paragraph below describes the preserved

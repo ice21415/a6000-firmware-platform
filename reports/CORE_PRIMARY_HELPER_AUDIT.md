@@ -132,6 +132,58 @@ bounded targets, 198 instruction rows, 46 blocks and 73 edges, with a complete
 marker. All raw exports remain private.
 
 
+### Factory caller and ParamList::add checkpoint — 2026-10-09
+
+The authenticated ELF was re-read with the new bounded
+`fwplatform.param_factory_probe` (`fw sdk parameter-factory --elf <private-libObj.so>`).
+The probe validates the complete SHA-256 before decoding and emits metadata
+only. It confirms all four previously exported factory callsites and checks
+the direct result guard in each caller:
+
+| Factory callsite | r0 immediately before call | r1 source | r2 source | Result guard | Success-path add call |
+|---|---|---|---|---|---|
+| `0x4cf9be` | `r7+0x6a0` | load `[r3+0x4]` | load `[r3+0x8]` | `cmp r0,#0` at `0x4cf9ca` | `0x4cfa90 -> 0xdfdc0` |
+| `0x60ece0` | `r7+0x0c` | load `[r3+0x4]` | load `[r3+0x8]` | `cbnz r0` at `0x60ecea` | `0x60ed48 -> 0xdfdc0` |
+| `0x66d574` | `r7+0x30` | load `[r3+0x4]` | load `[r3+0x8]` | `cmp r0,#0` at `0x66d57a` | `0x66d614 -> 0xdfdc0` |
+| `0x682a88` | register copy `sb` | load `[r4+r2<<3]` | load `[r3+0x4]` | `cbnz r0` at `0x682a8e` | `0x682b08 -> 0xdfdc0` |
+
+The instruction sites are `PRIMARY_ELF_VERIFIED`; the straight-line register
+provenance is `STATIC_INFERRED` because the values originate in dynamic table
+memory and a full dominance/data-flow proof is not claimed. The add locations
+are after the observed null guards in the bounded local windows, but the
+reusable probe labels that path relation `STATIC_INFERRED` rather than claiming
+a complete CFG proof. No key or discriminator value is a static constant at
+these sites.
+
+The PLT stub at `0xdfdc0` now resolves uniquely through `R_ARM_JUMP_SLOT`
+GOT `0x102e340` to `_ZN9ParamList3addEmP9ParamBase`, whose local Thumb-tagged
+symbol is `0x7ee0e7` with a 48-byte extent. The bounded local body at
+`0x7ee0e6` saves `r2`, calls `0x7ededa`, sets the incoming ParamBase key via
+`0x7eda84`, then calls storage helper `0x7ee0b8`. The replacement helper
+compares key (`+8`) and discriminator (`+4`); on an equal match it dispatches
+the existing element's virtual slot `+8` and removes that slot before the new
+pointer is inserted. The storage helper appends when begin/end capacity is
+available and otherwise takes a reallocation path. These are static mutation
+facts; pointer ownership transfer, allocator pairing, exception behavior,
+external locking and concurrent safety remain `UNKNOWN`.
+
+`ParamList::add` and the storage helper are now descriptive entries in
+`sdk/core_3_21_primary_helper_contracts.json`; both remain `safe_to_call=false`
+and have unknown C++ return semantics. `ParamList::get` results are therefore
+more concretely described as borrowed elements that can be invalidated by the
+same-container replacement path. The probe is reusable and its generic
+validation tests do not contain Sony bytes or fixed return answers.
+The private CLI output is deterministic across two runs (identical output
+hash) and passes `validate_param_factory_probe` with four caller records.
+
+The updated `ParamListTargets.java` was then run in the private ASCII Ghidra
+12.1.3 installation with auto-analysis enabled. It exited **0** and emitted a
+complete private marker for 19 bounded targets, 292 instruction rows, 66 basic
+blocks and 112 CFG edges. The new target bodies were `0x7ededa`, `0x7ee0b8`
+and `0x7ee0e6`; the existing factory `0x42acd4` was included in the same run.
+This is targeted cross-validation, not full-libObj coverage and not runtime
+verification.
+
 ## ParamList continuation — latest checkpoint
 
 The installation was copied to an ASCII path and the new
@@ -192,7 +244,7 @@ The C++ header describes target words, never host pointers or callable wrappers.
 Private sources: SHA-pinned ELF; new Capstone probes for lookup/lifecycle/base
 constructor; Ghidra targeted listing/CFG/decompilation. Public output includes
 only self-authored summaries, schema, tooling and synthetic tests.
-Full public synthetic regression run: **223 tests passed**, process exit 0.
+Full public synthetic regression run: **228 tests passed**, process exit 0.
 Candidate header passed a C++17 syntax check with the existing Ubuntu g++
 through WSL (exit 0). This checks declarations/layout assertions on the host;
 it does not link Sony code or validate a target ARM runtime ABI.

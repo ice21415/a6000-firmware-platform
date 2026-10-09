@@ -4,6 +4,21 @@
 
 ## Current continuation checkpoint (2026-10-09)
 
+The latest private ELF caller pass adds `fwplatform/param_factory_probe.py` and
+`fw sdk parameter-factory --elf <private-libObj.so>`.  It revalidates the pinned
+SHA and confirms four factory callsites (`0x4cf9be`, `0x60ece0`, `0x66d574`,
+`0x682a88`) prepare dynamic `r1/r2` values, guard the factory result for null,
+and reach PLT `0xdfdc0` on their success paths.  Exact relocation resolution
+identifies that PLT as `_ZN9ParamList3addEmP9ParamBase` (GOT `0x102e340`, local
+Thumb symbol `0x7ee0e7`, 48-byte body at `0x7ee0e6`).  The local add body calls
+replacement helper `0x7ededa`, sets the new object's key via `0x7eda84`, and
+inserts through `0x7ee0b8`; equal key/discriminator replacement dispatches the
+old element's virtual deletion slot.  Dynamic table values, ownership transfer,
+exception behavior, locks and runtime callability remain unknown.  The
+descriptive contract has 14 interfaces and still grants zero callable or
+runtime-verified APIs.  `ParamListTargets.java` now includes the add and
+storage/replacement bodies for the next private Ghidra cross-check.
+
 Latest continuation additionally resolves PrmNumber (discriminator 1, signed
 32-bit payload) and PrmBool (discriminator 5, byte bool) using constructor,
 RTTI/base relocation, vtable and named setters. See the report's current
