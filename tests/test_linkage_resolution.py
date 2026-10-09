@@ -104,6 +104,70 @@ class LinkageResolutionTests(unittest.TestCase):
         self.assertEqual(self._unresolved_reason()["reason"],
                          "no-import-address:Camera_capture")
 
+    def test_catalog_change_recomputes_and_removes_stale_link(self) -> None:
+        self._add("main.so", "import", "0x200")
+        self._add("libprovider.so", "export", "0x100")
+        self.assertEqual(self._analyze(("libprovider.so",))["resolved_symbols"], 1)
+        self.assertEqual(self._analyze(("libprovider.so",))["skipped"], 3)
+        # Same requester hash, but a newly discovered second provider VMA
+        # must invalidate the checkpoint and revoke the old candidate link.
+        self._add("libprovider.so", "export", "0x300")
+        refreshed = self._analyze(("libprovider.so",))
+        self.assertEqual(refreshed["resolved_symbols"], 0)
+        self.assertEqual(refreshed["ambiguous_symbols"], 1)
+        self.assertEqual(self.db.query(
+            "SELECT id FROM cross_reference WHERE kind='resolved_import'"), [])
+        self.assertEqual(self._unresolved_reason()["reason"],
+                         "ambiguous-export-entry:Camera_capture")
+        self.db.connection.execute(
+            "DELETE FROM import_export WHERE binary_id=? AND address=?",
+            (self.binaries["libprovider.so"], "0x300"),
+        )
+        self.db.commit()
+        resolved = self._analyze(("libprovider.so",))
+        self.assertEqual(resolved["resolved_symbols"], 1)
+        self.assertEqual(self.db.query(
+            "SELECT id FROM unresolved_edge WHERE relation='import_symbol'"), [])
+
+    def test_failure_rolls_back_partial_links_and_keeps_failed_checkpoint(self) -> None:
+        self._add("main.so", "import", "0x200")
+        self._add("main.so", "import", "0x240", name="Camera_open")
+        self._add("libprovider.so", "export", "0x100")
+        self._add("libprovider.so", "export", "0x140", name="Camera_open")
+        from fwplatform import linkage
+
+        def metadata(path: Path) -> ElfMetadata:
+            if path.name == "main.so":
+                return ElfMetadata(needed=("libprovider.so",), soname="main.so")
+            return ElfMetadata(soname=path.name)
+
+        real_resolver = linkage._resolve_import_provider
+        calls = 0
+
+        def interrupted(*args):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise RuntimeError("synthetic resolver failure")
+            return real_resolver(*args)
+
+        with patch("fwplatform.linkage._elf_metadata", side_effect=metadata), patch(
+            "fwplatform.linkage._resolve_import_provider", side_effect=interrupted
+        ):
+            stats = analyze_linkage(self.db, self.root)
+        self.assertEqual(stats["failed"], 1)
+        self.assertEqual(self.db.query(
+            "SELECT id FROM cross_reference WHERE kind='resolved_import'"), [])
+        failed = self.db.query(
+            "SELECT status FROM analysis_run WHERE analyzer='elf_linkage' "
+            "AND binary_id=?", (self.binaries["main.so"],)
+        )
+        self.assertEqual([x["status"] for x in failed], ["FAILED"])
+        recovered = self._analyze(("libprovider.so",))
+        self.assertEqual(recovered["resolved_symbols"], 2)
+        self.assertEqual(len(self.db.query(
+            "SELECT id FROM cross_reference WHERE kind='resolved_import'")), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
