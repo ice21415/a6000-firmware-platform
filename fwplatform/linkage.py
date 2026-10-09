@@ -4,6 +4,7 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+from posixpath import normpath
 from typing import Any
 
 from . import __version__
@@ -61,19 +62,21 @@ def _elf_metadata(path: Path) -> ElfMetadata:
 
 
 def _path_key(path: str) -> str:
-    return PurePosixPath(path.replace("\\", "/")).as_posix()
+    return normpath(PurePosixPath(path.replace("\\", "/")).as_posix())
 
 
 def _candidate_search_dirs(requester: str, metadata: ElfMetadata, root: Path) -> set[str]:
     requester_parent = PurePosixPath(_path_key(requester)).parent
     result = {requester_parent.as_posix(), "."}
     for raw in (*metadata.runpath, *metadata.rpath):
+        # ORIGIN substitution already anchors the directory at requester_parent.
+        origin_expanded = "$ORIGIN" in raw or "${ORIGIN}" in raw
         value = raw.replace("${ORIGIN}", requester_parent.as_posix()).replace("$ORIGIN", requester_parent.as_posix())
         value = value.replace("${LIB}", "lib").replace("$LIB", "lib")
         path = PurePosixPath(value) if value else requester_parent
-        if not path.is_absolute():
-            path = PurePosixPath(requester_parent.as_posix()) / path
-        result.add(path.as_posix().lstrip("/"))
+        if not path.is_absolute() and not origin_expanded:
+            path = requester_parent / path
+        result.add(_path_key(path.as_posix()).lstrip("/"))
     result.add(root.as_posix())
     return result
 
