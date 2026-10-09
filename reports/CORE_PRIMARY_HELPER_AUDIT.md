@@ -1237,3 +1237,52 @@ none is a runtime-safety guarantee.
 為了縮小 owner/mutator 缺口，`fwplatform.param_set_probe` 新增一次性掃描：在同一份 primary ELF 的 executable `.text` 中，逐 2-byte 邊界辨識 Thumb `BL` encoding，再以 Capstone 確認候選指令。結果為：`getSet 0x7efae8`、`GET 0x7efaf0`、constructor `0x7efb00`、deleting destructor `0x7efb58` 和 clone `0x7efbb4` 均沒有 direct `BL` caller；non-deleting destructor `0x7efb2c` 只有 deleting path 內的 `0x7efb5e` 呼叫。這些 callsite 本身是 `PRIMARY_ELF_VERIFIED`，caller function identity 保持 `UNKNOWN`。
 
 這是有明確掃描範圍的負向結果，不是「沒有任何 caller」的證明：它不涵蓋 `BLX`/register 或 vtable dispatch，也不涵蓋其他 ELF。公開 `sdk/param_set_3_21.json` 保存 target、callsite count/address 與 scope limit；因此 ParamSet owner/mutator 仍未確定，泛用 `_Rb_tree` helper 仍不可升級為 ParamSet API。
+
+## ParamList::add key initialization and replacement lifetime — 2026-10-10
+
+本輪沒有重做 `ParamList::get` 的 76-byte 控制流。新的
+`fwplatform/paramlist_add_probe.py` 以完整 SHA-pinned `libObj.so`
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`
+重新讀取並以 Capstone 驗證五個 bounded region；所有 VMA 均是
+`ELF_VMA`，未輸出原始 bytes。
+
+| ELF VMA | Primary ELF observation | Level |
+|---:|---|---|
+| `0x7ee0e6` | symbol-bound `_ZN9ParamList3addEmP9ParamBase`; forwards `r0/r1/r2` to the replacement candidate, then writes the key and appends the pointer on the nonzero path | `PRIMARY_ELF_VERIFIED` |
+| `0x7eda84` | stores the incoming key word at element `+0x08` | `PRIMARY_ELF_VERIFIED` |
+| `0x7ededa` | unnamed replacement body; compares object identity, key `+0x08` and discriminator `+0x04` | instruction facts `PRIMARY_ELF_VERIFIED`; composed operation `STATIC_INFERRED` |
+| `0x7edf36` | loads the existing element vptr and invokes virtual slot `+8` after a key/discriminator match | `PRIMARY_ELF_VERIFIED` target/dispatch shape |
+| `0x7ede7a` | removes one pointer slot and decrements the container end by four bytes | `PRIMARY_ELF_VERIFIED` |
+| `0x7ee0b8` | appends the object pointer in the non-full path or delegates to growth/rebuild | `PRIMARY_ELF_VERIFIED` |
+
+The add body does not write the incoming object's `+0x0c` payload. A null
+incoming object returns before traversal; an identical existing pointer returns
+without deletion. For a matching key and discriminator, the old element is
+virtually destroyed before its slot is removed, so a prior `ParamList::get`
+result is a borrowed interior pointer candidate that can become invalid. The
+replacement body has no source-level name. It performs key/discriminator reads
+before its later null check, so that later check is not a null-safety guarantee.
+No lock or atomic operation was observed in the bounded body; ownership
+transfer, allocator pairing, exception paths, cross-thread behavior and
+runtime ABI remain `UNKNOWN`. `runtime_verified=false` and `callable=false`.
+
+An isolated ASCII-path Ghidra 12.1.3 `ParamListTargets.java` export using
+`ARM:LE:32:v8`, image base `0x10000` and `-noanalysis` exited `0` with
+`COMPLETE_TARGET_EXPORT`: 21 bounded targets, 343 instruction rows, 79 basic
+blocks and 135 CFG edges. The `0x7ee0e6` body and `0x7ededa` body ranges and
+call targets agree with Capstone after subtracting the Ghidra image base.
+The private export/project remains outside the repository; this is a static
+cross-check, not runtime or callable-API validation.
+
+The sanitized contract is `sdk/paramlist_add_3_21.json`, the descriptive
+constants are in `sdk/paramlist_3_21_candidate.hpp`, and the CLI is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-add --elf C:\private\libObj.so --json
+```
+
+Synthetic fail-closed coverage rejects wrong identity, missing observations,
+payload-scope promotion, concurrency promotion and runtime/callable claims.
+The complete local regression suite passes **357 tests** after this probe was
+added; this validates the public evidence gates and does not increase the
+runtime-verified or callable API counts.

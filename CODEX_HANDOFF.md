@@ -852,3 +852,43 @@ are unused.  It also does not identify a ParamSet owner or mutator; the generic
 ordered-tree helper remains unassigned.  The new validator and checked-in
 contract tests keep this scope explicit and continue to reject runtime or
 callable promotion.
+
+## Latest continuation checkpoint — ParamList::add replacement/lifetime boundary (2026-10-10)
+
+This round did not repeat the recovered `ParamList::get` body. The new
+`fwplatform/paramlist_add_probe.py` reads the exact SHA-pinned primary ELF and
+verifies the symbol-bound `ParamList::add` at `0x7ee0e6`, key setter `0x7eda84`,
+unnamed replacement body `0x7ededa`, slot-removal helper `0x7ede7a` and storage
+append helper `0x7ee0b8`. The result is kept in
+`sdk/paramlist_add_3_21.json`; no firmware bytes or private exports are in the
+repository.
+
+Primary facts: `add` forwards `r0/r1/r2` to the replacement candidate; a
+nonzero result writes the new key at element `+0x08` and appends the element
+pointer. The add body does not write subclass payload `+0x0c`. The replacement
+candidate returns before traversal for a null new pointer, rejects an identical
+existing pointer, and compares existing `+0x08` key plus `+0x04` discriminator.
+On a match it loads the old object's vptr, invokes slot `+8`, removes one
+four-byte pointer slot and returns a nonzero result. The instruction facts are
+`PRIMARY_ELF_VERIFIED`; the source-level replacement name and composed
+ownership interpretation remain `UNKNOWN`/`STATIC_INFERRED`.
+
+The old element is destroyed before removal, so an earlier `ParamList::get`
+result remains a borrowed interior pointer candidate and can be invalidated by
+replacement. Key/discriminator reads occur before the later null check, so the
+later check is not a general null-safety guarantee. No lock or atomic operation
+was observed. Ownership transfer, allocator pairing, exception paths,
+concurrency, runtime binding and callable ABI remain unknown; runtime and
+callable counts stay zero.
+
+An ASCII-path Ghidra 12.1.3 `ARM:LE:32:v8` `ParamListTargets.java` targeted
+export with image base `0x10000` and `-noanalysis` exited 0 with
+`COMPLETE_TARGET_EXPORT`: 21 targets, 343 instructions, 79 blocks and 135
+edges. Capstone and Ghidra agree on the add/replacement bodies after VMA
+mapping. The private project/export remains outside the public checkout.
+
+Targeted synthetic tests: 6 new ParamList add validator tests. The next
+investigation target is a uniquely typed owner/construction path in a dependent
+ELF; do not treat this replacement helper as a callable SDK API. The complete
+local regression suite passes **357 tests**; this is public evidence-gate
+coverage only and does not add runtime-verified or callable APIs.

@@ -859,6 +859,27 @@ Bool/Point payload-word getters used by those branches; source-level ownership
 and helper semantics remain UNKNOWN. See
 `reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.
 
+### ParamList::add replacement and key initialization
+
+The SHA-pinned primary-ELF probe adds a separate mutation contract:
+
+```powershell
+python -m fwplatform.cli sdk parameter-add --elf C:\private\libObj.so --json
+```
+
+It verifies the symbol-bound `ParamList::add` body at `0x7ee0e6`, the key
+setter at `0x7eda84`, the unnamed replacement body at `0x7ededa`, and the
+pointer-range removal helper at `0x7ede7a`. A nonzero replacement result
+writes the incoming element key at `+0x08` before the pointer is appended;
+the add body does not write the concrete subclass payload at `+0x0c`.
+When an existing element has the same key and discriminator, the bounded
+primary sequence invokes its virtual slot `+8` and removes the old pointer
+slot. This supports a `STATIC_INFERRED` borrowed-pointer invalidation risk for
+earlier `ParamList::get` results. The replacement helper has no source-level
+name, and allocator, exception, ownership, locking, concurrency and runtime
+callability remain UNKNOWN. The sanitized contract is
+`sdk/paramlist_add_3_21.json`; it is descriptive metadata, not a live wrapper.
+
 ## PrmObjMsg primary-ELF checkpoint
 
 The `parameter-objmsg` probe adds a bounded static check:

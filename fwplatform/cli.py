@@ -366,6 +366,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_mutation.add_argument("--elf", type=Path, required=True)
     sdk_mutation.add_argument("--expected-sha256", default=None)
     sdk_mutation.add_argument("--json", action="store_true")
+    sdk_add = sdk_sub.add_parser("parameter-add")
+    sdk_add.add_argument("--elf", type=Path, required=True)
+    sdk_add.add_argument("--expected-sha256", default=None)
+    sdk_add.add_argument("--json", action="store_true")
     sdk_numberlist = sdk_sub.add_parser("parameter-numberlist")
     sdk_numberlist.add_argument("--elf", type=Path, required=True)
     sdk_numberlist.add_argument("--expected-sha256", default=None)
@@ -621,6 +625,15 @@ def main(argv: list[str] | None = None) -> int:
         from .paramlist_mutation_probe import probe_paramlist_mutation
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_paramlist_mutation(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-add":
+        from .paramlist_add_probe import probe_paramlist_add
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_paramlist_add(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

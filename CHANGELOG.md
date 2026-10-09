@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — ParamList::add replacement and borrowed-lifetime evidence
+
+- Added the SHA-pinned `fwplatform.paramlist_add_probe` and
+  `fw sdk parameter-add` command. It verifies the primary-ELF key setter,
+  `ParamList::add`, unnamed replacement body, pointer-slot removal and storage
+  append path without exposing Sony bytes or providing a callable wrapper.
+- Added `sdk/paramlist_add_3_21.json`, descriptive header constants and six
+  synthetic fail-closed tests. The add body writes key `+0x08` before append
+  and does not write payload `+0x0c`; matching replacement destroys the old
+  element through virtual slot `+8` before removing its pointer slot.
+- Re-ran the private ASCII-path Ghidra targeted export: exit 0,
+  `COMPLETE_TARGET_EXPORT`, 21 targets, 343 instruction rows, 79 blocks and
+  135 CFG edges. Ownership, allocator, exception, locking, runtime and
+  callable status remain unknown/false.
+
 ## Unreleased — PrmSet RTTI/vtable word verification
 
 - Added a SHA-pinned, file-backed `PT_LOAD` reader to the private PrmSet probe.

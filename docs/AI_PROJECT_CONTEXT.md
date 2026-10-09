@@ -583,3 +583,29 @@ The PrmSet probe also records a bounded direct Thumb `BL` caller scan for
 deleting-destructor or clone targets; `0x7efb5e` calls the non-deleting
 destructor from the deleting path.  This does not cover BLX/register/vtable
 dispatch or other ELFs, so owner/mutator identity remains UNKNOWN.
+
+### ParamList::add replacement boundary (2026-10-10)
+
+`fwplatform/paramlist_add_probe.py` and `sdk/paramlist_add_3_21.json` record a
+new primary-ELF static checkpoint that complements the existing `get` and
+destructor evidence. The exact symbol `_ZN9ParamList3addEmP9ParamBase` is at
+ELF VMA `0x7ee0e6`. It calls an unnamed replacement body at `0x7ededa`; on the
+nonzero path it invokes the key setter `0x7eda84`, which stores the key at
+element `+0x08`, and then appends the pointer through `0x7ee0b8`. The add body
+does not write subclass payload `+0x0c`.
+
+The replacement body compares pointer identity, key `+0x08` and discriminator
+`+0x04`; a matching old element is dispatched through vtable slot `+8` and its
+four-byte pointer slot is removed. This is static evidence supporting a
+`STATIC_INFERRED` borrowed-pointer invalidation risk for an earlier
+`ParamList::get` result. The replacement body has no source-level name, and
+ownership, allocator pairing, exception paths, locking, concurrency, runtime
+binding and callable safety remain UNKNOWN. Run the private-only probe with:
+
+```powershell
+python -m fwplatform.cli sdk parameter-add --elf C:\private\libObj.so --json
+```
+
+An ASCII-path Ghidra 12.1.3 targeted export cross-checked 21 bounded targets,
+343 instructions, 79 blocks and 135 edges with exit 0 and the complete marker.
+The private export is not part of the public checkout.

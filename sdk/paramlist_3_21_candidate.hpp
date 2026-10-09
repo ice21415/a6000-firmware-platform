@@ -27,6 +27,21 @@ struct ParamBaseEvidenceConstants {
     static constexpr std::uint32_t deleting_destructor_vma = 0x000e4854;
     static constexpr std::uint32_t key_setter_vma = 0x007eda84;
 };
+
+// ParamList::add mutation witnesses from the SHA-pinned 3.21 primary ELF.
+// These are evidence locators only.  The replacement body is unnamed in the
+// stripped image, and none of these values is a host pointer or callable API.
+struct ParamListAddEvidenceConstants {
+    static constexpr std::uint32_t add_vma = 0x007ee0e6;
+    static constexpr std::uint32_t add_size_bytes = 0x30;
+    static constexpr std::uint32_t replacement_candidate_vma = 0x007ededa;
+    static constexpr std::uint32_t key_setter_vma = 0x007eda84;
+    static constexpr std::uint32_t key_offset = 0x08;
+    static constexpr std::uint32_t discriminator_offset = 0x04;
+    static constexpr std::uint32_t payload_offset = 0x0c;
+    static constexpr std::uint32_t remove_slot_vma = 0x007ede7a;
+    static constexpr std::uint32_t storage_append_vma = 0x007ee0b8;
+};
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::int32_t payload;
