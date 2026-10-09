@@ -76,6 +76,13 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 新增 synthetic binary、headless wrapper mock 和 resume/skip/failure regression tests；CI 不含真實 Sony 韌體，也不宣稱已掃描所有 ELF。
 - 尚需在授權的本機研究副本中執行分析，並逐步驗證各 domain 的 ABI 與 API 語意。
 
+## Phase 3.8（核心 SDK 函式身分與匯出位址精確性）
+
+- SDK discover 必須符合同一 ELF 的 export 名稱和數值 VMA，避免同名不同位址被誤列成匯出 API。
+- SDK import 將十六進位／十進位地址正規化並要求唯一函式入口；audit 會揭露既有合約中的數值地址歧義。
+- 重複 ELF SHA-256 不是唯一的 binary 身分；候選搜尋保留歧義，SDK draft 去除重複合約並保留來源路徑。
+- 合成測試驗證誤配、地址別名、歧義、重複 hash 與候選匯入；不代表完成實機 API 語意或 ABI 逆向。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
