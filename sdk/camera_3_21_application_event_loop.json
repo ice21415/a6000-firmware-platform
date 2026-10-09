@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "status": "APPLICATION_EVENT_LOOP_STATIC_SITES_CONSISTENT_EVENT_ID_CONSUMER_UNRESOLVED",
+  "binary": {
+    "name": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
+  },
+  "factory_envelope_event_id": "0x11004003",
+  "provenance": {
+    "saved_disassembly_basename": "app-event-functions.txt",
+    "saved_context_basename": "libobj-appframework-chain.json",
+    "original_elf_bytes_checked_in_current_session": false,
+    "live_event_tracing": false
+  },
+  "observed_functions": [
+    {
+      "name": "application_thread_body",
+      "elf_vma": "0x7eeee8",
+      "role": "event-loop-body",
+      "sites": [
+        {
+          "vma": "0x7ef0d4",
+          "opcode_contains": "bl       #0x7eecac",
+          "why": "branch to candidate event dispatch"
+        },
+        {
+          "vma": "0x7ef0da",
+          "opcode_contains": "cmp      r0, #0",
+          "why": "result condition after candidate event dispatch"
+        },
+        {
+          "vma": "0x7ef0dc",
+          "opcode_contains": "bne      #0x7ef0c0",
+          "why": "conditional re-entry"
+        },
+        {
+          "vma": "0x7ef180",
+          "opcode_contains": "bl       #0x7eeec8",
+          "why": "receive/guard probe"
+        },
+        {
+          "vma": "0x7ef186",
+          "opcode_contains": "cmp      r0, #0",
+          "why": "check receive/guard result"
+        },
+        {
+          "vma": "0x7ef188",
+          "opcode_contains": "beq.w    #0x7eeefa",
+          "why": "condition to sleep path"
+        },
+        {
+          "vma": "0x7ef0c6",
+          "opcode_contains": "bl       #0x7f2210",
+          "why": "call guarded helper"
+        },
+        {
+          "vma": "0x7ef15a",
+          "opcode_contains": "bl       #0x7f2210",
+          "why": "second guarded helper call"
+        }
+      ]
+    },
+    {
+      "name": "app_event_pop",
+      "elf_vma": "0x7eec8c",
+      "role": "app-queue-count-and-dispatch-thunk",
+      "sites": [
+        {
+          "vma": "0x7eec92",
+          "opcode_contains": "ldr      r0, [r0, #0x10]",
+          "why": "queue count object field; object type still unknown"
+        },
+        {
+          "vma": "0x7eec98",
+          "opcode_contains": "b.w      #0xdf82c",
+          "why": "EventManager::count imported"
+        },
+        {
+          "vma": "0x7eecac",
+          "opcode_contains": "push     {r7, lr}",
+          "why": "candidate dispatch thunk entry within recorded function region"
+        },
+        {
+          "vma": "0x7eecb0",
+          "opcode_contains": "ldr      r0, [r0, #0x18]",
+          "why": "object/queue field before dispatch"
+        },
+        {
+          "vma": "0x7eecb6",
+          "opcode_contains": "b.w      #0x7f21e8",
+          "why": "local indirect dispatch target unresolved"
+        }
+      ]
+    },
+    {
+      "name": "app_event_queue_receive",
+      "elf_vma": "0x7eeec8",
+      "role": "event-queue-state-guard",
+      "sites": [
+        {
+          "vma": "0x7eeed0",
+          "opcode_contains": "bl       #0x7f29ec",
+          "why": "upstream state guard"
+        },
+        {
+          "vma": "0x7eeed4",
+          "opcode_contains": "cbnz     r0, #0x7eeee4",
+          "why": "guard result short-circuit"
+        },
+        {
+          "vma": "0x7eeed8",
+          "opcode_contains": "bl       #0x7eaa14",
+          "why": "second state check"
+        }
+      ]
+    },
+    {
+      "name": "application_event_candidate",
+      "elf_vma": "0x7f2210",
+      "role": "semaphore-guarded-apphelper",
+      "sites": [
+        {
+          "vma": "0x7f2212",
+          "opcode_contains": "mov.w    r1, #-1",
+          "why": "wait timeout argument (not proof of waiting every time)"
+        },
+        {
+          "vma": "0x7f221a",
+          "opcode_contains": "literal 0x830451",
+          "why": "semaphore constant"
+        },
+        {
+          "vma": "0x7f221c",
+          "opcode_contains": "osal_wai_sem_tmo",
+          "why": "semaphore wait import"
+        },
+        {
+          "vma": "0x7f2222",
+          "opcode_contains": "bl       #0x7f099c",
+          "why": "internal helper while semaphore held"
+        },
+        {
+          "vma": "0x7f2228",
+          "opcode_contains": "literal 0x830451",
+          "why": "same semaphore constant for release"
+        },
+        {
+          "vma": "0x7f222a",
+          "opcode_contains": "osal_sig_sem",
+          "why": "semaphore signal import"
+        }
+      ]
+    }
+  ],
+  "boundary": {
+    "event_factory_to_app_queue_verified": false,
+    "event_id_11004003_dispatched_by_these_sites_verified": false,
+    "dispatch_target_0x7f21e8_semantics_verified": false,
+    "handler_or_model_camera_consumer_verified": false,
+    "parameter_keys_7_8_decoded_by_consumer_verified": false,
+    "event_consumer_abi_verified": false,
+    "runtime_callable_verified": false
+  },
+  "next_targets": [
+    {
+      "elf_vma": "0x7f21e8",
+      "reason": "direct tail destination from app queue candidate at 0x7eecb6; check indirect handoff/virtual dispatch"
+    },
+    {
+      "elf_vma": "0x7f099c",
+      "reason": "internal helper accessed under semaphore in application event path"
+    },
+    {
+      "elf_vma": "0x12d780",
+      "reason": "UI model request selector transform, still absent from saved function disassembly"
+    }
+  ],
+  "limitations": [
+    "Event queue loop and event factory belong to the same SHA-scoped ELF, but do not themselves establish that event 0x11004003 enters this queue",
+    "Saved disassembly is a bounded report and may omit indirect edges and alternate queues",
+    "Function labels app_event_* are local research labels, not vendor-declared ABI contracts",
+    "Semaphore value and wait argument do not prove a physical startup stall",
+    "Do not represent any stage as verified runtime Camera functionality"
+  ]
+}
