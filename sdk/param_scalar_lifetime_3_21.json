@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "status": "LOCAL_PRIMARY_ELF_PARAM_SCALAR_LIFECYCLE_EVIDENCE_ONLY",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "bindings": {
+    "param_base_constructor": {
+      "entry_vma": "0xe11a4",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102e984",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZN9ParamBaseC2Em",
+          "symbol_value": "0xe50b5",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "allocator": {
+      "entry_vma": "0xdc100",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102cffc",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_Znwj",
+          "symbol_value": "0x0",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "delete_object": {
+      "entry_vma": "0xdd620",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102d6bc",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZdlPv",
+          "symbol_value": "0x0",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    }
+  },
+  "types": [
+    {
+      "name": "PrmBool",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti_vma": "0xfe6e18",
+      "vtable": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "vtable_vma": "0xfe6e00",
+        "address_point_vma": "0xfe6e08",
+        "rtti_vma": "0xfe6e18",
+        "rtti_name": "7PrmBool",
+        "base_rtti_vma": "0xfe6e24",
+        "offset_to_top": 0,
+        "slots": {
+          "clone": {
+            "target_vma": "0xe5110",
+            "thumb_tag": true
+          },
+          "destructor": {
+            "target_vma": "0xe4750",
+            "thumb_tag": true
+          },
+          "deleting_destructor": {
+            "target_vma": "0xe4840",
+            "thumb_tag": true
+          }
+        },
+        "address_space": "ELF_VMA"
+      },
+      "constructor": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry_vma": "0xe50e8",
+        "receiver": "r0 destination candidate (saved before base call)",
+        "original_payload_argument": "r1 saved to r6 before discriminator setup",
+        "discriminator": 5,
+        "base_constructor_call": {
+          "plt_vma": "0xe11a4",
+          "callsite_vma": "0xe50f4",
+          "binding": {
+            "entry_vma": "0xe11a4",
+            "address_space": "ELF_VMA",
+            "got_slot": "0x102e984",
+            "status": "VERIFIED_STATIC",
+            "runtime_binding": "UNKNOWN",
+            "candidates": [
+              {
+                "symbol": "_ZN9ParamBaseC2Em",
+                "symbol_value": "0xe50b5",
+                "relocation_type": 22,
+                "section": ".rel.plt"
+              }
+            ]
+          }
+        },
+        "payload_initialization": {
+          "offset": "0xc",
+          "width": "byte",
+          "store_vma": "0xe5100",
+          "source_register": "r6 (original incoming r1)",
+          "type_candidate": "bool_byte",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "key_initialization": {
+          "offset": "0x8",
+          "constructor_store": "NOT_OBSERVED_IN_BOUNDED_BODY",
+          "setter_vma": "0x7eda84",
+          "verification": "PRIMARY_ELF_VERIFIED for absence scope; add-path ownership remains separate"
+        },
+        "vptr_initialization": {
+          "store_vma": "0xe5104",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "address_space": "ELF_VMA"
+      },
+      "clone": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry_vma": "0xe5110",
+        "allocation_size_bytes": 16,
+        "allocator": {
+          "entry_vma": "0xdc100",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102cffc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_Znwj",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "source_payload_load": {
+          "load_vma": "0xe511c",
+          "offset": "0xc",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "constructor_call": "0xe50e8",
+        "key_copy": "NOT_OBSERVED_IN_BOUNDED_BODY",
+        "return_semantics": "destination-shaped value remains in r0; source-level clone return type UNKNOWN"
+      },
+      "destructors": {
+        "nondeleting": {
+          "status": "PRIMARY_ELF_VERIFIED",
+          "entry_vma": "0xe4750",
+          "base_destructor_call": "0xe4734",
+          "payload_release": "NONE_OBSERVED; scalar is inline"
+        },
+        "deleting": {
+          "status": "PRIMARY_ELF_VERIFIED",
+          "entry_vma": "0xe4840",
+          "nondeleting_dispatch": {
+            "entry_vma": "0xe0570",
+            "address_space": "ELF_VMA",
+            "got_slot": "0x102e5b0",
+            "status": "VERIFIED_STATIC",
+            "runtime_binding": "UNKNOWN",
+            "candidates": [
+              {
+                "symbol": "_ZN7PrmBoolD1Ev",
+                "symbol_value": "0xe4751",
+                "relocation_type": 22,
+                "section": ".rel.plt"
+              }
+            ]
+          },
+          "object_delete": {
+            "entry_vma": "0xdd620",
+            "address_space": "ELF_VMA",
+            "got_slot": "0x102d6bc",
+            "status": "VERIFIED_STATIC",
+            "runtime_binding": "UNKNOWN",
+            "candidates": [
+              {
+                "symbol": "_ZdlPv",
+                "symbol_value": "0x0",
+                "relocation_type": 22,
+                "section": ".rel.plt"
+              }
+            ]
+          }
+        }
+      },
+      "setter": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "symbol": "_ZN7PrmBool7setBoolEb",
+        "entry_vma": "0x426acc",
+        "payload_store": "0x426ad0",
+        "payload_offset": "0xc",
+        "type_candidate": "bool_byte",
+        "key_untouched_in_bounded_body": true
+      },
+      "discriminator": 5,
+      "payload": {
+        "offset": "0xc",
+        "width": "byte",
+        "type_candidate": "bool_byte",
+        "type_verification": "PRIMARY_ELF_VERIFIED for width/source; semantic domain remains STATIC_INFERRED"
+      },
+      "key": {
+        "offset": "0x8",
+        "constructor": "NOT_WRITTEN_IN_BOUNDED_BODY",
+        "clone": "NOT_COPIED_IN_BOUNDED_BODY",
+        "insertion_witness": "ParamList::add -> 0x7eda84",
+        "verification": "PRIMARY_ELF_VERIFIED for bounded absence/witness"
+      },
+      "address_space": "ELF_VMA",
+      "runtime_verified": false,
+      "callable": false
+    },
+    {
+      "name": "PrmNumber",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti_vma": "0xfe8938",
+      "vtable": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "vtable_vma": "0xfe8920",
+        "address_point_vma": "0xfe8928",
+        "rtti_vma": "0xfe8938",
+        "rtti_name": "9PrmNumber",
+        "base_rtti_vma": "0xfe6e24",
+        "offset_to_top": 0,
+        "slots": {
+          "clone": {
+            "target_vma": "0xf1034",
+            "thumb_tag": true
+          },
+          "destructor": {
+            "target_vma": "0xf0f2c",
+            "thumb_tag": true
+          },
+          "deleting_destructor": {
+            "target_vma": "0xf0f5c",
+            "thumb_tag": true
+          }
+        },
+        "address_space": "ELF_VMA"
+      },
+      "constructor": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry_vma": "0xf0fb0",
+        "receiver": "r0 destination candidate (saved before base call)",
+        "original_payload_argument": "r1 saved to r6 before discriminator setup",
+        "discriminator": 1,
+        "base_constructor_call": {
+          "plt_vma": "0xe11a4",
+          "callsite_vma": "0xf0fbc",
+          "binding": {
+            "entry_vma": "0xe11a4",
+            "address_space": "ELF_VMA",
+            "got_slot": "0x102e984",
+            "status": "VERIFIED_STATIC",
+            "runtime_binding": "UNKNOWN",
+            "candidates": [
+              {
+                "symbol": "_ZN9ParamBaseC2Em",
+                "symbol_value": "0xe50b5",
+                "relocation_type": 22,
+                "section": ".rel.plt"
+              }
+            ]
+          }
+        },
+        "payload_initialization": {
+          "offset": "0xc",
+          "width": "word",
+          "store_vma": "0xf0fc8",
+          "source_register": "r6 (original incoming r1)",
+          "type_candidate": "signed_int32_word",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "key_initialization": {
+          "offset": "0x8",
+          "constructor_store": "NOT_OBSERVED_IN_BOUNDED_BODY",
+          "setter_vma": "0x7eda84",
+          "verification": "PRIMARY_ELF_VERIFIED for absence scope; add-path ownership remains separate"
+        },
+        "vptr_initialization": {
+          "store_vma": "0xf0fcc",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "address_space": "ELF_VMA"
+      },
+      "clone": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry_vma": "0xf1034",
+        "allocation_size_bytes": 16,
+        "allocator": {
+          "entry_vma": "0xdc100",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102cffc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_Znwj",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "source_payload_load": {
+          "load_vma": "0xf1040",
+          "offset": "0xc",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        "constructor_call": "0xf0fb0",
+        "key_copy": "NOT_OBSERVED_IN_BOUNDED_BODY",
+        "return_semantics": "destination-shaped value remains in r0; source-level clone return type UNKNOWN"
+      },
+      "destructors": {
+        "nondeleting": {
+          "status": "PRIMARY_ELF_VERIFIED",
+          "entry_vma": "0xf0f2c",
+          "base_destructor_call": "0xe4734",
+          "payload_release": "NONE_OBSERVED; scalar is inline"
+        },
+        "deleting": {
+          "status": "PRIMARY_ELF_VERIFIED",
+          "entry_vma": "0xf0f5c",
+          "nondeleting_dispatch": {
+            "target_vma": "0xf0f2c"
+          },
+          "object_delete": {
+            "entry_vma": "0xdd620",
+            "address_space": "ELF_VMA",
+            "got_slot": "0x102d6bc",
+            "status": "VERIFIED_STATIC",
+            "runtime_binding": "UNKNOWN",
+            "candidates": [
+              {
+                "symbol": "_ZdlPv",
+                "symbol_value": "0x0",
+                "relocation_type": 22,
+                "section": ".rel.plt"
+              }
+            ]
+          }
+        }
+      },
+      "setter": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "symbol": "_ZN9PrmNumber9setNumberEi",
+        "entry_vma": "0x10f9fc",
+        "payload_store": "0x10fa00",
+        "payload_offset": "0xc",
+        "type_candidate": "signed_int32_word",
+        "key_untouched_in_bounded_body": true
+      },
+      "discriminator": 1,
+      "payload": {
+        "offset": "0xc",
+        "width": "word",
+        "type_candidate": "signed_int32_word",
+        "type_verification": "PRIMARY_ELF_VERIFIED for width/source; semantic domain remains STATIC_INFERRED"
+      },
+      "key": {
+        "offset": "0x8",
+        "constructor": "NOT_WRITTEN_IN_BOUNDED_BODY",
+        "clone": "NOT_COPIED_IN_BOUNDED_BODY",
+        "insertion_witness": "ParamList::add -> 0x7eda84",
+        "verification": "PRIMARY_ELF_VERIFIED for bounded absence/witness"
+      },
+      "address_space": "ELF_VMA",
+      "runtime_verified": false,
+      "callable": false
+    }
+  ],
+  "key_assignment": {
+    "offset": "0x8",
+    "setter_vma": "0x7eda84",
+    "scope": "ParamList insertion path; not a constructor action",
+    "runtime_owner": "UNKNOWN"
+  },
+  "raw_instruction_bytes_published": false,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "The probe proves bounded instruction/data-flow facts, not a complete C++ type system",
+    "ParamList owner, allocator interposition, exceptions, locking and runtime loader behavior remain UNKNOWN",
+    "Bool semantic truth representation beyond the stored byte and Number domain/range remain UNKNOWN",
+    "No firmware code is executed and no live camera object is accessed"
+  ]
+}

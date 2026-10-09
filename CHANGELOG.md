@@ -457,3 +457,15 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
   boundary; absent direct calls do not rule out indirect dispatch or callers in
   another ELF.
 - Kept owner/mutator identity and runtime/callable status unknown.
+
+## Unreleased — ParamBase scalar constructor and lifetime evidence
+
+- Added the SHA-pinned `parameter-scalar` probe and descriptive contract for
+  `PrmBool` and `PrmNumber`. It verifies RTTI/vtable identity, ParamBase
+  constructor calls, payload source/width at `+0x0c`, clone reloads, and D1/D0
+  destruction paths without publishing firmware bytes.
+- Recorded that constructors and clones do not initialize/copy element key
+  `+0x08`; the ParamList insertion setter remains a separate key witness.
+- Added six fail-closed regression tests and a private Ghidra lifecycle
+  cross-check (22 targets, 342 instructions, 43 blocks, 72 edges). Runtime
+  verification and callable SDK counts remain zero.

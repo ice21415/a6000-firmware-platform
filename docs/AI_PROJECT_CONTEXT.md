@@ -648,3 +648,26 @@ python -m fwplatform.cli sdk parameter-add --elf C:\private\libObj.so --json
 An ASCII-path Ghidra 12.1.3 targeted export cross-checked 21 bounded targets,
 343 instructions, 79 blocks and 135 edges with exit 0 and the complete marker.
 The private export is not part of the public checkout.
+
+### ParamBase scalar lifecycle checkpoint (2026-10-10)
+
+`fwplatform/param_scalar_probe.py` is the reusable bounded probe for the two
+scalar ParamBase families where the constructor, clone and destructor paths can
+be checked as one chain.  Against the exact SHA-pinned private ELF it verifies
+RTTI/vtable headers, the unique ParamBase constructor PLT binding, the saved
+original `r1` payload source, vptr stores, object allocation and object-delete
+bindings, plus the named `setBool`/`setNumber` payload stores.  `PrmBool`
+stores one byte at `+0x0c` with discriminator 5; `PrmNumber` stores one word
+at `+0x0c` with discriminator 1.  The clone paths reload `+0x0c` and do not
+copy `+0x08` in their bounded bodies.  D1 calls the base destructor and D0
+performs object deletion.
+
+The key remains a separate insertion concern: `+0x08` is not written by either
+constructor or clone, and `0x7eda84` is the only direct key setter witness.
+The sanitized contract is `sdk/param_scalar_lifetime_3_21.json`, the command
+is `fw sdk parameter-scalar --elf <private-libObj.so> --json`, and descriptive
+constants are in `sdk/paramlist_3_21_candidate.hpp`.  The private Ghidra
+12.1.3 lifecycle cross-check completed with 22 targets, 342 instruction rows,
+43 blocks and 72 edges.  Runtime verification, external ownership,
+allocator/exception semantics, synchronization and callable status remain
+unknown; do not use these records as live object wrappers.

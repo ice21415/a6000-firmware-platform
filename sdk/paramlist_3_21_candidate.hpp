@@ -56,6 +56,35 @@ static_assert(offsetof(PrmBoolSnapshotWords, payload) == 12);
 static_assert(sizeof(PrmNumberSnapshotWords) == 16);
 static_assert(sizeof(PrmBoolSnapshotWords) == 16);
 
+// Scalar-family lifecycle evidence from the SHA-pinned 3.21 libObj.so.  These
+// are ELF VMAs and bounded static-analysis locators only.  They are not host
+// function pointers, constructors that may be called by an application, or a
+// promise that the firmware allocator/runtime is available.
+struct ParamScalarEvidenceConstants {
+    static constexpr std::uint32_t key_offset = 0x08;
+    static constexpr std::uint32_t payload_offset = 0x0c;
+
+    static constexpr std::uint32_t prm_bool_rtti_vma = 0x00fe6e18;
+    static constexpr std::uint32_t prm_bool_vtable_vma = 0x00fe6e00;
+    static constexpr std::uint32_t prm_bool_constructor_vma = 0x000e50e8;
+    static constexpr std::uint32_t prm_bool_clone_vma = 0x000e5110;
+    static constexpr std::uint32_t prm_bool_destructor_vma = 0x000e4750;
+    static constexpr std::uint32_t prm_bool_deleting_destructor_vma = 0x000e4840;
+    static constexpr std::uint32_t prm_bool_setter_vma = 0x00426acc;
+    static constexpr std::uint32_t prm_bool_discriminator = 5;
+    static constexpr std::uint32_t prm_bool_payload_width = 1;
+
+    static constexpr std::uint32_t prm_number_rtti_vma = 0x00fe8938;
+    static constexpr std::uint32_t prm_number_vtable_vma = 0x00fe8920;
+    static constexpr std::uint32_t prm_number_constructor_vma = 0x000f0fb0;
+    static constexpr std::uint32_t prm_number_clone_vma = 0x000f1034;
+    static constexpr std::uint32_t prm_number_destructor_vma = 0x000f0f2c;
+    static constexpr std::uint32_t prm_number_deleting_destructor_vma = 0x000f0f5c;
+    static constexpr std::uint32_t prm_number_setter_vma = 0x0010f9fc;
+    static constexpr std::uint32_t prm_number_discriminator = 1;
+    static constexpr std::uint32_t prm_number_payload_width = 4;
+};
+
 struct PrmStringSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::uint32_t string_address;

@@ -963,3 +963,37 @@ destructor or ownership path. The local full suite is now 367 tests passed;
 runtime-verified and callable API counts remain 0. Next target: prove or
 disprove the allocation/deallocation pairing for the two state objects without
 treating the static link layout as a safe callable API.
+
+## Latest continuation checkpoint — ParamBase scalar lifecycle closure (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was rechecked with the new
+`fwplatform.param_scalar_probe.py`; the recovered `ParamList::get` body was
+not repeated.  The probe closes two reusable scalar-family chains:
+`PrmBool` constructor `0xe50e8` / clone `0xe5110` / D1 `0xe4750` / D0
+`0xe4840`, and `PrmNumber` constructor `0xf0fb0` / clone `0xf1034` / D1
+`0xf0f2c` / D0 `0xf0f5c`.  RTTI/vtable records point directly to ParamBase;
+the base-constructor PLT binding is unique.
+
+Capstone facts are `PRIMARY_ELF_VERIFIED`: the original constructor `r1` is
+saved before the discriminator is passed to `ParamBaseC2Em`, then written as a
+byte (`PrmBool`, `+0x0c`) or word (`PrmNumber`, `+0x0c`); each vptr is written
+at `+0x00`.  The clone allocates 0x10 bytes and reloads only source `+0x0c`.
+Neither constructor nor clone writes/reads element key `+0x08`.  The
+independent key setter `0x7eda84` remains the only direct key-initialization
+witness in the insertion path.  `PrmBool::setBool` (`0x426acc`) and
+`PrmNumber::setNumber` (`0x10f9fc`) independently write the same payload
+offsets.  D1 restores the family vptr and calls ParamBase D1; D0 dispatches
+D1 then `_ZdlPv`.  Semantic domain, owner, allocator interposition, exception
+edges, synchronization and runtime ABI remain UNKNOWN/STATIC_INFERRED as
+appropriate; no callable API is declared.
+
+The sanitized contract is `sdk/param_scalar_lifetime_3_21.json`, the read-only
+CLI is `fw sdk parameter-scalar --elf <private-libObj.so> --json`, and the
+descriptive header constants are in `sdk/paramlist_3_21_candidate.hpp`.
+The private ASCII-path Ghidra 12.1.3 `lifecycle` cross-check used
+`ARM:LE:32:v8`, image base `0x10000`, `-noanalysis`, and completed with
+`COMPLETE_TARGET_EXPORT`: 22 targets, 342 instruction rows, 43 blocks and 72
+edges.  The private project/export is outside this checkout.  Six new
+fail-closed synthetic tests cover identity, phase completeness, key-scope and
+runtime/callable promotion.  The next target remains a concrete ParamList
+owner/use path; runtime-verified and callable API counts remain zero.

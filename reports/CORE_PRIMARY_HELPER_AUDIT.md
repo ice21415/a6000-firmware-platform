@@ -1352,3 +1352,44 @@ The private Ghidra cross-check exited 0 with 15 targets, 162 instruction rows,
 payload release path to `Event::~Event`, `_ZdlPv` and `__cxa_end_cleanup`; its
 EventManager ownership and destructor identity remain UNKNOWN. Runtime-verified
 and callable counts remain 0.
+
+## ParamBase scalar constructor, key and lifetime closure — 2026-10-10
+
+This checkpoint adds `fwplatform.param_scalar_probe.py` and the sanitized
+contract `sdk/param_scalar_lifetime_3_21.json`. It reads only the exact,
+SHA-pinned primary `libObj.so` (`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`),
+decodes bounded Thumb regions with Capstone, and resolves the PLT bindings for
+the ParamBase constructor, object allocation and object deletion. It does not
+publish firmware bytes or execute the ELF.
+
+The probe closes the following two scalar-family chains:
+
+| Family | Constructor and payload | Clone | Destruction | Evidence boundary |
+|---|---|---|---|---|
+| `PrmBool` | `0xe50e8` calls the relocation-bound `_ZN9ParamBaseC2Em` PLT at `0xe11a4` with discriminator `5`; original `r1` is saved in `r6` and `0xe5100` stores one byte at `object +0x0c`; vptr is written at `+0x00` | `0xe5110` allocates `0x10` bytes, loads source `+0x0c` with `ldrb` and calls the constructor; no `+0x08` key load | D1 `0xe4750` restores the family vptr and calls base D1 `0xe4734`; D0 `0xe4840` dispatches the relocation-bound `PrmBoolD1` PLT and `_ZdlPv` | byte-width/source register are `PRIMARY_ELF_VERIFIED`; semantic domain, owner and allocator runtime remain unknown |
+| `PrmNumber` | `0xf0fb0` calls the same ParamBase PLT with discriminator `1`; original `r1` is saved in `r6` and `0xf0fc8` stores one word at `object +0x0c`; vptr is written at `+0x00` | `0xf1034` allocates `0x10` bytes, loads source `+0x0c` with `ldr` and calls the constructor; no `+0x08` key load | D1 `0xf0f2c` restores the family vptr and calls base D1; D0 `0xf0f5c` calls D1 then `_ZdlPv` | word-width/source register are `PRIMARY_ELF_VERIFIED`; signed-int interpretation is supported by `_ZN9PrmNumber9setNumberEi` at `0x10f9fc`, while range/domain and ownership remain unknown |
+
+Both constructors and clones have no bounded store/load of the ParamList key
+at `+0x08`. The independent key setter at `0x7eda84`, reached from the
+`ParamList::add` path, remains the only direct key-initialization witness.
+Therefore a newly constructed scalar object is not treated as a complete
+ParamList element until the insertion path is separately followed. This also
+keeps a cloned element's key semantics unresolved; payload cloning alone does
+not prove key copying.
+
+The private ASCII-path Ghidra 12.1.3 `ParamListTargets.java lifecycle` run
+used language `ARM:LE:32:v8`, image base `0x10000`, and `-noanalysis`. It
+finished with `COMPLETE_TARGET_EXPORT`: **22** bounded targets, **342**
+instruction rows, **43** blocks and **72** edges. The profile includes both
+scalar constructors, clones, setters and D1/D0 paths; Ghidra is a CFG/address
+cross-check and its generated names are not semantic proof. The private
+project/export remain outside the repository.
+
+The checked-in SDK record exposes read-only snapshot metadata and the new
+`fw sdk parameter-scalar --elf <private-libObj.so> --json` command. Its
+validator rejects wrong hashes, missing lifecycle phases, key-scope promotion
+and runtime/callable claims. The new scalar regression tests and the existing
+ParamBase/family tests pass. Runtime-verified and callable core API counts
+remain **0**. Still unresolved are ParamList owner identity, allocator
+interposition, C++ exception edges, synchronization, and whether any external
+caller may safely construct or retain these objects.
