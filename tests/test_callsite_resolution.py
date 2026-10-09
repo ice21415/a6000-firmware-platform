@@ -62,6 +62,19 @@ class CallsiteResolutionTests(unittest.TestCase):
             self.assertEqual(second["identity_key"], first["identity_key"])
             self.assertIsNotNone(second["caller_id"])
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM callsite").fetchone()[0], 1)
+            function_record = db.connection.execute(
+                "SELECT source_evidence_id FROM function WHERE address='0x100'"
+            ).fetchone()
+            self.assertIsNotNone(function_record["source_evidence_id"])
+            function_evidence = db.connection.execute(
+                "SELECT kind,excerpt,metadata_json FROM evidence WHERE id=?",
+                (function_record["source_evidence_id"],)
+            ).fetchone()
+            self.assertEqual(function_evidence["kind"], "ghidra_function_entry")
+            excerpt = json.loads(function_evidence["excerpt"])
+            self.assertEqual(excerpt["binary_sha256"], digest)
+            self.assertEqual(excerpt["function_entry"], "0x100")
+            self.assertFalse(json.loads(function_evidence["metadata_json"])["prototype_abi_verified"])
             self.assertEqual(db.connection.execute("PRAGMA foreign_key_check").fetchall(), [])
             db.close()
 
