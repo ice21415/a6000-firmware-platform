@@ -320,6 +320,14 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_param_lookup.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_param_lookup_abi.json"))
     sdk_param_lookup.add_argument("--saved-libobj", type=Path)
     sdk_param_lookup.add_argument("--json", action="store_true")
+    sdk_core_probe = sdk_sub.add_parser("probe-core-abi")
+    sdk_core_probe.add_argument("--elf", type=Path, required=True)
+    sdk_core_probe.add_argument("--region-bytes", type=int, default=384)
+    sdk_core_probe.add_argument("--entry", type=lambda v: int(v, 0), action="append",
+                                help="Local extra ELF VMA; defaults to 0x13200a and 0x42ac00")
+    sdk_core_probe.add_argument("--expected-sha256", default=None,
+                                help="Synthetic fixture override only; default pins Sony libObj.so 3.21")
+    sdk_core_probe.add_argument("--json", action="store_true")
     sdk_trace = sdk_sub.add_parser("trace-selector")
     sdk_trace.add_argument("--elf", type=Path, required=True)
     sdk_trace.add_argument("--region-bytes", type=int, default=1536)
@@ -402,6 +410,18 @@ def main(argv: list[str] | None = None) -> int:
         result = audit_model_request_frontends(args.fixture,
             saved_disassembly=args.saved_disassembly,
             event_envelope=args.event_envelope)
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "probe-core-abi":
+        from .core_abi_probe import CORE_ABI_TARGETS, probe_private_core_abi
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        targets = (tuple((f"explicit_entry_{i + 1}", entry)
+                         for i, entry in enumerate(args.entry))
+                   if args.entry is not None else CORE_ABI_TARGETS)
+        result = probe_private_core_abi(
+            args.elf, expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+            targets=targets, region_bytes=args.region_bytes,
+        )
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "trace-selector":
