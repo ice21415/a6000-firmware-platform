@@ -2,6 +2,12 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Phase 3.2：schema v7 保留 legacy DB identity 與 FK，移除衝突的 module dependency、OSAL queue、JNI bridge 唯一性約束，並補上 v6 upgrade tests。
+- JNI bridge identity 綁定 native binary SHA、DEX path 與 address space，不再依相同虛擬位址覆寫其他韌體的對應。
+- 增加 evidence-bound DEX string/candidate persistence、`fw analyze dex` 與 `fw query dex` 以及 CLI 回歸測試。
+- Semantic graph stale node/edge cleanup、ELF `$ORIGIN` normalization、Ghidra completion identity validation 與回歸測試。
+
+
 - Phase 3.1：migration v6 新增函式不連續 body ranges、證據 adapter run/observation 與 graph provenance。
 - Ghidra exporter/importer 改用 AddressSet body ranges；缺少 range 的 caller 保留 unresolved。
 - GraphML 改用標準 key/data；加入 provenance gap validator。
