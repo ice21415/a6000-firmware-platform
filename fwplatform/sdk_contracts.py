@@ -220,7 +220,7 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
             )
             source_id = item["primary_evidence"]
             source = (db.connection.execute(
-                "SELECT status,source_sha256,excerpt,metadata_json FROM evidence WHERE id=?",
+                "SELECT status,kind,source_sha256,excerpt,metadata_json FROM evidence WHERE id=?",
                 (source_id,)).fetchone()
                       if source_id is not None else None)
             if source_id is not None and source is None:
@@ -229,6 +229,8 @@ def import_sdk_contracts(db: Database, fixture: Path) -> dict[str, Any]:
             eligible_static = bool(
                 function_id is not None and source is not None
                 and source["status"] == "VERIFIED_STATIC"
+                and source["kind"] != "sdk_contract_fixture"
+                and source_id != fixture_evidence
                 and _proves_function_location(source, item["binary_sha"], item["address"])
                 and _proves_signature(source, item["fields"])
                 and item["requested"] == "VERIFIED_STATIC"
@@ -292,6 +294,8 @@ def audit_sdk_contracts(db: Database) -> dict[str, Any]:
             issues.append("MISSING_PRIMARY_EVIDENCE")
         elif row["verification_status"] == "VERIFIED_STATIC" and row["evidence_status"] != "VERIFIED_STATIC":
             issues.append("STATIC_STATUS_WITHOUT_STATIC_EVIDENCE")
+        if row["verification_status"] == "VERIFIED_STATIC" and row["evidence_kind"] == "sdk_contract_fixture":
+            issues.append("SELF_ATTESTED_SDK_FIXTURE")
         if row["verification_status"] == "VERIFIED_STATIC" and row["evidence_status"] == "VERIFIED_STATIC":
             proof = {"source_sha256": row["evidence_sha256"], "excerpt": row["evidence_excerpt"],
                      "metadata_json": row["evidence_metadata_json"]}
