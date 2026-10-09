@@ -794,4 +794,7 @@ declarations live in `paramlist_3_21_candidate.hpp`; they expose no native
 address binding. `fwplatform.paramlist_snapshot.lookup_snapshot` reads only
 self-contained offline memory bytes, with bounds checks and a resource budget.
 The returned payload word's concrete type is UNKNOWN. No runtime-safe API is
-provided. See `reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.
+provided. The same contract records the static `0x42acd4` factory mapping for
+discriminators 5/1/3 to Bool/Number/Point construction and its four direct
+callers; source-level ownership and helper semantics remain UNKNOWN. See
+`reports/CORE_PRIMARY_HELPER_AUDIT.md` for exact witness locations.

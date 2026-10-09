@@ -111,6 +111,50 @@
       "ownership": "No local ownership acquisition",
       "evidence_locators": ["ELF_VMA:0xe5b22", "ELF_VMA:0xe5b2a", "ELF_RELOCATION:0x102f0c8", "ELF_SYMBOL:0x7edacb"],
       "safe_to_call": false
+    },
+    {
+      "name": "param_family_factory_candidate",
+      "entry": "0x42acd4",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "function_identity": "Local unnamed ARM Thumb factory; source-level C++ identity UNKNOWN",
+      "r0": "Readable wrapper-like object; local branches dereference word at +4 before type-specific lookup",
+      "r1": "Key or helper input; forwarded to the discriminator-1 lookup and available to the discriminator-3 helper chain; exact C++ type UNKNOWN",
+      "r2": "32-bit discriminator compared explicitly with 5, 1 and 3",
+      "r3": "No semantic read before return in the bounded body",
+      "return": "Allocated ParamBase-derived object pointer in r0 on supported paths; r0=0 for unsupported discriminator or failed source lookup",
+      "declared_return_type": "UNKNOWN; ParamBase* candidate STATIC_INFERRED",
+      "branches": [
+        {
+          "discriminator": 5,
+          "allocation_size": "0x10",
+          "constructor": "0xe50e8",
+          "candidate_type": "PrmBool",
+          "payload_source": "0x120970 then 0x120968; helper semantics UNKNOWN",
+          "evidence": ["ELF_VMA:0x42acdc", "ELF_VMA:0x42ace8", "ELF_VMA:0x42acf8"]
+        },
+        {
+          "discriminator": 1,
+          "allocation_size": "0x10",
+          "constructor": "0xf0fb0",
+          "candidate_type": "PrmNumber",
+          "payload_source": "0xe5b20 then 0xe5b18; null lookup returns 0",
+          "evidence": ["ELF_VMA:0x42ad02", "ELF_VMA:0x42ad04", "ELF_VMA:0x42ad0a", "ELF_VMA:0x42ad1c"]
+        },
+        {
+          "discriminator": 3,
+          "allocation_size": "0x14",
+          "constructor": "0xffa3c",
+          "candidate_type": "PrmPoint",
+          "payload_source": "0xfe9be, 0xfe9ae and 0xfe9b6 helper chain; field semantics UNKNOWN",
+          "evidence": ["ELF_VMA:0x42ad22", "ELF_VMA:0x42ad28", "ELF_VMA:0x42ad30", "ELF_VMA:0x42ad38", "ELF_VMA:0x42ad4a"]
+        }
+      ],
+      "callers": ["ELF_VMA:0x4cf9be", "ELF_VMA:0x60ece0", "ELF_VMA:0x66d574", "ELF_VMA:0x682a88"],
+      "failure_paths": "Unsupported r2 or a type-specific source helper returning null reaches r0=0; wrapper dereference and helper contracts remain unguarded/UNKNOWN",
+      "ownership": "Fresh allocation is observed on success; caller destruction, transfer and exception behavior remain UNKNOWN",
+      "thread_context": "UNKNOWN",
+      "evidence_locators": ["ELF_SYMBOL:0x42acd4:bounded=0x82", "ELF_VMA:0x42acd4", "ELF_VMA:0x42ad52", "GHIDRA_PRIVATE_EXPORT:ParamListTargets:core-v2:COMPLETE_TARGET_EXPORT"],
+      "safe_to_call": false
     }
   ],
   "limitations": ["Research specifications only; no native wrapper", "Local symbol definition is not proof of runtime binding", "Ghidra decompiler guesses are not declared C++ types", "No Runtime Verification", "Concrete payload subclass, mutation invalidation and full destruction contract remain unresolved"],

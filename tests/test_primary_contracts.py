@@ -15,6 +15,17 @@ class PrimaryContractTests(unittest.TestCase):
     def test_descriptive_contracts_never_grant_callability(self):
         self.assertEqual(validate_primary_contracts(self.contract)["callable_interfaces"], 0)
 
+    def test_param_family_factory_keeps_tag_mapping_descriptive(self):
+        factory = next(item for item in self.contract["interfaces"]
+                       if item["name"] == "param_family_factory_candidate")
+        self.assertEqual(factory["entry"], "0x42acd4")
+        self.assertFalse(factory["safe_to_call"])
+        self.assertEqual(
+            {branch["discriminator"] for branch in factory["branches"]},
+            {1, 3, 5},
+        )
+        self.assertTrue(factory["declared_return_type"].startswith("UNKNOWN"))
+
     def test_static_status_cannot_enable_runtime(self):
         for field in ("runtime_verified", "callable"):
             doc = copy.deepcopy(self.contract)

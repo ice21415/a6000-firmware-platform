@@ -8,7 +8,13 @@
   `PrmString` (tag 2), `PrmPoint` (tag 3), `PrmDimension` (tag 4), `PrmStruct`
   (tag 6), and `PrmSet` (tag 7), alongside the earlier families. Pointer
   ownership, helper/allocator behavior, runtime safety and callable APIs remain
-  unknown; 222 synthetic tests pass.
+  unknown; 223 synthetic tests pass.
+
+- Core factory follow-up: added a primary static contract for the local Thumb
+  factory candidate at `0x42acd4`. Its discriminator 5/1/3 branches allocate
+  and construct Bool/Number/Point candidates, with four direct callers and
+  explicit null paths. Source-level identity, helper semantics, ownership and
+  runtime callability remain unknown.
 
 - Derived payload/lifetime follow-up: primary constructor/RTTI/vtable evidence
   confirms PrmNumber signed-word and PrmBool byte payloads. Verified deleting

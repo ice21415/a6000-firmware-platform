@@ -51,6 +51,16 @@ mutations/copy-on-write and payload type mapping beyond Number/Bool.
 The latest ASCII-path lifecycle export completed with exit 0 for 22 bounded
 targets (including the Point deleting destructor at 0xff904), 342 instruction
 rows, 43 basic blocks and 72 CFG edges; its raw output remains private.
+The next private primary checkpoint recovered the local factory candidate at
+0x42acd4. Its explicit discriminator branches construct Bool (5, 0xe50e8),
+Number (1, 0xf0fb0) and Point (3, 0xffa3c) with allocation sizes 0x10, 0x10
+and 0x14. Unsupported or failed source lookups return null. Four direct
+callers were identified at 0x4cf9be, 0x60ece0, 0x66d574 and 0x682a88;
+source-level name, ownership and helper semantics remain unknown. The
+descriptive contract is in `sdk/core_3_21_primary_helper_contracts.json`.
+The private metadata-only Ghidra xref export completed exit 0 with 25 target
+records and 2,290 xrefs; its four factory callsites were retained as address
+metadata only.
 Callable/runtime-verified core API count remains zero. Private raw exports and
 Ghidra projects are outside this public checkout.
 

@@ -31,6 +31,9 @@ synthetic tests 和文件；不要要求或提交私人 firmware。
 2. `analyzeHeadless` 使用 Auto Analysis 載入單一 ELF。
 3. `AnalyzeBinary.java` 輸出 metadata、functions、ARM/Thumb instructions、basic blocks、
    CFG edges、callsites、XREF 和 symbols；輸出 JSONL 有 complete marker，不追加舊 run。
+   `ParamFamilyReferences.java` 可在既有私有 Ghidra project 上輸出 ParamBase
+   constructor/destructor 與 factory 的 address-space-aware xrefs；它只輸出
+   metadata，不輸出指令 bytes。
 4. Importer 驗證 binary hash、program identity、record count 和 complete marker，使用
    transaction/savepoint 寫入 `analysis_run`、`evidence`、CFG tables；失敗會 rollback。
 5. 同一輸入與 analyzer version 可增量重跑；錯誤會保留 FAILED checkpoint。
@@ -103,6 +106,11 @@ remain UNKNOWN. Only PrmNumber and PrmBool payload semantics are decoded.
 Latest: `ParamListTargets.java` in an ASCII Ghidra installation exits 0. The
 lifecycle profile exported 22 bounded targets, 342 instruction rows, 43 basic
 blocks and 72 CFG edges to a private output file.
+The current private checkpoint also verifies the bounded factory candidate
+`0x42acd4`: discriminator values 5, 1 and 3 route to Bool, Number and Point
+constructors, respectively, with four direct callers. Its descriptive ABI is
+recorded in `sdk/core_3_21_primary_helper_contracts.json`; ownership and
+runtime safety remain unknown.
 The 76-byte ParamList::get has 30 matched instruction boundaries, 7 blocks,
 8 local CFG edges and 4 calls. Lookup returns an existing matched object or null.
 Read `paramlist_snapshot.py` for offline parsing and the candidate SDK header.

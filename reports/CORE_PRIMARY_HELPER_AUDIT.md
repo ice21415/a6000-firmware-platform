@@ -87,9 +87,40 @@ String, Point, Dimension, Struct, Set, NumberList, CntInfoList and ObjMsg
 snapshot structures. The probe's discovery pass reports ten direct
 ParamBase-derived RTTI records in this ELF; payload semantics remain verified
 only for Number and Bool.
+The descriptive primary contract also records the `0x42acd4` factory's
+discriminator-1/3/5 branch mapping and four direct callers; no callable or
+runtime status is granted.
 Runtime-verified / callable interfaces remain **0**.
-This checkpoint: **222 synthetic tests passed**, exit 0; candidate header passed
+This checkpoint: **223 synthetic tests passed**, exit 0; candidate header passed
 the existing WSL g++ C++17 syntax check (host declarations only).
+
+### ParamBase factory branch recovery — current primary checkpoint
+
+The bounded Thumb body at ELF VMA `0x42acd4` is a local unnamed factory
+candidate. Capstone and the private ASCII-path Ghidra export agree on its
+three explicit discriminator comparisons and its null/success paths. It
+allocates and constructs:
+
+| `r2` discriminator | Allocation | Constructor | Static result | Remaining limits |
+|---:|---:|---|---|---|
+| `5` | `0x10` | `0xe50e8` | `PrmBool` candidate; payload comes through `0x120970`/`0x120968` | helper semantics and key relationship UNKNOWN |
+| `1` | `0x10` | `0xf0fb0` | `PrmNumber` candidate; source lookup uses `0xe5b20`/`0xe5b18` | exact source object and ownership UNKNOWN |
+| `3` | `0x14` | `0xffa3c` | `PrmPoint` candidate; two words come through `0xfe9be`/`0xfe9ae`/`0xfe9b6` | coordinate semantics and helper ABI UNKNOWN |
+
+Unsupported discriminator values return a null pointer in the bounded body;
+type-specific source failures also reach the null path. Four direct callers
+were independently found at `0x4cf9be`, `0x60ece0`, `0x66d574` and `0x682a88`.
+At each site `r0`, `r1` and `r2` are prepared from caller data before the
+factory call and the returned `r0` is tested for null. The wrapper-like `r0`
+object is dereferenced at `+4`, but its C++ type is not recovered. This is a
+static factory contract, not evidence that the factory is safe to call on a
+camera or that its returned object has a known owner.
+
+The public contract is `sdk/core_3_21_primary_helper_contracts.json`; the
+metadata-only reusable xref export is `ghidra-scripts/ParamFamilyReferences.java`.
+Its private SHA-pinned run completed with exit 0 and emitted 25 bounded target
+records / 2,290 xrefs; the factory record contains four unconditional-call
+xrefs. The export is not committed.
 
 
 ## ParamList continuation — latest checkpoint
@@ -152,7 +183,7 @@ The C++ header describes target words, never host pointers or callable wrappers.
 Private sources: SHA-pinned ELF; new Capstone probes for lookup/lifecycle/base
 constructor; Ghidra targeted listing/CFG/decompilation. Public output includes
 only self-authored summaries, schema, tooling and synthetic tests.
-Full public synthetic regression run: **222 tests passed**, process exit 0.
+Full public synthetic regression run: **223 tests passed**, process exit 0.
 Candidate header passed a C++17 syntax check with the existing Ubuntu g++
 through WSL (exit 0). This checks declarations/layout assertions on the host;
 it does not link Sony code or validate a target ARM runtime ABI.
