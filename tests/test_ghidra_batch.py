@@ -112,6 +112,25 @@ class GhidraBatchTests(unittest.TestCase):
         self.assertEqual(resumed["skipped"]["completed"], 2)
         self.assertEqual(self.db.connection.execute("PRAGMA foreign_key_check").fetchall(), [])
 
+    def test_missing_fresh_output_cannot_reuse_prior_jsonl(self) -> None:
+        ghidra = self.base / "ghidra"
+        (ghidra / "support").mkdir(parents=True)
+        (ghidra / "support" / "analyzeHeadless.bat").touch()
+        out_dir = self.base / "outputs"
+        out_dir.mkdir()
+        bid, _, digest = self.elfs[0]
+        stale = out_dir / f"ghidra-{bid}-{digest[:16]}.jsonl"
+        stale.write_text('{"kind":"complete"}', encoding="utf-8")
+        with patch("fwplatform.ghidra_batch.shutil.which", return_value="pwsh"), \
+             patch("fwplatform.ghidra_batch._invoke_wrapper", return_value=None):
+            result = run_ghidra_batch(self.db, self.root, output_dir=out_dir,
+                                      ghidra_root=ghidra, project_dir=self.base / "projects",
+                                      limit=1)
+        self.assertEqual(result["failed"], 1)
+        self.assertEqual(result["results"][0]["status"], "FAILED")
+        self.assertFalse(stale.exists())
+        self.assertEqual(plan_ghidra_batch(self.db, self.root, limit=1)["selected_count"], 1)
+
     def test_plan_cli_never_requires_executable(self) -> None:
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
