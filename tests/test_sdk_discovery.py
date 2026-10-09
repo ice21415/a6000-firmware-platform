@@ -162,6 +162,36 @@ class SdkDiscoveryTests(unittest.TestCase):
         self.assertFalse(result["candidates"][0]["entry_location_evidence_valid"])
         self.assertIsNone(result["candidates"][0]["identity_evidence_id"])
 
+    def test_duplicate_binary_digest_is_not_a_unique_sdk_identity(self):
+        duplicate_bid = self.db.upsert("binary", {
+            "path": "duplicate.so", "sha256": self.digest, "size": 100,
+            "format": "elf_executable_or_shared_library",
+        }, ("path",))
+        self.db.upsert("function", {
+            "binary_id": duplicate_bid, "identity_key": "duplicated:0x100",
+            "name": "Camera_capture", "address": "0x100",
+        }, ("identity_key",))
+        self.db.upsert("import_export", {
+            "binary_id": duplicate_bid, "name": "Camera_capture",
+            "direction": "export", "address": "0x100",
+        }, ("binary_id", "name", "direction", "address"))
+        self.db.commit()
+        candidates = discover_sdk_candidates(self.db, binary_sha256=self.digest)
+        self.assertEqual(candidates["returned"], 2)
+        self.assertTrue(all(not item["unique_binary_identity"]
+                            for item in candidates["candidates"]))
+        self.assertTrue(all(not item["entry_location_evidence_valid"]
+                            for item in candidates["candidates"]))
+        output = self.root / "duplicate-review.json"
+        result = draft_sdk_review(self.db, output, binary_sha256=self.digest)
+        self.assertEqual(result["interfaces"], 1)
+        self.assertEqual(result["duplicate_candidates_collapsed"], 1)
+        payload = json.loads(output.read_text(encoding="utf-8"))
+        self.assertEqual(len(payload["interfaces"]), 1)
+        self.assertEqual(len(payload["interfaces"][0]["review"]["candidate_binary_paths"]), 2)
+        self.assertNotIn("source_evidence_id", payload["interfaces"][0])
+        self.assertEqual(import_sdk_contracts(self.db, output)["interfaces"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
