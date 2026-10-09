@@ -159,6 +159,26 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.10: inspect Camera, Lens, Sensor and adjacent core API candidates
+
+Use `sdk investigate --domain Camera --json` or select Lens, Sensor,
+Media, UI, OSAL, Android or Networking. Add `--include-internal` to include
+non-exported named functions, `--binary-sha256` to scope one ELF and
+`--relation-limit` to bound detailed evidence per function.
+
+The read-only investigation joins **explicit function foreign keys** from
+Ghidra callsites, OSAL message flows, JNI native bridges and lifecycle
+callbacks. It reports body ranges and basic blocks separately from any claim
+of ABI or function semantics. It never matches function/message IDs across
+binaries just because their values or names coincide. Camera-named state
+machines are presented as lexical context **only**, not function-to-state
+links or camera/first-shot readiness proof.
+
+All investigated interfaces remain **unverified** for real device ABI,
+side effects, runtime callability and safety. The generated queue is for
+manual disassembly and independent evidence review; no firmware executable,
+patch or hardware interface is produced.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
