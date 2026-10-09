@@ -159,6 +159,49 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.15: two shared model-request frontends, separate dispatch boundaries
+
+The preserved private `libObj.so` instruction report additionally records a
+second, distinct frontend `viewManagerIf::requestModelExecute` at
+ELF VMA `0x1250c0`, compared with the previously documented
+`ViewBase::requestModelExecute` at `0x12106e`.
+Both call the same imported model-name ID generator (`0xdffb8`),
+the same local selector transformation helper (`0x12d780`), and
+the same named event-factory PLT entry (`0xdfbdc`). In both
+instruction sequences, the transformed selector becomes the event
+factory's **r2** input, the model name's generated ID becomes **r1**,
+and the original ParamList pointer becomes **r3**.
+
+The frontends **diverge at submission**: the ViewBase method tail-branches
+at `0x1210a4` to imported `View::requestApplicationExecute`
+(`0xdb578`), whereas the viewManagerIf method tail-branches at
+`0x1250f6` to **local function candidate `0x125084`**, whose body is
+not included in the saved research report. The manager also obtains
+its utility-manager receiver via a different indirection from the
+ViewBase stored `this+0x7c` receiver. Static shared inputs do not
+prove matching runtime delivery, thread behavior, function signatures,
+or the interpretation of `0x12d780`'s returned value.
+
+A bounded, candidate-only validation command checks both paths
+against the local saved disassembly and optionally cross-references
+the prior event envelope's precise ELF SHA identity:
+
+```powershell
+python -m fwplatform.cli sdk request-frontends --json
+python -m fwplatform.cli sdk request-frontends --saved-disassembly C:\private\boot-static-analysis\model-camera-methods.txt --event-envelope sdk/camera_3_21_model_execute_envelope.json --json
+```
+
+Without `--saved-disassembly`, this reports
+`TWO_FRONTEND_RESEARCH_LEADS_ONLY`. With the saved source, it checks
+33 **reported disassembly-text sites** in two separate function regions,
+including exact PLT target annotations, registers, and distinct tail
+branch targets. The connected private workspace was directly queried
+and **33/33 reported site expectations matched** the previously saved
+instruction text. This is **not** re-reading the original ELF bytes,
+nor verification of the unknown helper or event consumer. Synthetic
+regression tests exercise mismatched targets, register swaps and
+unjustified ABI/runtime claims without shipping proprietary firmware.
+
 ## Phase 3.14: recover model-request event envelope (saved static assembly)
 
 An additional previously saved original-ELF ARM/Thumb report for `libObj.so`
