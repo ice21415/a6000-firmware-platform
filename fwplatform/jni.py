@@ -99,12 +99,31 @@ def import_jni_fixture(db: Database, fixture: Path) -> dict[str, Any]:
         elif native:
             counts["unresolved"] += 1
             status = "CANDIDATE" if status == "VERIFIED_STATIC" else status
-        identity = f"jni:{class_name}:{name}:{signature}:{native.get('address') if isinstance(native, dict) else native}"
+        native_entry = str(native.get("address") if isinstance(native, dict) else native or "")
+        address_space = str(bridge.get("address_space") or "")
+        # Addresses alone are not globally unique across firmware ELF images.
+        native_sha = str(native.get("binary_sha256") or "").lower() if isinstance(native, dict) else ""
+        if not native_sha and native_id is not None:
+            source = db.connection.execute(
+                "SELECT b.sha256 FROM function f JOIN binary b ON b.id=f.binary_id WHERE f.id=?",
+                (native_id,),
+            ).fetchone()
+            native_sha = str(source[0]).lower() if source else ""
+        if not native_sha and module_id is not None:
+            source = db.connection.execute(
+                "SELECT b.sha256 FROM module m JOIN binary b ON b.id=m.binary_id WHERE m.id=?",
+                (module_id,),
+            ).fetchone()
+            native_sha = str(source[0]).lower() if source else ""
+        # Unknown binary ownership is scoped to its evidence, never promoted
+        # to a cross-firmware native mapping solely because addresses match.
+        native_identity = native_sha or f"evidence:{evidence_id}"
+        identity = f"jni:{class_name}:{name}:{signature}:{dex_path}:{native_identity}:{native_entry}:{address_space}"
         bridge_id = db.upsert("jni_bridge", {"class_name": class_name, "method_name": name, "signature": signature,
-            "native_entry": str(native.get("address") if isinstance(native, dict) else native or ""),
+            "native_entry": native_entry, "dex_path": dex_path,
             "module_id": module_id, "status": status, "source_evidence_id": evidence_id,
             "identity_key": identity, "native_function_id": native_id,
-            "address_space": bridge.get("address_space"), "analyzer_version": "jni_bridge:1"}, ("identity_key",))
+            "address_space": address_space or None, "analyzer_version": "jni_bridge:2"}, ("identity_key",))
         if java_key not in java_ids:
             _unresolved(db, f"{identity}:java", "JNI_BRIDGE",
                         f"Java method was not present in fixture: {class_name}.{name}{signature}",
