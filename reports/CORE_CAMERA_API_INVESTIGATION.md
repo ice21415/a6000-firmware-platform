@@ -718,3 +718,21 @@ its primary instructions set `r2=1`, load receiver `+0x10`, and branch to
 `_ZN12EventManager4pushEP5Eventb` (`EventManager::push(Event*,bool)`). This
 strengthens the static dispatch chain but does not verify runtime binding,
 receiver class, event delivery/completion or a callable C++ ABI.
+
+## Phase 3.24 — EventManager::push primary implementation
+
+The exact SHA-pinned ELF contains the symbol
+`_ZN12EventManager4pushEP5Eventb` at even Thumb entry `0x7ef960`, size 156.
+The bounded probe verifies the incoming register candidates (`r0=this`,
+`r1=Event*`, `r2=bool`), the status result from local `0x7ef88c`, and the
+`status == 1` branch. The success path calls an indirect function pointer
+loaded through `[this+8]`, performs the observed helper/cleanup sequence, and
+when the incoming `r2` is non-zero invokes a second indirect pointer through
+`[this+4]`. The zero-status path has a separate cleanup route; observed exits
+set `r0=0`.
+
+The control flow is `PRIMARY_ELF_VERIFIED`; the mangled symbol supplies the
+explicit parameter types but not complete return/error semantics. The indirect
+function targets, queue/thread behavior, Event ownership, status meaning and
+completion result remain UNKNOWN. Contract:
+`sdk/event_manager_push_3_21.json`; runtime and callable flags remain false.

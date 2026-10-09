@@ -294,3 +294,12 @@ that helper sets `r2=1`, loads receiver `+0x10`, and branches to `0xdf270`,
 whose unique PLT relocation names `EventManager::push(Event*,bool)`. This is
 static symbol/dispatch evidence only; runtime binding, receiver identity,
 event delivery/completion and complete C++ signature remain UNKNOWN.
+
+The next Event checkpoint adds `fwplatform/event_manager_push_probe.py` and
+`fw sdk event-manager-push --elf <private-libObj.so>`. It validates the actual
+symbol-bound implementation at `0x7ef960` (156 bytes): AAPCS32 candidates
+`r0=this`, `r1=Event*`, `r2=bool`, status branch via `0x7ef88c`, dispatch via
+`[this+8]`, optional completion via `[this+4]`, and visible zero returns.
+Indirect targets, helper semantics, queue/thread behavior, ownership and
+runtime/callable status remain UNKNOWN. Contract:
+`sdk/event_manager_push_3_21.json`.

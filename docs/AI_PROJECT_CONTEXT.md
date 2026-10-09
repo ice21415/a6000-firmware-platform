@@ -194,3 +194,10 @@ receiver `+0x10` load and the unique PLT relocation of `0xdf270` to
 `EventManager::push(Event*,bool)`. This is a static symbol/dispatch fact only;
 runtime binding, receiver class, event delivery/completion and complete C++
 signature remain UNKNOWN.
+
+The `event-manager-push` probe now validates the implementation at symbol-bound
+entry `0x7ef960`: `r0=this`, `r1=Event*`, `r2=bool`, status branch through
+`0x7ef88c`, success dispatch through `[this+8]`, optional completion callback
+through `[this+4]`, and visible zero returns. Indirect targets, helper
+semantics, queue/thread behavior, ownership and runtime callability remain
+UNKNOWN. Contract: `sdk/event_manager_push_3_21.json`.

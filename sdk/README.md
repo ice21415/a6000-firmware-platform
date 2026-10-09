@@ -893,3 +893,16 @@ The unique PLT relocation identifies `0xdf270` as
 `EventManager::push(Event*,bool)` at the symbol level; the runtime binding,
 receiver class, event delivery/completion and complete C++ signature remain
 UNKNOWN.
+
+The `event-manager-push` probe validates the actual implementation behind the
+`0xdf270` PLT target:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-push --elf C:\private\libObj.so --json
+```
+
+It verifies the symbol-bound entry `0x7ef960`, AAPCS32 candidates
+`r0=this`, `r1=Event*`, `r2=bool`, status branching through `0x7ef88c`,
+indirect dispatch through `[this+8]`, optional completion callback through
+`[this+4]`, and visible zero returns. Indirect targets, helper semantics,
+queue/thread behavior, ownership and runtime callability remain UNKNOWN.

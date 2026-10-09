@@ -188,3 +188,8 @@
   The probe now verifies `r2=1`, receiver `+0x10` loading and the unique
   `EventManager::push` PLT binding at `0xdf270`; runtime binding and delivery
   semantics remain unknown.
+
+- Added the primary-ELF `event-manager-push` probe for symbol-bound entry
+  `0x7ef960`. It records the AAPCS32 candidates, status branch, `[this+8]`
+  dispatch, optional `[this+4]` completion callback and zero return while
+  preserving indirect target and runtime semantics as unknown.
