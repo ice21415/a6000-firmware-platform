@@ -290,6 +290,15 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_discover.add_argument("--include-generated", action="store_true")
     sdk_discover.add_argument("--limit", type=int, default=100)
     sdk_discover.add_argument("--json", action="store_true")
+    sdk_investigate = sdk_sub.add_parser("investigate")
+    sdk_investigate.add_argument("--domain", default="Camera")
+    sdk_investigate.add_argument("--name", default="")
+    sdk_investigate.add_argument("--binary-sha256", default="")
+    sdk_investigate.add_argument("--include-internal", action="store_true")
+    sdk_investigate.add_argument("--include-generated", action="store_true")
+    sdk_investigate.add_argument("--limit", type=int, default=25)
+    sdk_investigate.add_argument("--relation-limit", type=int, default=8)
+    sdk_investigate.add_argument("--json", action="store_true")
     sdk_draft = sdk_sub.add_parser("draft")
     sdk_draft.add_argument("--output", type=Path, required=True)
     sdk_draft.add_argument("--firmware-version", default="3.21")
@@ -406,6 +415,15 @@ def main(argv: list[str] | None = None) -> int:
                 db, name=args.name, binary_sha256=args.binary_sha256,
                 domain=args.domain, include_internal=args.include_internal,
                 include_generated=args.include_generated, limit=args.limit,
+            ), args.json)
+        elif args.command == "sdk" and args.sdk_command == "investigate":
+            from .core_api import investigate_core_apis
+            _json_or_text(investigate_core_apis(
+                db, domain=args.domain, name=args.name,
+                binary_sha256=args.binary_sha256,
+                include_internal=args.include_internal,
+                include_generated=args.include_generated,
+                limit=args.limit, relation_limit=args.relation_limit,
             ), args.json)
         elif args.command == "sdk" and args.sdk_command == "draft":
             from .sdk_review import draft_sdk_review
