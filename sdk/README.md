@@ -114,6 +114,21 @@ other selected binaries. Real Ghidra execution requires user-provided local
 inputs and is **not** exercised by public CI. Never place generated JSONL,
 SQLite databases or Ghidra projects in the public repository.
 
+## Phase 3.8: address-exact SDK identity hardening
+
+An ELF export name alone does not establish an exported API candidate.
+Discovery requires a matching numeric export VMA in the same binary. For
+example, `0x100` and `0x0100` compare equally, but another entry with the
+same name at a different address is not treated as exported. The discovery
+result exposes `unique_function_entry`; a collision between numeric entry
+addresses makes location evidence insufficient for identification.
+
+Contract import also requires a unique binary SHA-256 row and a unique
+numeric entry address. Subsequent alias collisions are reported by SDK audit
+as `AMBIGUOUS_FUNCTION_ADDRESS`; legacy static status is automatically
+downgraded in a descriptive SDK export. These checks strengthen the review
+queue but do not verify an API ABI, semantics, or runtime callability.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
