@@ -90,6 +90,7 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 同一 ELF 中相同符號名稱對應多個不同 VMA 時，保留 `ambiguous-export-entry`，不隨意選擇最後一筆。
 - 已解析依賴中唯一匹配的 import/export 只建立 `CANDIDATE` cross reference；缺少 PLT/GOT、ELF loader interposition 與呼叫現場證據，不宣稱 runtime 實際綁定。
 - Linkage checkpoint 加入 provider catalog fingerprint；export 或 binary metadata 變化會重新掃描並撤除過時的自動邊。單一 ELF 分析失敗以 SQLite savepoint 回滾。
+- `sdk discover` 與 `sdk draft` 顯示由 `elf_dynamic` 證據支持的 incoming import 候選計數及 evidence ID，協助排列人工 ABI 審核優先順序，但不推論 runtime 綁定。
 - 合成回歸測試涵蓋依賴範圍、匯出歧義、版本相容、缺失位址、catalog 更新與失敗交易。
 - 此階段僅擴充跨模組靜態研究證據，不代表完成 Sony 核心 API 的實際 ABI、語意或實機呼叫驗證。
 
