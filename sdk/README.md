@@ -219,7 +219,11 @@ python -m fwplatform.cli sdk request-abi --saved-libobj C:\private\boot-static-a
 Without saved source, the command only reports ABI candidates.
 When given both private saved reports, it checks exact address and
 register-site observations, including the original `0x0f01`
-UI and ModelCamera dispatch. Current source reports are **text**
+UI and ModelCamera dispatch. A direct reread of the connected private
+saved disassembly text matched **80/80 selected instruction-address
+fingerprints** across the two ELF reports (56 request/factory,
+19 internal Camera, 5 UI caller). These are source-text checks,
+not 80 completed APIs. Current source reports are **text**
 extractions, not freshly SHA-verified original ELF bytes.
 CI uses synthetic data, rejects wrong registers/prototypes,
 and asserts **zero completed callable core Camera APIs**.
