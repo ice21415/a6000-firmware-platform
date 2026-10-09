@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from dataclasses import dataclass
@@ -158,6 +159,25 @@ def _resolve_import_provider(
     return next(iter(unique.values())), possible_binaries, "unique-dependent-export"
 
 
+def _resolver_catalog_hash(db: Database, candidates: list[dict[str, Any]]) -> str:
+    """Invalidate linkage checkpoints when any provider/symbol evidence changes."""
+    digest = hashlib.sha256()
+    for candidate in candidates:
+        metadata = candidate["metadata"]
+        record = [candidate["id"], candidate["path"], candidate["sha256"],
+                  metadata.soname, metadata.needed, metadata.rpath,
+                  metadata.runpath, metadata.parse_error]
+        digest.update(json.dumps(record, sort_keys=True).encode("utf-8"))
+        digest.update(b"\n")
+    for row in db.connection.execute(
+        "SELECT binary_id,name,direction,address,version FROM import_export "
+        "ORDER BY binary_id,name,direction,address,version"
+    ):
+        digest.update(json.dumps(list(row), sort_keys=True).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
 def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[str, int]:
     """Resolve ELF dependencies without basename-based guessing.
 
@@ -178,27 +198,48 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
         candidates.append({"id": int(candidate[0]), "path": str(candidate[1]), "sha256": str(candidate[2]),
                            "soname": metadata.soname, "metadata": metadata})
     exports = _export_index(db)
+    catalog_hash = _resolver_catalog_hash(db, candidates)
     for row in rows:
         stats["binaries"] += 1
         binary_id, rel, digest = int(row[0]), str(row[1]), str(row[2])
         resolver_version = f"{__version__}:linkage-v4"
-        prior = db.connection.execute("SELECT id,status FROM analysis_run WHERE binary_id=? AND analyzer='elf_linkage' AND analyzer_version=? AND input_sha256=?",
+        prior = db.connection.execute("SELECT id,status,metadata_json FROM analysis_run WHERE binary_id=? AND analyzer='elf_linkage' AND analyzer_version=? AND input_sha256=?",
                                       (binary_id, resolver_version, digest)).fetchone()
-        if prior and prior["status"] == "COMPLETE":
+        try:
+            previous_catalog = json.loads(prior["metadata_json"] or "{}").get("resolver_catalog_sha256") if prior else None
+        except (TypeError, ValueError, AttributeError):
+            previous_catalog = None
+        if prior and prior["status"] == "COMPLETE" and previous_catalog == catalog_hash:
             stats["skipped"] += 1
             continue
         run_id = db.upsert("analysis_run", {"binary_id": binary_id, "analyzer": "elf_linkage",
             "analyzer_version": resolver_version, "input_sha256": digest, "started_at": utc_now(),
             "completed_at": None, "status": "RUNNING", "checkpoint": "dynamic", "error_text": None,
-            "metadata_json": json.dumps({"path": rel, "resolver": "soname-search-path-v4"}, sort_keys=True)},
+            "metadata_json": json.dumps({"path": rel, "resolver": "soname-search-path-v4",
+                                          "resolver_catalog_sha256": catalog_hash}, sort_keys=True)},
             ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
         path = root / rel
+        stat_before = stats.copy()
+        db.connection.execute("SAVEPOINT linkage_binary")
         try:
             metadata = _elf_metadata(path)
             if metadata.parse_error:
                 raise ValueError(metadata.parse_error)
             stats["parsed"] += 1
             module_id = _module(db, binary_id)
+            # Sweep only linker's own previous claims, not manual research rows.
+            db.connection.execute("""DELETE FROM module_dependency
+                WHERE from_module_id=? AND kind='DT_NEEDED'
+                  AND source_evidence_id IN (SELECT id FROM evidence WHERE kind='elf_dynamic')""",
+                (module_id,))
+            db.connection.execute("""DELETE FROM unresolved_edge
+                WHERE from_type='module' AND from_id=? AND relation='DT_NEEDED'
+                  AND source_evidence_id IN (SELECT id FROM evidence WHERE kind='elf_dynamic')""",
+                (module_id,))
+            db.connection.execute("""DELETE FROM unresolved_edge
+                WHERE from_type='binary' AND from_id=? AND relation='import_symbol'
+                  AND source_evidence_id IN (SELECT id FROM evidence WHERE kind='elf_dynamic')""",
+                (binary_id,))
             evidence_excerpt = json.dumps({"binary": rel, "needed": metadata.needed, "soname": metadata.soname,
                                             "rpath": metadata.rpath, "runpath": metadata.runpath}, sort_keys=True)
             evidence_id = db.evidence(rel, digest, "elf_dynamic", "DT_NEEDED", evidence_excerpt,
@@ -263,7 +304,11 @@ def analyze_linkage(db: Database, root: Path, limit: int | None = None) -> dict[
                                   (json.dumps({"soname": metadata.soname, "rpath": metadata.rpath, "runpath": metadata.runpath}, sort_keys=True), binary_id))
             db.connection.execute("UPDATE analysis_run SET completed_at=?,status='COMPLETE',checkpoint=?,error_text=NULL WHERE id=?",
                                   (utc_now(), "imports-resolved", run_id))
+            db.connection.execute("RELEASE SAVEPOINT linkage_binary")
         except Exception as exc:  # noqa: BLE001 - one corrupt ELF must not stop the batch
+            db.connection.execute("ROLLBACK TO SAVEPOINT linkage_binary")
+            db.connection.execute("RELEASE SAVEPOINT linkage_binary")
+            stats.update(stat_before)
             stats["failed"] += 1
             LOG.warning("linkage failed for %s: %s", rel, exc)
             db.connection.execute("UPDATE analysis_run SET completed_at=?,status='FAILED',checkpoint=?,error_text=? WHERE id=?",
