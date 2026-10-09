@@ -95,6 +95,25 @@ Ghidra prototype text. Keep generated review JSON and any populated SQLite
 database **private**. Per-function Ghidra evidence is created only from a
 validated JSONL input and proves an address/location, *not* the function ABI.
 
+## Controlled multi-ELF coverage expansion
+
+The offline Ghidra batch planner consumes inventoried ELF hashes and skips
+successfully completed identical binaries. Plan mode is read-only apart from
+the CLI's normal database migration:
+
+```powershell
+python -m fwplatform.cli --db C:\private\firmware-copy.db analyze ghidra-batch --root C:\private\firmware --limit 5 --json
+```
+
+With a local Ghidra installation, explicitly use `--execute` along with
+`--ghidra-root`, `--project-dir` and `--output-dir` (both outputs outside
+the firmware input root). The batch executes at most 30 local files per call,
+checks file hashes before and after analysis, discards stale JSONL, imports
+only completed validated exports, and reports failures without skipping the
+other selected binaries. Real Ghidra execution requires user-provided local
+inputs and is **not** exercised by public CI. Never place generated JSONL,
+SQLite databases or Ghidra projects in the public repository.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
