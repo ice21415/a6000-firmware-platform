@@ -2,6 +2,16 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Extended the private-only `parameter-objmsg` probe with direct RTTI/vtable
+  validation and seven unique static PLT bindings. The primary ELF now
+  identifies the ObjMsg destructor, PrmObjMsg getter, ObjMsg copy constructor,
+  and PrmObjMsg constructor in the clone/destruction paths. This supports a
+  static deep-copy and release sequence only; ownership transfer, exception,
+  locking, runtime binding and callability remain unknown. The targeted ASCII
+  Ghidra profile exits 0 with 5 targets, 62 instructions, 7 blocks and 14
+  edges. Six fail-closed ObjMsg tests and the 295-test public suite pass; no
+  firmware bytes or private Ghidra output are published.
+
 - Added the private-only `parameter-struct` probe and descriptive contract for
   the discriminator-6 PrmStruct family. Primary ELF evidence verifies the
   vtable/RTTI, `malloc`/`memcpy` pointer-plus-length payload construction,

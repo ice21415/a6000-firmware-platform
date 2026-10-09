@@ -92,6 +92,10 @@ static_assert(sizeof(PrmCntInfoListSnapshotWords) == 92);
 
 struct PrmObjMsgSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
+    // The primary ELF destructor calls MWF::ObjMsg D1 and object delete for a
+    // non-zero value.  This is an address candidate in an offline snapshot,
+    // not a host pointer and not proof that arbitrary constructor inputs may
+    // be transferred safely.
     std::uint32_t obj_msg_address;
 };
 static_assert(offsetof(PrmObjMsgSnapshotWords, obj_msg_address) == 12);

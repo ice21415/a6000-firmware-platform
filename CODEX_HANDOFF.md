@@ -440,3 +440,27 @@ the drop-first helper `0xe7e86`. The evidence shows temporary reconstruction
 and word-width front removal; it does not establish bounds, ownership, alias
 or concurrency behavior. Targeted Ghidra exited 0 with 22 targets, 384
 instructions, 38 blocks and 96 edges. Runtime/callable counts remain zero.
+
+## Current continuation checkpoint (2026-10-10) — PrmObjMsg ABI/lifetime
+
+The latest private SHA-pinned pass extends `fwplatform/param_objmsg_probe.py`.
+It validates RTTI `0xfec488` (`9PrmObjMsg`), vtable prefix `0xfec498` and
+address point `0xfec4a0`, and the direct `_ZTI9ParamBase` relocation at RTTI
+`+0x08`, plus the five existing bounded bodies. Unique static
+PLT resolution changes the interpretation of the clone/destructor path:
+`0xddd94` is `_ZN3MWF6ObjMsgD1Ev`, `0xddee4` is
+`_ZNK9PrmObjMsg18getParamTypeObjMsgEv`, `0xe0388` is
+`_ZN3MWF6ObjMsgC1ERKS0_`, `0xe2080` is the PrmObjMsg constructor, and
+`0xdd620` is `_ZdlPv`. The clone therefore has a primary-ELF deep-copy
+candidate: getter -> 8-byte allocation -> ObjMsg copy constructor -> 16-byte
+PrmObjMsg allocation/constructor. This is static evidence only; ownership
+transfer, exception/allocator behavior, concurrency, runtime binding and
+callability remain unknown/false.
+
+Targeted ASCII Ghidra 12.1.3 `-noanalysis` profile `param-objmsg` exited 0:
+5 target bodies, 62 instruction rows, 7 blocks and 14 edges. The public
+contract is `sdk/param_objmsg_3_21.json`; raw ELF/Ghidra output stays private.
+The synthetic ObjMsg validator now has six fail-closed tests. Continue next by
+mapping verified ParamBase construction sites and source-level ownership uses;
+do not treat the destructor sequence as proof that arbitrary external pointers
+are safe to pass.

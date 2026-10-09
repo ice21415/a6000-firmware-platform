@@ -1046,3 +1046,20 @@ and a local rebuild path at `0x11d72a`. It does not establish invalid-index,
 ownership, alias invalidation, exception or synchronization behavior. The
 contract remains `safe_to_call: false`, `runtime_verified: false` and
 `callable: false`.
+
+### PrmObjMsg relocation/lifetime refinement (2026-10-10)
+
+The private-only probe now resolves the bounded PLT slots before interpreting the
+lifecycle path. It records `0xddd94` as `_ZN3MWF6ObjMsgD1Ev`, `0xddee4` as the
+PrmObjMsg getter, `0xe0388` as `_ZN3MWF6ObjMsgC1ERKS0_`, and `0xe2080` as the
+PrmObjMsg constructor. The clone candidate therefore copies the ObjMsg into an
+8-byte allocation before constructing a separate 16-byte PrmObjMsg candidate.
+The destructor's non-null path calls ObjMsg D1 and `_ZdlPv`. These are static
+relocation and instruction facts; they do not prove that an arbitrary caller
+transfers ownership safely. The contract remains `callable=false` and
+`runtime_verified=false`, and all dynamic loader, exception, lock and MWF
+object-layout details remain UNKNOWN.
+
+The targeted private ASCII Ghidra profile `param-objmsg` exits 0 with 5 target
+bodies, 62 instruction rows, 7 blocks and 14 edges. Its output is kept outside
+this repository.

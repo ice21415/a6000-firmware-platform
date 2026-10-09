@@ -70,3 +70,18 @@ class ParameterTypeTests(unittest.TestCase):
             self.assertEqual(by_name[name]['verification'], 'PRIMARY_ELF_VERIFIED')
             self.assertFalse(doc['runtime_verified'])
             self.assertFalse(doc['callable'])
+
+    def test_objmsg_contract_keeps_relocations_static_and_runtime_unknown(self):
+        import json
+        from pathlib import Path
+        doc = json.loads((Path(__file__).resolve().parents[1] /
+                          'sdk/param_objmsg_3_21.json').read_text())
+        self.assertEqual(doc['object']['rtti_name'], '9PrmObjMsg')
+        self.assertEqual(doc['object']['base_rtti'], '0xfe6e24')
+        self.assertEqual(doc['vtable']['slot_plus_8_clone'], '0x12c784')
+        self.assertEqual(doc['bindings']['payload_destructor']['symbol'],
+                         '_ZN3MWF6ObjMsgD1Ev')
+        self.assertEqual(doc['bindings']['payload_copy_constructor']['symbol'],
+                         '_ZN3MWF6ObjMsgC1ERKS0_')
+        self.assertFalse(doc['abi']['runtime_verified'])
+        self.assertFalse(doc['abi']['callable'])

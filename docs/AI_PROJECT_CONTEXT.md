@@ -321,3 +321,24 @@ The result remains a descriptive PRIMARY_ELF_VERIFIED record: invalid-index,
 ownership, aliasing, exception, synchronization and runtime behavior remain
 unknown. Private targeted Ghidra: exit 0, 22 targets, 384 instructions, 38
 blocks and 96 edges.
+
+## Latest primary checkpoint: PrmObjMsg RTTI and payload lifetime (2026-10-10)
+
+`fwplatform/param_objmsg_probe.py` now cross-checks the exact SHA-pinned ELF's
+RTTI/vtable and PLT relocations, not only the five bounded bodies. It verifies
+RTTI `0xfec488` (`9PrmObjMsg`), vtable prefix/address point
+`0xfec498`/`0xfec4a0`, direct `_ZTI9ParamBase` base relocation, and slots for
+clone/destructors. The key relocation
+correction is that `0xddd94` is `MWF::ObjMsgD1`, `0xddee4` is the
+`PrmObjMsg` getter veneer, and `0xe0388` is `MWF::ObjMsg`'s copy constructor.
+The clone candidate consequently follows getter -> `_Znwj(8)` -> ObjMsg copy ->
+`_Znwj(0x10)` -> PrmObjMsg constructor. The non-null destructor path calls
+ObjMsg D1 then `_ZdlPv` before the ParamBase path.
+
+These relations are `PRIMARY_ELF_VERIFIED` static facts with
+`runtime_binding=UNKNOWN`; ownership transfer, MWF object layout, exception
+handling, locking, concurrent use and runtime/callable safety remain unknown.
+The descriptive contract is `sdk/param_objmsg_3_21.json`, and the probe's six
+synthetic fail-closed tests do not require private firmware. A private ASCII
+Ghidra 12.1.3 targeted run exited 0 with 5 targets, 62 instructions, 7 blocks
+and 14 edges. No firmware bytes or raw Ghidra output is part of the public tree.

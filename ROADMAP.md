@@ -68,6 +68,12 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 覆蓋合成多 binary 同名函式、無證據關係、函式定位、上限、重跑與草稿匯入回歸測試。
 - 完整核心 API 仍需合法取得的多 ELF 程式碼證據與獨立 ABI、JNI、OSAL 及狀態機確認；symbol inventory 無法替代語意逆向。
 
+## Phase 3.7（ParamBase 物件生命週期證據）
+
+- `PrmObjMsg` 已加入 RTTI/vtable、建構、getter、複製、非刪除解構與 deleting-destructor 的 SHA 固定 primary-ELF probe。
+- PLT relocation 會保留 `MWF::ObjMsgD1`、ObjMsg copy constructor、PrmObjMsg getter/constructor 與 `_ZdlPv` 的靜態綁定；dynamic loader、所有權轉移、例外、鎖與 runtime 仍是 UNKNOWN。
+- 目標式 ASCII Ghidra profile 已驗證 5 個 body、62 條指令、7 個 block、14 條 edge；公開 SDK 只提供描述性契約與離線 snapshot，callable/runtime-verified 數量維持 0。
+
 ## Phase 3.7（受控多 ELF Ghidra 覆蓋擴展）
 
 - 新增 `fw analyze ghidra-batch`：預設僅規劃、選擇尚未成功匯入的 ELF，且以 manifest SHA-256、受限路徑與固定批量排程。

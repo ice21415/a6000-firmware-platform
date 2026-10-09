@@ -697,3 +697,60 @@ invalidation remain UNKNOWN.
 The private targeted Ghidra profile now exits 0 with 22 targets, 384
 instruction rows, 38 blocks and 96 CFG edges. The public contract records
 these as static evidence only; no runtime or callable ABI claim is made.
+
+## PrmObjMsg RTTI, payload lifetime and ABI correction (primary ELF, 2026-10-10)
+
+This checkpoint extends the existing ObjMsg probe without repeating the already
+recovered `ParamList::get` loop. The private input was hash-checked before
+parsing: SHA-256 `8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+The probe now validates the RTTI/vtable record and seven unique PLT relocation
+bindings in addition to the five bounded function bodies.
+
+| Evidence | Static result | Verification boundary |
+|---|---|---|
+| RTTI `0xfec488`, name `9PrmObjMsg`; `_ZTI9ParamBase` relocation at RTTI `+0x08` resolves to `0xfe6e24`; vtable prefix `0xfec498`, address point `0xfec4a0` | offset-to-top `0`, clone slot `+8 -> 0x12c784`, destructor `+12 -> 0x12c700`, deleting destructor `+16 -> 0x12c740` | direct ELF data/RTTI/vtable relation; complete inheritance beyond the direct base and runtime address relocation remain unknown |
+| `0x12c754` | `r0` destination candidate, `r1` `MWF::ObjMsg*` candidate; discriminator `8` passed to `_ZN9ParamBaseC2Em`; incoming pointer stored at `+0x0c` | constructor symbol and stores are PRIMARY_ELF_VERIFIED; transfer/alias contract is unknown |
+| `0x12c700` | non-null `+0x0c` calls PLT `0xddd94`, which uniquely relocates to `_ZN3MWF6ObjMsgD1Ev`, then PLT `0xdd620` `_ZdlPv`; base path `0xe4734` follows | destruction sequence is PRIMARY_ELF_VERIFIED; allocator pairing and external ownership are unknown |
+| `0x12c77c` | loads `receiver +0x0c` into `r0` and returns without retain/clone | borrowed pointer candidate; null receiver behavior is unknown |
+| `0x12c784` | getter PLT `0xddee4` -> `PrmObjMsg` getter; `_Znwj(8)` then `MWF::ObjMsg` copy constructor PLT `0xe0388`; `_Znwj(0x10)` then `PrmObjMsg` constructor PLT `0xe2080` | clone/deep-copy shape is PRIMARY_ELF_VERIFIED; virtual return type and full exception path are unknown |
+
+The earlier generic descriptions of `0xddd94` as a helper and `0xe0388` as a
+payload-copy helper are superseded by the relocation evidence above. The
+correction is additive and does not delete the prior record. `0xddee4` is the
+same class's getter veneer, not an independent payload routine. All bindings
+have `status=VERIFIED_STATIC` and `runtime_binding=UNKNOWN`.
+
+### Lifetime and safety interpretation
+
+The destructor directly invokes `MWF::ObjMsgD1` followed by object deletion for a
+non-null payload. This is a static release-on-destruction witness and supports a
+`STATIC_INFERRED` expectation that the stored pointer is normally an owned
+payload. The constructor itself only stores the incoming pointer, so ownership
+transfer, borrowed-input handling and alias safety are not proven. The clone
+path copies the payload before wrapping it in a new `PrmObjMsg`; this supports a
+static deep-copy candidate but does not prove exception guarantees or source
+lifetime rules. The getter returns the interior payload pointer with no retain,
+so any containing-element replacement/destruction invalidation remains governed
+by the separate ParamList evidence.
+
+No bounded ObjMsg body initializes or acquires a lock. Null payload destruction
+is explicitly skipped; constructor input, getter receiver, invalid/shared
+payload, allocation failure, exception/unwind, scheduler and concurrent use
+remain UNKNOWN. The offline snapshot decoder's checks are self-authored and
+are not Sony behavior. Runtime-verified and callable SDK counts remain **0**.
+
+### Targeted Ghidra cross-check
+
+The ASCII-path Ghidra 12.1.3 headless run used the pinned private project and
+`-noanalysis` profile `param-objmsg`. It exited `0` with image base `0x10000`,
+**5 targets, 62 instruction rows, 7 basic blocks and 14 CFG/call edges**. The
+mapped target bodies were `0x12c700`, `0x12c740`, `0x12c754`, `0x12c77c` and
+`0x12c784`. Ghidra's undefined types and unresolved external libraries are
+supporting CFG evidence only; this is not a complete Auto Analysis or runtime
+validation.
+
+The descriptive contract is `sdk/param_objmsg_3_21.json`. The probe now emits
+explicit static PLT bindings and enforces vtable/RTTI completeness in its
+validator. Six synthetic fail-closed tests cover identity, vtable, binding,
+target and non-callable promotion checks. The complete public regression suite
+passes **295 tests**; no test executes the Sony ELF or requires a camera.
