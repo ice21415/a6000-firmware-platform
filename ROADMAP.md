@@ -120,6 +120,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 不匹配的 ELF hash、分支 target、欄位 immediate 或多重 executable PT_LOAD mapping 均失敗或明確回報未通過；CI 使用合成 ARM ELF，從未出版／執行專有 Sony 原始韌體。
 - 這是增加原始指令可重現核對的能力，尚未在連線 runtime 內直接執行私有 ELF verifier，因此不宣稱全部 Sony Camera ABI 已驗證。
 
+## Phase 3.13（既存 REA/Ghidra 成功證據與跨 ELF selector 邊界）
+
+- 經已連線研究工作區找回 `reverse-engineer-anything` 4.1.0／Ghidra 12.1.4 的實際 `viewUnified2.so` 反編譯紀錄；與先前失敗的 `libObj.so` 全檔 Ghidra timeout 明確分離。
+- `setInitForRec` UI REA Ghidra VMA `0x1b2504` 對應 UI ELF `0x1a2504`（本 ELF 專用 `+0x10000`）。既存反編譯文本中有 20 處向 `model/CAMERA` 及 6 處向 `model/STILL_REC` 發送 `0x0f01` 的靜態程式位置，並非同次開機實際執行次數。
+- 另核對 `libObj.so` 既存 raw ELF Capstone 位元組：`0x4cfe8a MOVW` 立即數為 `0x0f01`，`0x4cfe98 BL` 目標 `0x4cf7a8`。保留這是保存的 Camera 指令稽核，**不是**本輪完成的 Ghidra 全檔反編譯或新的整檔 SHA 驗證。
+- 新增 `sdk/ui_camera_3_21_rea_bridge.json` 及 `fw sdk rea-bridge`，從私人保存的兩種原始分析產物唯讀重核 UI request／地址偏移／Thumb MOVW 與 BL，另有 synthetic 測試。跨 ELF 訊息轉換、事件隊列與接收映射未證實，所有 ABI／runtime callable 保留 UNKNOWN。
+- 目前 ChatGPT session 的可列出 Skill 中沒有可即時執行的 REA/Ghidra 功能；本階段使用先前保存的成功 REA evidence 與已連線 Codex 工作區，並未重新啟動 live Ghidra session。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
