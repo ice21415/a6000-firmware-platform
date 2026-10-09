@@ -137,6 +137,22 @@ If two inventoried paths have the same ELF SHA-256, discovery reports
 The review draft keeps candidate source paths together and collapses duplicate
 contract identities, remaining importable as unverified hypotheses.
 
+## Phase 3.9: conservative cross-ELF import/provider candidates
+
+`analyze linkage` now restricts imported-symbol provider candidates to
+binaries uniquely resolved through `DT_NEEDED`. Unrelated global names,
+unknown/missing dependencies, incompatible symbol versions and multiple
+distinct provider VMAs remain unresolved or ambiguous. Even a single
+matched export yields only a `CANDIDATE` cross-reference: loader binding,
+symbol interposition, PLT/GOT behavior and ABI remain unverified.
+
+The linkage analyzer fingerprints binary/SONAME/search metadata and the
+import/export catalog, so newly indexed providers trigger a conservative
+recheck. Stale automated dependency/symbol assertions are swept and one
+binary's failed import is rolled back without altering the next binary.
+This remains read-only with respect to hardware and cannot produce a
+callable firmware SDK without further independent evidence.
+
 ## Device safety boundaries
 
 SDK exports and mock contracts do not authorize executing functions on a camera.
