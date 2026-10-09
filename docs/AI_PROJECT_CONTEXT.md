@@ -271,3 +271,18 @@ at object `+0x0c/+0x10`, vptr/base destruction and clone paths. The two words
 remain semantic UNKNOWN; no coordinate, dimension or hardware unit is inferred.
 The private Ghidra profile exits 0 with 8 targets, 96 instruction rows, 8
 blocks and 12 edges. Runtime verification and callable SDK counts remain zero.
+
+## Phase 3.30 — PrmString evidence
+
+`fwplatform/param_string_probe.py` is the next private-only ParamBase probe.
+It validates the discriminator-2 vtable/RTTI pair and bounded constructor,
+destructor, deleting-destructor and clone paths. The constructor uses
+`strlen`, `new[]` with length plus one and `strncpy`; the destructor conditionally
+uses `delete[]`. The payload is documented as an owned byte-buffer pointer
+candidate at `+0x0c`, with encoding and ownership transfer rules unknown.
+
+CLI: `fw sdk parameter-string --elf <private-libObj.so> --json`.
+Contract: `sdk/param_string_3_21.json`. Five fail-closed synthetic tests are
+included. Private Ghidra targeted cross-check: exit 0, 4 targets, 60
+instructions, 6 blocks and 14 edges. Runtime verification and callability
+remain false.

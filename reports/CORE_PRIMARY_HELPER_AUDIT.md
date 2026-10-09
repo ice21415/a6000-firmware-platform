@@ -579,3 +579,36 @@ stripped program are supporting evidence only. Runtime-verified and callable
 SDK counts remain zero.
 
 The pair-family validator adds four synthetic regression cases; the complete local suite now passes 279 tests.
+
+## PrmString ownership/layout checkpoint — 2026-10-10
+
+The new `fwplatform/param_string_probe.py` validates the discriminator-2
+`PrmString` candidate from the authenticated SHA-pinned ELF. The vtable at
+`0xfe9638` points to RTTI `0xfe9650`, clone `0xffa18`, non-deleting
+destructor `0xff954` and deleting destructor `0xff980`; the object-size
+witness is `0x10` bytes.
+
+The constructor at `0xff9c8` receives the source pointer candidate in `r1`,
+calls the relocation-bound `strlen`, allocates `strlen + 1` bytes through the
+`_Znaj` PLT, stores the destination at object `+0x0c`, and calls `strncpy`
+with the same `length + 1` count. The destructor at `0xff954` tests the
+payload pointer, calls the `_ZdaPv` (`delete[]`) PLT only for a non-null
+payload, then enters the local ParamBase destruction path. The deleting
+wrapper calls the object `_ZdlPv` PLT. The clone path allocates a separate
+`0x10`-byte object and passes source `+0x0c` to the constructor.
+
+These are `PRIMARY_ELF_VERIFIED` instruction and relocation facts. Encoding,
+source-level constructor identity, allocator/exception behavior, alias and
+transfer rules, synchronization, runtime loader binding and clone return type
+remain `UNKNOWN`. Because `strlen` is called without a local null guard, the
+probe does not describe null input as safe. Contract:
+`sdk/param_string_3_21.json`; runtime verification and callability remain
+false.
+
+The private ASCII Ghidra 12.1.3 targeted `param-string` profile exited 0 with
+4 targets, 60 instruction rows, 6 blocks and 14 CFG edges. Its undefined
+types and unresolved external libraries are supporting cross-check evidence,
+not complete C++ recovery. Five new fail-closed tests cover identity,
+discriminator, observation completeness and non-callable metadata. The
+complete local suite now passes 283 tests; runtime-verified and callable counts
+remain zero.

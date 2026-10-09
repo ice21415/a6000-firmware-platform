@@ -384,3 +384,20 @@ callable claim is made. Private Ghidra cross-check: 8 targets, 96 instructions,
 checkpoint after this change; raw firmware and Ghidra exports remain private.
 
 After the pair-family checkpoint, the complete local suite passes 279 tests; runtime-verified and callable counts remain zero.
+
+## Phase 3.30 — PrmString payload ownership evidence
+
+`fwplatform/param_string_probe.py`, `sdk/param_string_3_21.json` and
+`fw sdk parameter-string` add a SHA-pinned bounded probe for the discriminator-2
+PrmString candidate. Primary ELF evidence confirms the vtable/RTTI slots, a
+16-byte object, `strlen`/`new[]`/`strncpy` construction, conditional `delete[]`
+destruction and clone allocation. The payload is only an owned byte-buffer
+candidate; encoding, invalid-input behavior, exception/allocator semantics,
+aliasing, synchronization, runtime binding and source-level return type remain
+UNKNOWN. Runtime-verified and callable counts remain zero.
+
+Private ASCII Ghidra 12.1.3 targeted output exited 0 with 4 targets, 60
+instructions, 6 blocks and 14 edges. Five synthetic validator tests were
+added; no firmware bytes or private analysis exports were committed.
+The complete local suite now passes 283 tests; runtime-verified and callable
+counts remain zero.

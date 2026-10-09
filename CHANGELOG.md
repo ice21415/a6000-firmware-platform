@@ -2,6 +2,13 @@
 
 ## Unreleased — Phase 3 semantic-analysis
 
+- Added the private-only `parameter-string` probe and descriptive contract for
+  the discriminator-2 PrmString family. Primary ELF evidence verifies the
+  vtable/RTTI, `strlen`/`new[]`/`strncpy` construction, conditional `delete[]`
+  destruction and clone allocation. Encoding, invalid-input, allocator,
+  aliasing, runtime and callability semantics remain unknown; no firmware
+  bytes are published.
+
 - Added the reusable private-only `parameter-pair` probe and contract for
   `PrmPoint` and `PrmDimension`. It verifies discriminator-specific
   constructors, two inline payload words, vptr/base destruction and clone

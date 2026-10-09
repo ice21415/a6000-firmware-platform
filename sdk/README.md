@@ -999,3 +999,22 @@ meaning is inferred. The Dimension deleting wrapper's PLT binding to
 call. The probe also checks each vtable's RTTI pointer, clone slot and
 deleting-destructor slot. Contract: `sdk/param_pair_3_21.json`; runtime and
 callable flags remain false.
+
+## PrmString ownership/layout checkpoint
+
+Use the private-only command:
+
+```powershell
+python -m fwplatform.cli sdk parameter-string --elf C:\private\libObj.so --json
+```
+
+The SHA-pinned probe verifies the discriminator-2 vtable/RTTI pair, 16-byte
+object shape, `strlen` plus `new[]` allocation, `strncpy` copy, conditional
+`delete[]` destructor path and clone allocation. The payload at `+0x0c` is
+described as an owned NUL-terminated byte-buffer pointer candidate. Encoding,
+null-input behavior beyond the observed absence of a local guard, allocator
+and exception semantics, aliasing, synchronization, runtime binding and
+source-level clone return type remain unknown. The contract is
+`sdk/param_string_3_21.json`; runtime and callable flags are false. A private
+Ghidra targeted profile exited 0 with 4 targets, 60 instructions, 6 blocks and
+14 CFG edges; raw ELF and Ghidra exports stay outside the repository.
