@@ -135,6 +135,13 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.15（兩條 requestModelExecute 靜態入口交叉核對）
+
+- 新增第二個 `viewManagerIf::requestModelExecute` `libObj.so` ELF VMA `0x1250c0` 的具名入口線索，與 `ViewBase::requestModelExecute=0x12106e` 比較；兩者的保存指令顯示同樣呼叫 `IdGenerator::Get@0xdffb8`、`0x12d780` selector helper 與 `createRequestModelExecuteEvent@0xdfbdc`。
+- 兩條靜態路徑都將 model ID、helper output、ParamList 指標送往事件工廠的 r1/r2/r3，卻在最後以不同 target 投遞：`ViewBase` 經 imported `View::requestApplicationExecute@0xdb578`；`viewManagerIf` 走 `0x125084` 本機候選（其本體仍未掃到）。
+- 新增 `sdk/camera_3_21_model_request_frontends.json`、`fw sdk request-frontends --saved-disassembly ...` 和 10 組合成測試，明確辨識兩種 frontend/receiver provenance，並核對保存指令的 33 個文字地址：連線的私有研究檔核對 **33/33 符合**。這是既存組語報告，不是本輪原始 ELF byte scan。
+- 真正未解：`0x12d780` 指令本體、`0x125084` 實際投遞、`0x11004003` 消費端、Event 7/8 解碼、動態符號解析與 Camera 動作映射；API 數量／ABI 驗證不因此升級。
+
 ## 下一階段
 
 - 擴充 Java/DEX/JNI、OSAL queue、message/event namespace 的真實 evidence fixture。
