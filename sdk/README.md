@@ -159,6 +159,47 @@ binary's failed import is rolled back without altering the next binary.
 This remains read-only with respect to hardware and cannot produce a
 callable firmware SDK without further independent evidence.
 
+## Phase 3.21 — targeted primary-byte ABI probe (Core: 0x13200a / 0x42ac00)
+
+To stop accumulating speculative static reports, the first priority
+is **reading original private `libObj.so` bytes for the two core
+function bodies**. Use the already existing, now more focused
+read-only local command:
+
+```powershell
+python -m fwplatform.cli sdk probe-core-abi --elf "C:\private\firmware\libObj.so" --json > "C:\private\core-abi-evidence.json"
+```
+
+This probes just `0x13200a` (action-payload accessor)
+and `0x42ac00` (parameter-query helper) by default,
+with a maximum of 384 bytes per function entry.
+It refuses a different ELF SHA-256; the default pin is
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+It additionally requires uniquely mapped executable PT_LOAD
+bytes. Each result provides locally decoded reachable Thumb
+instructions, call and branch targets, return-site candidates,
+entry-block register read-before-write *heuristics*, and a SHA-256
+of the observed instruction bytes with their ELF VMAs.
+It does not assert whole-function coverage, C++ return type,
+a proven fourth argument, safe callability or device behavior.
+It never executes the firmware, touches SQLite or changes source.
+
+To investigate related helpers individually:
+
+```powershell
+python -m fwplatform.cli sdk probe-core-abi --elf "C:\private\firmware\libObj.so" --entry 0x42abcc --entry 0x42abdc --region-bytes 384 --json
+```
+
+**Access limitation:** the connected workspace's file interface
+only exposes prior text disassembly; it cannot stream the proprietary
+original `libObj.so` file. Consequently, this new primary-byte
+probe has **passed synthetic ELF32 ARM tests** but has **not
+been run against the real Sony binary within this interaction**.
+Keep private ELF and any detailed local trace private; do not
+commit them to a public repository. A completed primary-ELF
+probe output is the exact missing input for concluding the
+real implementation and ABI of these two functions.
+
 ## Phase 3.20: query output-pointer ABI shape for Camera payload reads
 
 A *new, caller-grounded register constraint* is recovered for
