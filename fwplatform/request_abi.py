@@ -87,6 +87,32 @@ REGISTER_SITES: dict[str, tuple[tuple[str, str], ...]] = {
         ("0x7f0b66", "pop.w    {r4, r5, r6, r7, r8, pc}"),
     ),
 }
+CORE_CAMERA_SITES = {
+    "0x4cfb9c": (
+        ("0x4cfba8", "mov      r5, r0"),
+        ("0x4cfbb6", "mov      r0, r5"),
+        ("0x4cfbb8", "bl       #0x13200a"),
+        ("0x4cfbbc", "mov      r4, r0"),
+        ("0x4cfbbe", "mov      r0, r5"),
+        ("0x4cfbc0", "bl       #0x131fd2"),
+        ("0x4cfe8a", "movw     r3, #0xf01"),
+        ("0x4cfe8e", "cmp      r0, r3"),
+        ("0x4cfe90", "bne.w    #0x4d02b8"),
+        ("0x4cfe94", "mov      r0, r5"),
+        ("0x4cfe96", "mov      r1, r4"),
+        ("0x4cfe98", "bl       #0x4cf7a8"),
+    ),
+    "0x4cf7a8": (
+        ("0x4cf7a8", "push.w   {r4, r5, r6, r7, r8, sb, sl, fp, lr}"),
+        ("0x4cf7ac", "mov      sl, r1"),
+        ("0x4cf7b6", "mov      r4, r0"),
+        ("0x4cf7ee", "mov      r1, sl"),
+        ("0x4cf7f0", "bl       #0x42abcc"),
+        ("0x4cf814", "bl       #0x4b1a20"),
+        ("0x4cf81a", "bl       #0x4b096c"),
+    ),
+}
+
 UI_SITES = (
     ("0x1a26dc", "mov      r0, r5"),
     ("0x1a26de", "movw     r2, #0xf01"),
@@ -261,6 +287,36 @@ def audit_request_abi(
         or factory.get("new_allocation_arg") != "0x10"
         or factory.get("constructor_event_id") != "0x11004003"):
         raise ValueError("return and allocation observations must remain source-scoped")
+    internal = obj.get("core_camera_internal_dispatch")
+    if (
+        not isinstance(internal, dict)
+        or internal.get("status") != "STATIC_INTERNAL_CALL_ARGUMENT_SHAPE_OBSERVED"
+        or internal.get("dispatcher_vma") != "0x4cfb9c"
+        or internal.get("callee_vma") != "0x4cf7a8"
+        or internal.get("trigger_selector") != "0x0f01"
+        or internal.get("callsite") != "0x4cfe98"
+        or internal.get("selector_value_source") != "0x131fd2 returns r0"
+        or internal.get("parameter_value_source") != "0x13200a returns r0 stored into r4"
+        or internal.get("callsite_input_registers") != {
+            "r0": "saved entry r0 via r5 (ModelCamera this candidate)",
+            "r1": "return of 0x13200a via r4; type NOT VERIFIED",
+        }
+        or internal.get("callee_entry_observes") != {
+            "r0": "saved in r4 at 0x4cf7b6",
+            "r1": "saved in sl at 0x4cf7ac and forwarded at 0x4cf7ee",
+        }
+        or internal.get("helper_outgoing_calls") != [
+            {"site": "0x4cf814", "target": "0x4b1a20",
+             "role": "EE-neutral sender candidate"},
+            {"site": "0x4cf81a", "target": "0x4b096c",
+             "role": "PrepChk candidate"},
+        ]
+        or internal.get("raw_opcode_full_sha_rechecked_in_this_run") is not False
+        or internal.get("parameter1_type_verified") is not False
+        or internal.get("return_type_verified") is not False
+        or internal.get("callable_api_abi_complete") is not False
+    ):
+        raise ValueError("ModelCamera internal call ABI is an untyped static lead, not verified native API")
     ui = obj.get("ui_crosscheck")
     if (not isinstance(ui, dict) or ui.get("library") != "viewUnified2.so"
         or ui.get("callsite_vma") != "0x1a26e6"
@@ -274,6 +330,7 @@ def audit_request_abi(
     if not isinstance(obj.get("unresolved"), list) or len(obj["unresolved"]) < 5:
         raise ValueError("prototype still has critical unresolved ABI dependencies")
     libobj_count = None
+    core_count = None
     if saved_libobj is not None:
         p = Path(saved_libobj)
         if not p.is_file() or not 0 < p.stat().st_size <= MAX_DISASSEMBLY:
@@ -284,6 +341,13 @@ def audit_request_abi(
             method_name = by_addr[addr]["symbol"]
             rows = _entry_instructions(source, int(addr, 16), method_name)
             libobj_count += _check_sites(rows, expected, method_name)
+        core_count = 0
+        for addr, expected in CORE_CAMERA_SITES.items():
+            # These local entries are anonymous in the saved disassembly.
+            # The source ENTRY VMA is the identity; do not fabricate a mangled
+            # method signature or infer the type of its second argument.
+            rows = _entry_instructions(source, int(addr, 16), "")
+            core_count += _check_sites(rows, expected, "ModelCamera internal")
     view_count = None
     if saved_view is not None:
         p = Path(saved_view)
@@ -307,6 +371,16 @@ def audit_request_abi(
         "factory_event_pointer_return_static_inference": "Event* allocation/constructor/r0 return",
         "factory_return_abi_verified": False,
         "saved_libobj_register_sites_checked": libobj_count,
+        "saved_modelcamera_internal_sites_checked": core_count,
+        "modelcamera_internal_call": {
+            "selector_from_helper": "0x131fd2",
+            "selector_equal_to": "0x0f01",
+            "arg0": "candidate ModelCamera this pointer",
+            "arg1": "returned value from 0x13200a, TYPE UNKNOWN",
+            "entry_vma": "0x4cf7a8",
+            "native_parameter_types_verified": False,
+            "return_type_verified": False,
+        },
         "saved_view_ui_sites_checked": view_count,
         "selector_transform_0x12d780_verified": False,
         "actual_elf_bytes_redecoded": False,
