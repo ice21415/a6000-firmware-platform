@@ -294,6 +294,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_rea_bridge.add_argument("--ui-decompile", type=Path)
     sdk_rea_bridge.add_argument("--camera-audit", type=Path)
     sdk_rea_bridge.add_argument("--json", action="store_true")
+    sdk_envelope = sdk_sub.add_parser("event-envelope")
+    sdk_envelope.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_model_execute_envelope.json"))
+    sdk_envelope.add_argument("--saved-disassembly", type=Path)
+    sdk_envelope.add_argument("--json", action="store_true")
     sdk_discover = sdk_sub.add_parser("discover")
     sdk_discover.add_argument("--name", default="")
     sdk_discover.add_argument("--binary-sha256", default="")
@@ -358,6 +362,11 @@ def main(argv: list[str] | None = None) -> int:
         result = simulate_protocol(args.scenario)
         _json_or_text(result, args.json)
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "sdk" and args.sdk_command == "event-envelope":
+        from .event_envelope import audit_model_execute_event
+        result = audit_model_execute_event(args.fixture, saved_disassembly=args.saved_disassembly)
+        _json_or_text(result, args.json)
+        return 0
     if args.command == "sdk" and args.sdk_command == "rea-bridge":
         from .rea_bridge import audit_rea_ui_camera_bridge
         result = audit_rea_ui_camera_bridge(
