@@ -52,6 +52,11 @@ def _query(db: Database, kind: str, term: str) -> list[dict[str, Any]]:
                  (SELECT COUNT(*) FROM function f WHERE f.module_id=m.id) AS functions,
                  (SELECT COUNT(*) FROM lifecycle_callback l WHERE l.module_id=m.id) AS lifecycle_callbacks
                  FROM module m LEFT JOIN binary b ON b.id=m.binary_id WHERE m.name LIKE ? ORDER BY m.name LIMIT 500""", [f"%{term}%"])
+    elif kind == "dex":
+        rows = db.query("""SELECT id,source_path,source_sha256,observation_type,locator,
+            value_json,status,source_evidence_id FROM research_observation
+            WHERE observation_type IN ('dex_string','dex_descriptor_candidate','dex_signature_candidate')
+            AND value_json LIKE ? ORDER BY source_path,id LIMIT 500""", [f"%{term}%"])
     else:
         raise ValueError(f"unsupported query kind: {kind}")
     return [dict(row) for row in rows]
@@ -252,7 +257,7 @@ def build_parser() -> argparse.ArgumentParser:
     export = manifest_sub.add_parser("export"); export.add_argument("--output", type=Path, default=Path("reports/manifest.json")); export.add_argument("--json", action="store_true")
     imp = commands.add_parser("import"); imp_sub = imp.add_subparsers(dest="import_command", required=True)
     existing = imp_sub.add_parser("existing"); existing.add_argument("--root", type=Path, required=True); existing.add_argument("--json", action="store_true")
-    query = commands.add_parser("query"); query.add_argument("kind", choices=["function", "event", "module", "api"]); query.add_argument("term"); query.add_argument("--json", action="store_true")
+    query = commands.add_parser("query"); query.add_argument("kind", choices=["function", "event", "module", "api", "dex"]); query.add_argument("term"); query.add_argument("--json", action="store_true")
     trace = commands.add_parser("trace"); trace.add_argument("term"); trace.add_argument("--depth", type=int, default=3); trace.add_argument("--cross-module", action="store_true"); trace.add_argument("--json", action="store_true")
     callers = commands.add_parser("callers"); callers.add_argument("term"); callers.add_argument("--json", action="store_true")
     callees = commands.add_parser("callees"); callees.add_argument("term"); callees.add_argument("--json", action="store_true")
@@ -277,6 +282,7 @@ def build_parser() -> argparse.ArgumentParser:
     linkage = analyze_sub.add_parser("linkage"); linkage.add_argument("--root", type=Path, required=True); linkage.add_argument("--limit", type=int); linkage.add_argument("--json", action="store_true")
     osal = analyze_sub.add_parser("osal"); osal.add_argument("--fixture", type=Path, required=True); osal.add_argument("--json", action="store_true")
     jni = analyze_sub.add_parser("jni"); jni.add_argument("--fixture", type=Path, required=True); jni.add_argument("--json", action="store_true")
+    dex = analyze_sub.add_parser("dex"); dex.add_argument("--path", type=Path, required=True); dex.add_argument("--json", action="store_true")
     semantic = analyze_sub.add_parser("semantic"); semantic.add_argument("--json", action="store_true")
     evidence_ingest = analyze_sub.add_parser("evidence"); evidence_ingest.add_argument("--root", type=Path, required=True); evidence_ingest.add_argument("--profile", default="targeted"); evidence_ingest.add_argument("--json", action="store_true")
     graph = commands.add_parser("graph"); graph_sub = graph.add_subparsers(dest="graph_command", required=True)
@@ -359,6 +365,9 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "analyze" and args.analyze_command == "jni":
             from .jni import import_jni_fixture
             _json_or_text(import_jni_fixture(db, args.fixture), args.json)
+        elif args.command == "analyze" and args.analyze_command == "dex":
+            from .dex_index import index_dex
+            _json_or_text(index_dex(db, args.path), args.json)
         elif args.command == "analyze" and args.analyze_command == "semantic":
             _json_or_text(sync_semantic_graph(db), args.json)
         elif args.command == "analyze" and args.analyze_command == "evidence":
