@@ -135,6 +135,14 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - `fw sdk event-envelope --saved-disassembly ...` 逐個檢查組語文本中的 callsite、PLT 目標、寄存器來源與 Event 插入點；未附檔案時不得報為 opcode verified，並完全不碰 SQLite、實體相機或韌體執行。
 - 仍需還原 `0x12d780` 與 `0x11004003` 的真實接收者、symbol relocation、app queue delivery、param extraction 與對應 `ModelCamera::ActionGpSetSetting`。**不能直接把事件 key 8 當成 `0x0f01`，也不能由相同符號名推定動態連結。**
 
+## Phase 3.20（查參數的 register 角色與結果判斷已縮小）
+
+- 針對 `0x42ac00` 找到跨 action 重複的呼叫慣例候選：`r0` 為 `0x42abcc` 包裝的堆疊內 payload view、`r1` 是數字參數 ID、`r2` 是 output pointer；`r3` 仍沒有可證的通用意義。
+- `ActionExeAfRangeLimitDrive` 以 `0x3fe`／`0x3ff` 查詢，返回零時跳過 `Invalid ParamList`；`ActionObjectFocusPosDisplayEvent` 以 `0x1b8`／`0x1b9` 查詢，返回零時讀取堆疊 4-byte slot，再寫入 Camera `+0x200`、`+0x204`。
+- `pvt_ActionSetInit` 的 `0x42abdc` 呼叫則以 `0x12000005` 為參數值、讀取輸出 slot，配合 `EasyMode ON` 比較：地址接近 `0x42ac00` 但**不能**推斷其為同一 C++ 函式或 ABI。
+- 新增 `sdk/camera_3_21_param_lookup_abi.json`、`fwplatform/param_lookup_abi.py`、`sdk param-lookup`、合成測試；已核對 39 個保存的私有 ARM 組語文字位置，**不是重新掃原始 ELF 機器碼**。
+- 接下來應先取得 `0x13200a`、`0x42abcc`、`0x42ac00`、`0x42abdc` 的原始 ELF 函式本體，查明完整 C++ 參數／回傳型別，不能由跨呼叫者 register 約束直接宣告安全可呼叫 API。
+
 ## Phase 3.19（還原 `0x13200a` Camera action payload 參數用途）
 
 - `0x13200a` 雖無原始函式指令可讀，但保存的五個獨立 action 入口有**跨呼叫者資料流**：`0x4aea00`、`0x4bac78`、`0x4afc9c` 均從同一 getter 取得 `r0`，再以 `r1` 傳給共用 `0x42abcc` 包裝器。
