@@ -282,6 +282,111 @@
       "note": "Sender identity and completion receiver remain unresolved."
     },
     {
+      "id": "event_manager.owner.provider",
+      "source": "EventManager owner initializer candidate",
+      "target": "EventManager owner provider helper candidate",
+      "target_vma": "0x7ef1e4",
+      "source_vma": "0x7ef254",
+      "callsite_vma": "0x7ef268",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef268",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The owner candidate obtains a provider/context pointer; source-level owner type is UNKNOWN."
+    },
+    {
+      "id": "event_manager.owner.init",
+      "source": "EventManager owner initializer candidate",
+      "target": "EventManager layout initializer candidate",
+      "target_vma": "0x7ef894",
+      "source_vma": "0x7ef254",
+      "callsite_vma": "0x7ef2ca",
+      "relation": "INITIALIZES",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef2ca",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "An allocated 0x24-byte object is passed as r0; initializer identity is bounded but not a confirmed C++ constructor."
+    },
+    {
+      "id": "event_manager.owner.push",
+      "source": "EventManager owner initializer candidate",
+      "target": "EventManager::push",
+      "target_vma": "0x7ef960",
+      "source_vma": "0x7ef254",
+      "callsite_vma": "0x7ef35a",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef35a",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The call is through PLT entry 0xdf274, uniquely bound to EventManager::push; r2 is the observed literal 1."
+    },
+    {
+      "id": "event_manager.init.callback_factory",
+      "source": "EventManager layout initializer candidate",
+      "target": "ProviderVtableSlot:+0x30",
+      "target_vma": null,
+      "source_vma": "0x7ef894",
+      "callsite_vma": "0x7ef8b0",
+      "relation": "LOADS_INDIRECT_FACTORY",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef8b0",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The provider vtable result is stored at EventManager +0x08; this identifies the slot source, not the eventual callback target."
+    },
+    {
+      "id": "event_manager.init.dispatch_state_store",
+      "source": "EventManager layout initializer candidate",
+      "target": "EventManager::push.dispatch_state_+0x08",
+      "target_vma": null,
+      "source_vma": "0x7ef894",
+      "callsite_vma": "0x7ef8b2",
+      "relation": "INITIALIZES_DISPATCH_STATE",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef8b2",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The indirect factory result is written to the field later read by EventManager::push at 0x7ef988."
+    },
+    {
       "id": "factory.event_id",
       "source": "AbstractUtilityManager::createRequestModelExecuteEvent",
       "target": "EventID:0x11004003",
@@ -532,6 +637,58 @@
       "runtime_verified": false,
       "callable": false
     },
+    "event_manager_owner_setup": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "semantic_level": "STATIC_INFERRED",
+      "entry_vma": "0x7ef254",
+      "function_identity": "UNKNOWN; no unique ELF symbol or source-level owner type",
+      "owner_fields": {
+        "+0x10": "allocated EventManager-like layout pointer retained in r6",
+        "+0x14": "provider/context pointer passed to the layout initializer"
+      },
+      "provider": {
+        "helper_entry": "0x7ef1e4",
+        "event_vtable_slot": "+0x2c",
+        "result_register": "r0",
+        "identity": "UNKNOWN; indirect provider vtable target"
+      },
+      "initializer": {
+        "entry_vma": "0x7ef894",
+        "allocated_size": "0x24",
+        "callsite_vma": "0x7ef2ca",
+        "dispatch_factory_vtable_slot": "+0x30",
+        "dispatch_state_field": "+0x08",
+        "completion_field": "+0x04",
+        "push_binding": {
+          "entry_vma": "0xdf274",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102dfa8",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZN12EventManager4pushEP5Eventb",
+              "symbol_value": "0x7ef961",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        }
+      },
+      "push": {
+        "callsite_vma": "0x7ef35a",
+        "target_vma": "0x7ef960",
+        "flag_r2": 1,
+        "event_source": "provider vtable slot +0x2c result"
+      },
+      "limits": [
+        "EventManager::push dispatch target remains an indirect function pointer.",
+        "Provider vtable slots +0x2c and +0x30 have no unique target identity in this bounded pass.",
+        "Owner and initializer are candidates, not confirmed C++ class constructors."
+      ],
+      "runtime_verified": false,
+      "callable": false
+    },
     "camera_action": {
       "status": "PRIMARY_ELF_VERIFIED",
       "selector_dispatch": {
@@ -554,6 +711,7 @@
   "chain_summary": {
     "request_to_factory": "PRIMARY_ELF_VERIFIED",
     "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
+    "event_manager_owner_init_push": "PRIMARY_ELF_VERIFIED",
     "event_manager_indirect_dispatch_target": "UNKNOWN",
     "event_consumer_model_camera": "UNKNOWN",
     "event_keys_7_8_to_model_camera": "UNKNOWN",
@@ -585,5 +743,31 @@
     "auto_analysis_completed": false,
     "raw_export_private": true,
     "firmware_bytes_public": false
-  }
+  },
+  "nodes": [
+    {
+      "id": "event:0x11004003",
+      "type": "EventID",
+      "label": "EventID:0x11004003",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    {
+      "id": "event-key:7",
+      "type": "EventParameterKey",
+      "label": "EventParameterKey:7",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    {
+      "id": "event-key:8",
+      "type": "EventParameterKey",
+      "label": "EventParameterKey:8",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    {
+      "id": "model-camera",
+      "type": "FunctionCandidate",
+      "label": "ModelCamera event consumer",
+      "status": "UNKNOWN"
+    }
+  ]
 }

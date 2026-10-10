@@ -73,6 +73,39 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertFalse(ghidra["auto_analysis_completed"])
         self.assertTrue(ghidra["raw_export_private"])
 
+    def test_event_manager_owner_setup_edges_are_present(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        for edge_id in (
+            "event_manager.owner.init",
+            "event_manager.owner.push",
+            "event_manager.init.callback_factory",
+            "event_manager.init.dispatch_state_store",
+        ):
+            self.assertIn(edge_id, edges)
+            self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
+            self.assertEqual(
+                edges[edge_id]["evidence"]["source_binary_sha256"],
+                report["binary_file_sha256"],
+            )
+        self.assertEqual(edges["event_manager.owner.push"]["target_vma"], "0x7ef960")
+        self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
+        self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
+
+    def test_owner_setup_target_tampering_is_rejected(self):
+        report = _report()
+        for edge in report["edges"]:
+            if edge["id"] == "event_manager.owner.push":
+                edge["target_vma"] = "0x1234"
+                break
+        else:
+            self.fail("owner push edge missing")
+        # The contract validator must continue to require the exact verified
+        # setup edge; changing its VMA must not silently pass as a new edge.
+        result = validate_camera_core_chain(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("edge_target:event_manager.owner.push", result["errors"])
+
 
 if __name__ == "__main__":
     unittest.main()

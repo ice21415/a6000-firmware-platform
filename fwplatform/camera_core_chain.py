@@ -56,6 +56,15 @@ FUNCTIONS: dict[str, dict[str, Any]] = {
         "entry": 0x7EF960, "size": 0x9C,
         "symbol": "_ZN12EventManager4pushEP5Eventb",
     },
+    # The owner and layout initializer are intentionally kept as candidates:
+    # neither has a unique source-level symbol in the available ELF.  Their
+    # instruction ranges are nevertheless bounded and independently checked.
+    "EventManager::owner_initializer_candidate": {
+        "entry": 0x7EF254, "size": 0x120, "symbol": None,
+    },
+    "EventManager::layout_initializer_candidate": {
+        "entry": 0x7EF894, "size": 0x4E, "symbol": None,
+    },
     "ModelCamera::ActionGpSetSetting": {
         "entry": 0x4CFB9C, "size": None, "symbol": None,
     },
@@ -310,6 +319,140 @@ def _observe_action_path(fp: Any, elf: ELFFile, digest: str) -> tuple[list[dict[
     }
 
 
+def _observe_event_manager_owner(
+    fp: Any, elf: ELFFile, digest: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Recover the bounded owner -> EventManager setup path.
+
+    This is deliberately a setup witness, not a callback resolution.  The
+    owner candidate allocates and initializes the EventManager layout, then
+    obtains an event from a provider vtable slot and calls the statically
+    bound ``EventManager::push`` PLT entry.  The actual callback stored in
+    ``[this + 8]`` remains an indirect, unresolved target.
+    """
+    owner = _decode_at(fp, elf, 0x7EF254, 0x120)
+    _require(owner, 0x7EF254, "push.w")
+    _require(owner, 0x7EF268, "bl", target=0x7EF1E4)
+    _require(owner, 0x7EF270, "str", operands="r0, [r4, #0x14]")
+    _require(owner, 0x7EF2BA, "blx", target=0xDC100)
+    _require(owner, 0x7EF2C0, "ldr", operands="r2, [r4, #0x14]")
+    _require(owner, 0x7EF2C8, "mov", operands="r6, r0")
+    _require(owner, 0x7EF2CA, "bl", target=0x7EF894)
+    _require(owner, 0x7EF2D4, "str", operands="r6, [r4, #0x10]")
+    _require(owner, 0x7EF348, "ldr", operands="r5, [r4, #0x10]")
+    _require(owner, 0x7EF34C, "ldr", operands="r0, [r4, #0x14]")
+    _require(owner, 0x7EF350, "ldr", operands="r3, [r3, #0x2c]")
+    _require(owner, 0x7EF352, "blx", operands="r3")
+    _require(owner, 0x7EF354, "movs", immediate=1)
+    _require(owner, 0x7EF356, "mov", operands="r1, r0")
+    _require(owner, 0x7EF358, "mov", operands="r0, r5")
+    _require(owner, 0x7EF35A, "blx", target=0xDF274)
+
+    initializer = _decode_at(fp, elf, 0x7EF894, 0x4E)
+    _require(initializer, 0x7EF894, "push")
+    _require(initializer, 0x7EF8A8, "ldr", operands="r3, [r6]")
+    _require(initializer, 0x7EF8AE, "ldr", operands="r3, [r3, #0x30]")
+    _require(initializer, 0x7EF8B0, "blx", operands="r3")
+    _require(initializer, 0x7EF8B2, "str", operands="r0, [r4, #8]")
+    _require(initializer, 0x7EF8AA, "str", operands="r5, [r4, #4]")
+    push_binding = _binding(fp, elf, 0xDF274)
+
+    edges = [
+        _edge(
+            "event_manager.owner.provider",
+            "EventManager owner initializer candidate",
+            "EventManager owner provider helper candidate",
+            "CALLS",
+            0x7EF254,
+            digest,
+            target_vma=0x7EF1E4,
+            callsite_vma=0x7EF268,
+            note="The owner candidate obtains a provider/context pointer; source-level owner type is UNKNOWN.",
+        ),
+        _edge(
+            "event_manager.owner.init",
+            "EventManager owner initializer candidate",
+            "EventManager layout initializer candidate",
+            "INITIALIZES",
+            0x7EF254,
+            digest,
+            target_vma=0x7EF894,
+            callsite_vma=0x7EF2CA,
+            note="An allocated 0x24-byte object is passed as r0; initializer identity is bounded but not a confirmed C++ constructor.",
+        ),
+        _edge(
+            "event_manager.owner.push",
+            "EventManager owner initializer candidate",
+            "EventManager::push",
+            "CALLS",
+            0x7EF254,
+            digest,
+            target_vma=0x7EF960,
+            callsite_vma=0x7EF35A,
+            method="CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+            note="The call is through PLT entry 0xdf274, uniquely bound to EventManager::push; r2 is the observed literal 1.",
+        ),
+        _edge(
+            "event_manager.init.callback_factory",
+            "EventManager layout initializer candidate",
+            "ProviderVtableSlot:+0x30",
+            "LOADS_INDIRECT_FACTORY",
+            0x7EF894,
+            digest,
+            callsite_vma=0x7EF8B0,
+            note="The provider vtable result is stored at EventManager +0x08; this identifies the slot source, not the eventual callback target.",
+        ),
+        _edge(
+            "event_manager.init.dispatch_state_store",
+            "EventManager layout initializer candidate",
+            "EventManager::push.dispatch_state_+0x08",
+            "INITIALIZES_DISPATCH_STATE",
+            0x7EF894,
+            digest,
+            callsite_vma=0x7EF8B2,
+            note="The indirect factory result is written to the field later read by EventManager::push at 0x7ef988.",
+        ),
+    ]
+    return edges, {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_level": "STATIC_INFERRED",
+        "entry_vma": hex(0x7EF254),
+        "function_identity": "UNKNOWN; no unique ELF symbol or source-level owner type",
+        "owner_fields": {
+            "+0x10": "allocated EventManager-like layout pointer retained in r6",
+            "+0x14": "provider/context pointer passed to the layout initializer",
+        },
+        "provider": {
+            "helper_entry": hex(0x7EF1E4),
+            "event_vtable_slot": "+0x2c",
+            "result_register": "r0",
+            "identity": "UNKNOWN; indirect provider vtable target",
+        },
+        "initializer": {
+            "entry_vma": hex(0x7EF894),
+            "allocated_size": "0x24",
+            "callsite_vma": hex(0x7EF2CA),
+            "dispatch_factory_vtable_slot": "+0x30",
+            "dispatch_state_field": "+0x08",
+            "completion_field": "+0x04",
+            "push_binding": push_binding,
+        },
+        "push": {
+            "callsite_vma": hex(0x7EF35A),
+            "target_vma": hex(0x7EF960),
+            "flag_r2": 1,
+            "event_source": "provider vtable slot +0x2c result",
+        },
+        "limits": [
+            "EventManager::push dispatch target remains an indirect function pointer.",
+            "Provider vtable slots +0x2c and +0x30 have no unique target identity in this bounded pass.",
+            "Owner and initializer are candidates, not confirmed C++ class constructors.",
+        ],
+        "runtime_verified": False,
+        "callable": False,
+    }
+
+
 def _unresolved(digest: str) -> list[dict[str, Any]]:
     return [
         {
@@ -400,6 +543,7 @@ def probe_camera_core_chain(
         request_edges, request_observation = _observe_request_frontends(fp, elf, digest)
         submit_edges, submit_observation = _observe_submission(fp, elf, digest)
         action_edges, action_observation = _observe_action_path(fp, elf, digest)
+        owner_edges, owner_observation = _observe_event_manager_owner(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
@@ -409,7 +553,7 @@ def probe_camera_core_chain(
     key7_edge["key_literal_vma"] = hex(0x7F0B44)
     key8_edge = _edge("factory.key8", f"EventID:{hex(EVENT_ID)}", "EventParameterKey:8", "CARRIES_PARAMETER", 0x7F0B0C, digest, callsite_vma=0x7F0B60)
     key8_edge["key_literal_vma"] = hex(0x7F0B5C)
-    edges = request_edges + submit_edges + action_edges + [
+    edges = request_edges + submit_edges + action_edges + owner_edges + [
         event_edge,
         key7_edge,
         key8_edge,
@@ -442,6 +586,7 @@ def probe_camera_core_chain(
             },
             "submission": submit_observation,
             "event_manager": event_manager["observation"],
+            "event_manager_owner_setup": owner_observation,
             "camera_action": action_observation,
         },
         "nodes": nodes,
@@ -450,6 +595,7 @@ def probe_camera_core_chain(
         "chain_summary": {
             "request_to_factory": "PRIMARY_ELF_VERIFIED",
             "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
+            "event_manager_owner_init_push": "PRIMARY_ELF_VERIFIED",
             "event_manager_indirect_dispatch_target": "UNKNOWN",
             "event_consumer_model_camera": "UNKNOWN",
             "event_keys_7_8_to_model_camera": "UNKNOWN",
@@ -491,9 +637,21 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
     if not isinstance(edges, list) or not edges:
         errors.append("edges_missing")
     else:
-        required = {"request.viewbase.factory", "request.viewbase.submit", "submit.helper.event_manager", "factory.event_id", "factory.key7", "factory.key8", "camera.action.selector_0f01"}
+        required = {
+            "request.viewbase.factory", "request.viewbase.submit",
+            "submit.helper.event_manager", "factory.event_id", "factory.key7",
+            "factory.key8", "camera.action.selector_0f01",
+            "event_manager.owner.init", "event_manager.owner.push",
+            "event_manager.init.callback_factory",
+        }
         present = {str(edge.get("id")) for edge in edges if isinstance(edge, dict)}
         errors.extend(f"edge_missing:{item}" for item in sorted(required - present))
+        required_targets = {
+            "event_manager.owner.init": ("0x7ef894", "0x7ef2ca"),
+            "event_manager.owner.push": ("0x7ef960", "0x7ef35a"),
+            "event_manager.init.callback_factory": (None, "0x7ef8b0"),
+            "event_manager.init.dispatch_state_store": (None, "0x7ef8b2"),
+        }
         for edge in edges:
             if not isinstance(edge, dict):
                 errors.append("edge_not_object")
@@ -503,6 +661,12 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
                     errors.append(f"edge_evidence:{edge.get('id')}")
                 if edge.get("evidence", {}).get("verification_status") != "PRIMARY_ELF_VERIFIED":
                     errors.append(f"edge_provenance:{edge.get('id')}")
+                if edge.get("id") in required_targets:
+                    target_vma, callsite_vma = required_targets[edge["id"]]
+                    if edge.get("target_vma") != target_vma:
+                        errors.append(f"edge_target:{edge.get('id')}")
+                    if edge.get("callsite_vma") != callsite_vma:
+                        errors.append(f"edge_callsite:{edge.get('id')}")
     unresolved = report.get("unresolved_edges")
     if not isinstance(unresolved, list) or len(unresolved) < 4:
         errors.append("unresolved_edges_missing")
