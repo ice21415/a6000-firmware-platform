@@ -1504,3 +1504,11 @@ forwards to `ModelManager::checkStatus(int)`. `0x1323b4` copies an optional
 The bounded PC-relative label is `NeutrOn`. These fields preserve
 `PRIMARY_ELF_VERIFIED` instruction evidence while leaving protocol meaning,
 object layout, runtime safety and callable status unknown.
+
+The App/Event handoff contract
+[`app_event_primary_3_21.json`](app_event_primary_3_21.json) records the
+semaphore-gated path from `0x7eecac` to `0x7f21e8`/`0x7f2210`, including the
+static `osal_wai_sem_tmo` and `osal_sig_sem` bindings. This is a bounded
+primary-ELF observation; it does not identify event `0x11004003`'s consumer or
+make a runtime-safe API claim. Use the private-only command documented in the
+root README.

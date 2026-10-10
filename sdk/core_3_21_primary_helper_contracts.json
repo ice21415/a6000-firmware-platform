@@ -357,5 +357,6 @@
     "callable": false,
     "scope": "bounded direct-call index for 0x42abcc, 0x42abdc, 0x42ac00 and local query forwarders",
     "limitations": "No function-boundary recovery for unresolved callers; no register/GOT/vtable dispatch or runtime loader proof"
-  }
+  },
+  "app_event_primary_contract": "sdk/app_event_primary_3_21.json"
 }

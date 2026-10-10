@@ -997,3 +997,47 @@ The focused suite now has 16 fail-closed tests and the complete local suite
 passes 489 tests. `setBlogData` semantics, receiver/completion behavior,
 message namespace, object layouts, runtime safety and callable SDK status
 remain UNKNOWN/false.
+
+## Phase 3.33 — App/Event primary-ELF semaphore handoff
+
+The new SHA-pinned probe
+[`fwplatform/app_event_primary_probe.py`](../fwplatform/app_event_primary_probe.py)
+records the next bounded primary-ELF boundary without treating the saved
+event-loop notes as proof of a consumer. At `0x7eecac`, the incoming object's
+`+0x18` word is loaded and tail-branched to `0x7f21e8`. Both `0x7f21e8` and
+`0x7f2210` preserve the receiver, load the same file-backed semaphore value
+`0x830451`, call the unique PLT binding `osal_wai_sem_tmo` with `r1 = -1`,
+invoke a local helper with `receiver + 4`, then call the unique
+`osal_sig_sem` binding before returning the helper result. The two literal
+loads resolve to ELF VMAs `0x7f220c` and `0x7f2234`; the probe preserves those
+locations rather than treating the numeric value as a universal queue or event
+ID.
+
+The guarded helper at `0x7f099c` is also instruction-verified: a local guard
+call returns zero on the nonzero branch; the zero branch obtains an opaque
+object, reads one word, calls a second helper, and returns that word. The
+three local helper identities and their source-level meaning remain UNKNOWN.
+The dispatch thunk at `0x7f0aa0` is only a tail wrapper to `0x7f0a84`.
+
+This proves a semaphore-gated handoff and its static PLT bindings at
+`PRIMARY_ELF_VERIFIED` level. It does **not** prove that event `0x11004003`
+reaches these sites, decode parameter keys 7/8, identify a ModelCamera
+consumer, or establish runtime semaphore/error behavior. The sanitized
+contract is
+[`sdk/app_event_primary_3_21.json`](../sdk/app_event_primary_3_21.json), and
+the command is:
+
+```powershell
+python -m fwplatform.cli sdk app-event-primary --elf C:\\private\\libObj.so --json
+```
+
+The private Ghidra 12.1.3 `app-event-primary` cross-check completed with exit
+code 0 and `COMPLETE_TARGET_EXPORT` (8 bounded bodies, 81 instruction rows,
+11 blocks and 20 CFG edges). It uses targeted `-noanalysis`; its metadata
+records `auto_analysis_completed=false`, and raw firmware-derived output stays
+private. The first non-ASCII script-path attempt failed to locate the script;
+the corrected ASCII-path run is the only run counted as successful.
+
+The six new fail-closed tests and the complete local suite (**495 tests**)
+pass. The private CLI probe was rerun against the authorized ELF and returned
+the expected SHA, `osal_wai_sem_tmo` binding and `0x7f099c` helper target.

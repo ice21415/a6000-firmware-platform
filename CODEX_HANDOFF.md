@@ -1514,3 +1514,31 @@ The focused suite has 16 tests and the complete local suite has 489 passing
 tests. The helper's protocol namespace, `setBlogData` semantics, receiver and
 completion, full ObjMsg layout, runtime safety and callable status remain
 UNKNOWN/false.
+
+## Latest continuation checkpoint -- App/Event semaphore handoff (2026-10-10)
+
+The exact SHA-pinned private `libObj.so` was rechecked with the bounded
+`fwplatform.app_event_primary_probe` (no firmware execution). `0x7eecac`
+loads incoming object `+0x18` and tail-branches to `0x7f21e8`. The gates at
+`0x7f21e8` and `0x7f2210` load file-backed semaphore value `0x830451`, call
+the unique PLT bindings `osal_wai_sem_tmo` (`r1=-1`) and `osal_sig_sem`, and
+invoke local helpers with `receiver+4` between wait and signal. The guarded
+helper `0x7f099c` and dispatch thunk `0x7f0aa0` are bounded and recorded in
+the sanitized contract `sdk/app_event_primary_3_21.json`.
+
+The private ASCII-path Ghidra 12.1.3 `app-event-primary` profile completed
+with exit 0 and `COMPLETE_TARGET_EXPORT`: 8 targets, 81 instructions, 11
+blocks and 20 CFG edges. `auto_analysis_completed=false` remains explicit;
+raw export/project files remain private. The initial non-ASCII script-path
+attempt failed and is not counted as an analysis success.
+
+The handoff is `PRIMARY_ELF_VERIFIED` for the instruction and relocation facts
+only. Event `0x11004003` consumer identity, parameter keys 7/8, ModelCamera
+consumer, helper semantics, semaphore behavior, runtime verification and
+callable status remain UNKNOWN/false. Next target: locate an independently
+evidenced receiver/dispatcher or parameter-key use before promoting this
+handoff to an event relation.
+
+The six new fail-closed tests and the complete local suite (**495 tests**)
+pass. A direct CLI run against the authorized private ELF returned the pinned
+SHA, `osal_wai_sem_tmo`, and the application helper target `0x7f099c`.

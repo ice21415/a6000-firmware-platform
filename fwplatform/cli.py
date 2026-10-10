@@ -302,6 +302,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_event_loop.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_application_event_loop.json"))
     sdk_event_loop.add_argument("--saved-disassembly", type=Path)
     sdk_event_loop.add_argument("--json", action="store_true")
+    sdk_app_event_primary = sdk_sub.add_parser("app-event-primary")
+    sdk_app_event_primary.add_argument("--elf", type=Path, required=True)
+    sdk_app_event_primary.add_argument("--expected-sha256", default=None)
+    sdk_app_event_primary.add_argument("--json", action="store_true")
     sdk_app_sync = sdk_sub.add_parser("app-sync")
     sdk_app_sync.add_argument("--fixture", type=Path, default=Path("sdk/camera_3_21_app_status_sync.json"))
     sdk_app_sync.add_argument("--saved-disassembly", type=Path)
@@ -1089,6 +1093,15 @@ def main(argv: list[str] | None = None) -> int:
         from .app_event_loop import audit_application_event_loop
         result = audit_application_event_loop(
             args.fixture, saved_disassembly=args.saved_disassembly,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "app-event-primary":
+        from .app_event_primary_probe import probe_app_event_primary
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_app_event_primary(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )
         _json_or_text(result, args.json)
         return 0

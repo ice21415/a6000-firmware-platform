@@ -2098,3 +2098,25 @@ instruction rows, 16 blocks and 39 edges with exit code 0 and
 remain zero. The 16 focused tests and complete local suite (**489 tests**)
 pass. The normalized contract is
 `sdk/camera_3_21_ee_neutral_3_21.json`.
+
+## App/Event semaphore handoff checkpoint (2026-10-10)
+
+The next primary-ELF boundary is now captured in
+`sdk/app_event_primary_3_21.json`. `0x7eecac` loads `+0x18` and tail-branches
+to `0x7f21e8`; the two semaphore gates at `0x7f21e8` and `0x7f2210` use the
+same file-backed value `0x830451`, bind statically to
+`osal_wai_sem_tmo`/`osal_sig_sem`, and call local helpers with `receiver+4`
+between wait and signal. `0x7f099c` has a bounded guard/word-return path and
+`0x7f0aa0` is a tail wrapper to `0x7f0a84`.
+
+These are `PRIMARY_ELF_VERIFIED` instruction facts only. They do not establish
+the saved event ID `0x11004003` as a consumer, parameter-key 7/8 semantics,
+ModelCamera dispatch, semaphore error behavior, or a callable/runtime API.
+The corrected ASCII-path Ghidra profile exited 0 with
+`COMPLETE_TARGET_EXPORT`: 8 targets, 81 instructions, 11 blocks and 20 CFG
+edges; it remains targeted `-noanalysis` metadata, not whole-program Auto
+Analysis.
+
+The six new fail-closed tests and the complete local suite (**495 tests**)
+pass. A direct private CLI rerun returned the expected ELF SHA and the
+`osal_wai_sem_tmo`/`0x7f099c` observations.

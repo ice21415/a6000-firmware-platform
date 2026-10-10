@@ -320,6 +320,24 @@ to `setBlogData`. The callsite's short literal prefix is `NeutrOn`. These are
 static observations only; event namespace, receiver/completion semantics and
 callable status remain unknown.
 
+### App/Event semaphore handoff (private primary evidence)
+
+`fwplatform.app_event_primary_probe` adds a bounded, SHA-authenticated probe
+for the Appframework handoff around `0x7eecac`, `0x7f21e8`, `0x7f2210` and
+`0x7f099c`. It records the instruction-verified wait/helper/signal sequence
+and unique static OSAL PLT bindings in
+[`sdk/app_event_primary_3_21.json`](sdk/app_event_primary_3_21.json). Run it
+only against the authorized private ELF:
+
+```powershell
+python -m fwplatform.cli sdk app-event-primary --elf C:\private\libObj.so --json
+```
+
+The handoff is static evidence only. The event consumer, parameter keys,
+ModelCamera relationship, runtime behavior and callable API status remain
+unknown/false. The associated Ghidra profile is targeted `-noanalysis`
+metadata cross-checking; raw firmware-derived output is not public.
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

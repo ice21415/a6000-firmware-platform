@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased -- App/Event primary-ELF semaphore handoff
+
+- Added the SHA-pinned, read-only `fwplatform.app_event_primary_probe` and
+  `fw sdk app-event-primary` command. It verifies the `0x7eecac` tail handoff,
+  the two semaphore-gated helpers, their `osal_wai_sem_tmo`/
+  `osal_sig_sem` PLT bindings, and the guarded `0x7f099c` path.
+- Added the sanitized `sdk/app_event_primary_3_21.json`, a targeted private
+  Ghidra profile and six fail-closed tests. Event `0x11004003`, ModelCamera
+  consumer identity, parameter keys, runtime behavior and callable SDK status
+  remain unknown/false; no firmware bytes or device operations are included.
+
 ## Unreleased -- Camera EE-neutral primary evidence
 
 - Added `fwplatform.camera_ee_neutral_probe` and the read-only

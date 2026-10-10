@@ -997,3 +997,20 @@ The latest helper continuation extends this contract through `0x131e94`,
 PC-relative label. The private Ghidra targeted cross-check is now seven
 targets / 166 instructions / 16 blocks / 39 edges; whole-program Auto
 Analysis and runtime/callable claims remain unavailable.
+
+## App/Event semaphore handoff checkpoint (2026-10-10)
+
+The bounded primary-ELF probe `fwplatform/app_event_primary_probe.py` and
+sanitized contract `sdk/app_event_primary_3_21.json` cover the next Camera /
+Appframework boundary. `0x7eecac` loads object `+0x18` and tail-branches to
+`0x7f21e8`; gates `0x7f21e8` and `0x7f2210` use the file-backed literal
+`0x830451`, bind statically to `osal_wai_sem_tmo` and `osal_sig_sem`, and call
+local helpers with `receiver+4` between wait and signal. `0x7f099c` is a
+bounded guard/word-return candidate; `0x7f0aa0` is a tail wrapper.
+
+The private ASCII-path Ghidra 12.1.3 targeted profile exits 0 with
+`COMPLETE_TARGET_EXPORT` (8 targets, 81 instructions, 11 blocks, 20 edges),
+while `auto_analysis_completed=false` remains explicit. The result is
+`PRIMARY_ELF_VERIFIED` for bounded instruction/relocation facts only. Event
+`0x11004003`, parameter keys 7/8, ModelCamera consumer identity, helper
+semantics, runtime behavior and callable SDK status remain UNKNOWN/false.
