@@ -2031,4 +2031,6 @@ prove a runtime dynamic type for every pointer, allocation provenance, null or
 invalid-object behavior beyond the bounded null-slot guard, double-destroy
 policy, locking, concurrent safety, exception semantics or runtime loader
 binding. `runtime_verified=false`, `callable=false`, and the descriptive SDK
-does not expose a destructor wrapper.
+does not expose a destructor wrapper. Nine focused fail-closed tests cover the
+contract, slot layout, relocation provenance, CLI exposure, address-space and
+unsafe-status regressions; the complete local suite passes **473 tests**.

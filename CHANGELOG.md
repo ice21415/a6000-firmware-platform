@@ -7,7 +7,7 @@
   verifies the clear helper's `vptr + 0x08` indirect call and exact clone,
   nondeleting and deleting slots for ten known ParamBase-family vtables.
 - Added `sdk/paramlist_virtual_dispatch_3_21.json`, the descriptive header
-  constants and eight fail-closed tests. Runtime-verified and callable status
+  constants and nine fail-closed tests. Runtime-verified and callable status
   remain false; no destructor wrapper or device operation is provided.
 - Recorded a private Ghidra 12.1.3 targeted `-noanalysis` cross-check (exit 0,
   one target, 22 instructions, 6 blocks and 10 CFG edges), preserving ELF VMA

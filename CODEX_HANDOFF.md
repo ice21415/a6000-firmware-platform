@@ -1444,7 +1444,8 @@ private. Runtime dynamic type, allocation provenance, double-destroy policy,
 locking, concurrent safety, exception behavior, whole-program Auto Analysis,
 runtime verification and callable status remain UNKNOWN/false.
 
-The focused fail-closed suite contains eight tests for identity, slot layout,
-relocation provenance, address-space separation, Ghidra range integrity and
-unsafe-status rejection. Full-suite and CI counts are recorded after this
-checkpoint is committed.
+The focused fail-closed suite contains nine tests for identity, slot layout,
+relocation provenance, address-space separation, Ghidra range integrity, CLI
+exposure and unsafe-status rejection. The complete local suite passes **473
+tests**. PR #1 CI also passes all four jobs (Python 3.11 and 3.12 across the
+two configured workflow runs); the branch remains open and is not merged.
