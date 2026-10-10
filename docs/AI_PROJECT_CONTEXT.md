@@ -832,3 +832,18 @@ complete C++ ABI or runtime loader proof. `viewUnified4.so` still has no
 direct callsite in this pass. The sanitized metadata is in
 `sdk/input_service_cross_elf_3_21.json`; runtime and callable flags remain
 false.
+
+### ParamList direct cross-ELF caller index (2026-10-10)
+
+The section-aligned generic scanner is reused by
+`fwplatform.paramlist_cross_elf`. On the current private 3.21 root (491
+ELF/DSO files), the three imported symbols have 27, 29 and 30 importer
+observations. The sanitized profile records 154 direct `add` callsites, zero
+direct immediate `get` callsites, and 185 direct destructor callsites. Rows
+retain `.text`/ARM-Thumb address facts, exact symbol-range caller candidates
+and bounded direct register flow. These facts are static only; indirect
+dispatch, loader binding, ownership, C++ return types and runtime safety stay
+unknown. See `sdk/paramlist_cross_elf_3_21.json` and
+`tests/test_paramlist_cross_elf.py`.
+The focused ParamList/cross-ELF set passes 18 tests and the complete local
+suite passes 427 tests.

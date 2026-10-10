@@ -33,6 +33,15 @@
   tests -v` suite (425 tests) pass; runtime-verified and callable API counts
   remain 0.
 
+## Unreleased — ParamList direct cross-ELF caller index
+
+- Reused the executable-section direct-call scanner for the ParamList profile.
+  The sanitized 3.21 metadata now records 154 `add` callsites, zero direct
+  immediate `get` callsites and 185 destructor callsites across the current
+  private-root import set.
+- Preserved exact caller candidates, section/mode/address provenance and
+  bounded register flow without promoting loader, ownership or runtime ABI.
+
 ## Unreleased — ParamList query callsite index
 
 - Added the generic `fwplatform.param_query_callers` scanner and

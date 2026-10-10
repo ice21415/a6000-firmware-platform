@@ -1766,3 +1766,30 @@ vtable, callback and other dispatch forms remain unresolved. The sanitized
 contract is `sdk/input_service_cross_elf_3_21.json`; the reusable analyzer is
 `fwplatform.cross_elf_import_probe._direct_calls`. No firmware bytes, private
 paths or runtime/callable claim were added.
+
+## ParamList direct cross-ELF caller index — 2026-10-10
+
+The same executable-section scanner was applied through the reusable
+`fwplatform.paramlist_cross_elf` profile to the three imported ParamList
+symbols. The current authenticated private root contains 491 ELF/DSO files;
+the profile retains 27 `add` importers, 29 `get` importers and 30 destructor
+importers (86 import observations in total). Section-aligned direct Thumb
+callsites now total:
+
+| Imported symbol | Direct callsites | Interpretation |
+|---|---:|---|
+| `_ZN9ParamList3addEmP9ParamBase` | 154 | `PRIMARY_ELF_VERIFIED` branch/PLT sites; exact symbol-range callers where available |
+| `_ZNK9ParamList3getEmm` | 0 | no direct immediate call in this bounded scan; indirect/GOT/vtable paths remain UNKNOWN |
+| `_ZN9ParamListD1Ev` | 185 | `PRIMARY_ELF_VERIFIED` branch/PLT sites; exact symbol-range callers where available |
+
+Examples include `cmnviewViewModel.so` and `recUtil.so` add callers, and
+`wrapperWhiteBalance.so` and `wrapperSettingUtil.so` destructor callers. Each
+row preserves importer ELF identity, `.text` section, ARM/Thumb mode, callsite
+VMA, target PLT VMA, caller candidates and a bounded eight-instruction direct
+register-flow observation. The flow is not a complete C++ ABI or
+interprocedural data-flow proof. The provider route, loader binding, ownership,
+exception behavior and runtime safety remain UNKNOWN. The sanitized profile
+is `sdk/paramlist_cross_elf_3_21.json`; no firmware bytes or private paths
+were added. The focused ParamList/cross-ELF regression set passes 18 tests,
+and the complete local `python -m unittest discover -s tests -v` suite passes
+427 tests.

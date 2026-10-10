@@ -48,6 +48,30 @@ class ParamListCrossELFTests(unittest.TestCase):
             self.assertTrue(all(row["relocations"] for row in item["observations"]))
             self.assertTrue(all(row["plt"] for row in item["observations"]))
 
+    def test_section_aligned_direct_callsite_index_is_preserved(self) -> None:
+        report = _contract()
+        direct = {
+            item["symbol"]: sum(
+                len(observation.get("direct_calls", []))
+                for observation in item["observations"]
+            )
+            for item in report["reports"]
+        }
+        self.assertEqual(direct["_ZN9ParamList3addEmP9ParamBase"], 154)
+        self.assertEqual(direct["_ZNK9ParamList3getEmm"], 0)
+        self.assertEqual(direct["_ZN9ParamListD1Ev"], 185)
+        add = next(
+            observation for item in report["reports"]
+            if item["symbol"] == "_ZN9ParamList3addEmP9ParamBase"
+            for observation in item["observations"]
+            if observation["direct_calls"]
+        )
+        call = add["direct_calls"][0]
+        self.assertEqual(call["section"], ".text")
+        self.assertEqual(call["instruction_mode"], "THUMB")
+        self.assertEqual(call["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(call["argument_flow"]["verification"], "PRIMARY_ELF_VERIFIED")
+
     def test_empty_synthetic_profile_is_reusable_without_firmware(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             report = probe_paramlist_cross_elf(
@@ -83,6 +107,8 @@ class ParamListCrossELFTests(unittest.TestCase):
         crosscheck = report["ghidra_crosschecks"][0]
         self.assertEqual(crosscheck["process_exit"], 0)
         self.assertEqual(crosscheck["address_space"], "ram")
+        self.assertNotIn("firmware.tar_unpacked", crosscheck["source_relative_path"])
+        self.assertNotIn("AppData", crosscheck["source_relative_path"])
         self.assertFalse(crosscheck["runtime_verified"])
         self.assertFalse(crosscheck["callable"])
         crosscheck["binary_sha256"] = "0" * 64

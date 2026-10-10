@@ -1253,3 +1253,19 @@ unresolved. The public metadata is in
 `sdk/input_service_cross_elf_3_21.json`, and the fail-closed cross-ELF tests
 now cover section-origin recovery and direct-call provenance. Runtime-verified
 and callable API counts remain zero.
+
+## Latest continuation checkpoint — ParamList direct cross-ELF callers (2026-10-10)
+
+The corrected executable-section scanner was reused by
+`fwplatform.paramlist_cross_elf` for `_ZN9ParamList3addEmP9ParamBase`,
+`_ZNK9ParamList3getEmm` and `_ZN9ParamListD1Ev`. The current private root
+contains 491 ELF/DSO files and retains 27/29/30 importers respectively (86
+observations). It now recovers 154 direct Thumb `add` callsites, zero direct
+immediate `get` callsites, and 185 direct Thumb destructor callsites. The
+callsite rows include `.text` section, mode, exact VMA, target PLT and exact
+symbol-range caller candidates when available, plus a bounded direct register
+flow. These are `PRIMARY_ELF_VERIFIED` instruction facts; no complete C++ ABI,
+loader binding, ownership or runtime claim is made. The public profile is
+`sdk/paramlist_cross_elf_3_21.json`, and the profile tests now assert the
+direct-call counts and provenance. The focused set passes 18 tests and the
+complete local suite passes 427 tests.
