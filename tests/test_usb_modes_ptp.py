@@ -6,8 +6,10 @@ from pathlib import Path
 from fwplatform.ptp_protocol import (evidence_for_container, parse_container,
                                       parse_device_info_dataset, parse_stream)
 from fwplatform.ptp_readiness import (ABI_UNVERIFIED, INCOMPATIBLE_INTERFACE,
+                                      NOT_READY, READY_FOR_REVIEW,
                                       assess_ptp_readiness)
-from fwplatform.usb_modes import classify_descriptor, result_from_observation
+from fwplatform.usb_modes import (classify_descriptor, result_from_observation,
+                                   validate_endpoint_evidence)
 
 
 class USBModesAndPTPTests(unittest.TestCase):
@@ -16,6 +18,13 @@ class USBModesAndPTPTests(unittest.TestCase):
         result = classify_descriptor(result_from_observation(data))
         self.assertEqual(result["modes"], ["USB_MASS_STORAGE"])
         self.assertNotIn("PTP_STILL_IMAGE_CANDIDATE", result["modes"])
+
+    def test_endpoint_evidence_keeps_interface_scope(self):
+        data = json.loads(Path("sdk/usb_descriptor_observation_2026-10-10.json").read_text(encoding="utf-8"))
+        report = validate_endpoint_evidence(result_from_observation(data))
+        self.assertEqual(len(report["interfaces"]), 1)
+        self.assertTrue(report["interfaces"][0]["valid"])
+        self.assertEqual(report["interfaces"][0]["scope"]["interface"], 0)
 
     def test_standard_get_device_info_command_container(self):
         packet = struct.pack("<IHHI", 12, 1, 0x1001, 7)
@@ -92,4 +101,32 @@ class USBModesAndPTPTests(unittest.TestCase):
         data["interfaces"][0].update({"interface_class": 6, "subclass": 1, "protocol": 1, "ptp_compatible": True})
         readiness = assess_ptp_readiness(result_from_observation(data))
         self.assertEqual(readiness["status"], ABI_UNVERIFIED)
+
+    def test_readiness_candidate_endpoint_states_and_no_authorization(self):
+        data = json.loads(Path("sdk/usb_descriptor_observation_2026-10-10.json").read_text(encoding="utf-8"))
+        data["interfaces"][0].update({"interface_class": 6, "subclass": 1, "protocol": 1, "ptp_compatible": True})
+        data["endpoints"] = []
+        missing = assess_ptp_readiness(result_from_observation(data))
+        self.assertEqual(missing["status"], NOT_READY)
+        data["endpoints"] = [
+            {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 129, "direction": "IN", "transfer_type": "BULK", "max_packet_size": 512},
+            {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 2, "direction": "OUT", "transfer_type": "BULK", "max_packet_size": 512},
+        ]
+        abi = {"status": "ABI_VERIFIED", "evidence_source": "synthetic trusted header fixture"}
+        ready = assess_ptp_readiness(result_from_observation(data), transport_abi=abi)
+        self.assertEqual(ready["status"], READY_FOR_REVIEW)
+        self.assertFalse(ready["transfer_authorized"])
+
+    def test_multiple_candidates_are_evaluated_independently(self):
+        data = json.loads(Path("sdk/usb_descriptor_observation_2026-10-10.json").read_text(encoding="utf-8"))
+        base = data["interfaces"][0]
+        base.update({"interface_class": 6, "subclass": 1, "protocol": 1, "ptp_compatible": True})
+        data["interfaces"].append({**base, "number": 1})
+        data["endpoints"] = [
+            {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 129, "direction": "IN", "transfer_type": "BULK", "max_packet_size": 512},
+            {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 2, "direction": "OUT", "transfer_type": "BULK", "max_packet_size": 512},
+        ]
+        result = assess_ptp_readiness(result_from_observation(data), transport_abi={"status": "ABI_VERIFIED", "evidence_source": "fixture"})
+        self.assertEqual(result["status"], READY_FOR_REVIEW)
+        self.assertEqual(len(result["ptp_interface_candidates"]), 2)
 

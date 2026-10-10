@@ -250,3 +250,11 @@ The standard DeviceInfo parser now consumes all fields with serial redaction.
 Readiness assessment distinguishes incompatible interfaces from unverified
 transport ABI and never authorizes live PTP. Runtime protocol and Camera Core
 verification remain future work.
+
+## Phase 4.5 — USB evidence preflight (offline)
+
+Readiness state transitions now distinguish informational, interface, endpoint,
+descriptor and ABI blockers. Added structured libusb ABI review output,
+interface-scoped endpoint validation, offline `hardware preflight`, and an
+official-documentation USB mode matrix. No live PTP or driver operation is
+enabled.

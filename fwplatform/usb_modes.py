@@ -67,4 +67,26 @@ def compare_descriptor_results(before: DescriptorResult, after: DescriptorResult
             "status": "OFFLINE_COMPARISON"}
 
 
-__all__ = ["classify_descriptor", "compare_descriptor_results", "result_from_observation"]
+def validate_endpoint_evidence(result: DescriptorResult) -> dict[str, Any]:
+    """Report endpoint ownership and completeness without inferring protocol."""
+    reports: list[dict[str, Any]] = []
+    scopes = {(item.configuration, item.number, item.alternate) for item in result.interfaces}
+    for scope in sorted(scopes):
+        endpoints = [item for item in result.endpoints
+                     if (item.configuration, item.interface_number, item.alternate) == scope]
+        addresses = [item.address for item in endpoints]
+        issues = []
+        if len(addresses) != len(set(addresses)):
+            issues.append("duplicate endpoint address")
+        if not endpoints:
+            issues.append("no endpoints associated with interface")
+        reports.append({"scope": {"configuration": scope[0], "interface": scope[1], "alternate": scope[2]},
+                        "endpoints": [asdict(item) for item in endpoints], "issues": issues,
+                        "valid": not issues})
+    return {"status": "OFFLINE_ENDPOINT_REVIEW", "interfaces": reports,
+            "verification_level": result.verification_level,
+            "limitations": ["Endpoint evidence does not prove PTP or Camera Core capability."]}
+
+
+__all__ = ["classify_descriptor", "compare_descriptor_results", "result_from_observation",
+           "validate_endpoint_evidence"]

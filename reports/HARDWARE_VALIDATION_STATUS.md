@@ -95,3 +95,10 @@ content. `ptp_readiness` reports the current Mass Storage observation as
 libusb-win32 transport remains host-dependent and is not independently
 ABI-verified. Firmware version, PTP/MTP capability, and Camera Core runtime ABI
 remain UNKNOWN.
+
+## Phase 4.5 preflight
+
+`python -m fwplatform.cli hardware preflight --json` performs an offline
+descriptor, endpoint and transport-evidence review. The current observation is
+`INCOMPATIBLE_INTERFACE`; `transfer_authorized` is always false. libusb ABI
+review is represented separately and remains `ABI_UNVERIFIED`.

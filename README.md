@@ -212,6 +212,14 @@ operation/response 描述；不會傳送 PTP 封包，也不包含 Sony vendor o
 `fwplatform/ptp_readiness.py` 只評估離線前置條件；目前 Mass Storage 描述符
 會回報 `INCOMPATIBLE_INTERFACE`，不會授權任何 PTP 傳輸。
 
+可執行離線前置檢查：
+
+```powershell
+python -m fwplatform.cli hardware preflight --json
+```
+
+此命令只讀取去識別化 observation 與可選 ABI report，不開啟 USB handle。
+
 本地資料庫報告可用：
 
 ```powershell

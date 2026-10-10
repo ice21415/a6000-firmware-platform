@@ -47,6 +47,15 @@ regions cover discriminator initialization, dual collection get/set/append,
 constructors and destruction. The contract is descriptive only; collection
 element types, bounds, allocator, exception and synchronization behavior stay
 UNKNOWN.
+
+## Phase 4.5 checkpoint
+
+Readiness now classifies informational limitations separately, evaluates each
+PTP candidate interface/alternate setting independently, and requires a
+structured ABI evidence record rather than a Boolean hint. Added offline
+`hardware preflight`, endpoint evidence review, libusb ABI audit output and the
+A6000 USB mode matrix. Current Mass Storage evidence remains incompatible with
+PTP; no device operation was performed.
 The full public synthetic suite now passes 242 tests after these fixtures.
 
 The next primary-ELF checkpoint adds `fwplatform/camera_selector_probe.py`

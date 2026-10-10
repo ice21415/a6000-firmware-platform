@@ -17,3 +17,6 @@ The offline readiness validator reports the current Mass Storage observation as
 `INCOMPATIBLE_INTERFACE`. A future PTP-class descriptor can at most reach
 `ABI_UNVERIFIED` until the legacy libusb transport ABI is independently
 reviewed; `READY_FOR_REVIEW` never authorizes a transfer.
+
+The USB mode matrix in `A6000_USB_MODE_MATRIX.md` keeps Sony documentation,
+primary descriptor observations and unknown future observations separate.

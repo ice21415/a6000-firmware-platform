@@ -8,3 +8,8 @@ For the sanitized observation (`054C:07C4`, interface `08/06/50`) the result is
 `INCOMPATIBLE_INTERFACE`. A candidate descriptor without ABI evidence is
 `ABI_UNVERIFIED`. No state permits automatic commands; `transfer_authorized`
 is always false.
+
+Phase 4.5 classifies issues as `INFORMATIONAL`, `MISSING_EVIDENCE`,
+`INTERFACE_INCOMPATIBLE`, `ENDPOINT_INVALID`, `ABI_UNVERIFIED` or
+`DESCRIPTOR_INCOMPLETE`. Informational limitations no longer force `NOT_READY`.
+Each candidate alternate setting is evaluated independently.

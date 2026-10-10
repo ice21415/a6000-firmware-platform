@@ -281,6 +281,10 @@ def build_parser() -> argparse.ArgumentParser:
     hardware_modes.add_argument("--before", type=Path)
     hardware_modes.add_argument("--after", type=Path)
     hardware_modes.add_argument("--json", action="store_true")
+    hardware_preflight = hardware_sub.add_parser("preflight", help="Offline PTP readiness preflight")
+    hardware_preflight.add_argument("--input", type=Path, default=Path("sdk/usb_descriptor_observation_2026-10-10.json"))
+    hardware_preflight.add_argument("--abi-report", type=Path)
+    hardware_preflight.add_argument("--json", action="store_true")
     protocol = commands.add_parser("protocol"); protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
     protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
     state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
@@ -647,6 +651,20 @@ def main(argv: list[str] | None = None) -> int:
         else:
             observation = _json.loads(args.input.read_text(encoding="utf-8"))
             result = classify_descriptor(result_from_observation(observation))
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "hardware" and args.hardware_command == "preflight":
+        from .ptp_readiness import assess_ptp_readiness
+        from .usb_modes import result_from_observation, validate_endpoint_evidence
+        observation = json.loads(args.input.read_text(encoding="utf-8"))
+        descriptor = result_from_observation(observation)
+        abi_report = json.loads(args.abi_report.read_text(encoding="utf-8")) if args.abi_report else None
+        result = {"device": {"vendor_id": descriptor.vendor_id, "product_id": descriptor.product_id},
+                  "descriptor": descriptor.to_dict(),
+                  "endpoints": validate_endpoint_evidence(descriptor),
+                  "readiness": assess_ptp_readiness(descriptor, transport_abi=abi_report),
+                  "required_next_evidence": ["independent libusb ABI record", "PTP-class descriptor", "authorised offline capture"],
+                  "transfer_authorized": False}
         _json_or_text(result, args.json)
         return 0
     if args.command == "sdk" and args.sdk_command == "request-frontends":
