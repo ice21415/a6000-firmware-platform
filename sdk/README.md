@@ -990,6 +990,26 @@ exception behavior and runtime binding remain UNKNOWN. The contract is
 `sdk/event_manager_init_3_21.json`, and both runtime verification and
 callability remain false.
 
+## EventManager owner-field construction checkpoint
+
+The `event-manager-owner-init` probe checks the bounded owner-field witness
+beginning at `0x7ef254`:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-owner-init --elf C:\private\libObj.so --json
+```
+
+The primary ELF shows a `0x24`-byte `_Znwj` allocation at `0x7ef2ba`, passes
+the resulting pointer to the local initializer `0x7ef894` at `0x7ef2ca`, and
+stores the preserved pointer into owner `+0x10` at `0x7ef2d4`. The separate
+cleanup witness at `0x7ef432`/`0x7ef438` supports a
+`STATIC_INFERRED` lifetime pairing, but the owner function has no proven
+source-level class, constructor name, return type, failure contract or
+runtime ownership semantics. The contract is
+`sdk/event_manager_owner_init_3_21.json`; it remains non-callable and
+runtime-unverified. A private Ghidra 12.1.3 targeted cross-check covers the
+four bounded bodies; generated names and raw export remain private.
+
 ## EventManager::count checkpoint
 
 The `event-manager-count` probe validates the symbol-bound method

@@ -1793,3 +1793,35 @@ is `sdk/paramlist_cross_elf_3_21.json`; no firmware bytes or private paths
 were added. The focused ParamList/cross-ELF regression set passes 18 tests,
 and the complete local `python -m unittest discover -s tests -v` suite passes
 427 tests.
+
+## EventManager owner-field construction witness — 2026-10-10
+
+The next primary-ELF pass did not repeat `ParamList::get`. It added the
+bounded `fwplatform.event_manager_owner_probe` for the function-like region
+beginning at `0x7ef254`. The exact SHA-pinned Thumb instructions show:
+
+| Evidence | Observation | Level |
+|---|---|---|
+| `0x7ef2b4` | immediate allocation size `0x24` | `PRIMARY_ELF_VERIFIED` |
+| `0x7ef2ba` | unique PLT binding to `_Znwj` | `VERIFIED_STATIC` |
+| `0x7ef2ca` | direct call to local initializer `0x7ef894` with allocated pointer retained in `r0` | `PRIMARY_ELF_VERIFIED` |
+| `0x7ef2d4` | stores that pointer to owner receiver `+0x10` | `PRIMARY_ELF_VERIFIED` |
+
+The bounded argument observations are `r1=r8` and `r2=[owner+0x14]` at the
+initializer call; the source object behind `r8` and the owner class remain
+UNKNOWN. The existing destructor witness at `0x7ef432` loads the same field,
+calls `0x7efa1e` and then `_ZdlPv` at `0x7ef438`. Together these facts support
+a heap-owned subobject interpretation at `STATIC_INFERRED` level. They do
+not prove a C++ constructor name, owner type, complete function boundary,
+allocation-failure behavior, exception path, concurrency guarantee or runtime
+loader ownership.
+
+The private Ghidra 12.1.3 `ParamListTargets.java event-manager-owner-init`
+cross-check exited 0 with `COMPLETE_TARGET_EXPORT`, ARM:LE:32:v8/default,
+image base `0x10000`, `ram` address space, four target bodies, 157 instruction
+rows, 20 basic blocks and 70 CFG edges. The owner body maps to
+`0x7ff254..0x7ff2db`; generated names and the raw export remain private.
+The sanitized contract is `sdk/event_manager_owner_init_3_21.json` and its
+CLI is `fw sdk event-manager-owner-init --elf <private-libObj.so> --json`.
+The new seven-test fail-closed set preserves UNKNOWN owner identity and rejects
+runtime/callable promotion. The complete local test suite now passes 434 tests.

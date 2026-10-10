@@ -42,6 +42,15 @@
 - Preserved exact caller candidates, section/mode/address provenance and
   bounded register flow without promoting loader, ownership or runtime ABI.
 
+## Unreleased — EventManager owner-field construction witness
+
+- Added a SHA-pinned primary-ELF probe for the bounded `0x7ef254` region.
+  It verifies the `0x24` `_Znwj` allocation, direct call to initializer
+  `0x7ef894`, and store of the initialized pointer into owner `+0x10`.
+- Added private Ghidra 12.1.3 cross-check metadata and a fail-closed CLI/test
+  path. The owner class, constructor identity, lifetime safety and callable
+  status remain explicitly unknown.
+
 ## Unreleased — ParamList query callsite index
 
 - Added the generic `fwplatform.param_query_callers` scanner and

@@ -847,3 +847,20 @@ unknown. See `sdk/paramlist_cross_elf_3_21.json` and
 `tests/test_paramlist_cross_elf.py`.
 The focused ParamList/cross-ELF set passes 18 tests and the complete local
 suite passes 427 tests.
+
+### EventManager owner-field construction witness (2026-10-10)
+
+`fwplatform/event_manager_owner_probe.py` validates the SHA-pinned primary
+ELF region at `0x7ef254`. It records a `0x24` `_Znwj` allocation, the direct
+call `0x7ef2ca -> 0x7ef894`, and the store of the preserved pointer into owner
+`+0x10` at `0x7ef2d4`. The relationship to the existing cleanup call at
+`0x7ef432` and `_ZdlPv` at `0x7ef438` is `STATIC_INFERRED`; owner class,
+constructor identity, complete return/failure semantics and runtime safety
+are UNKNOWN. The CLI is `fw sdk event-manager-owner-init` and the descriptive
+contract is `sdk/event_manager_owner_init_3_21.json`.
+
+A private Ghidra 12.1.3 targeted profile cross-checks four bounded bodies
+(157 instruction rows, 20 blocks, 70 CFG edges) using ARM:LE:32:v8, image base
+`0x10000`, and `ram`; generated names/raw export remain private. Seven
+fail-closed synthetic tests accompany the probe. The validator set is seven
+tests and the complete local suite passes 434 tests.

@@ -1269,3 +1269,25 @@ loader binding, ownership or runtime claim is made. The public profile is
 `sdk/paramlist_cross_elf_3_21.json`, and the profile tests now assert the
 direct-call counts and provenance. The focused set passes 18 tests and the
 complete local suite passes 427 tests.
+
+## Latest continuation checkpoint — EventManager owner-field construction (2026-10-10)
+
+The next primary-ELF pass did not repeat `ParamList::get`. It added
+`fwplatform/event_manager_owner_probe.py` and the sanitized contract
+`sdk/event_manager_owner_init_3_21.json`. In the bounded Thumb region at
+`0x7ef254`, `0x7ef2b4` supplies a `0x24` allocation size, `0x7ef2ba` calls
+the unique `_Znwj` PLT binding, `0x7ef2ca` calls local initializer `0x7ef894`
+with the allocated pointer retained in `r0`, and `0x7ef2d4` stores that
+pointer at owner `+0x10`. The observed initializer inputs include `r1=r8`
+and `r2=[owner+0x14]`; their source semantics remain UNKNOWN.
+
+The existing owner cleanup witness at `0x7ef432`/`0x7ef438` therefore has a
+matching allocation/store fact, but the owner class, constructor identity,
+complete function boundary, failure/exception behavior and runtime ownership
+remain UNKNOWN/STATIC_INFERRED. A private Ghidra 12.1.3 targeted profile
+(`event-manager-owner-init`) exited 0 with `COMPLETE_TARGET_EXPORT`: four
+targets, 157 instructions, 20 blocks and 70 edges; the owner body maps to
+Ghidra `0x7ff254..0x7ff2db` after image-base subtraction. Seven synthetic
+fail-closed tests cover the new validator, and runtime/callable API counts
+remain zero. The new validator set is seven tests; the complete local suite
+passes 434 tests.
