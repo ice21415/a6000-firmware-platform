@@ -1601,6 +1601,14 @@ supports offline comparison of two observations. `ptp_protocol.py` parses only
 offline PTP containers and standard descriptive codes; no PTP transport exists.
 Camera Core runtime verification and safe callability remain zero.
 
+## Phase 4.4 checkpoint (2026-10-10)
+
+Completed strict offline DeviceInfo parsing, including all standard strings with
+serial redaction, and added `ptp_readiness` prerequisite assessment. Current
+Mass Storage evidence is `INCOMPATIBLE_INTERFACE`; no transport is authorized.
+PTP runtime, firmware-version-over-USB and Camera Core runtime ABI remain
+UNKNOWN.
+
 ## Phase 4.3 checkpoint (2026-10-10)
 
 Descriptor parsing is fail-closed for zero configurations, bounded reads,

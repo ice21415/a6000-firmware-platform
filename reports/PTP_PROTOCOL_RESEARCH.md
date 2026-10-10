@@ -12,3 +12,7 @@ and limitations; parser success is never promoted to runtime verification.
 
 No PTP packet has been sent to the A6000. The observed USB configuration is
 Mass Storage bulk-only, so it is not treated as a PTP endpoint.
+
+Phase 4.4 consumes all standard DeviceInfo fields with bounded UTF-16LE
+parsing. The serial string is discarded and only a presence flag is returned.
+Malformed strings, oversized arrays, truncation and trailing bytes fail closed.

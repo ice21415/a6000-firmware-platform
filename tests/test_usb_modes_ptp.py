@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fwplatform.ptp_protocol import (evidence_for_container, parse_container,
                                       parse_device_info_dataset, parse_stream)
+from fwplatform.ptp_readiness import (ABI_UNVERIFIED, INCOMPATIBLE_INTERFACE,
+                                      assess_ptp_readiness)
 from fwplatform.usb_modes import classify_descriptor, result_from_observation
 
 
@@ -55,9 +57,21 @@ class USBModesAndPTPTests(unittest.TestCase):
         dataset = struct.pack("<HIH", 100, 0x00000006, 100) + text + struct.pack("<H", 0)
         dataset += struct.pack("<I", 1) + struct.pack("<H", 0x1001)
         dataset += struct.pack("<I", 0) * 4
+        dataset += bytes([0, 0, 0, 0])
         parsed = parse_device_info_dataset(dataset)
         self.assertEqual(parsed["vendor_extension_description"], "AC")
         self.assertEqual(parsed["operations"], [0x1001])
+        self.assertEqual(parsed["serial_number_redacted"], True)
+        self.assertNotIn("serial_number", parsed)
+
+    def test_device_info_rejects_bad_string_and_large_array(self):
+        base = struct.pack("<HIH", 100, 0, 1) + bytes([2, 0x41, 0x00])
+        with self.assertRaises(ValueError):
+            parse_device_info_dataset(base)
+        oversized = struct.pack("<HIH", 100, 0, 1) + bytes([0]) + struct.pack("<H", 0)
+        oversized += struct.pack("<I", 4097)
+        with self.assertRaises(ValueError):
+            parse_device_info_dataset(oversized)
 
     def test_protocol_evidence_cannot_be_runtime_promoted(self):
         packet = parse_container(struct.pack("<IHHI", 12, 4, 0x400E, 1))
@@ -66,4 +80,16 @@ class USBModesAndPTPTests(unittest.TestCase):
         self.assertEqual(evidence.verification_status, "NOT_RUNTIME_VERIFIED")
         with self.assertRaises(ValueError):
             evidence_for_container(packet, source_type="RUNTIME_PROTOCOL_VERIFIED")
+
+    def test_mass_storage_observation_is_not_ptp_ready(self):
+        data = json.loads(Path("sdk/usb_descriptor_observation_2026-10-10.json").read_text(encoding="utf-8"))
+        readiness = assess_ptp_readiness(result_from_observation(data), transport_abi_verified=True)
+        self.assertEqual(readiness["status"], INCOMPATIBLE_INTERFACE)
+        self.assertFalse(readiness["transfer_authorized"])
+
+    def test_ptp_candidate_still_requires_transport_abi(self):
+        data = json.loads(Path("sdk/usb_descriptor_observation_2026-10-10.json").read_text(encoding="utf-8"))
+        data["interfaces"][0].update({"interface_class": 6, "subclass": 1, "protocol": 1, "ptp_compatible": True})
+        readiness = assess_ptp_readiness(result_from_observation(data))
+        self.assertEqual(readiness["status"], ABI_UNVERIFIED)
 

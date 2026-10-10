@@ -200,15 +200,17 @@ python -m fwplatform.cli hardware descriptors --execute-readonly --json
 
 ```powershell
 python -m fwplatform.cli hardware modes --json
+```
 
 Phase 4.3 adds fail-closed USB descriptor validation and offline-only PTP
 parsing. The PTP parser separates operation, response and event namespaces,
 supports bounded streams and synthetic DeviceInfo datasets, and never sends a
 device command or promotes Camera Core runtime evidence.
-```
 
 `fwplatform/ptp_protocol.py` 僅解析離線或合成的 PTP container，並提供標準
 operation/response 描述；不會傳送 PTP 封包，也不包含 Sony vendor opcode。
+`fwplatform/ptp_readiness.py` 只評估離線前置條件；目前 Mass Storage 描述符
+會回報 `INCOMPATIBLE_INTERFACE`，不會授權任何 PTP 傳輸。
 
 本地資料庫報告可用：
 

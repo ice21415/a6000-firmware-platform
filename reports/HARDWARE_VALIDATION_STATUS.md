@@ -85,4 +85,13 @@ synthetic DeviceInfo datasets, and records non-escalating protocol evidence.
 See [`PTP_PROTOCOL_RESEARCH.md`](PTP_PROTOCOL_RESEARCH.md),
 [`USB_MODE_RESEARCH.md`](USB_MODE_RESEARCH.md), and
 [`USB_CAMERA_CORE_BOUNDARY.md`](USB_CAMERA_CORE_BOUNDARY.md). These changes do
-not add runtime or safe-to-invoke Camera Core evidence.
+ not add runtime or safe-to-invoke Camera Core evidence.
+
+## Phase 4.4 readiness
+
+The offline DeviceInfo parser consumes all standard fields and redacts serial
+content. `ptp_readiness` reports the current Mass Storage observation as
+`INCOMPATIBLE_INTERFACE`; no status authorizes PTP transfer. The legacy
+libusb-win32 transport remains host-dependent and is not independently
+ABI-verified. Firmware version, PTP/MTP capability, and Camera Core runtime ABI
+remain UNKNOWN.

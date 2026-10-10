@@ -12,3 +12,8 @@ USB, and Camera Core runtime API correspondence remain `UNKNOWN`. Static
 Camera Core relations continue to use their own ELF evidence and are not
 promoted by USB observations. Runtime-verified and safe-to-invoke SDK counts
 remain zero.
+
+The offline readiness validator reports the current Mass Storage observation as
+`INCOMPATIBLE_INTERFACE`. A future PTP-class descriptor can at most reach
+`ABI_UNVERIFIED` until the legacy libusb transport ABI is independently
+reviewed; `READY_FOR_REVIEW` never authorizes a transfer.

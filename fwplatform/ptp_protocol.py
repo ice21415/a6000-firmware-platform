@@ -8,6 +8,9 @@ from typing import Any
 PTP_HEADER_SIZE = 12
 PTP_MAX_CONTAINER = 1024 * 1024
 PTP_MAX_STREAM_CONTAINERS = 256
+PTP_MAX_DEVICE_INFO_BYTES = 65536
+PTP_MAX_ARRAY_ITEMS = 4096
+PTP_MAX_STRING_CHARS = 1024
 PTP_TYPES = {1: "COMMAND", 2: "DATA", 3: "RESPONSE", 4: "EVENT"}
 PTP_OPERATIONS = {0x1001: "GetDeviceInfo", 0x1002: "OpenSession", 0x1003: "CloseSession", 0x1004: "GetStorageIDs", 0x1005: "GetStorageInfo", 0x1007: "GetObjectHandles", 0x1008: "GetObjectInfo", 0x1009: "GetObject", 0x100B: "DeleteObject", 0x100E: "InitiateCapture", 0x1014: "GetDevicePropDesc", 0x1015: "GetDevicePropValue", 0x1016: "SetDevicePropValue"}
 PTP_RESPONSES = {0x2001: "OK", 0x2002: "GeneralError", 0x2003: "SessionNotOpen", 0x2005: "OperationNotSupported", 0x2006: "ParameterNotSupported", 0x2009: "InvalidTransactionID", 0x2019: "DeviceBusy"}
@@ -35,6 +38,8 @@ def parse_container(data: bytes, *, max_length: int = PTP_MAX_CONTAINER) -> PtpC
     if length < PTP_HEADER_SIZE or length > max_length or length > len(data): raise ValueError("invalid PTP container length")
     if kind not in PTP_TYPES: raise ValueError("unknown PTP container type")
     table = PTP_OPERATIONS if kind in (1, 2) else PTP_RESPONSES if kind == 3 else PTP_EVENTS
+    if len(data) != length:
+        raise ValueError("container has trailing bytes")
     return PtpContainer(length, kind, PTP_TYPES[kind], code, table.get(code), transaction, data[PTP_HEADER_SIZE:length])
 
 def parse_stream(data: bytes, *, max_containers: int = PTP_MAX_STREAM_CONTAINERS, max_total_bytes: int = PTP_MAX_CONTAINER * 4) -> list[PtpContainer]:
@@ -50,7 +55,10 @@ def parse_stream(data: bytes, *, max_containers: int = PTP_MAX_STREAM_CONTAINERS
 
 def _ptp_string(data: bytes, offset: int) -> tuple[str, int]:
     if offset >= len(data): raise ValueError("truncated PTP string length")
-    count = data[offset]; end = offset + 1 + count * 2
+    count = data[offset]
+    if count > PTP_MAX_STRING_CHARS:
+        raise ValueError("PTP string exceeds safety bound")
+    end = offset + 1 + count * 2
     if end > len(data): raise ValueError("truncated PTP string")
     raw = data[offset + 1:end]
     if count and raw[-2:] != b"\x00\x00": raise ValueError("PTP string is not terminated")
@@ -59,17 +67,21 @@ def _ptp_string(data: bytes, offset: int) -> tuple[str, int]:
 def _u16_array(data: bytes, offset: int) -> tuple[list[int], int]:
     if offset + 4 > len(data): raise ValueError("truncated PTP array count")
     count = struct.unpack_from("<I", data, offset)[0]; end = offset + 4 + count * 2
-    if count > 65535 or end > len(data): raise ValueError("invalid PTP array")
+    if count > PTP_MAX_ARRAY_ITEMS or end > len(data): raise ValueError("invalid PTP array")
     return (list(struct.unpack_from("<" + "H" * count, data, offset + 4)) if count else []), end
 
 def parse_device_info_dataset(data: bytes) -> dict[str, Any]:
-    if len(data) < 8: raise ValueError("truncated DeviceInfo dataset")
+    if len(data) < 8 or len(data) > PTP_MAX_DEVICE_INFO_BYTES: raise ValueError("invalid DeviceInfo dataset size")
     standard_version, vendor_id, vendor_version = struct.unpack_from("<HIH", data, 0); offset = 8
     vendor_description, offset = _ptp_string(data, offset)
     if offset + 2 > len(data): raise ValueError("truncated DeviceInfo functional mode")
     functional_mode = struct.unpack_from("<H", data, offset)[0]; offset += 2
     operations, offset = _u16_array(data, offset); events, offset = _u16_array(data, offset); properties, offset = _u16_array(data, offset); capture_formats, offset = _u16_array(data, offset); image_formats, offset = _u16_array(data, offset)
+    manufacturer, offset = _ptp_string(data, offset)
+    model, offset = _ptp_string(data, offset)
+    device_version, offset = _ptp_string(data, offset)
+    serial_number, offset = _ptp_string(data, offset)
     if offset != len(data): raise ValueError("unexpected trailing DeviceInfo bytes")
-    return {"standard_version": standard_version, "vendor_extension_id": vendor_id, "vendor_extension_version": vendor_version, "vendor_extension_description": vendor_description, "functional_mode": functional_mode, "operations": operations, "events": events, "device_properties": properties, "capture_formats": capture_formats, "image_formats": image_formats, "verification_level": "OFFLINE_DATASET_PARSED"}
+    return {"standard_version": standard_version, "vendor_extension_id": vendor_id, "vendor_extension_version": vendor_version, "vendor_extension_description": vendor_description, "functional_mode": functional_mode, "operations": operations, "events": events, "device_properties": properties, "capture_formats": capture_formats, "image_formats": image_formats, "manufacturer": manufacturer, "model": model, "device_version": device_version, "serial_number_present": bool(serial_number), "serial_number_redacted": True, "verification_level": "OFFLINE_DATASET_PARSED"}
 
 __all__ = ["PtpContainer", "ProtocolEvidence", "parse_container", "parse_stream", "parse_device_info_dataset", "evidence_for_container", "PTP_OPERATIONS", "PTP_RESPONSES", "PTP_EVENTS"]

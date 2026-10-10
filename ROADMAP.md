@@ -243,3 +243,10 @@ Implemented offline: descriptor consistency and transfer-budget checks,
 configuration/alternate/endpoint scoping, separated PTP code tables, bounded
 stream and DeviceInfo parsing, and non-escalating protocol evidence. Live PTP,
 mode switching and Camera Core runtime validation remain future work.
+
+## Phase 4.4 — PTP readiness (offline)
+
+The standard DeviceInfo parser now consumes all fields with serial redaction.
+Readiness assessment distinguishes incompatible interfaces from unverified
+transport ABI and never authorizes live PTP. Runtime protocol and Camera Core
+verification remain future work.
