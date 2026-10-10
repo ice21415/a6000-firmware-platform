@@ -270,6 +270,12 @@ def build_parser() -> argparse.ArgumentParser:
     hardware_sub = hardware.add_subparsers(dest="hardware_command", required=True)
     hardware_validate = hardware_sub.add_parser("validate", help="Read-only host USB enumeration; no PTP commands")
     hardware_validate.add_argument("--json", action="store_true")
+    hardware_desc = hardware_sub.add_parser("descriptors", help="Dry-run or standard GET_DESCRIPTOR probe")
+    hardware_desc.add_argument("--execute-readonly", action="store_true")
+    hardware_desc.add_argument("--vid", type=lambda value: int(value, 0), default=0x054C)
+    hardware_desc.add_argument("--pid", type=lambda value: int(value, 0), default=0x07C4)
+    hardware_desc.add_argument("--timeout-ms", type=int, default=1000)
+    hardware_desc.add_argument("--json", action="store_true")
     protocol = commands.add_parser("protocol"); protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
     protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
     state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
@@ -606,6 +612,26 @@ def main(argv: list[str] | None = None) -> int:
         result = enumerate_usb().to_dict()
         _json_or_text(result, args.json)
         return 0 if result["status"] in {"NOT_CONNECTED", "READ_ONLY_VERIFIED"} else 2
+    if args.command == "hardware" and args.hardware_command == "descriptors":
+        from .usb_descriptor_probe import LibusbWin32Transport, probe_descriptors
+        if not args.execute_readonly:
+            result = {
+                "status": "DRY_RUN",
+                "verification_level": "UNVERIFIED",
+                "vid": args.vid,
+                "pid": args.pid,
+                "allowed_request": "standard USB GET_DESCRIPTOR only",
+                "requires": "--execute-readonly",
+                "limitations": ["No handle opened; no descriptor bytes read.", "No PTP/vendor request or interface claim is permitted."],
+            }
+        else:
+            try:
+                transport = LibusbWin32Transport(args.vid, args.pid)
+                result = probe_descriptors(transport, expected_vid=args.vid, expected_pid=args.pid, timeout_ms=args.timeout_ms).to_dict()
+            except (OSError, PermissionError) as exc:
+                result = {"status": "USB_NOT_ACCESSIBLE", "verification_level": "UNVERIFIED", "error": str(exc), "vid": args.vid, "pid": args.pid}
+        _json_or_text(result, args.json)
+        return 0 if result["status"] in {"DRY_RUN", "READ_ONLY_VERIFIED"} else 2
     if args.command == "sdk" and args.sdk_command == "request-frontends":
         from .model_request_frontends import audit_model_request_frontends
         result = audit_model_request_frontends(args.fixture,

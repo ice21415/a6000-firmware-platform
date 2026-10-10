@@ -175,6 +175,27 @@ python -m unittest discover -s tests -v
 python -m compileall -q fwplatform analyzers tests
 ```
 
+### 唯讀 USB 描述符驗證
+
+硬體功能預設只做 dry-run，不開啟相機：
+
+```powershell
+python -m fwplatform.cli hardware validate --json
+python -m fwplatform.cli hardware descriptors --json
+```
+
+只有在確認本機已有合法的 libusb-win32 裝置介面後，才可明確選擇唯讀
+`GET_DESCRIPTOR` 探針：
+
+```powershell
+python -m fwplatform.cli hardware descriptors --execute-readonly --json
+```
+
+探針不會 claim interface、SET_CONFIGURATION、reset、detach driver、安裝或
+替換驅動，也不會送出 PTP、Sony vendor request 或寫入操作。介面類別只是
+靜態相容性證據；即使描述符讀取成功，也不代表 PTP 通訊或 Camera Core ABI
+已通過實機驗證。原始描述符與裝置序號不會提交到公開 repository。
+
 本地資料庫報告可用：
 
 ```powershell

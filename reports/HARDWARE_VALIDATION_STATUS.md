@@ -36,3 +36,26 @@ The next safe step is either a read-only descriptor query through the already
 installed libusb interface, or an explicitly approved driver change to the
 camera's documented PC Remote/MTP mode. Do not send arbitrary PTP or Sony
 vendor commands and do not replace the driver without explicit approval.
+
+## Phase 4.1 descriptor result
+
+On 2026-10-10, the explicit `hardware descriptors --execute-readonly` probe
+successfully opened the existing libusb-win32 handle and issued only standard
+control `GET_DESCRIPTOR` requests for the device and configuration descriptors.
+The sanitized result was:
+
+| Field | Result |
+|---|---|
+| VID/PID | `054C:07C4` |
+| USB version | `0x0200` |
+| Device class | `0x00` (interface-defined) |
+| Configurations | `1` |
+| Interface | class `0x08`, subclass `0x06`, protocol `0x50` (USB mass-storage bulk-only) |
+| Endpoints | `0x81 IN BULK`, `0x02 OUT BULK`, 512-byte max packet |
+| PTP-compatible interface | **not observed** |
+
+This is `PRIMARY_DESCRIPTOR_VERIFIED` USB evidence only. It confirms a
+mass-storage-class interface through the currently installed driver; it does
+not prove PTP support, camera protocol success, firmware 3.21, or any Camera
+Core callback/API behavior. No string descriptor, serial number, storage
+mount, or file operation was requested.
