@@ -1470,3 +1470,29 @@ actual Ghidra function body range. The result proves file-backed dispatch
 slot identity only. Runtime dynamic type, allocation provenance, null/invalid
 object behavior, double-destroy behavior, locking, concurrency, whole-program
 Auto Analysis and runtime/callable SDK status remain unknown/false.
+
+## Camera EE-neutral evidence
+
+`fwplatform.camera_ee_neutral_probe` authenticates the private SHA-pinned ELF
+and checks bounded Thumb regions at `0x443d14` and `0x4b1a20`. The normalized
+contract is `camera_3_21_ee_neutral_3_21.json`; the descriptive constants are
+in `camera_3_21_candidate.hpp`.
+
+The sender's unique file-backed PLT relocations identify ObjMsg construction,
+relay-parameter setup, cleanup and
+`MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)`. The local message header
+words are `0x3100` and `0x7502`. The command candidate increments
+`this+0x2700`, passes that value to the sender, writes `1` to `this+0x26fc`,
+and supplies `0x11/0x12` and `0x0e/0x33ba` to later helpers. These facts do not
+identify the receiver, transport completion, event namespace, hardware-ready
+condition or a safe C++ wrapper. Runtime and callable flags are false.
+
+Run the private-only check with:
+
+```powershell
+python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so --json
+```
+
+The associated Ghidra profile is `camera-ee-neutral`; it is targeted
+`-noanalysis` metadata cross-checking and does not constitute whole-program
+Auto Analysis.

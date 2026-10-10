@@ -390,6 +390,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_prepare.add_argument("--elf", type=Path, required=True)
     sdk_prepare.add_argument("--expected-sha256", default=None)
     sdk_prepare.add_argument("--json", action="store_true")
+    sdk_ee_neutral = sdk_sub.add_parser("camera-ee-neutral-audit")
+    sdk_ee_neutral.add_argument("--elf", type=Path, required=True)
+    sdk_ee_neutral.add_argument("--expected-sha256", default=None)
+    sdk_ee_neutral.add_argument("--json", action="store_true")
     sdk_push = sdk_sub.add_parser("event-manager-push")
     sdk_push.add_argument("--elf", type=Path, required=True)
     sdk_push.add_argument("--expected-sha256", default=None)
@@ -747,6 +751,15 @@ def main(argv: list[str] | None = None) -> int:
         from .camera_prepare_envelope_probe import probe_camera_prepare_envelope
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_camera_prepare_envelope(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "camera-ee-neutral-audit":
+        from .camera_ee_neutral_probe import probe_camera_ee_neutral
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_camera_ee_neutral(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

@@ -1449,3 +1449,42 @@ relocation provenance, address-space separation, Ghidra range integrity, CLI
 exposure and unsafe-status rejection. The complete local suite passes **473
 tests**. PR #1 CI also passes all four jobs (Python 3.11 and 3.12 across the
 two configured workflow runs); the branch remains open and is not merged.
+
+## Latest continuation checkpoint -- Camera EE-neutral sender evidence (2026-10-10)
+
+The exact private SHA-pinned `libObj.so` was analyzed with
+`fwplatform.camera_ee_neutral_probe`. This is a new bounded target; the
+previous `ParamList::get` control-flow work was not repeated. The probe and
+sanitized contract are `fwplatform/camera_ee_neutral_probe.py` and
+`sdk/camera_3_21_ee_neutral_3_21.json`.
+
+Primary ELF facts now independently verified:
+
+- `0x443d14` is a Thumb sender candidate whose local `MWF::ObjMsg` candidate
+  is constructed with group `0x3100` and command `0x7502`.
+- Unique `.rel.plt` bindings identify the ObjMsg constructor, common relay
+  setter, destructor/new paths and `MWF::ObjIf::IssueCommandAsync(void*,
+  MWF::ObjMsg*)` at veneer `0xdc144`.
+- The IssueCommandAsync return is only tested with `cbnz`; return type, zero
+  meaning and the explicit `r2` value after a caller-save PLT call remain
+  UNKNOWN.
+- `0x4b1a20` loads/adds/stores `this+0x2700`, passes the updated word to
+  `0x443d14`, writes byte `1` to `this+0x26fc`, and calls `0x131e94` with
+  `0x11/0x12` followed by `0x1323b4` with `r1=0x0e`, `r2=0x33ba`.
+
+Private Ghidra 12.1.3 targeted `camera-ee-neutral` (`-noanalysis`) exited 0
+with `COMPLETE_TARGET_EXPORT`: 2 targets, 91 instructions, 6 blocks and 25
+CFG/call edges. ELF VMA and Ghidra `ram` addresses are separate; raw export
+and project stay private. The checked-in header is descriptive only.
+
+The read-only private check is:
+
+```powershell
+python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so --json
+```
+
+The focused suite has 12 fail-closed tests and the complete local suite now
+passes 485 tests. Runtime verification and callable SDK counts remain zero.
+Next blockers are the real `ObjMsg`/relay dataflow,
+receiver/completion identity, helper `0x131e94`/`0x1323b4` semantics and
+complete Camera readiness conditions.

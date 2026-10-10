@@ -1,0 +1,601 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_CAMERA_EE_NEUTRAL_EVIDENCE_ONLY",
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "sender": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "entry_vma": "0x443d14",
+    "bounded_extent_bytes": 128,
+    "address_space": "ELF_VMA",
+    "instruction_mode": "Thumb",
+    "incoming_r0": "preserved in r4; exact source-level type UNKNOWN",
+    "local_message": {
+      "address": "r7+8",
+      "r7_definition": "sp at function entry plus zero",
+      "constructor_call_vma": "0xde540",
+      "header_group_r1": "0x3100",
+      "header_command_r2": "0x7502",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "parameter_setup": {
+      "call_vma": "0xe16b4",
+      "r0": "r7",
+      "r1": "incoming r0 preserved in r4",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "relay_parameter": {
+      "call_vma": "0xde4d8",
+      "r0": "r7+8",
+      "r1": 1,
+      "r2": "r7",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "issue_command_async": {
+      "call_vma": "0xdc144",
+      "symbol_signature_from_relocation": "MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)",
+      "r0_implicit_this": "result of local call 0x42067c with r0=8; concrete ObjIf type UNKNOWN",
+      "r1_explicit_void_pointer": "r7+8; source-level pointee type UNKNOWN",
+      "r2_explicit_objmsg_pointer": "UNKNOWN at the callsite because the prior PLT call may clobber caller-save r2",
+      "return_register": "r0",
+      "branch": "cbnz r0 -> 0x443d84",
+      "status": "PRIMARY_ELF_VERIFIED",
+      "semantic_return_meaning": "UNKNOWN"
+    },
+    "cleanup": {
+      "success_or_nonzero_path_dtor_vma": "0xddd94",
+      "global_previous_object_dtor_vma": "0xddd94",
+      "global_previous_object_delete_vma": "0xdd620",
+      "replacement_allocation_size": 8,
+      "replacement_default_ctor_vma": "0xde4cc",
+      "zero_fill_call_vma": "0xde37c",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "bindings": {
+      "0xde540": {
+        "entry_vma": "0xde540",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102db74",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF6ObjMsgC1Ejj",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xe16b4": {
+        "entry_vma": "0xe16b4",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102eb1c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF17ParamStd_TemplateIjLNS_5Param4TypeE8EEC1Ej",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xde4d8": {
+        "entry_vma": "0xde4d8",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102db54",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF6ObjMsg19SetCommonRelayParamEjRKNS_5ParamE",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdc198": {
+        "entry_vma": "0xdc198",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d02c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF17ParamStd_TemplateIjLNS_5Param4TypeE8EED1Ev",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdc144": {
+        "entry_vma": "0xdc144",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d010",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF5ObjIf17IssueCommandAsyncEPvPNS_6ObjMsgE",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xddd94": {
+        "entry_vma": "0xddd94",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d910",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF6ObjMsgD1Ev",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdd620": {
+        "entry_vma": "0xdd620",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d6bc",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZdlPv",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdc100": {
+        "entry_vma": "0xdc100",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102cffc",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_Znwj",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xde4cc": {
+        "entry_vma": "0xde4cc",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102db50",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN3MWF6ObjMsgC1Ev",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xde37c": {
+        "entry_vma": "0xde37c",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102dae4",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "memset",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    },
+    "instructions": [
+      {
+        "instruction_vma": "0x443d14",
+        "mnemonic": "push",
+        "operands": "{r4, r5, r7, lr}",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d1a",
+        "mnemonic": "mov",
+        "operands": "r4, r0",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d1c",
+        "mnemonic": "mov.w",
+        "operands": "r1, #0x3100",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d20",
+        "mnemonic": "add.w",
+        "operands": "r0, r7, #8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d24",
+        "mnemonic": "movw",
+        "operands": "r2, #0x7502",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d28",
+        "mnemonic": "blx",
+        "operands": "#0xde540",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d2c",
+        "mnemonic": "movs",
+        "operands": "r0, #8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d2e",
+        "mnemonic": "bl",
+        "operands": "#0x42067c",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d34",
+        "mnemonic": "mov",
+        "operands": "r1, r4",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d36",
+        "mnemonic": "mov",
+        "operands": "r0, r7",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d38",
+        "mnemonic": "blx",
+        "operands": "#0xe16b4",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d3c",
+        "mnemonic": "add.w",
+        "operands": "r0, r7, #8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d40",
+        "mnemonic": "movs",
+        "operands": "r1, #1",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d42",
+        "mnemonic": "mov",
+        "operands": "r2, r7",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d44",
+        "mnemonic": "blx",
+        "operands": "#0xde4d8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d48",
+        "mnemonic": "mov",
+        "operands": "r0, r7",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d4a",
+        "mnemonic": "blx",
+        "operands": "#0xdc198",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d4e",
+        "mnemonic": "mov",
+        "operands": "r0, r5",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d50",
+        "mnemonic": "add.w",
+        "operands": "r1, r7, #8",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d54",
+        "mnemonic": "blx",
+        "operands": "#0xdc144",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d58",
+        "mnemonic": "cbnz",
+        "operands": "r0, #0x443d84",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d62",
+        "mnemonic": "blx",
+        "operands": "#0xddd94",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d68",
+        "mnemonic": "blx",
+        "operands": "#0xdd620",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d6e",
+        "mnemonic": "blx",
+        "operands": "#0xdc100",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d74",
+        "mnemonic": "blx",
+        "operands": "#0xde4cc",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d80",
+        "mnemonic": "blx",
+        "operands": "#0xde37c",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d88",
+        "mnemonic": "blx",
+        "operands": "#0xddd94",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "instruction_vma": "0x443d92",
+        "mnemonic": "pop",
+        "operands": "{r4, r5, r7, pc}",
+        "status": "PRIMARY_ELF_VERIFIED"
+      }
+    ],
+    "semantic_identity": "EE-neutral message sender candidate; exact source-level owner remains STATIC_INFERRED",
+    "runtime_verified": false,
+    "callable": false
+  },
+  "command": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "entry_vma": "0x4b1a20",
+    "bounded_extent_bytes": 128,
+    "address_space": "ELF_VMA",
+    "instruction_mode": "Thumb",
+    "incoming_r0": "preserved in r4; source-level receiver type UNKNOWN",
+    "relay_counter": {
+      "field_offset": "0x2700",
+      "address_expression": "this+0x2700",
+      "operation": "load, add 1, store",
+      "sender_argument_r0": "updated 32-bit field value",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "sender_call": {
+      "call_vma": "0x4b1a42",
+      "target_vma": "0x443d14",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "pending_byte": {
+      "field_offset": "0x26fc",
+      "derivation": "this+0x2680 followed by [base+0x7c]",
+      "width_bits": 8,
+      "stored_value": 1,
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "selector_helpers": {
+      "helper_vma": "0x131e94",
+      "calls": [
+        {
+          "r1": "0x11",
+          "return_saved_to": "r6"
+        },
+        {
+          "r1": "0x12",
+          "return_saved_to": "stack+8"
+        }
+      ],
+      "status": "PRIMARY_ELF_VERIFIED",
+      "helper_identity": "UNKNOWN"
+    },
+    "event_or_action_helper": {
+      "helper_vma": "0x1323b4",
+      "r0": "this",
+      "r1": "0xe",
+      "r2": "0x33ba",
+      "stack_arguments": "[sp]=field at this+0x2704; [sp+4]=second selector-helper return",
+      "status": "PRIMARY_ELF_VERIFIED",
+      "semantic_identity": "UNKNOWN"
+    },
+    "cleanup_helpers": [
+      "0x4df2c2",
+      "0x4df27c"
+    ],
+    "semantic_identity": "ModelCamera EE-neutral command candidate; source-level alias is STATIC_INFERRED",
+    "runtime_verified": false,
+    "callable": false
+  },
+  "relations": [
+    {
+      "source_vma": "0x4b1a20",
+      "target_vma": "0x443d14",
+      "relation": "DIRECT_CALL",
+      "callsite_vma": "0x4b1a42",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    {
+      "source_vma": "0x443d14",
+      "target_symbol": "_ZN3MWF5ObjIf17IssueCommandAsyncEPvPNS_6ObjMsgE",
+      "relation": "PLT_CALL",
+      "callsite_vma": "0x443d54",
+      "status": "VERIFIED_STATIC"
+    }
+  ],
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Source-level identities for 0x4b1a20, 0x443d14 and local helpers are not independently present in the ELF symbol evidence",
+    "The IssueCommandAsync return value is observed only as a conditional branch; success/error semantics are UNKNOWN",
+    "The transport receiver, relay completion and hardware readiness semantics are UNKNOWN",
+    "The 0x131e94 and 0x1323b4 helper identities and complete object layouts remain UNKNOWN",
+    "No runtime execution, device access or firmware modification was performed"
+  ],
+  "evidence_policy": {
+    "primary_source": "SHA-pinned private Sony ILCE-6000 firmware 3.21 libObj.so",
+    "source_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "raw_firmware_published": false,
+    "machine_code_published": false,
+    "semantic_names_verified": false,
+    "runtime_verified": false
+  },
+  "abi_contracts": [
+    {
+      "name": "EE_neutral_message_sender_candidate",
+      "entry_vma": "0x443d14",
+      "source_alias": "ModelCamera::EE_neutral_sender_candidate",
+      "source_alias_status": "STATIC_INFERRED",
+      "function_fact_status": "PRIMARY_ELF_VERIFIED",
+      "calling_convention": "ARM AAPCS32 Thumb",
+      "input_registers": {
+        "r0": "opaque incoming value preserved in r4; source-level type UNKNOWN"
+      },
+      "message_header": {
+        "group": "0x3100",
+        "command": "0x7502",
+        "object": "r7+8"
+      },
+      "issue_command_async_abi": {
+        "symbol": "MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)",
+        "symbol_source": "unique ELF PLT relocation",
+        "r0": "implicit ObjIf* candidate from local call 0x42067c; concrete type UNKNOWN",
+        "r1": "explicit void* candidate from r7+8; pointee type UNKNOWN",
+        "r2": "explicit MWF::ObjMsg* expected by symbol, but value UNKNOWN at callsite after caller-save PLT call",
+        "return": "r0 observed and tested with CBNZ; return type and zero/nonzero meaning UNKNOWN",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "cleanup": "ObjMsg D1 and delete/new/default-constructor paths are statically observed; ownership and exception semantics UNKNOWN",
+      "runtime_verified": false,
+      "callable": false
+    },
+    {
+      "name": "ModelCamera_EE_neutral_command_candidate",
+      "entry_vma": "0x4b1a20",
+      "source_alias": "ModelCamera::pvt_ExeEENeutralCmd",
+      "source_alias_status": "STATIC_INFERRED",
+      "function_fact_status": "PRIMARY_ELF_VERIFIED",
+      "calling_convention": "ARM AAPCS32 Thumb",
+      "input_registers": {
+        "r0": "opaque receiver candidate preserved in r4; source-level class type UNKNOWN"
+      },
+      "field_effects": [
+        {
+          "offset": "0x2700",
+          "width_bits": 32,
+          "operation": "load/add-one/store; updated value passed in r0 to 0x443d14"
+        },
+        {
+          "offset": "0x26fc",
+          "width_bits": 8,
+          "operation": "store constant 1"
+        }
+      ],
+      "helper_arguments": [
+        {
+          "helper_vma": "0x131e94",
+          "r1": "0x11",
+          "return_saved_to": "r6"
+        },
+        {
+          "helper_vma": "0x131e94",
+          "r1": "0x12",
+          "return_saved_to": "stack+8"
+        },
+        {
+          "helper_vma": "0x1323b4",
+          "r1": "0x0e",
+          "r2": "0x33ba",
+          "stack": "[sp]=this+0x2704; [sp+4]=second helper return"
+        }
+      ],
+      "return": "source-level return type and completion semantics UNKNOWN",
+      "runtime_verified": false,
+      "callable": false
+    }
+  ],
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC_METADATA_CROSSCHECK",
+    "tool": "Ghidra",
+    "version": "12.1.3",
+    "profile": "camera-ee-neutral",
+    "mode": "targeted_noanalysis",
+    "auto_analysis_completed": false,
+    "decompilation_completed": true,
+    "exit_code": 0,
+    "completion_marker": "COMPLETE_TARGET_EXPORT",
+    "program_identity": {
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "language": "ARM:LE:32:v8",
+      "compiler_spec": "default",
+      "image_base": "0x00010000",
+      "address_space": "ram"
+    },
+    "target_records": [
+      {
+        "elf_vma": "0x443d14",
+        "ghidra_vma": "0x00453d14",
+        "elf_address_space": "ELF_VMA",
+        "address_space": "ram",
+        "body_range_address_space": "ram",
+        "body_ranges": [
+          {
+            "start": "0x00453d14",
+            "end": "0x00453d93"
+          }
+        ],
+        "instruction_count": 45,
+        "basic_block_count": 5,
+        "cfg_edge_count": 18
+      },
+      {
+        "elf_vma": "0x4b1a20",
+        "ghidra_vma": "0x004c1a20",
+        "elf_address_space": "ELF_VMA",
+        "address_space": "ram",
+        "body_range_address_space": "ram",
+        "body_ranges": [
+          {
+            "start": "0x004c1a20",
+            "end": "0x004c1a9f"
+          }
+        ],
+        "instruction_count": 46,
+        "basic_block_count": 1,
+        "cfg_edge_count": 7
+      }
+    ],
+    "raw_export_private": true,
+    "semantic_names_verified": false
+  }
+}

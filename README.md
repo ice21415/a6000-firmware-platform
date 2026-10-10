@@ -289,6 +289,30 @@ This is static evidence only; no runtime or callable API claim is made, and
 the Ghidra cross-check is targeted `-noanalysis` metadata rather than complete
 whole-program analysis.
 
+### Camera EE-neutral primary evidence
+
+The bounded Camera probe
+[`fwplatform/camera_ee_neutral_probe.py`](fwplatform/camera_ee_neutral_probe.py)
+checks the private SHA-pinned ELF at `0x443d14` and `0x4b1a20`. Its sanitized
+contract is
+[`sdk/camera_3_21_ee_neutral_3_21.json`](sdk/camera_3_21_ee_neutral_3_21.json),
+and descriptive constants are in
+[`sdk/camera_3_21_candidate.hpp`](sdk/camera_3_21_candidate.hpp). The sender's
+unique PLT evidence identifies ObjMsg construction and
+`MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)`; the command candidate
+updates `this+0x2700`, writes `this+0x26fc = 1`, and passes the observed selector
+values to later helpers. Receiver identity, completion semantics, event
+namespace, runtime safety and callable status remain UNKNOWN/false.
+
+Run it only against the authorized private ELF:
+
+```powershell
+python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so --json
+```
+
+The Ghidra `camera-ee-neutral` profile is a targeted `-noanalysis` metadata
+cross-check and does not publish the raw project or export.
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

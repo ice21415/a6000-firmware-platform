@@ -2034,3 +2034,36 @@ binding. `runtime_verified=false`, `callable=false`, and the descriptive SDK
 does not expose a destructor wrapper. Nine focused fail-closed tests cover the
 contract, slot layout, relocation provenance, CLI exposure, address-space and
 unsafe-status regressions; the complete local suite passes **473 tests**.
+
+## Camera EE-neutral sender and command audit (2026-10-10)
+
+The authenticated private primary ELF was checked with
+`fwplatform.camera_ee_neutral_probe.py`; this is a separate Camera target and
+does not repeat `ParamList::get`. The sanitized contract is
+`sdk/camera_3_21_ee_neutral_3_21.json`, and the exact source SHA-256 remains
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+
+At `0x443d14`, the probe verifies Thumb construction of a local ObjMsg
+candidate at `r7+8` with group `0x3100` and command `0x7502`, a
+`ParamStd_Template<unsigned int, ...>` setup from the incoming `r0`, and a
+common relay-parameter call. The unique PLT/GOT relocation at `0xdc144`
+resolves to `MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)`; ObjMsg
+construct/destruct/new/default-constructor and `SetCommonRelayParam` bindings
+are also unique. The call result is only consumed by `cbnz`; return type,
+zero/nonzero meaning, explicit r2 value after the preceding caller-save call,
+receiver type and transport completion remain UNKNOWN.
+
+At `0x4b1a20`, the primary instructions load/add/store `this+0x2700`, pass the
+updated value to `0x443d14`, write byte `1` to `this+0x26fc`, and call
+`0x131e94` with `0x11/0x12` followed by `0x1323b4` with `r1=0x0e` and
+`r2=0x33ba`. These are instruction-level constants and field effects; the
+source aliases, helper identities, event namespace, relay consumer and Camera
+readiness semantics remain `STATIC_INFERRED`/UNKNOWN.
+
+Private Ghidra 12.1.3 profile `camera-ee-neutral` used `ARM:LE:32:v8`, default
+compiler, image base `0x10000`, targeted `-noanalysis`, and exited 0 with
+`COMPLETE_TARGET_EXPORT`: 2 targets, 91 instructions, 6 blocks and 25 edges.
+The contract preserves separate ELF VMA and Ghidra `ram` addresses and keeps
+`auto_analysis_completed=false`; raw export and project data stay private.
+The twelve new fail-closed tests pass, and the complete local suite now passes
+**485 tests**. Runtime-verified and callable core API counts remain **0**.

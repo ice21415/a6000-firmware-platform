@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased -- Camera EE-neutral primary evidence
+
+- Added `fwplatform.camera_ee_neutral_probe` and the read-only
+  `fw sdk camera-ee-neutral-audit` command for bounded Thumb evidence at
+  `0x443d14` and `0x4b1a20`.
+- Resolved unique primary-ELF PLT/GOT bindings for ObjMsg construction,
+  relay setup/cleanup and `MWF::ObjIf::IssueCommandAsync(void*,
+  MWF::ObjMsg*)`; return, explicit-r2 and transport semantics remain unknown.
+- Added the sanitized contract `sdk/camera_3_21_ee_neutral_3_21.json`, the
+  descriptive header `sdk/camera_3_21_candidate.hpp`, a private Ghidra
+  `camera-ee-neutral` profile and ten fail-closed tests.
+- The command candidate's `this+0x2700` counter, `this+0x26fc` pending-byte
+  write and selector literals are recorded as static facts only. Runtime and
+  callable SDK status remain false; no firmware bytes or device operations are
+  included.
+
 ## Unreleased -- ParamList virtual destruction dispatch evidence
 
 - Added the SHA-pinned `fwplatform.paramlist_virtual_dispatch_probe` and

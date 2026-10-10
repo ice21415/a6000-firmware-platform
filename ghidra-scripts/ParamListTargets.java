@@ -116,6 +116,12 @@ public class ParamListTargets extends GhidraScript {
     // The clear-loop vptr load/indirect call.  Vtable words are checked by
     // the private Capstone/ELF probe; this profile cross-checks the code site.
     targets=new long[][]{{0x7edb40,0x36}};
+   } else if(args[1].equals("camera-ee-neutral")) {
+    // Bounded private cross-check for the Camera EE-neutral sender and its
+    // caller.  The profile emits addresses, ranges, CFG metadata and
+    // decompiler text only to private storage; it does not publish firmware
+    // bytes or promote research aliases to semantic symbols.
+    targets=new long[][]{{0x443d14,0x80},{0x4b1a20,0x80}};
    } else if(args[1].equals("param-cntinfolist")) {
     targets=new long[][]{{0x11d42c,0x16},{0x11d44c,0x0e},{0x11d45a,0x0e},{0x11d4ac,0x10},{0x11d4bc,0x10},{0x11d4cc,0x0e},{0x11d4da,0x0e},{0x11d47e,0x20},{0xe77a2,0x14},{0x11d468,0x16},{0xe7e86,0x20},{0x11d8e6,0x28},{0x11d8b0,0x36},{0xecd7a,0x0c},{0x11d90e,0x28},{0x11d82e,0x82},{0x11d72a,0x104},{0x11d680,0x54},{0x11d938,0x78},{0x11da18,0x64},{0x11d54c,0x44},{0x11d590,0x14}};
    } else {

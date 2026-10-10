@@ -960,3 +960,32 @@ allocation provenance, invalid-object/null behavior beyond the bounded slot
 guard, double-destroy behavior, locking, concurrency, full Auto Analysis,
 runtime verification and callable status remain UNKNOWN/false. Do not turn the
 slot target into a live destructor wrapper.
+
+## Camera EE-neutral primary evidence checkpoint (2026-10-10)
+
+The current Camera-specific bounded probe is
+`fwplatform/camera_ee_neutral_probe.py`, with sanitized contract
+`sdk/camera_3_21_ee_neutral_3_21.json`, descriptive header
+`sdk/camera_3_21_candidate.hpp`, and CLI command:
+
+```powershell
+fw sdk camera-ee-neutral-audit --elf <private-libObj.so> --json
+```
+
+Against the authorized SHA-pinned 3.21 primary ELF, `0x443d14` verifies an
+ObjMsg candidate with header words `0x3100/0x7502` and unique PLT bindings for
+ObjMsg setup/cleanup plus `MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)`.
+Its return is only branch-tested; the explicit r2 value after a caller-save
+call, return meaning, receiver and completion semantics remain UNKNOWN.
+`0x4b1a20` verifies a `this+0x2700` increment passed to the sender, a byte-1
+write at `this+0x26fc`, and helper selectors `0x11`, `0x12`, `0x0e`, `0x33ba`.
+The source aliases are `STATIC_INFERRED`; numeric values are not treated as
+confirmed event IDs.
+
+Private Ghidra 12.1.3 profile `camera-ee-neutral` exited 0 with its complete
+marker in targeted `-noanalysis` mode: 2 bodies, 91 instructions, 6 blocks,
+25 edges, `ARM:LE:32:v8`, image base `0x10000`, and separate `ELF_VMA`/`ram`
+address spaces. Raw export and project remain private, and
+`auto_analysis_completed=false` is intentional. Runtime-verified and callable
+SDK counts remain zero; next work is ObjMsg dataflow, receiver/completion and
+Camera readiness evidence.

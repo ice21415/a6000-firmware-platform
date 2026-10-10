@@ -904,3 +904,49 @@ rows, 23 blocks and 37 edges. It statically binds the payload release path to
 EventManager ownership or a destructor identity. The private project/export
 remains outside the repository; runtime verification and callability remain
 false.
+
+## Phase 3.31 — EE-neutral Camera sender and command evidence
+
+The next bounded pass uses the exact private `libObj.so` SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a` and the
+read-only probe `fwplatform/camera_ee_neutral_probe.py`. The new contract is
+`sdk/camera_3_21_ee_neutral_3_21.json`; its source aliases remain
+`STATIC_INFERRED` and no firmware bytes or raw export are public.
+
+At `0x443d14`, Capstone verifies a Thumb sender that constructs a local
+`MWF::ObjMsg` candidate at `r7+8` with `r1=0x3100` and `r2=0x7502`, creates a
+`ParamStd_Template<unsigned int, ...>` candidate from the incoming `r0`, and
+sets a common relay parameter with `r1=1`. The unique primary-ELF PLT/GOT
+relocation at `0xdc144` resolves to
+`MWF::ObjIf::IssueCommandAsync(void*, MWF::ObjMsg*)`. At the callsite, `r0`
+is a local-object result candidate, `r1` is `r7+8`, and the expected explicit
+`r2` value is UNKNOWN because the preceding PLT call may clobber caller-save
+registers. The returned `r0` is only tested by `cbnz`; its type and zero/nonzero
+meaning remain UNKNOWN. The ObjMsg destructor, delete/new/default-constructor
+and zero-fill paths are also file-backed static observations, not an ownership
+or exception contract.
+
+At `0x4b1a20`, the bounded body loads, increments and stores a 32-bit word at
+`this+0x2700`, passes the updated value in `r0` to `0x443d14`, writes byte `1`
+to `this+0x26fc`, then calls `0x131e94` with selectors `0x11` and `0x12` and
+`0x1323b4` with `r1=0x0e`, `r2=0x33ba` and two stack values. Those helper
+identities and the command/event namespace are UNKNOWN; identical numeric
+values are not promoted to a known event ID.
+
+The private ASCII-path Ghidra 12.1.3 profile `camera-ee-neutral` exited 0 with
+`COMPLETE_TARGET_EXPORT`, using `ARM:LE:32:v8`, compiler `default`, image base
+`0x10000`, and targeted `-noanalysis` mode. It cross-checked two bodies:
+45 instructions/5 blocks/18 edges for `0x443d14` and 46 instructions/1
+block/7 edges for `0x4b1a20`; ELF VMA and Ghidra `ram` addresses are retained
+separately. This is metadata/control-flow cross-check evidence only;
+`auto_analysis_completed=false` remains explicit.
+
+The repeatable private command is:
+
+```powershell
+python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so --json
+```
+
+The descriptive header is `sdk/camera_3_21_candidate.hpp`. It records field
+and message constants only. Runtime verification, safe invocation, complete
+receiver/relay completion semantics and callable SDK counts remain zero.
