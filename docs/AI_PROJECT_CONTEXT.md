@@ -937,3 +937,26 @@ semantics, allocator/ownership pairing, exception and null behavior,
 double-destroy policy, synchronization, concurrent validity, runtime binding,
 runtime verification and callable status remain unknown/false. Runtime and
 callable core API counts remain zero.
+
+## ParamList virtual dispatch checkpoint (2026-10-10)
+
+`fwplatform/paramlist_virtual_dispatch_probe.py` is the evidence-gated probe
+for the formerly unresolved indirect call in ParamList clear. It authenticates
+the private primary `libObj.so` SHA-256, validates the bounded Thumb sequence
+at `0x7edb60`--`0x7edb64`, and resolves only exact file-backed words or unique
+relocations in the ten known ParamBase-family vtables. The normalized contract
+is `sdk/paramlist_virtual_dispatch_3_21.json`; the CLI entry point is
+`fw sdk paramlist-virtual-dispatch-audit --elf <private-libObj.so> --json`.
+
+The static result is 10/10 clone, 10/10 nondeleting-destructor, 10/10
+deleting-destructor and 10/10 clear-reachable family records. `vptr + 0x08`
+is therefore the deleting-destructor slot for this verified vtable set. The
+contract keeps ELF VMA and Ghidra `ram` addresses separate and records a
+private targeted Ghidra 12.1.3 cross-check (exit 0, one target, 22
+instructions, 6 blocks, 10 CFG edges, body `0x007fdb40`--`0x007fdb75`).
+
+This is file-backed `PRIMARY_ELF_VERIFIED` evidence only. Runtime dynamic type,
+allocation provenance, invalid-object/null behavior beyond the bounded slot
+guard, double-destroy behavior, locking, concurrency, full Auto Analysis,
+runtime verification and callable status remain UNKNOWN/false. Do not turn the
+slot target into a live destructor wrapper.

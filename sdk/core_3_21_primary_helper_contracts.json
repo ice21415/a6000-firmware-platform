@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "paramlist_virtual_dispatch_contract": "sdk/paramlist_virtual_dispatch_3_21.json",
   "type_lifetime_contract": "sdk/parameter_types_lifetime_3_21.json",
   "parambase_lifecycle_contract": "sdk/param_lifecycle_3_21.json",
   "parambase_destructor_contract": "sdk/param_destructor_3_21.json",

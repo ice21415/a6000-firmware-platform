@@ -365,4 +365,27 @@ public:
     ParamBase* get(unsigned long key, unsigned long discriminator) const;
 };
 // No implementation, address binding, device-call wrapper or runtime guarantee.
+
+// ParamList::clear virtual-dispatch evidence from the SHA-pinned 3.21 ELF.
+// These are file/VMA offsets used by offline tooling, never host pointers.
+// The clear body loads an element vptr and calls the word at vptr + 0x08;
+// the ten known ParamBase-family vtables place their deleting-destructor
+// entry at that address point-relative slot.  This does not prove that an
+// arbitrary pointer is a valid element or establish allocation ownership.
+struct ParamListVirtualDispatchEvidenceConstants {
+    static constexpr std::uint32_t clear_helper_vma = 0x007edb40;
+    static constexpr std::uint32_t clear_dispatch_load_vma = 0x007edb60;
+    static constexpr std::uint32_t clear_dispatch_slot_load_vma = 0x007edb62;
+    static constexpr std::uint32_t clear_dispatch_call_vma = 0x007edb64;
+    static constexpr std::uint32_t element_vptr_offset = 0x00;
+    static constexpr std::uint32_t virtual_slot_from_vptr = 0x08;
+    static constexpr std::uint32_t vtable_prefix_to_address_point = 0x08;
+    static constexpr std::uint32_t deleting_destructor_slot_from_prefix = 0x10;
+    static constexpr std::uint32_t verified_family_count = 10;
+    static constexpr std::uint32_t exact_deleting_slot_matches = 10;
+};
+
+// Runtime dynamic type, null/invalid object policy beyond the bounded null
+// slot guard, double-destroy behavior, locking, concurrent safety and
+// callable/runtime verification remain unknown.  No wrapper is provided.
 }

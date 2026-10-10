@@ -1445,3 +1445,28 @@ edges), but it is `-noanalysis` metadata and not whole-program Auto Analysis.
 The contract remains descriptive with `runtime_verified=false` and
 `callable=false`; it is not a live destructor wrapper or permission to invoke
 firmware code.
+
+## ParamList virtual destruction dispatch audit
+
+`fwplatform.paramlist_virtual_dispatch_probe` adds the next bounded primary-ELF
+check. It authenticates the private `libObj.so` SHA-256, decodes the clear
+helper at `0x7edb40`, and verifies the Thumb sequence at `0x7edb60`--`0x7edb64`
+that loads an element vptr, reads `vptr + 0x08`, and performs `blx r3` after
+the null-slot guard. The ten known ParamBase-family vtable records each have
+an exact clone, nondeleting-destructor and deleting-destructor slot; all ten
+map the clear call to the deleting-destructor slot.
+
+The sanitized contract is `paramlist_virtual_dispatch_3_21.json` and the
+read-only command is:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-virtual-dispatch-audit --elf C:\private\libObj.so --json
+```
+
+The Ghidra metadata cross-check is a private targeted 12.1.3 `-noanalysis`
+export (one target, 22 instructions, 6 blocks and 10 CFG edges, exit 0). The
+contract keeps ELF VMA and Ghidra `ram` address spaces separate and records the
+actual Ghidra function body range. The result proves file-backed dispatch
+slot identity only. Runtime dynamic type, allocation provenance, null/invalid
+object behavior, double-destroy behavior, locking, concurrency, whole-program
+Auto Analysis and runtime/callable SDK status remain unknown/false.

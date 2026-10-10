@@ -272,6 +272,23 @@ symbol range 內才回報 caller；其餘保持 `UNRESOLVED`，不使用最近�
 [`sdk/param_query_callers_3_21.json`](sdk/param_query_callers_3_21.json)，
 核心契約以 `query_callsite_index` 連結它；runtime/callable 仍為 `false`。
 
+### ParamList clear virtual dispatch evidence
+
+The latest private primary-ELF checkpoint adds
+`fwplatform/paramlist_virtual_dispatch_probe.py` and the sanitized contract
+[`sdk/paramlist_virtual_dispatch_3_21.json`](sdk/paramlist_virtual_dispatch_3_21.json).
+The read-only command is:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-virtual-dispatch-audit --elf C:\private\libObj.so --json
+```
+
+It verifies the bounded clear-site `vptr + 0x08` call and exact destructor-slot
+mapping for ten known ParamBase-family vtables from the SHA-pinned private ELF.
+This is static evidence only; no runtime or callable API claim is made, and
+the Ghidra cross-check is targeted `-noanalysis` metadata rather than complete
+whole-program analysis.
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

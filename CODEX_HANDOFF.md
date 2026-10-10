@@ -1410,3 +1410,41 @@ double-destroy behavior, exception cleanup, locking, concurrent validity or
 safe invocation on a camera. Seven new fail-closed tests cover identity,
 cleanup-chain and unsafe-status regressions; the complete local suite passes
 **464 tests**.
+
+## Latest continuation checkpoint -- ParamList virtual destructor dispatch (2026-10-10)
+
+The next bounded pass resolves the previously unresolved indirect call in the
+ParamList clear helper. `fwplatform.paramlist_virtual_dispatch_probe` checks
+the exact private ELF SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`, then
+decodes the clear-site sequence at `0x7edb60`, `0x7edb62` and `0x7edb64`.
+The sequence is `ldr r3,[r0]`, `ldr r3,[r3,#8]`, `blx r3` after a bounded
+null-element guard.
+
+All ten known ParamBase-family vtable records independently match clone,
+nondeleting-destructor and deleting-destructor words. The clear call uses the
+deleting-destructor slot for all ten records (10/10/10/10 aggregate). This is
+`PRIMARY_ELF_VERIFIED` file-backed slot and instruction evidence; it does not
+prove that an arbitrary runtime pointer has one of these dynamic types or that
+the caller owns the object.
+
+The sanitized public contract is
+`sdk/paramlist_virtual_dispatch_3_21.json`, linked from
+`sdk/core_3_21_primary_helper_contracts.json`. The read-only private command is:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-virtual-dispatch-audit --elf C:\private\libObj.so --json
+```
+
+A private Ghidra 12.1.3 targeted `-noanalysis` cross-check exited 0 with its
+completion marker: one target, 22 instructions, 6 basic blocks and 10 CFG
+edges. The contract records Ghidra `ram` and ELF VMA separately and preserves
+the body range `0x007fdb40`--`0x007fdb75`; raw export/project data stays
+private. Runtime dynamic type, allocation provenance, double-destroy policy,
+locking, concurrent safety, exception behavior, whole-program Auto Analysis,
+runtime verification and callable status remain UNKNOWN/false.
+
+The focused fail-closed suite contains eight tests for identity, slot layout,
+relocation provenance, address-space separation, Ghidra range integrity and
+unsafe-status rejection. Full-suite and CI counts are recorded after this
+checkpoint is committed.

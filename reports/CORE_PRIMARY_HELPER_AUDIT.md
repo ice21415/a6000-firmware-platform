@@ -1991,3 +1991,44 @@ The contract remains `runtime_verified=false` and `callable=false`; the
 runtime-verified and callable core API counts remain **0**. Seven new
 fail-closed tests cover the contract and unsafe-status rejection. The complete
 local suite passes **464 tests**.
+
+## ParamList clear virtual destructor-slot audit (2026-10-10)
+
+This continuation does not repeat the already recovered `ParamList::get`
+control flow. `fwplatform.paramlist_virtual_dispatch_probe` authenticates the
+private primary `libObj.so` before reading the clear helper and ten known
+ParamBase-family vtables. The source SHA-256 is
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+
+The primary ELF contains the following bounded dispatch sequence in the local
+clear implementation at `0x7edb40`: `0x7edb60 ldr r3,[r0]`, `0x7edb62 ldr
+r3,[r3,#8]`, and `0x7edb64 blx r3`. A preceding null-slot branch skips this
+call for a null element. For each of the ten known direct ParamBase-family
+vtable records, the ELF word at the object vptr address point plus `0x08`
+matches the deleting-destructor entry; clone and nondeleting-destructor slots
+also match their independently recorded targets. The aggregate is 10/10
+clone, 10/10 nondeleting, 10/10 deleting and 10/10 clear-reachable family
+records. Relocation-backed nondeleting entries remain marked as relocations;
+Thumb tags are normalized only for address comparison.
+
+The sanitized contract is `sdk/paramlist_virtual_dispatch_3_21.json` and the
+repeatable private command is:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-virtual-dispatch-audit --elf C:\private\libObj.so --json
+```
+
+A private Ghidra 12.1.3 targeted `-noanalysis` export independently completed
+with exit code 0 and `COMPLETE_TARGET_EXPORT`: one target, 22 instructions, 6
+basic blocks and 10 CFG edges. It records ARM:LE:32:v8, the default compiler
+spec, image base `0x10000`, Ghidra `ram` address space, the ELF VMA separately,
+and the actual body range `0x007fdb40`--`0x007fdb75`. This is metadata
+cross-check evidence, not whole-program Auto Analysis; raw export/project
+files remain private.
+
+The result establishes file-backed virtual-slot identity only. It does not
+prove a runtime dynamic type for every pointer, allocation provenance, null or
+invalid-object behavior beyond the bounded null-slot guard, double-destroy
+policy, locking, concurrent safety, exception semantics or runtime loader
+binding. `runtime_verified=false`, `callable=false`, and the descriptive SDK
+does not expose a destructor wrapper.
