@@ -47,6 +47,20 @@ not, by themselves, identify the `dlopen`/`dlsym` imports; the helper-to-import
 binding remains `UNKNOWN`. This narrows the loader hypothesis without proving
 runtime DSO identity.
 
+## Phase 4.10 ARM veneer relocation resolution
+
+Using ARM-state PC arithmetic (`instruction address + 8`), the private ELF
+resolves both loader veneers uniquely:
+
+| Veneer | Effective GOT VMA | Relocation | Dynamic symbol | Status |
+|---|---:|---|---|---|
+| `0xe0cec` | `0x102e808` | `R_ARM_JUMP_SLOT` | `dlopen` | `PRIMARY_ELF_VERIFIED` |
+| `0xdfed0` | `0x102e398` | `R_ARM_JUMP_SLOT` | `dlsym` | `PRIMARY_ELF_VERIFIED` |
+
+The resolver checks the full ELF hash, instruction mode, file-backed GOT
+range, relocation section and dynamic symbol index. Runtime DSO identity and
+factory object type remain UNKNOWN.
+
 The same bounded decode also verifies the post-factory path: `0x7f11d2`
 loads `0x101` into `r1` before the loader helper, `0x7f120e` reads the
 returned instance vtable slot `+0x28`, and `0x7f1210` invokes it. A null

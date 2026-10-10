@@ -24,6 +24,14 @@ class LoaderDataflowContractTests(unittest.TestCase):
             "status": "PRIMARY_ELF_STATIC_DATAFLOW",
             "address_space": "ELF_VMA",
             "runtime_loader_identity": "UNKNOWN",
+            "internal_helpers": {
+                "loader": {"entry_vma": "0xe0cec", "address_space": "ELF_VMA", "instruction_mode": "ARM", "instructions": [{"mnemonic": "add", "operands": "ip, pc, #1"}, {"mnemonic": "add", "operands": "ip, ip, #1"}, {"mnemonic": "ldr", "operands": "pc, [ip, #1]!"}]},
+                "symbol_resolver": {"entry_vma": "0xdfed0", "address_space": "ELF_VMA", "instruction_mode": "ARM", "instructions": [{"mnemonic": "add", "operands": "ip, pc, #1"}, {"mnemonic": "add", "operands": "ip, ip, #1"}, {"mnemonic": "ldr", "operands": "pc, [ip, #1]!"}]},
+            },
+            "veneer_bindings": {
+                "dlopen": {"elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "binding_status": "PRIMARY_ELF_VERIFIED", "dynamic_symbol": "dlopen", "relocation_type": 22},
+                "dlsym": {"elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "binding_status": "PRIMARY_ELF_VERIFIED", "dynamic_symbol": "dlsym", "relocation_type": 22},
+            },
             "facts": [
                 {"instruction_vma": a, "mnemonic": m, "operands": o,
                  "address_space": "ELF_VMA", "verification": "PRIMARY_ELF_VERIFIED"}
@@ -55,6 +63,11 @@ class LoaderDataflowContractTests(unittest.TestCase):
         result = self.valid_result()
         result["facts"][0]["operands"] = "r0, [r1]"
         self.assertIn("instruction operand mismatch 0x7f11d6", validate_loader_dataflow(result))
+
+    def test_missing_helper_binding_evidence_is_rejected(self):
+        result = self.valid_result()
+        result.pop("veneer_bindings")
+        self.assertIn("missing veneer binding evidence", validate_loader_dataflow(result))
 
 
 if __name__ == "__main__":

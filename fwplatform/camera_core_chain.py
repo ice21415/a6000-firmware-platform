@@ -1006,12 +1006,12 @@ def probe_camera_core_chain(
     key8_edge = _edge("factory.key8", f"EventID:{hex(EVENT_ID)}", "EventParameterKey:8", "CARRIES_PARAMETER", 0x7F0B0C, digest, callsite_vma=0x7F0B60)
     key8_edge["key_literal_vma"] = hex(0x7F0B5C)
     loader_edges = [
-        _edge("loader.dlopen_helper", "ModelCamera loader", "internal loader helper", "CALLS", 0x7F11CA, digest,
-              target_vma=0xE0CEC, callsite_vma=0x7F11D8, status="STATIC_INFERRED",
-              method="CAPSTONE_PRIMARY_ELF", note="record +0x10 is the input; relation to imported dlopen PLT remains unresolved."),
-        _edge("loader.dlsym_helper", "ModelCamera loader", "internal symbol resolver helper", "CALLS", 0x7F11CA, digest,
-              target_vma=0xDFED0, callsite_vma=0x7F11E6, status="STATIC_INFERRED",
-              method="CAPSTONE_PRIMARY_ELF", note="record +0x18 handle and +0x14 symbol are inputs; relation to imported dlsym PLT remains unresolved."),
+        _edge("loader.dlopen_helper", "ModelCamera loader", "dlopen", "CALLS", 0x7F11CA, digest,
+              target_vma=0xE0CEC, callsite_vma=0x7F11D8, status="PRIMARY_ELF_VERIFIED",
+              method="CAPSTONE_PRIMARY_ELF_RELOCATION", note="ARM veneer 0xe0cec computes GOT 0x102e808 with R_ARM_JUMP_SLOT dlopen."),
+        _edge("loader.dlsym_helper", "ModelCamera loader", "dlsym", "CALLS", 0x7F11CA, digest,
+              target_vma=0xDFED0, callsite_vma=0x7F11E6, status="PRIMARY_ELF_VERIFIED",
+              method="CAPSTONE_PRIMARY_ELF_RELOCATION", note="ARM veneer 0xdfed0 computes GOT 0x102e398 with R_ARM_JUMP_SLOT dlsym."),
     ]
     edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + registry_edges + compact_edges + loader_edges + [
         event_edge,

@@ -12,6 +12,8 @@ from typing import Any
 from capstone import CS_ARCH_ARM, CS_MODE_ARM, CS_MODE_THUMB, Cs
 from elftools.elf.elffile import ELFFile
 
+from .arm_veneer_resolver import resolve_arm_veneer
+
 EXPECTED_SHA256 = "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
 
 
@@ -76,6 +78,17 @@ def analyze_loader_dataflow(path: Path, *, expected_sha256: str = EXPECTED_SHA25
         registration = _instructions(stream, elf, 0x7EC8A4, 0x90)
         loader_helper = _arm_veneer(stream, elf, 0xE0CEC)
         resolver_helper = _arm_veneer(stream, elf, 0xDFED0)
+    veneer_bindings: dict[str, Any] = {}
+    for name, entry, symbol in (("dlopen", 0xE0CEC, "dlopen"), ("dlsym", 0xDFED0, "dlsym")):
+        try:
+            veneer_bindings[name] = resolve_arm_veneer(path, entry,
+                                                       expected_sha256=actual,
+                                                       expected_symbol=symbol)
+        except ValueError as exc:
+            veneer_bindings[name] = {"veneer_entry_vma": hex(entry),
+                                     "binding_status": "UNKNOWN",
+                                     "evidence_level": "UNKNOWN",
+                                     "error": str(exc)}
     facts = [
         _fact(loader, 0x7F11D2, operation="set_loader_flags", detail="r1 <- 0x101 (dlopen mode candidate)"),
         _fact(loader, 0x7F11D6, operation="load_library_name", detail="r0 <- [this + 0x10]"),
@@ -105,13 +118,16 @@ def analyze_loader_dataflow(path: Path, *, expected_sha256: str = EXPECTED_SHA25
                            "loader_handle": "+0x18", "instance": "+0x1c",
                            "factory_argument": "+0x20"},
         "imported_plt_candidates": {
-            "dlopen": {"plt_entry": "0xe085c", "status": "UNKNOWN",
-                        "symbol_table": "undefined dlopen; helper relation not proven"},
-            "dlsym": {"plt_entry": "0xdfb0c", "status": "UNKNOWN",
-                       "symbol_table": "undefined dlsym; helper relation not proven"},
+            "dlopen": {"plt_entry": "0xe0cec", "got_vma": "0x102e808",
+                        "relocation": "R_ARM_JUMP_SLOT", "status": "PRIMARY_ELF_VERIFIED",
+                        "symbol_table": "dynamic symbol dlopen"},
+            "dlsym": {"plt_entry": "0xdfed0", "got_vma": "0x102e398",
+                       "relocation": "R_ARM_JUMP_SLOT", "status": "PRIMARY_ELF_VERIFIED",
+                       "symbol_table": "dynamic symbol dlsym"},
             "dlclose": {"plt_entry": "0xdf3f8", "status": "UNKNOWN",
                          "symbol_table": "undefined dlclose; cleanup helper relation not proven"},
         },
+        "veneer_bindings": veneer_bindings,
         "internal_helpers": {"loader": loader_helper, "symbol_resolver": resolver_helper},
         "facts": facts,
         "failure_paths": ["0x7f11e0: null loader handle", "0x7f11e4: null factory name",
@@ -167,16 +183,35 @@ def validate_loader_dataflow(result: dict[str, Any]) -> list[str]:
         if address not in seen:
             errors.append(f"missing instruction fact {address}")
     helpers = result.get("internal_helpers")
-    if helpers is not None:
-        if not isinstance(helpers, dict):
-            errors.append("invalid helper evidence")
-        else:
-            for name, entry in (("loader", "0xe0cec"), ("symbol_resolver", "0xdfed0")):
-                item = helpers.get(name)
-                if not isinstance(item, dict) or item.get("entry_vma") != entry:
-                    errors.append(f"missing {name} helper evidence")
-                elif item.get("address_space") != "ELF_VMA" or item.get("instruction_mode") != "ARM":
-                    errors.append(f"invalid {name} helper address space")
+    if not isinstance(helpers, dict):
+        errors.append("missing internal helper evidence")
+    else:
+        for name, entry in (("loader", "0xe0cec"), ("symbol_resolver", "0xdfed0")):
+            item = helpers.get(name)
+            if not isinstance(item, dict) or item.get("entry_vma") != entry:
+                errors.append(f"missing {name} helper evidence")
+            elif (item.get("address_space") != "ELF_VMA"
+                  or item.get("instruction_mode") != "ARM"
+                  or not isinstance(item.get("instructions"), list)
+                  or len(item["instructions"]) != 3):
+                errors.append(f"invalid {name} helper instruction evidence")
+            elif ([row.get("mnemonic") for row in item["instructions"]] != ["add", "add", "ldr"]
+                  or "ip, pc" not in item["instructions"][0].get("operands", "")
+                  or "ip, ip" not in item["instructions"][1].get("operands", "")
+                  or not item["instructions"][2].get("operands", "").startswith("pc, [ip")):
+                errors.append(f"invalid {name} helper veneer operands")
+    bindings = result.get("veneer_bindings")
+    if not isinstance(bindings, dict):
+        errors.append("missing veneer binding evidence")
+    else:
+        for name in ("dlopen", "dlsym"):
+            item = bindings.get(name)
+            if not isinstance(item, dict) or item.get("elf_sha256") != EXPECTED_SHA256:
+                errors.append(f"missing {name} relocation evidence")
+            elif (item.get("binding_status") != "PRIMARY_ELF_VERIFIED"
+                  or item.get("dynamic_symbol") != name
+                  or item.get("relocation_type") != 22):
+                errors.append(f"unverified {name} relocation binding")
     if result.get("runtime_loader_identity") != "UNKNOWN":
         errors.append("runtime identity was improperly promoted")
     return errors

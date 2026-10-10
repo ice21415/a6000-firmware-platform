@@ -1661,4 +1661,4 @@ Verified on the private SHA-pinned `libObj.so` (`8e8a937aed23c2783e7bbee8a4afa2f
 - Loader helper entries `0xe0cec` and `0xdfed0` are ARM three-instruction veneers. Their binding to imported `dlopen`/`dlsym` remains UNKNOWN.
 - Loader post-factory path is statically verified: `0x7f120e` reads instance vtable `+0x28`, `0x7f1210` invokes it, and null results branch to cleanup `0x7f117a`.
 
-The validators now reject empty/fabricated fact dictionaries, wrong instruction operands, missing callback relocation evidence, and runtime/callable promotion. Core counts remain 39 PRIMARY, 7 inferred, 5 unresolved; runtime verified and safe-to-invoke APIs remain zero.
+The validators now reject empty/fabricated fact dictionaries, wrong instruction operands, missing callback relocation evidence, and runtime/callable promotion. Phase 4.10 resolves the ARM veneers: `0xe0cec` computes GOT `0x102e808` (`R_ARM_JUMP_SLOT`, `dlopen`) and `0xdfed0` computes GOT `0x102e398` (`R_ARM_JUMP_SLOT`, `dlsym`). Core counts are now 41 PRIMARY, 5 inferred, 5 unresolved; runtime verified and safe-to-invoke APIs remain zero.

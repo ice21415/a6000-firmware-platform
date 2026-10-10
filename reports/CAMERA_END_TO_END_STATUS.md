@@ -292,7 +292,9 @@ stored Thumb pointer, callsite and first callback instruction. Main dispatch
 at `0x7ef988` remains an unresolved indirect target; the completion pointer at
 `0x7eeb24` is retained only as a static error/termination candidate and is not
 classified as a ModelCamera consumer. Counts remain 39 primary, 7 inferred,
-5 unresolved; runtime-verified and safe-to-invoke APIs remain zero.
+5 unresolved; runtime-verified and safe-to-invoke APIs remain zero. The two
+loader helper edges are now promoted to PRIMARY_ELF_VERIFIED after direct GOT
+and relocation resolution, so the current count is 41 primary and 5 inferred.
 
 The bounded provider audit additionally confirms the main dispatch ABI:
 `EventManager::push` passes `callback([state + 0x04], Event*)`. The pointer is

@@ -1689,10 +1689,10 @@
     "factory_callsite": "0x7f11f2",
     "instance_storage": "+0x1c",
     "plt_relocations": {
-      "dlopen": "PLT candidate 0xe085c; helper 0xe0cec relation UNKNOWN",
-      "dlsym": "PLT candidate 0xdfb0c; helper 0xdfed0 relation UNKNOWN"
+      "dlopen": "0xe0cec ARM veneer -> GOT 0x102e808 -> R_ARM_JUMP_SLOT -> dlopen",
+      "dlsym": "0xdfed0 ARM veneer -> GOT 0x102e398 -> R_ARM_JUMP_SLOT -> dlsym"
     },
-    "verification": "STATIC_INFERRED",
+    "verification": "PRIMARY_ELF_VERIFIED",
     "runtime_loader_identity": "UNKNOWN",
     "registry_instance_identity": "UNKNOWN"
   },
@@ -1738,6 +1738,16 @@
       "provider_getter": "runtime-initialized BSS function pointer; target UNKNOWN",
       "target": "UNKNOWN",
       "completion_callback": "0x7eeb24 STATIC_INFERRED; error/termination candidate"
+    },
+    "phase4_10_veneer_binding": {
+      "elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "bindings": {
+        "0xe0cec": {"mode": "ARM", "got_vma": "0x102e808", "relocation": "R_ARM_JUMP_SLOT", "dynamic_symbol": "dlopen", "status": "PRIMARY_ELF_VERIFIED"},
+        "0xdfed0": {"mode": "ARM", "got_vma": "0x102e398", "relocation": "R_ARM_JUMP_SLOT", "dynamic_symbol": "dlsym", "status": "PRIMARY_ELF_VERIFIED"}
+      },
+      "pc_rule": "ARM state PC is instruction address + 8",
+      "runtime_dso_identity": "UNKNOWN",
+      "runtime_verified": false
     }
   }
 }
