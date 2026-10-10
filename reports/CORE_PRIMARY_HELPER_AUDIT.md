@@ -1825,3 +1825,65 @@ The sanitized contract is `sdk/event_manager_owner_init_3_21.json` and its
 CLI is `fw sdk event-manager-owner-init --elf <private-libObj.so> --json`.
 The new seven-test fail-closed set preserves UNKNOWN owner identity and rejects
 runtime/callable promotion. The complete local test suite now passes 434 tests.
+
+## ParamList query ABI and EventManager constructor/provider boundary — 2026-10-10
+
+This pass used the same SHA-pinned private ELF and did not repeat a broad
+`ParamList::get` search. The new `fwplatform.paramlist_get_probe` turns the
+already recovered bounded body into an executable, fail-closed contract. Its
+Capstone checks cover the exact symbol range `_ZNK9ParamList3getEmm` at even
+ELF VMA `0x7edaca` (Thumb symbol value `0x7edacb`, 76 bytes), the two field
+accessors, the `+0x0c` payload getter, the `0xe5b20` discriminator-one
+forwarder and the `0x42ac00` output wrapper. The resulting metadata is
+`sdk/paramlist_get_3_21.json` and is linked from the primary helper contract.
+
+The combined ABI description is now explicit:
+
+| Site | Static fact | Verification | Remaining unknown |
+|---|---|---|---|
+| `0x7edaca` | `r0` receiver, `r1` key, `r2` discriminator; compares element `+0x08`/`+0x04` and returns the stored pointer or zero | `PRIMARY_ELF_VERIFIED` | C++ return type, null-element behavior outside the bounded body, synchronization |
+| `0x42abcc` | writes a selector word at view `+0` and a list pointer candidate at `+4` | `PRIMARY_ELF_VERIFIED` | view class, ownership, null handling |
+| `0x42abdc` | forwards the view list and key to the query path and writes the selected word through its output argument | `PRIMARY_ELF_VERIFIED` | wrapper type and full caller ABI |
+| `0x42ac00` | reads wrapper `+4`, preserves `r2` as output address, stores one word on success and returns observed `0`/`1` paths | `PRIMARY_ELF_VERIFIED` | status enum/type, output validity and runtime safety |
+| `0xe5b20` / `0xe5b18` | fixes discriminator `1` and reads the selected element `+0x0c` word | `PRIMARY_ELF_VERIFIED` | payload meaning beyond the discriminator-specific family contracts |
+
+The returned element is a **borrowed-pointer candidate**. No retain, counter
+increment or clone occurs in `get`; the separate ParamList lifetime evidence
+shows that the last-owner destructor clears elements, while the replacement
+path can delete an equal-key/type element in a still-existing shared
+container. Therefore a copied ParamList handle does not prove that a returned
+element remains valid after mutation. External locking, scheduler guarantees,
+atomicity and concurrent use are UNKNOWN. The offline snapshot parser's bounds,
+null and budget checks are self-authored protections and are not firmware
+behavior. All query APIs remain `safe_to_call=false`, `runtime_verified=false`
+and `callable=false`.
+
+The new `fwplatform.event_manager_constructor_probe` then records the bounded
+owner-initializer candidate at `0x7ef254` without assigning it a C++ class
+name. The primary instructions initialize a zero word at `+0x24`, a
+`0x80000000` sentinel at `+0x28`, a name/provider result at `+0x14`, and
+subobjects at `+0x00`, `+0x04`, `+0x08`, `+0x0c`, `+0x10`, `+0x18`, `+0x1c`
+and `+0x20`. The `+0x10` allocation is 0x24 bytes, initialized by
+`0x7ef894`; the earlier owner witness at `0x7ef432` releases the same field
+through cleanup candidate `0x7efa1e` and `_ZdlPv`. These facts support a
+`STATIC_INFERRED` heap-owned-subobject relation only. No EventManager
+constructor symbol, RTTI/vtable ownership, provider type, complete exception
+cleanup or destructor pair was found.
+
+The private ASCII-path Ghidra 12.1.3 targeted profile
+`event-manager-constructor` exited `0` and emitted its completion marker using
+`ARM:LE:32:v8`, compiler spec `default`, image base `0x10000` and `ram`
+address space. Its sanitized metadata records five target bodies, 260
+instruction rows, 18 basic blocks and 65 CFG/call edges. This was a bounded
+`-noanalysis` export with `auto_analysis_completed=false`; it is an independent
+disassembly/decompiler cross-check, not whole-program Ghidra coverage. The raw
+export and project remain private. A separate whole-program Auto Analysis
+attempt is still a blocker (exit `4294967295`, no completion marker), so it is
+not counted as successful analysis. The rerun's script-emitted program SHA
+also equals the pinned ELF SHA; this guards the metadata against a wrong
+imported program identity.
+
+The public additions are the two probes, the CLI commands
+`fw sdk paramlist-get` and `fw sdk event-manager-constructor`, the descriptive
+header constants in `sdk/paramlist_3_21_candidate.hpp`, and 16 fail-closed
+synthetic tests. Runtime-verified and callable core API counts remain **0**.

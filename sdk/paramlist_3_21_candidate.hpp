@@ -100,6 +100,31 @@ struct ParamQueryCallsiteEvidenceConstants {
     static constexpr std::uint32_t word_lookup_to_payload_callsite = 0x0042ac12;
     static constexpr std::uint32_t adjacent_to_get_callsite = 0x0042abe8;
     static constexpr std::uint32_t adjacent_to_payload_callsite = 0x0042abee;
+    static constexpr std::uint32_t paramlist_get_vma = 0x007edaca;
+    static constexpr std::uint32_t paramlist_get_symbol_thumb = 0x007edacb;
+    static constexpr std::uint32_t paramlist_get_size_bytes = 0x4c;
+    static constexpr std::uint32_t lookup_key_offset = 0x08;
+    static constexpr std::uint32_t discriminator_offset = 0x04;
+    static constexpr std::uint32_t payload_offset = 0x0c;
+};
+
+// Query-wrapper words observed in the primary ELF.  These declarations are
+// descriptive ABI evidence, not host pointers or callable firmware wrappers.
+struct ParamLookupViewWords {
+    std::uint32_t selector_word;
+    std::uint32_t param_list_address;
+};
+static_assert(offsetof(ParamLookupViewWords, param_list_address) == 4);
+static_assert(sizeof(ParamLookupViewWords) == 8);
+
+struct ParamLookupWordAbiEvidenceConstants {
+    static constexpr std::uint32_t view_initializer_vma = 0x0042abcc;
+    static constexpr std::uint32_t adjacent_lookup_vma = 0x0042abdc;
+    static constexpr std::uint32_t word_lookup_vma = 0x0042ac00;
+    static constexpr std::uint32_t output_register = 2;
+    static constexpr std::uint32_t output_width_bytes = 4;
+    static constexpr std::uint32_t success_status = 0;
+    static constexpr std::uint32_t observed_failure_status = 1;
 };
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;

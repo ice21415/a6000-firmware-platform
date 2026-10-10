@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "type_lifetime_contract": "sdk/parameter_types_lifetime_3_21.json",
+  "query_evidence_contract": "sdk/paramlist_get_3_21.json",
+  "event_manager_layout_candidate_contract": "sdk/event_manager_constructor_3_21.json",
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
@@ -65,6 +67,9 @@
       "failure_paths": "No match or empty range returns null; invalid receiver/container/element is not guarded",
       "ownership": "STATIC_INFERRED borrowed pointer; get does not acquire counter, allocate or clone",
       "thread_context": "UNKNOWN; no synchronization in get or its four local helpers",
+      "result_validity": "Borrowed-pointer candidate only; same-container clear/replacement can destroy an element, and shared ParamList ownership does not establish an element pin",
+      "safety_scope": "Null receiver, null container, null element, invalid range, external locking and concurrent mutation remain UNKNOWN",
+      "query_probe": "sdk/paramlist_get_3_21.json",
       "evidence_locators": ["ELF_SYMBOL:0x7edacb:size=76", "ELF_VMA:0x7edad0", "ELF_VMA:0x7edafc", "ELF_VMA:0x7edb00", "ELF_VMA:0x7edb0a", "ELF_VMA:0x7edb10", "ELF_VMA:0x7edab0", "ELF_VMA:0x7edabe", "ELF_VMA:0x7eda90", "ELF_VMA:0x7eda98"],
       "safe_to_call": false
     },

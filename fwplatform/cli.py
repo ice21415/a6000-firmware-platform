@@ -410,6 +410,14 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_owner.add_argument("--elf", type=Path, required=True)
     sdk_owner.add_argument("--expected-sha256", default=None)
     sdk_owner.add_argument("--json", action="store_true")
+    sdk_paramlist_get = sdk_sub.add_parser("paramlist-get")
+    sdk_paramlist_get.add_argument("--elf", type=Path, required=True)
+    sdk_paramlist_get.add_argument("--expected-sha256", default=None)
+    sdk_paramlist_get.add_argument("--json", action="store_true")
+    sdk_event_constructor = sdk_sub.add_parser("event-manager-constructor")
+    sdk_event_constructor.add_argument("--elf", type=Path, required=True)
+    sdk_event_constructor.add_argument("--expected-sha256", default=None)
+    sdk_event_constructor.add_argument("--json", action="store_true")
     sdk_request_event = sdk_sub.add_parser("request-event-factory")
     sdk_request_event.add_argument("--elf", type=Path, required=True)
     sdk_request_event.add_argument("--expected-sha256", default=None)
@@ -772,6 +780,24 @@ def main(argv: list[str] | None = None) -> int:
         from .event_manager_owner_probe import probe_event_manager_owner_init
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_event_manager_owner_init(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "paramlist-get":
+        from .paramlist_get_probe import probe_paramlist_get
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_paramlist_get(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "event-manager-constructor":
+        from .event_manager_constructor_probe import probe_event_manager_constructor
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_event_manager_constructor(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

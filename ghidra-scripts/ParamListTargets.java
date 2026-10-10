@@ -48,6 +48,9 @@ public class ParamListTargets extends GhidraScript {
       {0x7ef8f4,0x0e},{0x7ef902,0x0e},{0x7f09d2,0x60}};
    } else if(args[1].equals("event-manager-owner-init")) {
     targets=new long[][]{{0x7ef254,0x88},{0x7ef894,0x4e},{0x7ef3d8,0x6e},{0x7efa1e,0x4c}};
+   } else if(args[1].equals("event-manager-constructor")) {
+    targets=new long[][]{{0x7ef1e4,0x5c},{0x7ef254,0x128},{0x7ef894,0x4e},
+      {0x7ef960,0x9c},{0x7ef9fc,0x22}};
    } else if(args[1].equals("paramlist-lifetime")) {
     targets=new long[][]{{0x7edb32,0x08},{0x7edb40,0x36},{0x7edb76,0x0c},
       {0x7edc14,0x0e},{0x7edc22,0x0e},{0x7edc30,0x0e},{0x7edc3e,0x2a},
@@ -85,7 +88,12 @@ public class ParamListTargets extends GhidraScript {
   }
   DecompInterface dec=new DecompInterface();
   try(PrintWriter out=new PrintWriter(new FileWriter(args[0]))) {
+   String profile=args.length>=2 ? args[1] : "default";
+   out.println("PROFILE="+profile);
+   out.println("PROGRAM_SHA256="+currentProgram.getExecutableSHA256());
    out.println("IMAGE_BASE="+currentProgram.getImageBase()+" LANGUAGE="+currentProgram.getLanguageID());
+   out.println("COMPILER_SPEC="+currentProgram.getCompilerSpec().getCompilerSpecID());
+   out.println("ADDRESS_SPACE="+currentProgram.getAddressFactory().getDefaultAddressSpace().getName());
    for(long[] target:targets){
     Address a=currentProgram.getImageBase().add(target[0]);
     Address end=a.add(target[1]-1);

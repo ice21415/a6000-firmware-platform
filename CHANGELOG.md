@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — ParamList query ABI and EventManager constructor boundary
+
+- Added SHA-pinned `fwplatform.paramlist_get_probe` and the
+  `fw sdk paramlist-get` command. The sanitized contract records the
+  `ParamList::get` key/discriminator comparisons, payload forwarding and
+  `0x42ac00` output/status behavior while retaining UNKNOWN C++ return,
+  lifetime, locking and concurrency semantics.
+- Added the bounded EventManager owner-constructor candidate probe and
+  `fw sdk event-manager-constructor`. Its contract records field allocation
+  and initialization evidence without assigning an unproven constructor,
+  RTTI/vtable owner or provider type.
+- Added a sanitized private Ghidra 12.1.3 targeted cross-check: exit 0,
+  completion marker, 5 targets, 260 instructions, 18 blocks and 65 CFG/call
+  edges. The script-emitted program SHA matches the pinned ELF SHA. It is
+  explicitly `-noanalysis` metadata, not whole-program coverage; raw output
+  remains private.
+- Added descriptive query ABI constants and linked the new contracts from the
+  primary helper contract. Runtime-verified and callable core API counts stay
+  at 0.
+
 ## Unreleased — executable-section cross-ELF callsite recovery
 
 - Fixed the generic cross-ELF direct-call scanner to decode from executable

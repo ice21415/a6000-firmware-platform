@@ -864,3 +864,26 @@ A private Ghidra 12.1.3 targeted profile cross-checks four bounded bodies
 `0x10000`, and `ram`; generated names/raw export remain private. Seven
 fail-closed synthetic tests accompany the probe. The validator set is seven
 tests and the complete local suite passes 434 tests.
+
+### ParamList query contract and EventManager constructor candidate (2026-10-10)
+
+`fwplatform.paramlist_get_probe.py` validates the authenticated primary ELF
+for the existing `ParamList::get` recovery and its local query wrappers. The
+sanitized output is `sdk/paramlist_get_3_21.json`; it records key `r1`,
+discriminator `r2`, element offsets `+0x08`/`+0x04`, payload `+0x0c`, and the
+borrowed-pointer/lifetime boundary. `fw sdk paramlist-get --elf
+<private-libObj.so> --json` reruns the SHA check before decoding.
+
+`fwplatform.event_manager_constructor_probe.py` covers the bounded owner
+initializer at `0x7ef254` and is exposed as `fw sdk event-manager-constructor`.
+The evidence supports field initialization and a `+0x10` heap-owned-subobject
+candidate, but not a source-level constructor, EventManager RTTI/vtable,
+provider type or complete destructor. Its contract remains
+`STATIC_INFERRED`, `runtime_verified=false` and `callable=false`.
+
+The contract includes sanitized metadata from a private Ghidra 12.1.3
+targeted `-noanalysis` profile: exit 0, completion marker, ARM:LE:32:v8,
+default compiler spec, image base `0x10000`, `ram` address space, 5 targets,
+260 instructions, 18 blocks and 65 CFG/call edges. This is not whole-program
+Auto Analysis; raw export/project files remain private, and the separate
+whole-program attempt remains a blocker.

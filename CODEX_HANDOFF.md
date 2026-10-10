@@ -1291,3 +1291,46 @@ Ghidra `0x7ff254..0x7ff2db` after image-base subtraction. Seven synthetic
 fail-closed tests cover the new validator, and runtime/callable API counts
 remain zero. The new validator set is seven tests; the complete local suite
 passes 434 tests.
+
+## Latest continuation checkpoint — ParamList query contract and EventManager constructor candidate (2026-10-10)
+
+The exact private `libObj.so` remains SHA-pinned to
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`. The new
+`fwplatform.paramlist_get_probe.py` and
+`sdk/paramlist_get_3_21.json` make the prior query recovery reproducible:
+`0x7edaca` is checked as the 76-byte `_ZNK9ParamList3getEmm` body, with
+`r1` as key, `r2` as discriminator, element fields at `+0x08`/`+0x04`, and a
+borrowed element-pointer result. The `0x42ac00` wrapper's output write and
+observed `0`/`1` status paths are checked together with `0x42abcc`, `0x42abdc`,
+`0xe5b20` and `0xe5b18`. C++ return type, null-element behavior outside the
+bounded body, external locking and concurrent safety remain UNKNOWN.
+
+The new `fwplatform/event_manager_constructor_probe.py` and
+`sdk/event_manager_constructor_3_21.json` record the bounded `0x7ef254`
+owner-initializer candidate. It initializes fields through `+0x28`, stores a
+provider candidate at `+0x14`, allocates a 0x24-byte subobject at `+0x10`
+through `_Znwj`/`0x7ef894`, and is related by static evidence to the earlier
+`0x7ef432` cleanup/delete witness. No EventManager constructor symbol,
+RTTI/vtable ownership, provider type or complete destructor identity was
+found; layout compatibility is `STATIC_INFERRED` only.
+
+The private targeted Ghidra 12.1.3 profile `event-manager-constructor` exited
+0 with a completion marker (`ARM:LE:32:v8`, default compiler spec, image base
+`0x10000`, `ram`), and its sanitized metadata records 5 targets, 260
+instructions, 18 blocks and 65 CFG/call edges. It ran in targeted
+`-noanalysis` mode; whole-program Auto Analysis remains a blocker and is not
+counted as success. Raw Ghidra output and projects remain private.
+The script-emitted Ghidra program SHA equals the pinned ELF SHA, so the
+cross-check metadata is identity-scoped rather than a free-standing count.
+
+New public commands:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-get --elf C:\private\libObj.so --json
+python -m fwplatform.cli sdk event-manager-constructor --elf C:\private\libObj.so --json
+```
+
+The primary contract now links the query contract and the descriptive header
+contains the query offsets/status constants. Runtime-verified and callable
+core API counts remain zero. Focused and full tests must be rerun after this
+checkpoint; the latest pre-checkpoint full suite was 434 tests.

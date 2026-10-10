@@ -1355,3 +1355,42 @@ the same pointer through `_ZdlPv` at `0x7ef438`. This supports a
 `STATIC_INFERRED` heap-owned-subobject relationship. The owner type and
 constructor remain unknown, so this evidence does not promote either body to
 a confirmed EventManager destructor or a callable SDK API.
+
+## ParamList query ABI and EventManager construction witness
+
+The authenticated primary-ELF query probe is available locally as:
+
+```powershell
+python -m fwplatform.cli sdk paramlist-get --elf C:\private\libObj.so --json
+```
+
+`fwplatform.paramlist_get_probe` rechecks the exact 3.21 SHA-256 before
+decoding. It records the `ParamList::get` Thumb-tagged symbol at `0x7edacb`,
+the key/discriminator comparisons, the `+0x0c` payload getter, the
+`0x42ac00` output write and the `0/1` status observations. The result is a
+borrowed-pointer candidate: the function does not retain the element, and the
+same-container clear/replacement paths can destroy it. The concrete C++ return
+type, null-element behavior outside the bounded body, external locking,
+concurrent mutation and runtime loader binding remain UNKNOWN.
+
+The sanitized contract is `sdk/paramlist_get_3_21.json`; it is linked from
+`sdk/core_3_21_primary_helper_contracts.json`. `ParamList::get`, the wrappers
+at `0x42abcc`, `0x42abdc`, `0x42ac00`, and the forwarder at `0xe5b20` remain
+`safe_to_call=false`, `runtime_verified=false` and `callable=false`.
+
+The constructor-like EventManager owner initializer can be checked with:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-constructor --elf C:\private\libObj.so --json
+```
+
+The bounded primary instructions initialize the owner fields used by the
+symbol-bound `EventManager::push` and `EventManager::count` methods, including
+the provider candidate at `+0x14` and the heap-owned subobject candidate at
+`+0x10`. No source-level constructor symbol, RTTI/vtable ownership, provider
+type or complete destructor pair was found, so the relationship is
+`STATIC_INFERRED`. The sanitized contract also records a private targeted
+Ghidra 12.1.3 cross-check (exit 0, complete marker, 5 targets, 260
+instructions, 18 blocks and 65 CFG/call edges). This is a bounded
+`-noanalysis` export, not whole-program Auto Analysis; raw export/project
+files stay private.
