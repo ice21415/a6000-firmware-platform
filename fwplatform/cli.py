@@ -266,6 +266,10 @@ def build_parser() -> argparse.ArgumentParser:
     callees = commands.add_parser("callees"); callees.add_argument("term"); callees.add_argument("--json", action="store_true")
     callsite = commands.add_parser("callsite"); callsite.add_argument("term"); callsite.add_argument("--json", action="store_true")
     xrefs = commands.add_parser("xrefs"); xrefs.add_argument("address"); xrefs.add_argument("--json", action="store_true")
+    hardware = commands.add_parser("hardware")
+    hardware_sub = hardware.add_subparsers(dest="hardware_command", required=True)
+    hardware_validate = hardware_sub.add_parser("validate", help="Read-only host USB enumeration; no PTP commands")
+    hardware_validate.add_argument("--json", action="store_true")
     protocol = commands.add_parser("protocol"); protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
     protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
     state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
@@ -597,6 +601,11 @@ def main(argv: list[str] | None = None) -> int:
         result = simulate_protocol(args.scenario)
         _json_or_text(result, args.json)
         return 0 if result["status"] == "PASS" else 2
+    if args.command == "hardware" and args.hardware_command == "validate":
+        from .hardware_validation import enumerate_usb
+        result = enumerate_usb().to_dict()
+        _json_or_text(result, args.json)
+        return 0 if result["status"] in {"NOT_CONNECTED", "READ_ONLY_VERIFIED"} else 2
     if args.command == "sdk" and args.sdk_command == "request-frontends":
         from .model_request_frontends import audit_model_request_frontends
         result = audit_model_request_frontends(args.fixture,
