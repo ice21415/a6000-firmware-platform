@@ -32,12 +32,19 @@ class AppEventPrimaryProbeTests(unittest.TestCase):
             report["observation"]["semaphore_dispatch_gate"]["wait_binding"]["candidates"][0]["symbol"],
             "osal_wai_sem_tmo",
         )
+        callback = report["observation"]["callback_application_gate"]["callback_dispatch"]
+        self.assertEqual(callback["target"], "UNRESOLVED_INDIRECT_CALL")
+        self.assertEqual(callback["status"], "CANDIDATE")
+        self.assertEqual(
+            report["observation"]["callback_application_helper"]["registration_call"]["target"],
+            "0x1116de",
+        )
         ghidra = report["ghidra_crosscheck"]
         self.assertEqual(ghidra["exit_code"], 0)
         self.assertEqual(ghidra["completion_marker"], "COMPLETE_TARGET_EXPORT")
         self.assertEqual(
             (ghidra["targets"], ghidra["instructions"], ghidra["basic_blocks"], ghidra["cfg_edges"]),
-            (8, 81, 11, 20),
+            (11, 142, 26, 47),
         )
         self.assertFalse(ghidra["auto_analysis_completed"])
 
@@ -66,6 +73,11 @@ class AppEventPrimaryProbeTests(unittest.TestCase):
             "observation_semaphore_dispatch_gate",
             validate_app_event_primary(report)["errors"],
         )
+
+    def test_indirect_callback_target_cannot_be_promoted(self):
+        report = _report()
+        report["observation"]["callback_application_gate"]["callback_dispatch"]["target"] = "0x123456"
+        self.assertIn("callback_target_promotion", validate_app_event_primary(report)["errors"])
 
     def test_cli_exposes_primary_command(self):
         args = build_parser().parse_args([

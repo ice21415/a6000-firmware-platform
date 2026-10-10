@@ -24,13 +24,16 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "dispatch_tail", "entry": 0x7EECAC, "size": 0x10},
     {"name": "semaphore_dispatch_gate", "entry": 0x7F21E8, "size": 0x28},
     {"name": "semaphore_application_gate", "entry": 0x7F2210, "size": 0x24},
+    {"name": "callback_application_gate", "entry": 0x7F2238, "size": 0x28},
     {"name": "guarded_application_helper", "entry": 0x7F099C, "size": 0x22},
     {"name": "dispatch_count_thunk", "entry": 0x7F0AA0, "size": 0x0C},
+    {"name": "callback_application_helper", "entry": 0x7F0AAC, "size": 0x20},
 )
 
 SEMAPHORE_LITERAL = 0x830451
 SEMAPHORE_DISPATCH_ENTRY = 0x7F21E8
 SEMAPHORE_APPLICATION_ENTRY = 0x7F2210
+CALLBACK_APPLICATION_ENTRY = 0x7F2238
 WAIT_PLT = 0xE0E38
 SIGNAL_PLT = 0xE1C4C
 
@@ -223,6 +226,78 @@ def _observe_count_thunk(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_callback_helper(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the callback-registration helper without naming its container."""
+    _require(rows, 0x7F0AAC, "push")
+    _require(rows, 0x7F0AB2, "mov", operands="r4, r0")
+    _require(rows, 0x7F0AB4, "str", operands="r1, [r7, #4]")
+    _require(rows, 0x7F0AB6, "bl", target=0x7F0916)
+    _require(rows, 0x7F0ABA, "cbz", target=0x7F0AC4)
+    _require(rows, 0x7F0ABC, "mov", operands="r0, r4")
+    _require(rows, 0x7F0ABE, "adds", operands="r1, r7, #4")
+    _require(rows, 0x7F0AC0, "bl", target=0x1116DE)
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "incoming r0 preserved in r4",
+        "argument": "incoming r1 saved at local [r7,#4] and passed to 0x7f0916",
+        "guard": "zero result from 0x7f0916 skips the 0x1116de call",
+        "registration_call": {
+            "target": "0x1116de",
+            "receiver": "original r0",
+            "argument": "address of saved r1 local",
+            "status": "PRIMARY_ELF_VERIFIED",
+        },
+        "helper_identities": "0x7f0916 and 0x1116de container/registration semantics UNKNOWN",
+    }
+
+
+def _observe_callback_gate(
+    fp: Any, elf: ELFFile, rows: dict[int, Any], *,
+    wait: dict[str, Any], signal: dict[str, Any],
+) -> dict[str, Any]:
+    """Record the wait/helper/signal gate and its unresolved callback target."""
+    _require(rows, CALLBACK_APPLICATION_ENTRY, "push")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 2, "mov", operands="r4, r0")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 6, "mov", operands="r5, r1")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 8, "ldr")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 10, "mov.w", immediate=-1)
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 14, "blx", target=WAIT_PLT)
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 18, "adds", operands="r0, r4, #4")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 20, "mov", operands="r1, r5")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 22, "bl", target=0x7F0AAC)
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 26, "ldr")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 28, "blx", target=SIGNAL_PLT)
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 32, "ldr", operands="r3, [r4]")
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 34, "cbz", target=CALLBACK_APPLICATION_ENTRY + 38)
+    _require(rows, CALLBACK_APPLICATION_ENTRY + 36, "blx", operands="r3")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "incoming r0 preserved in r4; incoming r1 preserved in r5",
+        "wait_timeout_argument": "r1 = -1 at the OSAL wait call; blocking/error meaning UNKNOWN",
+        "wait_binding": wait,
+        "signal_binding": signal,
+        "semaphore_literals": [
+            _observe_literal(fp, elf, rows, CALLBACK_APPLICATION_ENTRY + 8),
+            _observe_literal(fp, elf, rows, CALLBACK_APPLICATION_ENTRY + 26),
+        ],
+        "helper_call": {
+            "target": "0x7f0aac",
+            "relation": "DIRECT_CALL",
+            "arguments": "r0 = receiver + 4; r1 = original incoming r1",
+            "status": "PRIMARY_ELF_VERIFIED",
+        },
+        "callback_dispatch": {
+            "load": "ldr r3, [r4]",
+            "guard": "cbz skips the call when the loaded word is zero",
+            "call": "blx r3",
+            "target": "UNRESOLVED_INDIRECT_CALL",
+            "argument_state": "not independently established after osal_sig_sem",
+            "status": "CANDIDATE",
+        },
+        "synchronization": "wait -> helper -> signal -> guarded indirect call is instruction-verified; callback ownership and event semantics UNKNOWN",
+    }
+
+
 def probe_app_event_primary(
     elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA,
 ) -> dict[str, Any]:
@@ -257,8 +332,12 @@ def probe_app_event_primary(
                 helper_target=0x7F099C, wait=wait, signal=signal,
                 literal_loads=(0x7F221A, 0x7F2228),
             ),
+            "callback_application_gate": _observe_callback_gate(
+                fp, elf, rows["callback_application_gate"], wait=wait, signal=signal,
+            ),
             "guarded_application_helper": _observe_guarded_helper(rows["guarded_application_helper"]),
             "dispatch_count_thunk": _observe_count_thunk(rows["dispatch_count_thunk"]),
+            "callback_application_helper": _observe_callback_helper(rows["callback_application_helper"]),
         }
     return {
         "status": "LOCAL_PRIMARY_ELF_APP_EVENT_EVIDENCE_ONLY",
@@ -301,7 +380,8 @@ def validate_app_event_primary(report: dict[str, Any]) -> dict[str, Any]:
     observation = report.get("observation", {})
     for name in (
         "dispatch_tail", "semaphore_dispatch_gate", "semaphore_application_gate",
-        "guarded_application_helper", "dispatch_count_thunk",
+        "callback_application_gate", "guarded_application_helper", "dispatch_count_thunk",
+        "callback_application_helper",
     ):
         if not isinstance(observation.get(name), dict) or observation[name].get("status") != "PRIMARY_ELF_VERIFIED":
             errors.append(f"observation_{name}")
@@ -314,4 +394,11 @@ def validate_app_event_primary(report: dict[str, Any]) -> dict[str, Any]:
         literals = gate.get("semaphore_literals", [])
         if len(literals) != 2 or any(item.get("value") != hex(SEMAPHORE_LITERAL) for item in literals):
             errors.append(f"{name}_literal")
+    callback_gate = observation.get("callback_application_gate", {})
+    callback = callback_gate.get("callback_dispatch", {})
+    if callback.get("target") != "UNRESOLVED_INDIRECT_CALL" or callback.get("status") != "CANDIDATE":
+        errors.append("callback_target_promotion")
+    literals = callback_gate.get("semaphore_literals", [])
+    if len(literals) != 2 or any(item.get("value") != hex(SEMAPHORE_LITERAL) for item in literals):
+        errors.append("callback_application_gate_literal")
     return {"valid": not errors, "errors": sorted(set(errors))}

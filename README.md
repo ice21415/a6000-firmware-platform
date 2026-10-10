@@ -336,7 +336,9 @@ python -m fwplatform.cli sdk app-event-primary --elf C:\private\libObj.so --json
 The handoff is static evidence only. The event consumer, parameter keys,
 ModelCamera relationship, runtime behavior and callable API status remain
 unknown/false. The associated Ghidra profile is targeted `-noanalysis`
-metadata cross-checking; raw firmware-derived output is not public.
+metadata cross-checking; raw firmware-derived output is not public. The
+contract also records a third gate at `0x7f2238` and helper `0x7f0aac`; its
+final `blx r3` remains an unresolved callback candidate.
 
 ## 參與開發
 

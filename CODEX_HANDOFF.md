@@ -1526,9 +1526,15 @@ invoke local helpers with `receiver+4` between wait and signal. The guarded
 helper `0x7f099c` and dispatch thunk `0x7f0aa0` are bounded and recorded in
 the sanitized contract `sdk/app_event_primary_3_21.json`.
 
+The third gate at `0x7f2238` preserves its incoming `r1`, calls `0x7f0aac`
+between the same wait/signal pair, then loads `[receiver]` and conditionally
+executes `blx r3`. The indirect callback target is unresolved. `0x7f0aac`
+stores the argument, calls `0x7f0916`, and conditionally calls `0x1116de`;
+container, callback ABI and event semantics remain UNKNOWN.
+
 The private ASCII-path Ghidra 12.1.3 `app-event-primary` profile completed
-with exit 0 and `COMPLETE_TARGET_EXPORT`: 8 targets, 81 instructions, 11
-blocks and 20 CFG edges. `auto_analysis_completed=false` remains explicit;
+with exit 0 and `COMPLETE_TARGET_EXPORT`: 11 targets, 142 instructions, 26
+blocks and 47 CFG edges. `auto_analysis_completed=false` remains explicit;
 raw export/project files remain private. The initial non-ASCII script-path
 attempt failed and is not counted as an analysis success.
 
@@ -1539,6 +1545,6 @@ callable status remain UNKNOWN/false. Next target: locate an independently
 evidenced receiver/dispatcher or parameter-key use before promoting this
 handoff to an event relation.
 
-The six new fail-closed tests and the complete local suite (**495 tests**)
+The seven new fail-closed tests and the complete local suite (**496 tests**)
 pass. A direct CLI run against the authorized private ELF returned the pinned
 SHA, `osal_wai_sem_tmo`, and the application helper target `0x7f099c`.

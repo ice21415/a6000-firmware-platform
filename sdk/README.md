@@ -1510,5 +1510,6 @@ The App/Event handoff contract
 semaphore-gated path from `0x7eecac` to `0x7f21e8`/`0x7f2210`, including the
 static `osal_wai_sem_tmo` and `osal_sig_sem` bindings. This is a bounded
 primary-ELF observation; it does not identify event `0x11004003`'s consumer or
-make a runtime-safe API claim. Use the private-only command documented in the
-root README.
+make a runtime-safe API claim. It also records the third gate at `0x7f2238`
+and its unresolved indirect callback. Use the private-only command documented
+in the root README.

@@ -128,6 +128,70 @@
       },
       "synchronization": "wait -> helper -> signal sequence is instruction-verified; lock ownership and event semantics UNKNOWN"
     },
+    "callback_application_gate": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "receiver": "incoming r0 preserved in r4; incoming r1 preserved in r5",
+      "wait_timeout_argument": "r1 = -1 at the OSAL wait call; blocking/error meaning UNKNOWN",
+      "wait_binding": {
+        "entry_vma": "0xe0e38",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102e86c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "osal_wai_sem_tmo",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "signal_binding": {
+        "entry_vma": "0xe1c4c",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102ece0",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "osal_sig_sem",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "semaphore_literals": [
+        {
+          "instruction": "0x7f2240",
+          "literal_vma": "0x7f2260",
+          "value": "0x830451",
+          "status": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "instruction": "0x7f2252",
+          "literal_vma": "0x7f2260",
+          "value": "0x830451",
+          "status": "PRIMARY_ELF_VERIFIED"
+        }
+      ],
+      "helper_call": {
+        "target": "0x7f0aac",
+        "relation": "DIRECT_CALL",
+        "arguments": "r0 = receiver + 4; r1 = original incoming r1",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "callback_dispatch": {
+        "load": "ldr r3, [r4]",
+        "guard": "cbz skips the call when the loaded word is zero",
+        "call": "blx r3",
+        "target": "UNRESOLVED_INDIRECT_CALL",
+        "argument_state": "not independently established after osal_sig_sem",
+        "status": "CANDIDATE"
+      },
+      "synchronization": "wait -> helper -> signal -> guarded indirect call is instruction-verified; callback ownership and event semantics UNKNOWN"
+    },
     "guarded_application_helper": {
       "status": "PRIMARY_ELF_VERIFIED",
       "input": "opaque pointer in r0 preserved in r5",
@@ -140,6 +204,19 @@
       "status": "PRIMARY_ELF_VERIFIED",
       "operation": "tail wrapper to local helper 0x7f0a84",
       "source_semantics": "UNKNOWN"
+    },
+    "callback_application_helper": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "receiver": "incoming r0 preserved in r4",
+      "argument": "incoming r1 saved at local [r7,#4] and passed to 0x7f0916",
+      "guard": "zero result from 0x7f0916 skips the 0x1116de call",
+      "registration_call": {
+        "target": "0x1116de",
+        "receiver": "original r0",
+        "argument": "address of saved r1 local",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "helper_identities": "0x7f0916 and 0x1116de container/registration semantics UNKNOWN"
     }
   },
   "event_id_under_investigation": "0x11004003",
@@ -153,6 +230,7 @@
     "The gate/helper chain does not prove that event 0x11004003 reaches these sites",
     "Event consumer, parameter keys 7/8 and ModelCamera dispatch remain UNKNOWN",
     "No firmware execution or device interaction",
+    "Callback gate indirect target is unresolved; callback ownership and argument state remain UNKNOWN",
     "Ghidra result is a targeted metadata/CFG cross-check, not whole-program Auto Analysis"
   ],
   "ghidra_crosscheck": {
@@ -168,10 +246,10 @@
     "image_base": "0x10000",
     "address_space": "ram",
     "elf_vma_preserved_separately": true,
-    "targets": 8,
-    "instructions": 81,
-    "basic_blocks": 11,
-    "cfg_edges": 20,
+    "targets": 11,
+    "instructions": 142,
+    "basic_blocks": 26,
+    "cfg_edges": 47,
     "raw_export_private": true
   }
 }

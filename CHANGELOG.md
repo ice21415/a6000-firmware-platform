@@ -10,6 +10,11 @@
   Ghidra profile and six fail-closed tests. Event `0x11004003`, ModelCamera
   consumer identity, parameter keys, runtime behavior and callable SDK status
   remain unknown/false; no firmware bytes or device operations are included.
+- Extended the same evidence chain through the third gate `0x7f2238` and
+  helper `0x7f0aac`; the post-signal `blx r3` is retained as an unresolved
+  callback candidate rather than a fabricated target. The private Ghidra
+  cross-check now covers 11 targets, 142 instructions, 26 blocks and 47 CFG
+  edges.
 
 ## Unreleased -- Camera EE-neutral primary evidence
 

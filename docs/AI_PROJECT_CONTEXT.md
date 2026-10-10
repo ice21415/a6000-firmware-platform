@@ -1014,3 +1014,10 @@ while `auto_analysis_completed=false` remains explicit. The result is
 `PRIMARY_ELF_VERIFIED` for bounded instruction/relocation facts only. Event
 `0x11004003`, parameter keys 7/8, ModelCamera consumer identity, helper
 semantics, runtime behavior and callable SDK status remain UNKNOWN/false.
+
+The same contract now includes the third callback gate at `0x7f2238` and
+helper `0x7f0aac`. It verifies the shared semaphore wait/helper/signal shape,
+then records `[receiver]` followed by an unresolved indirect `blx r3`; the
+callback target and argument state remain `CANDIDATE`/UNKNOWN. The corrected
+Ghidra profile is 11 targets, 142 instructions, 26 blocks and 47 edges, still
+targeted `-noanalysis` with no public raw export.

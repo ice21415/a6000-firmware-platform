@@ -1019,6 +1019,16 @@ object, reads one word, calls a second helper, and returns that word. The
 three local helper identities and their source-level meaning remain UNKNOWN.
 The dispatch thunk at `0x7f0aa0` is only a tail wrapper to `0x7f0a84`.
 
+The third gate at `0x7f2238` preserves the incoming `r1`, waits on the same
+semaphore, calls `0x7f0aac` with `receiver+4` and the preserved argument,
+signals the semaphore, then loads a word from `[receiver]`. A zero value skips
+the final `blx r3`; a nonzero value is an indirect callback candidate whose
+target and calling arguments are unresolved. Its helper `0x7f0aac` stores the
+argument locally, calls `0x7f0916`, and only on a nonzero result calls
+`0x1116de` with the original receiver and the saved argument address. These
+are direct control-flow facts; they do not identify the callback class,
+container, event ID or completion protocol.
+
 This proves a semaphore-gated handoff and its static PLT bindings at
 `PRIMARY_ELF_VERIFIED` level. It does **not** prove that event `0x11004003`
 reaches these sites, decode parameter keys 7/8, identify a ModelCamera
@@ -1032,12 +1042,12 @@ python -m fwplatform.cli sdk app-event-primary --elf C:\\private\\libObj.so --js
 ```
 
 The private Ghidra 12.1.3 `app-event-primary` cross-check completed with exit
-code 0 and `COMPLETE_TARGET_EXPORT` (8 bounded bodies, 81 instruction rows,
-11 blocks and 20 CFG edges). It uses targeted `-noanalysis`; its metadata
+code 0 and `COMPLETE_TARGET_EXPORT` (11 bounded bodies, 142 instruction rows,
+26 blocks and 47 CFG edges). It uses targeted `-noanalysis`; its metadata
 records `auto_analysis_completed=false`, and raw firmware-derived output stays
 private. The first non-ASCII script-path attempt failed to locate the script;
 the corrected ASCII-path run is the only run counted as successful.
 
-The six new fail-closed tests and the complete local suite (**495 tests**)
+The seven new fail-closed tests and the complete local suite (**496 tests**)
 pass. The private CLI probe was rerun against the authorized ELF and returned
 the expected SHA, `osal_wai_sem_tmo` binding and `0x7f099c` helper target.
