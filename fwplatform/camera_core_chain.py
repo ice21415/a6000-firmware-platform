@@ -523,4 +523,4 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
             errors.append("ghidra_auto_analysis_promotion")
         if ghidra.get("raw_export_private") is not True or ghidra.get("firmware_bytes_public") is not False:
             errors.append("ghidra_visibility")
-    return {"valid": not errors, "errors": sorted(set(errors))}\n
+    return {"valid": not errors, "errors": sorted(set(errors))}

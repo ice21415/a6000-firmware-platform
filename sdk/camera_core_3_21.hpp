@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 // Descriptive, static-only Camera Core evidence for ILCE-6000 firmware 3.21.
 // The declarations preserve observed ARM/AAPCS register roles and positional
@@ -9,6 +10,12 @@
 // a live camera.  UNKNOWN fields intentionally remain unknown until an
 // independent ABI and runtime validation exists.
 namespace a6000_research::camera_core_3_21 {
+
+// All *_arm32 fields below describe a 32-bit ARM firmware word.  They are
+// intentionally not C++ pointers: this header is a static evidence schema,
+// not a callable ABI wrapper, and must retain the target layout on 64-bit
+// analysis hosts.
+using Arm32Word = std::uint32_t;
 
 enum class EvidenceLevel : std::uint8_t {
   PrimaryElfVerified,
@@ -22,10 +29,21 @@ struct ParamList;  // Opaque; no complete public layout is claimed here.
 // Register roles observed at ViewBase::requestModelExecute (0x12106e) and
 // viewManagerIf::requestModelExecute (0x1250c0).
 struct RequestModelExecuteObservation {
-  const char* model_name_r1;
+  Arm32Word model_name_r1_arm32;
+  Arm32Word selector_r2;
+  Arm32Word param_list_r3_arm32;
+  Arm32Word receiver_r0_arm32;
+  EvidenceLevel evidence;
+};
+
+// Host-only view for tooling that has already resolved an ARM32 word to a
+// local object.  Its pointer layout is deliberately separate from the
+// target-width observation above and has no firmware ABI meaning.
+struct RequestModelExecuteHostObservation {
+  const char* model_name_r1_host;
   std::uint32_t selector_r2;
-  const ParamList* param_list_r3;
-  std::uint32_t receiver_r0;
+  const ParamList* param_list_r3_host;
+  const void* receiver_r0_host;
   EvidenceLevel evidence;
 };
 
@@ -36,9 +54,18 @@ struct RequestEventEnvelopeObservation {
   static constexpr std::uint32_t event_id = 0x11004003;
   static constexpr std::uint32_t model_key = 7;
   static constexpr std::uint32_t selector_key = 8;
-  std::uint32_t model_identifier;
-  std::uint32_t transformed_selector;
-  const ParamList* optional_param_list;
+  Arm32Word model_identifier;
+  Arm32Word transformed_selector;
+  Arm32Word optional_param_list_arm32;
+  EvidenceLevel evidence;
+};
+
+// Host-only interpretation view.  This is not layout-compatible with the
+// ARM32 observation and must not be passed to firmware code.
+struct RequestEventEnvelopeHostObservation {
+  Arm32Word model_identifier;
+  Arm32Word transformed_selector;
+  const ParamList* optional_param_list_host;
   EvidenceLevel evidence;
 };
 
@@ -78,6 +105,8 @@ struct ModelCameraActionObservation {
   EvidenceLevel evidence;
 };
 
+static_assert(sizeof(Arm32Word) == 4);
+static_assert(std::is_standard_layout_v<RequestEventEnvelopeObservation>);
 static_assert(sizeof(RequestEventEnvelopeObservation) == 16);
 
 }  // namespace a6000_research::camera_core_3_21
