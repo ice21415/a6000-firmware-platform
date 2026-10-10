@@ -989,3 +989,11 @@ address spaces. Raw export and project remain private, and
 `auto_analysis_completed=false` is intentional. Runtime-verified and callable
 SDK counts remain zero; next work is ObjMsg dataflow, receiver/completion and
 Camera readiness evidence.
+
+The latest helper continuation extends this contract through `0x131e94`,
+`0x131bcc`, `0x13228c`, `0x1323b4` and `0x10cf18`. It records the
+`ModelManager::checkStatus(int)` PLT binding, 20-byte envelope layout,
+`strncpy`/`memset` paths, `setBlogData` forwarding and the `NeutrOn`
+PC-relative label. The private Ghidra targeted cross-check is now seven
+targets / 166 instructions / 16 blocks / 39 edges; whole-program Auto
+Analysis and runtime/callable claims remain unavailable.

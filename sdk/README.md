@@ -1496,3 +1496,11 @@ python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so 
 The associated Ghidra profile is `camera-ee-neutral`; it is targeted
 `-noanalysis` metadata cross-checking and does not constitute whole-program
 Auto Analysis.
+
+The contract also includes the helper chain. `0x131e94` reads `+0x20` and
+forwards to `ModelManager::checkStatus(int)`. `0x1323b4` copies an optional
+8-byte source, builds a 20-byte payload through `0x131bcc`, and calls
+`0x13228c`; that wrapper tail-calls `setBlogData` with selector `0x0a`.
+The bounded PC-relative label is `NeutrOn`. These fields preserve
+`PRIMARY_ELF_VERIFIED` instruction evidence while leaving protocol meaning,
+object layout, runtime safety and callable status unknown.

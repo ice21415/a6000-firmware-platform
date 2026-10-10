@@ -1,7 +1,7 @@
 """Bounded primary-ELF evidence probe for the Camera EE-neutral path.
 
 The probe authenticates the private, SHA-pinned A6000 3.21 ``libObj.so``
-before decoding two small Thumb regions.  It records instruction facts and
+before decoding bounded Thumb regions.  It records instruction facts and
 unique file-backed PLT relocations only.  Research aliases such as
 ``ModelCamera::pvt_ExeEENeutralCmd`` remain descriptive: the ELF does not
 provide an independent semantic symbol for those entry points.
@@ -11,6 +11,7 @@ This module never executes firmware and never exposes instruction bytes.
 from __future__ import annotations
 
 import hashlib
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,16 @@ SENDER_ENTRY = 0x443D14
 SENDER_SIZE = 0x80
 COMMAND_ENTRY = 0x4B1A20
 COMMAND_SIZE = 0x80
+SELECTOR_GETTER_ENTRY = 0x131E94
+SELECTOR_GETTER_SIZE = 0x0E
+HEADER_BUILDER_ENTRY = 0x131BCC
+HEADER_BUILDER_SIZE = 0x34
+SET_BLOG_DATA_ENTRY = 0x13228C
+SET_BLOG_DATA_SIZE = 0x18
+ENVELOPE_BUILDER_ENTRY = 0x1323B4
+ENVELOPE_BUILDER_SIZE = 0x50
+LOCAL_WORD_GETTER_ENTRY = 0x10CF18
+LOCAL_WORD_GETTER_SIZE = 0x08
 
 _SENDER_BINDINGS = {
     0xDE540: "_ZN3MWF6ObjMsgC1Ejj",
@@ -51,24 +62,32 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
+def _read_load_range(
+    fp: Any, elf: ELFFile, start: int, size: int, *, executable: bool | None,
+) -> bytes:
     if size <= 0 or size > 0x180:
         raise ValueError("Camera EE-neutral probe exceeds bounded read limit")
     offsets: list[int] = []
     for segment in elf.iter_segments():
-        if segment["p_type"] != "PT_LOAD" or not (int(segment["p_flags"]) & 1):
+        if segment["p_type"] != "PT_LOAD":
+            continue
+        if executable is not None and bool(int(segment["p_flags"]) & 1) != executable:
             continue
         base = int(segment["p_vaddr"])
         count = int(segment["p_filesz"])
         if base <= start and start + size <= base + count:
             offsets.append(int(segment["p_offset"]) + start - base)
     if len(offsets) != 1:
-        raise ValueError(f"ELF_VMA 0x{start:x} is not uniquely executable")
+        raise ValueError(f"ELF_VMA 0x{start:x} is not uniquely mapped in PT_LOAD")
     fp.seek(offsets[0])
     data = fp.read(size)
     if len(data) != size:
         raise ValueError("truncated executable range")
     return data
+
+
+def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
+    return _read_load_range(fp, elf, start, size, executable=True)
 
 
 def _decode_range(fp: Any, elf: ELFFile, entry: int, size: int) -> dict[int, Any]:
@@ -105,10 +124,12 @@ def _require(
     return ins
 
 
-def _binding(fp: Any, elf: ELFFile, entry: int, symbol: str) -> dict[str, Any]:
+def _binding(
+    fp: Any, elf: ELFFile, entry: int, symbol: str, *, thumb_stub: bool = False,
+) -> dict[str, Any]:
     # These are ARM-state PLT veneers reached by Thumb BLX.  The resolver's
     # thumb_stub=True mode is only for an explicit BX-PC interworking prefix.
-    result = resolve_plt_binding(fp, elf, entry, thumb_stub=False)
+    result = resolve_plt_binding(fp, elf, entry, thumb_stub=thumb_stub)
     candidates = result.get("candidates") or []
     if result.get("status") != "VERIFIED_STATIC" or len(candidates) != 1:
         raise ValueError(f"PLT binding at 0x{entry:x} is not unique")
@@ -234,7 +255,37 @@ def _observe_sender(fp: Any, elf: ELFFile, rows: dict[int, Any]) -> dict[str, An
     }
 
 
-def _observe_command(rows: dict[int, Any]) -> dict[str, Any]:
+def _read_vma(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
+    return _read_load_range(fp, elf, start, size, executable=None)
+
+
+def _observe_literal_label(fp: Any, elf: ELFFile, rows: dict[int, Any]) -> dict[str, Any]:
+    """Verify the bounded PC-relative label used by the command callsite."""
+    _require(rows, 0x4B1A64, "ldr", operands="r3, [pc, #0x40]")
+    _require(rows, 0x4B1A70, "add", operands="r3, pc")
+    # Thumb LDR (literal) uses Align(address + 4, 4); ADD (PC) uses
+    # address + 4.  Keep both the literal slot and resulting pointer in
+    # ELF_VMA rather than conflating them with a Ghidra address.
+    literal_slot_vma = ((0x4B1A64 + 4) & ~3) + 0x40
+    loaded = _read_vma(fp, elf, literal_slot_vma, 4)
+    relative = struct.unpack("<I", loaded)[0]
+    label_vma = (relative + 0x4B1A70 + 4) & 0xFFFFFFFF
+    label = _read_vma(fp, elf, label_vma, 8)
+    if label != b"NeutrOn\x00":
+        raise ValueError("unexpected EE-neutral label bytes")
+    return {
+        "literal_slot_vma": hex(literal_slot_vma),
+        "relative_word": hex(relative),
+        "label_vma": hex(label_vma),
+        "copied_bytes": 8,
+        "text_prefix": "NeutrOn",
+        "status": "PRIMARY_ELF_VERIFIED",
+    }
+
+
+def _observe_command(
+    fp: Any, elf: ELFFile, rows: dict[int, Any],
+) -> dict[str, Any]:
     checks = [
         (COMMAND_ENTRY, "push", "{r4, r5, r6, r7, lr}", None, None),
         (COMMAND_ENTRY + 0x02, "mov", "r4, r0", None, None),
@@ -255,8 +306,10 @@ def _observe_command(rows: dict[int, Any]) -> dict[str, Any]:
         (COMMAND_ENTRY + 0x3C, "movs", "r1, #0x12", None, 0x12),
         (COMMAND_ENTRY + 0x3E, "mov", "r0, r4", None, None),
         (COMMAND_ENTRY + 0x40, "bl", None, 0x131E94, None),
+        (COMMAND_ENTRY + 0x44, "ldr", "r3, [pc, #0x40]", None, None),
         (COMMAND_ENTRY + 0x46, "movs", "r1, #0xe", None, 0xE),
         (COMMAND_ENTRY + 0x4A, "movw", "r2, #0x33ba", None, 0x33BA),
+        (COMMAND_ENTRY + 0x50, "add", "r3, pc", None, None),
         (COMMAND_ENTRY + 0x52, "stm.w", "sp, {r5, r6}", None, None),
         (COMMAND_ENTRY + 0x56, "bl", None, 0x1323B4, None),
         (COMMAND_ENTRY + 0x5A, "add.w", "r4, r4, #0x2700", None, 0x2700),
@@ -323,10 +376,230 @@ def _observe_command(rows: dict[int, Any]) -> dict[str, Any]:
             "status": "PRIMARY_ELF_VERIFIED",
             "semantic_identity": "UNKNOWN",
         },
+        "pc_relative_label": _observe_literal_label(fp, elf, rows),
         "cleanup_helpers": [hex(0x4DF2C2), hex(0x4DF27C)],
         "semantic_identity": "ModelCamera EE-neutral command candidate; source-level alias is STATIC_INFERRED",
         "runtime_verified": False,
         "callable": False,
+    }
+
+
+def _observe_selector_getter(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    rows = _decode_range(fp, elf, SELECTOR_GETTER_ENTRY, SELECTOR_GETTER_SIZE)
+    checks = [
+        (SELECTOR_GETTER_ENTRY, "push", "{r7, lr}", None, None),
+        (SELECTOR_GETTER_ENTRY + 2, "add", "r7, sp, #0", None, None),
+        (SELECTOR_GETTER_ENTRY + 4, "ldr", "r0, [r0, #0x20]", None, None),
+        (SELECTOR_GETTER_ENTRY + 6, "pop.w", "{r7, lr}", None, None),
+        (SELECTOR_GETTER_ENTRY + 10, "b.w", None, 0xDF964, None),
+    ]
+    facts = []
+    for address, mnemonic, operands, target, immediate in checks:
+        facts.append(
+            _instruction_fact(
+                _require(
+                    rows, address, mnemonic, operands=operands,
+                    target=target, immediate=immediate,
+                )
+            )
+        )
+    return {
+        "entry_vma": hex(SELECTOR_GETTER_ENTRY),
+        "bounded_extent_bytes": SELECTOR_GETTER_SIZE,
+        "address_space": ADDRESS_SPACE,
+        "instruction_mode": "Thumb",
+        "receiver_field_offset": hex(0x20),
+        "tail_target_vma": hex(0xDF964),
+        "tail_target_symbol": "_ZN12ModelManager11checkStatusEi",
+        "tail_target_abi": "r0=[receiver+0x20] as implicit this; r1 is preserved selector; return is propagated",
+        "binding": _binding(
+            fp, elf, 0xDF964, "_ZN12ModelManager11checkStatusEi",
+            thumb_stub=True,
+        ),
+        "instructions": facts,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_identity": "ModelManager::checkStatus forwarding wrapper; source-level owner of the wrapper remains UNKNOWN",
+    }
+
+
+def _observe_local_word_getter(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    rows = _decode_range(fp, elf, LOCAL_WORD_GETTER_ENTRY, LOCAL_WORD_GETTER_SIZE)
+    checks = [
+        (LOCAL_WORD_GETTER_ENTRY, "push", "{r7, lr}", None, None),
+        (LOCAL_WORD_GETTER_ENTRY + 2, "add", "r7, sp, #0", None, None),
+        (LOCAL_WORD_GETTER_ENTRY + 4, "ldr", "r0, [r0, #0x18]", None, None),
+        (LOCAL_WORD_GETTER_ENTRY + 6, "pop", "{r7, pc}", None, None),
+    ]
+    facts = [
+        _instruction_fact(
+            _require(rows, address, mnemonic, operands=operands,
+                     target=target, immediate=immediate)
+        )
+        for address, mnemonic, operands, target, immediate in checks
+    ]
+    return {
+        "entry_vma": hex(LOCAL_WORD_GETTER_ENTRY),
+        "bounded_extent_bytes": LOCAL_WORD_GETTER_SIZE,
+        "address_space": ADDRESS_SPACE,
+        "instruction_mode": "Thumb",
+        "receiver_field_offset": hex(0x18),
+        "return_register": "r0",
+        "instructions": facts,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_identity": "unnamed local word getter; field meaning UNKNOWN",
+    }
+
+
+def _observe_header_builder(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    rows = _decode_range(fp, elf, HEADER_BUILDER_ENTRY, HEADER_BUILDER_SIZE)
+    # The key stores are checked separately so the record remains readable;
+    # no source-level message type is assigned to this byte layout.
+    checks = [
+        (0x131BCC, "push", None, None, None),
+        (0x131BD2, "movs", None, None, 0),
+        (0x131BDA, "strh", "r0, [r4]", None, None),
+        (0x131BDC, "strb", "r2, [r4, #2]", None, None),
+        (0x131BDE, "strb", "r1, [r4, #3]", None, None),
+        (0x131BE0, "strh", "r3, [r4, #4]", None, None),
+        (0x131BE2, "strh", "r0, [r4, #6]", None, None),
+        (0x131BE4, "cbz", None, 0x131BF0, None),
+        (0x131BF6, "blx", None, 0xDE37C, None),
+        (0x131BFC, "pop", "{r3, r4, r5, r6, r7, pc}", None, None),
+    ]
+    facts = [
+        _instruction_fact(
+            _require(rows, address, mnemonic, operands=operands,
+                     target=target, immediate=immediate)
+        )
+        for address, mnemonic, operands, target, immediate in checks
+    ]
+    return {
+        "entry_vma": hex(HEADER_BUILDER_ENTRY),
+        "bounded_extent_bytes": HEADER_BUILDER_SIZE,
+        "address_space": ADDRESS_SPACE,
+        "instruction_mode": "Thumb",
+        "layout": {
+            "+0x00": "u16 zero",
+            "+0x02": "u8 from r2",
+            "+0x03": "u8 from r1",
+            "+0x04": "u16 from r3",
+            "+0x06": "u16 zero",
+            "+0x08": "+0x1c source pointer, 20 bytes; null source is memset zero",
+        },
+        "null_source": {
+            "guard": "cbz fifth stack argument",
+            "callee_symbol": "memset",
+            "callee_vma": hex(0xDE37C),
+            "arguments": "dest=r0+8, fill=0, length=0x14",
+        },
+        "bindings": {
+            hex(0xDE37C): _binding(fp, elf, 0xDE37C, "memset"),
+        },
+        "instructions": facts,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_identity": "20-byte payload envelope header builder; protocol namespace UNKNOWN",
+    }
+
+
+def _observe_set_blog_data(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    rows = _decode_range(fp, elf, SET_BLOG_DATA_ENTRY, SET_BLOG_DATA_SIZE)
+    checks = [
+        (0x13228C, "push", None, None, None),
+        (0x132292, "bl", None, 0x10CF18, None),
+        (0x132298, "strh", "r0, [r4]", None, None),
+        (0x13229A, "movs", None, None, 0x0A),
+        (0x1322A0, "b.w", None, 0xDE480, None),
+    ]
+    facts = [
+        _instruction_fact(
+            _require(rows, address, mnemonic, operands=operands,
+                     target=target, immediate=immediate)
+        )
+        for address, mnemonic, operands, target, immediate in checks
+    ]
+    return {
+        "entry_vma": hex(SET_BLOG_DATA_ENTRY),
+        "bounded_extent_bytes": SET_BLOG_DATA_SIZE,
+        "address_space": ADDRESS_SPACE,
+        "instruction_mode": "Thumb",
+        "local_word_getter_vma": hex(LOCAL_WORD_GETTER_ENTRY),
+        "local_word_getter_field": hex(0x18),
+        "set_blog_data_vma": hex(0xDE480),
+        "set_blog_data_symbol": "setBlogData",
+        "set_blog_data_abi": "r0=0x0a; r1=envelope pointer; return is propagated through tail branch",
+        "binding": _binding(fp, elf, 0xDE480, "setBlogData", thumb_stub=True),
+        "instructions": facts,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_identity": "setBlogData forwarding wrapper; blog/event meaning UNKNOWN",
+    }
+
+
+def _observe_envelope_builder(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    rows = _decode_range(fp, elf, ENVELOPE_BUILDER_ENTRY, ENVELOPE_BUILDER_SIZE)
+    checks = [
+        (0x1323B4, "push", None, None, None),
+        (0x1323BE, "ldr", "r2, [r7, #0x48]", None, None),
+        (0x1323C2, "str", "r2, [r7, #0x1c]", None, None),
+        (0x1323C4, "ldr", "r2, [r7, #0x4c]", None, None),
+        (0x1323C8, "ldr", "r2, [r7, #0x50]", None, None),
+        (0x1323CC, "movs", None, None, 0),
+        (0x1323D2, "cbz", None, 0x1323E0, None),
+        (0x1323DA, "adds", None, None, 8),
+        (0x1323DC, "blx", None, 0xDCE00, None),
+        (0x1323EE, "bl", None, HEADER_BUILDER_ENTRY, None),
+        (0x1323F6, "bl", None, SET_BLOG_DATA_ENTRY, None),
+        (0x1323FA, "movs", None, None, 0),
+        (0x132402, "pop", "{r4, r5, r6, r7, pc}", None, None),
+    ]
+    facts = [
+        _instruction_fact(
+            _require(rows, address, mnemonic, operands=operands,
+                     target=target, immediate=immediate)
+        )
+        for address, mnemonic, operands, target, immediate in checks
+    ]
+    return {
+        "entry_vma": hex(ENVELOPE_BUILDER_ENTRY),
+        "bounded_extent_bytes": ENVELOPE_BUILDER_SIZE,
+        "address_space": ADDRESS_SPACE,
+        "instruction_mode": "Thumb",
+        "input_registers": {
+            "r0": "receiver/target candidate",
+            "r1": "copied to envelope header byte +0x02 through header builder",
+            "r2": "low 16 bits copied to envelope header halfword +0x04",
+            "r3": "optional pointer; first 8 bytes copied when non-null",
+        },
+        "stack_arguments": {
+            "r7+0x48": "copied to local +0x1c",
+            "r7+0x4c": "copied to local +0x20",
+            "r7+0x50": "copied to local +0x24",
+        },
+        "payload": {
+            "source": "local +0x1c",
+            "length": 0x14,
+            "optional_pointer_copy": "local +0x28, length 8 through strncpy; local +0x28/+0x2c initially zero",
+            "protocol_meaning": "UNKNOWN",
+        },
+        "calls": {
+            "header_builder": hex(HEADER_BUILDER_ENTRY),
+            "set_blog_data": hex(SET_BLOG_DATA_ENTRY),
+            "strncpy_vma": hex(0xDCE00),
+        },
+        "strncpy_binding": _binding(fp, elf, 0xDCE00, "strncpy"),
+        "return": "zero in r0 after setBlogData call",
+        "instructions": facts,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_identity": "generic 20-byte envelope builder; event/action meaning UNKNOWN",
+    }
+
+
+def _observe_helper_evidence(fp: Any, elf: ELFFile) -> dict[str, Any]:
+    return {
+        "selector_getter": _observe_selector_getter(fp, elf),
+        "local_word_getter": _observe_local_word_getter(fp, elf),
+        "header_builder": _observe_header_builder(fp, elf),
+        "set_blog_data": _observe_set_blog_data(fp, elf),
+        "envelope_builder": _observe_envelope_builder(fp, elf),
     }
 
 
@@ -349,7 +622,8 @@ def probe_camera_ee_neutral(
         sender_rows = _decode_range(fp, elf, SENDER_ENTRY, SENDER_SIZE)
         command_rows = _decode_range(fp, elf, COMMAND_ENTRY, COMMAND_SIZE)
         sender = _observe_sender(fp, elf, sender_rows)
-        command = _observe_command(command_rows)
+        command = _observe_command(fp, elf, command_rows)
+        helpers = _observe_helper_evidence(fp, elf)
     return {
         "schema_version": 1,
         "status": "LOCAL_PRIMARY_ELF_CAMERA_EE_NEUTRAL_EVIDENCE_ONLY",
@@ -359,6 +633,7 @@ def probe_camera_ee_neutral(
         "abi": ABI,
         "sender": sender,
         "command": command,
+        "helper_evidence": helpers,
         "relations": [
             {
                 "source_vma": hex(COMMAND_ENTRY),
@@ -374,6 +649,48 @@ def probe_camera_ee_neutral(
                 "callsite_vma": hex(0x443D54),
                 "status": "VERIFIED_STATIC",
             },
+            {
+                "source_vma": hex(SELECTOR_GETTER_ENTRY),
+                "target_symbol": "_ZN12ModelManager11checkStatusEi",
+                "relation": "PLT_CALL",
+                "callsite_vma": hex(0x131E9E),
+                "status": "VERIFIED_STATIC",
+            },
+            {
+                "source_vma": hex(ENVELOPE_BUILDER_ENTRY),
+                "target_vma": hex(HEADER_BUILDER_ENTRY),
+                "relation": "DIRECT_CALL",
+                "callsite_vma": hex(0x1323EE),
+                "status": "PRIMARY_ELF_VERIFIED",
+            },
+            {
+                "source_vma": hex(ENVELOPE_BUILDER_ENTRY),
+                "target_vma": hex(SET_BLOG_DATA_ENTRY),
+                "relation": "DIRECT_CALL",
+                "callsite_vma": hex(0x1323F6),
+                "status": "PRIMARY_ELF_VERIFIED",
+            },
+            {
+                "source_vma": hex(SET_BLOG_DATA_ENTRY),
+                "target_symbol": "setBlogData",
+                "relation": "PLT_CALL",
+                "callsite_vma": hex(0x1322A0),
+                "status": "VERIFIED_STATIC",
+            },
+            {
+                "source_vma": hex(ENVELOPE_BUILDER_ENTRY),
+                "target_symbol": "strncpy",
+                "relation": "PLT_CALL",
+                "callsite_vma": hex(0x1323DC),
+                "status": "VERIFIED_STATIC",
+            },
+            {
+                "source_vma": hex(HEADER_BUILDER_ENTRY),
+                "target_symbol": "memset",
+                "relation": "PLT_CALL",
+                "callsite_vma": hex(0x131BF6),
+                "status": "VERIFIED_STATIC",
+            },
         ],
         "runtime_verified": False,
         "callable": False,
@@ -381,7 +698,7 @@ def probe_camera_ee_neutral(
             "Source-level identities for 0x4b1a20, 0x443d14 and local helpers are not independently present in the ELF symbol evidence",
             "The IssueCommandAsync return value is observed only as a conditional branch; success/error semantics are UNKNOWN",
             "The transport receiver, relay completion and hardware readiness semantics are UNKNOWN",
-            "The 0x131e94 and 0x1323b4 helper identities and complete object layouts remain UNKNOWN",
+            "The complete ModelManager, setBlogData and envelope object layouts remain UNKNOWN",
             "No runtime execution, device access or firmware modification was performed",
         ],
     }
@@ -444,6 +761,58 @@ def validate_camera_ee_neutral(report: dict[str, Any]) -> dict[str, Any]:
     event = command.get("event_or_action_helper", {})
     if event.get("r1") != hex(0x0E) or event.get("r2") != hex(0x33BA):
         errors.append("event_helper_values")
+    label = command.get("pc_relative_label", {})
+    if (
+        label.get("literal_slot_vma") != hex(0x4B1AA8)
+        or label.get("label_vma") != hex(0xCE8D7B)
+        or label.get("copied_bytes") != 8
+        or label.get("text_prefix") != "NeutrOn"
+        or label.get("status") != "PRIMARY_ELF_VERIFIED"
+    ):
+        errors.append("pc_relative_label")
+    helpers = report.get("helper_evidence", {})
+    selector = helpers.get("selector_getter", {})
+    if (
+        selector.get("status") != "PRIMARY_ELF_VERIFIED"
+        or selector.get("receiver_field_offset") != hex(0x20)
+        or selector.get("tail_target_vma") != hex(0xDF964)
+        or not _check_binding(
+            selector.get("binding", {}), "_ZN12ModelManager11checkStatusEi"
+        )
+    ):
+        errors.append("selector_helper")
+    local_getter = helpers.get("local_word_getter", {})
+    if (
+        local_getter.get("status") != "PRIMARY_ELF_VERIFIED"
+        or local_getter.get("receiver_field_offset") != hex(0x18)
+    ):
+        errors.append("local_word_getter")
+    header = helpers.get("header_builder", {})
+    if (
+        header.get("status") != "PRIMARY_ELF_VERIFIED"
+        or header.get("layout", {}).get("+0x02") != "u8 from r2"
+        or header.get("layout", {}).get("+0x03") != "u8 from r1"
+        or header.get("layout", {}).get("+0x04") != "u16 from r3"
+        or not _check_binding(header.get("bindings", {}).get("0xde37c", {}), "memset")
+    ):
+        errors.append("header_builder")
+    blog = helpers.get("set_blog_data", {})
+    if (
+        blog.get("status") != "PRIMARY_ELF_VERIFIED"
+        or blog.get("set_blog_data_symbol") != "setBlogData"
+        or blog.get("set_blog_data_vma") != hex(0xDE480)
+        or not _check_binding(blog.get("binding", {}), "setBlogData")
+    ):
+        errors.append("set_blog_data")
+    envelope = helpers.get("envelope_builder", {})
+    if (
+        envelope.get("status") != "PRIMARY_ELF_VERIFIED"
+        or envelope.get("payload", {}).get("length") != 0x14
+        or envelope.get("payload", {}).get("optional_pointer_copy")
+        != "local +0x28, length 8 through strncpy; local +0x28/+0x2c initially zero"
+        or not _check_binding(envelope.get("strncpy_binding", {}), "strncpy")
+    ):
+        errors.append("envelope_builder")
     bindings = sender.get("bindings", {})
     for entry, symbol in _SENDER_BINDINGS.items():
         if not _check_binding(bindings.get(hex(entry), {}), symbol):
@@ -472,6 +841,20 @@ def validate_camera_ee_neutral(report: dict[str, Any]) -> dict[str, Any]:
         or direct_relation.get("callsite_vma") != hex(0x4B1A42)
     ):
         errors.append("sender_relation")
+    expected_relations = {
+        (hex(SELECTOR_GETTER_ENTRY), "_ZN12ModelManager11checkStatusEi", "PLT_CALL"),
+        (hex(ENVELOPE_BUILDER_ENTRY), hex(HEADER_BUILDER_ENTRY), "DIRECT_CALL"),
+        (hex(ENVELOPE_BUILDER_ENTRY), hex(SET_BLOG_DATA_ENTRY), "DIRECT_CALL"),
+        (hex(SET_BLOG_DATA_ENTRY), "setBlogData", "PLT_CALL"),
+        (hex(ENVELOPE_BUILDER_ENTRY), "strncpy", "PLT_CALL"),
+        (hex(HEADER_BUILDER_ENTRY), "memset", "PLT_CALL"),
+    }
+    actual_relations = set()
+    for row in report.get("relations", []):
+        target = row.get("target_symbol", row.get("target_vma"))
+        actual_relations.add((row.get("source_vma"), target, row.get("relation")))
+    if not expected_relations.issubset(actual_relations):
+        errors.append("helper_relations")
     ghidra = report.get("ghidra_crosscheck")
     if ghidra is not None:
         if (
@@ -493,4 +876,17 @@ def validate_camera_ee_neutral(report: dict[str, Any]) -> dict[str, Any]:
             or program.get("address_space") != "ram"
         ):
             errors.append("ghidra_identity")
+        records = ghidra.get("target_records", [])
+        aggregate = ghidra.get("aggregate", {})
+        if (
+            len(records) != 7
+            or aggregate != {
+                "targets": 7,
+                "instructions": 166,
+                "basic_blocks": 16,
+                "cfg_edges": 39,
+            }
+            or any(not row.get("body_ranges") for row in records)
+        ):
+            errors.append("ghidra_target_ranges")
     return {"valid": not errors, "errors": sorted(set(errors))}

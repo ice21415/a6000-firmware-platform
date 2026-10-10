@@ -2067,3 +2067,34 @@ The contract preserves separate ELF VMA and Ghidra `ram` addresses and keeps
 `auto_analysis_completed=false`; raw export and project data stay private.
 The twelve new fail-closed tests pass, and the complete local suite now passes
 **485 tests**. Runtime-verified and callable core API counts remain **0**.
+
+## Camera EE-neutral helper and envelope dataflow (2026-10-10)
+
+The authenticated primary-ELF probe was extended to the previously unresolved
+helper chain. At `0x131e94`, the wrapper reads `receiver+0x20` and tail-calls
+the unique ARM/Thumb PLT veneer `0xdf964`, which relocates to
+`_ZN12ModelManager11checkStatusEi`. This confirms the forwarding registers
+and field offset at `PRIMARY_ELF_VERIFIED` level; it does not establish the
+wrapper's source class or the field's semantic type.
+
+At `0x1323b4`, direct instructions copy three stack arguments into a local
+payload, zero an optional eight-byte region, copy eight bytes from non-null
+`r3` through the unique `strncpy` binding, call the 20-byte header builder at
+`0x131bcc`, then call `0x13228c`. The header builder writes the observed
+`u16/u8/u8/u16/u16` fields and either copies 20 bytes or calls `memset` for a
+null source. `0x13228c` reads a local `+0x18` word through `0x10cf18`, stores
+its low halfword at the envelope start, then tail-calls the unique `setBlogData`
+binding at `0xde480` with `r0=0x0a` and the envelope pointer in `r1`.
+
+The Camera caller's PC-relative pointer resolves to ELF VMA `0xce8d7b`; the
+bounded eight-byte text prefix is `NeutrOn`. This is a file-backed literal
+locator and short label observation, not proof of an event ID or action
+namespace.
+
+The private Ghidra 12.1.3 targeted profile now exports seven bodies, 166
+instruction rows, 16 blocks and 39 edges with exit code 0 and
+`COMPLETE_TARGET_EXPORT`. It remains `-noanalysis` metadata cross-checking;
+`auto_analysis_completed=false`, runtime verification and callable SDK counts
+remain zero. The 16 focused tests and complete local suite (**489 tests**)
+pass. The normalized contract is
+`sdk/camera_3_21_ee_neutral_3_21.json`.

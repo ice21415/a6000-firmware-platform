@@ -1488,3 +1488,29 @@ passes 485 tests. Runtime verification and callable SDK counts remain zero.
 Next blockers are the real `ObjMsg`/relay dataflow,
 receiver/completion identity, helper `0x131e94`/`0x1323b4` semantics and
 complete Camera readiness conditions.
+
+## Latest continuation checkpoint -- EE-neutral helper/envelope recovery (2026-10-10)
+
+The exact SHA-pinned private `libObj.so` was rechecked after the sender audit.
+The new bounded probe evidence covers the helper chain and does not execute
+firmware. `0x131e94` reads `receiver+0x20` and tail-calls the unique PLT
+binding `_ZN12ModelManager11checkStatusEi` through `0xdf964`; the selector in
+`r1` is preserved. `0x10cf18` is a separate local getter that reads `+0x18`.
+
+`0x1323b4` copies three stack words, clears an optional 8-byte region and
+copies a non-null `r3` source through `strncpy`, then builds a 20-byte payload
+with `0x131bcc` and forwards it to `0x13228c`. The latter writes the low
+halfword read from its local `+0x18` word and tail-calls `setBlogData` through
+`0xde480` with `r0=0x0a`. The camera callsite's PC-relative source is
+`0xce8d7b`, with the bounded eight-byte prefix `NeutrOn`.
+
+The private Ghidra 12.1.3 targeted profile now has seven targets, 166
+instructions, 16 blocks and 39 edges; exit code is 0 with
+`COMPLETE_TARGET_EXPORT`, while `auto_analysis_completed=false` remains
+explicit. The public normalized contract is
+`sdk/camera_3_21_ee_neutral_3_21.json`; raw export/project remain private.
+
+The focused suite has 16 tests and the complete local suite has 489 passing
+tests. The helper's protocol namespace, `setBlogData` semantics, receiver and
+completion, full ObjMsg layout, runtime safety and callable status remain
+UNKNOWN/false.

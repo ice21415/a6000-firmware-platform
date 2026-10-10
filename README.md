@@ -313,6 +313,13 @@ python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so 
 The Ghidra `camera-ee-neutral` profile is a targeted `-noanalysis` metadata
 cross-check and does not publish the raw project or export.
 
+The same contract now includes helper dataflow: `0x131e94` forwards
+`receiver+0x20` to the statically resolved `ModelManager::checkStatus(int)`
+binding, while `0x1323b4` builds a 20-byte payload and `0x13228c` forwards it
+to `setBlogData`. The callsite's short literal prefix is `NeutrOn`. These are
+static observations only; event namespace, receiver/completion semantics and
+callable status remain unknown.
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

@@ -68,10 +68,60 @@ class CameraEeNeutralProbeTests(unittest.TestCase):
         )
         self.assertEqual(command["event_or_action_helper"]["r2"], "0x33ba")
 
+    def test_helper_chain_and_envelope_layout_are_pinned(self) -> None:
+        report = _contract()
+        helpers = report["helper_evidence"]
+        selector = helpers["selector_getter"]
+        self.assertEqual(selector["receiver_field_offset"], "0x20")
+        self.assertEqual(
+            selector["tail_target_symbol"],
+            "_ZN12ModelManager11checkStatusEi",
+        )
+        envelope = helpers["envelope_builder"]
+        self.assertEqual(envelope["payload"]["length"], 0x14)
+        self.assertIn("strncpy", envelope["payload"]["optional_pointer_copy"])
+        self.assertEqual(helpers["local_word_getter"]["receiver_field_offset"], "0x18")
+        self.assertEqual(helpers["set_blog_data"]["set_blog_data_symbol"], "setBlogData")
+
+    def test_pc_relative_label_provenance_is_pinned(self) -> None:
+        label = _contract()["command"]["pc_relative_label"]
+        self.assertEqual(label["literal_slot_vma"], "0x4b1aa8")
+        self.assertEqual(label["label_vma"], "0xce8d7b")
+        self.assertEqual(label["copied_bytes"], 8)
+        self.assertEqual(label["text_prefix"], "NeutrOn")
+
+    def test_helper_relation_provenance_is_pinned(self) -> None:
+        report = _contract()
+        relations = {
+            (
+                row.get("source_vma"),
+                row.get("target_symbol", row.get("target_vma")),
+                row["relation"],
+            )
+            for row in report["relations"]
+        }
+        self.assertIn(
+            ("0x131e94", "_ZN12ModelManager11checkStatusEi", "PLT_CALL"),
+            relations,
+        )
+        self.assertIn(("0x1323b4", "0x13228c", "DIRECT_CALL"), relations)
+        self.assertIn(("0x13228c", "setBlogData", "PLT_CALL"), relations)
+
+    def test_helper_status_tampering_is_rejected(self) -> None:
+        report = copy.deepcopy(_contract())
+        report["helper_evidence"]["selector_getter"]["status"] = "VERIFIED_RUNTIME"
+        result = validate_camera_ee_neutral(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("selector_helper", result["errors"])
+
     def test_ghidra_keeps_elf_and_image_addresses_separate(self) -> None:
         crosscheck = _contract()["ghidra_crosscheck"]
         self.assertEqual(crosscheck["exit_code"], 0)
         self.assertFalse(crosscheck["auto_analysis_completed"])
+        self.assertEqual(
+            crosscheck["aggregate"],
+            {"targets": 7, "instructions": 166, "basic_blocks": 16, "cfg_edges": 39},
+        )
         records = {row["elf_vma"]: row for row in crosscheck["target_records"]}
         self.assertEqual(records["0x443d14"]["ghidra_vma"], "0x00453d14")
         self.assertEqual(records["0x4b1a20"]["ghidra_vma"], "0x004c1a20")

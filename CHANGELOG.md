@@ -16,6 +16,14 @@
   callable SDK status remain false; no firmware bytes or device operations are
   included.
 
+## Unreleased -- Camera EE-neutral helper dataflow
+
+- Extended the bounded probe through `ModelManager::checkStatus(int)`, the
+  20-byte envelope/header builders and `setBlogData` forwarding.
+- Added fail-closed checks for the `NeutrOn` PC-relative label, stack payload
+  mapping, `strncpy`/`memset` bindings and helper relations. No runtime or
+  callable API status was promoted.
+
 ## Unreleased -- ParamList virtual destruction dispatch evidence
 
 - Added the SHA-pinned `fwplatform.paramlist_virtual_dispatch_probe` and

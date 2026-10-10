@@ -950,3 +950,50 @@ python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so 
 The descriptive header is `sdk/camera_3_21_candidate.hpp`. It records field
 and message constants only. Runtime verification, safe invocation, complete
 receiver/relay completion semantics and callable SDK counts remain zero.
+
+## Phase 3.32 — EE-neutral helper and envelope dataflow
+
+The next bounded pass extends the same SHA-pinned primary-ELF probe without
+repeating the sender or `ParamList::get` body. It covers `0x131e94`,
+`0x10cf18`, `0x131bcc`, `0x13228c` and `0x1323b4`.
+
+`0x131e94` loads its receiver-relative word at `+0x20`, restores the link
+register and tail-branches through the unique ARM/Thumb PLT veneer `0xdf964`.
+That relocation resolves to `_ZN12ModelManager11checkStatusEi`; therefore the
+instruction-level forwarding shape is `r0=[wrapper_receiver+0x20]` as the
+implicit object and the selector in `r1`, while the wrapper's owner and the
+meaning of the returned word remain UNKNOWN.
+
+`0x1323b4` copies three fifth-and-later AAPCS stack words into a local payload,
+initializes an optional eight-byte region, copies a non-null `r3` source with
+`strncpy`, builds a 20-byte payload through `0x131bcc`, and forwards the local
+envelope to `0x13228c`. The header builder writes zero at `+0x00`, `r2` at
+`+0x02`, `r1` at `+0x03`, `uxth(r2)` at `+0x04`, zero at `+0x06`, then copies
+20 bytes at `+0x08` (or clears them with `memset`). The helper returns zero
+after the `setBlogData` call. These are layout and dataflow facts; they do not
+identify an event namespace or protocol contract.
+
+At the `0x4b1a20` callsite, the PC-relative source pointer resolves to ELF VMA
+`0xce8d7b`, whose first eight bytes are the short label `NeutrOn`; the probe
+records only the label text and locator, never raw firmware bytes. `0x13228c`
+loads the local envelope word at `+0x18`, stores its low halfword at the
+envelope start, passes `0x0a` and the envelope pointer through the unique
+`setBlogData` veneer `0xde480`, and propagates that call's return.
+
+The private Ghidra 12.1.3 targeted `camera-ee-neutral` cross-check now covers
+seven bounded bodies: 166 instruction rows, 16 blocks and 39 edges. It exits
+zero with `COMPLETE_TARGET_EXPORT`; `ARM:LE:32:v8`, image base `0x10000`, ELF
+VMA and Ghidra `ram` address spaces remain separate, and
+`auto_analysis_completed=false` remains explicit.
+
+The normalized evidence is in
+`sdk/camera_3_21_ee_neutral_3_21.json`; the repeatable private command remains:
+
+```powershell
+python -m fwplatform.cli sdk camera-ee-neutral-audit --elf C:\private\libObj.so --json
+```
+
+The focused suite now has 16 fail-closed tests and the complete local suite
+passes 489 tests. `setBlogData` semantics, receiver/completion behavior,
+message namespace, object layouts, runtime safety and callable SDK status
+remain UNKNOWN/false.
