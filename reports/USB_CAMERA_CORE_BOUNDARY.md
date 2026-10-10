@@ -18,5 +18,9 @@ The offline readiness validator reports the current Mass Storage observation as
 `ABI_UNVERIFIED` until the legacy libusb transport ABI is independently
 reviewed; `READY_FOR_REVIEW` never authorizes a transfer.
 
+Serialized descriptor observations are now treated as untrusted by default;
+their status strings cannot self-attest primary hardware provenance. An
+independent caller must explicitly provide the provenance decision.
+
 The USB mode matrix in `A6000_USB_MODE_MATRIX.md` keeps Sony documentation,
 primary descriptor observations and unknown future observations separate.

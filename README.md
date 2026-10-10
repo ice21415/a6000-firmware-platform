@@ -219,6 +219,7 @@ python -m fwplatform.cli hardware preflight --json
 ```
 
 此命令只讀取去識別化 observation 與可選 ABI report，不開啟 USB handle。
+序列化 observation 的驗證狀態不會自動被信任；需要獨立 provenance 判定。
 
 本地資料庫報告可用：
 

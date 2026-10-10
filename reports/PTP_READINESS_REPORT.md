@@ -13,3 +13,6 @@ Phase 4.5 classifies issues as `INFORMATIONAL`, `MISSING_EVIDENCE`,
 `INTERFACE_INCOMPATIBLE`, `ENDPOINT_INVALID`, `ABI_UNVERIFIED` or
 `DESCRIPTOR_INCOMPLETE`. Informational limitations no longer force `NOT_READY`.
 Each candidate alternate setting is evaluated independently.
+
+The preflight command reads serialized observations as untrusted by default.
+`READ_ONLY_VERIFIED` in JSON is not sufficient to pass the descriptor gate.

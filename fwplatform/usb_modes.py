@@ -7,11 +7,18 @@ from typing import Any
 from .usb_descriptor_probe import DescriptorResult, UsbEndpoint, UsbInterface
 
 
-def result_from_observation(data: dict[str, Any]) -> DescriptorResult:
-    """Load a sanitized descriptor observation; no device access occurs."""
+def result_from_observation(data: dict[str, Any], *, provenance_verified: bool = False) -> DescriptorResult:
+    """Load an observation without trusting status strings from JSON.
+
+    Callers must provide an independent provenance decision before a serialized
+    ``READ_ONLY_VERIFIED`` label is retained. Hashes and JSON fields alone do
+    not make that decision.
+    """
+    declared_status = data.get("status", "INCONCLUSIVE")
+    status = declared_status if provenance_verified else "INCONCLUSIVE"
+    level = data.get("verification_level", "UNVERIFIED") if provenance_verified else "UNVERIFIED"
     return DescriptorResult(
-        data.get("status", "INCONCLUSIVE"), data.get("evidence_source", "offline observation"),
-        data.get("verification_level", "UNVERIFIED"), data.get("timestamp_utc", "unknown"),
+        status, data.get("evidence_source", "offline observation"), level, data.get("timestamp_utc", "unknown"),
         data.get("vendor_id"), data.get("product_id"), data.get("usb_version_bcd"),
         data.get("device_class"), data.get("configurations", 0),
         tuple(UsbInterface(**item) for item in data.get("interfaces", [])),

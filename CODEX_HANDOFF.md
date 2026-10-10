@@ -1626,3 +1626,11 @@ short descriptors. Offline PTP parsing now separates COMMAND/DATA/RESPONSE/EVENT
 supports bounded streams and synthetic DeviceInfo datasets, and records
 evidence without promoting it to runtime verification. No PTP or storage
 operation was performed; the sanitized real observation remains Mass Storage.
+
+## Phase 4.6 checkpoint
+
+The authorized private ELF chain probe reproduced 39 primary static, 5 inferred
+and 5 unresolved Camera Core edges; no new edge was promoted. Added reusable
+indirect-target candidate ranking and a machine-readable progress scope. USB
+observation JSON now requires an external provenance decision before retaining
+its verification status. Runtime and safe-callable API counts remain zero.
