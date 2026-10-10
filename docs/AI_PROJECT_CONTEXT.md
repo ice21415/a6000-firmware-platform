@@ -694,3 +694,25 @@ remain `UNKNOWN`. The sanitized contract is
 probe. The private Ghidra profile completed with 11 targets, 130 instruction
 rows, 26 blocks and 43 edges. Runtime verification and callable API counts
 remain zero.
+
+### ParamList external owner/use witness (2026-10-10)
+
+`fwplatform/paramlist_owner_use_probe.py` verifies the symbol-bounded
+`_ZN12InputService19getInputEventStatusEP9ParamListPKS0_` body at ELF VMA
+`0x114104` (356 bytes) from the exact SHA-pinned private ELF. The body uses
+incoming registers in a ParamList-shaped flow, looks up key `0x17005003`,
+constructs local ParamLists at stack `+0x18` and `+0x20` through the unique
+ParamList constructor PLT, allocates a 16-byte PrmNumber candidate, adds it
+with key `0x17005003`, and looks up `0x17005008` in the second local list. A
+guarded call at `0x1141e2` passes the preserved input as destination and the
+`+0x20` local list as source to the shared-rebind candidate `0x7edcc6`; both
+locals are destroyed through the unique ParamList destructor PLT.
+
+These are `PRIMARY_ELF_VERIFIED` register, literal, callsite and relocation
+facts. C++ static/member form, return type, dispatch registration, ownership
+transfer, exception cleanup and concurrency remain `UNKNOWN`; the rebind
+interpretation is `STATIC_INFERRED`. The sanitized contract is
+`sdk/paramlist_owner_use_3_21.json`, and the read-only CLI is
+`fw sdk parameter-owner-use --elf <private-libObj.so> --json`. The private
+Ghidra cross-check completed with 6 targets, 210 instructions, 37 blocks and
+87 edges. Runtime-verified and callable API counts remain zero.

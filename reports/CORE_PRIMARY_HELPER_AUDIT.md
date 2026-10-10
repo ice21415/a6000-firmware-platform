@@ -1433,3 +1433,39 @@ python -m fwplatform.cli sdk parameter-lifetime --elf C:\private\libObj.so --jso
 Eight new fail-closed tests cover identity, layout, observation completeness,
 concurrency, copy-on-write and runtime/callable promotion. Runtime-verified
 and callable core API counts remain **0**.
+
+## ParamList external owner/use witness — 2026-10-10
+
+The next bounded primary-ELF pass follows a real use site instead of repeating
+the `ParamList::get` implementation. `fwplatform.paramlist_owner_use_probe.py`
+authenticates the same SHA-pinned ELF and verifies the complete symbol-bounded
+body of `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_` at
+`0x114104` (356 bytes). The sanitized result is
+`sdk/paramlist_owner_use_3_21.json`.
+
+| Evidence location | Observation | Status / boundary |
+|---:|---|---|
+| `0x11410a–0x114140` | preserves the incoming `r0`, moves incoming `r1` into the first `ParamList` lookup receiver, loads key `0x17005003`, calls `0xe5b20`, and forwards the result to `0xe5b18` | `PRIMARY_ELF_VERIFIED`; C++ static/member form UNKNOWN |
+| `0x11416e`, `0x114176` | calls PLT `0xdf894`, uniquely bound to `_ZN9ParamListC1Ev`, for stack locals `+0x20` and `+0x18` | `PRIMARY_ELF_VERIFIED` |
+| `0x114184–0x11419a` | allocates `0x10` bytes through `_Znwj`, calls the known `PrmNumber` constructor `0xf0fb0`, and calls PLT `0xdfdc0` (`ParamList::add`) with key `0x17005003` and the local element pointer | call/relocation facts `PRIMARY_ELF_VERIFIED`; value source and ownership UNKNOWN |
+| `0x1141ac–0x1141b8` | looks up key `0x17005008` in the `+0x20` local list and reads its payload word | `PRIMARY_ELF_VERIFIED`; payload meaning UNKNOWN |
+| `0x1141dc–0x1141e2` | conditionally calls `0x7edcc6` with preserved original `r0` as destination and stack `+0x20` as source | instruction fact `PRIMARY_ELF_VERIFIED`; shared-rebind interpretation `STATIC_INFERRED` |
+| `0x1141f2–0x1141fe` | destroys the `+0x18` and `+0x20` local lists through PLT `0xe0080`, uniquely bound to `_ZN9ParamListD1Ev` | `PRIMARY_ELF_VERIFIED` |
+
+The function itself is an exported symbol with exact ELF identity and size;
+the mangled name alone does not prove whether it is a static member or has a
+ParamList-shaped object at `r0`. The contract therefore leaves that form,
+source-level return type, ParamList::add ownership transfer, exception cleanup,
+locking, dispatch registration, and runtime binding UNKNOWN. No direct Thumb
+BL caller for this function was found in the bounded whole-`.text` Capstone scan;
+that is unresolved dispatch coverage, not evidence that the function is unused.
+
+The private ASCII-path Ghidra 12.1.3 bounded cross-check used the same
+`ARM:LE:32:v8` program and completed with `COMPLETE_TARGET_EXPORT`: **6**
+targets, **210** instruction rows, **37** blocks and **87** CFG edges. It is
+address/control-flow corroboration only; no generated decompiler semantics or
+private export was added to the repository. Runtime-verified and callable
+core API counts remain **0**. Eleven fail-closed synthetic validator tests cover
+identity, callsite chain, static/member-form, rebind, return-type and
+runtime/callable promotion guards; the complete local suite passes **392
+tests**.

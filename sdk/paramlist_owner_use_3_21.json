@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "status": "LOCAL_PRIMARY_ELF_PARAMLIST_OWNER_USE_EVIDENCE_ONLY",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian; static/member form, ownership and runtime ABI UNKNOWN",
+  "bindings": {
+    "constructor": {
+      "entry_vma": "0xdf894",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102e194",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZN9ParamListC1Ev",
+          "symbol_value": "0x7edc3f",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "add": {
+      "entry_vma": "0xdfdc0",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102e340",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZN9ParamList3addEmP9ParamBase",
+          "symbol_value": "0x7ee0e7",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "destructor": {
+      "entry_vma": "0xe0080",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102e420",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZN9ParamListD1Ev",
+          "symbol_value": "0x7edd09",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "allocator": {
+      "entry_vma": "0xdc100",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102cffc",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_Znwj",
+          "symbol_value": "0x0",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    }
+  },
+  "observations": {
+    "input_service_owner_use": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "symbol_identity": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "entry_vma": "0x114104",
+        "thumb_value": "0x114105",
+        "size_bytes": 356,
+        "address_space": "ELF_VMA",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "register_flow": {
+        "r0": "incoming ParamList-shaped destination candidate preserved in r6; exact static/member form UNKNOWN",
+        "r1": "incoming ParamList-shaped source candidate used for first lookup",
+        "r2": "not assigned a confirmed semantic role in this bounded body",
+        "r3": "used by an indirect virtual call; target unresolved"
+      },
+      "first_lookup": {
+        "receiver_source": "original r1",
+        "forwarder_vma": "0xe5b20",
+        "key": {
+          "load_vma": "0x114112",
+          "literal_vma": "0x114258",
+          "value": "0x17005003",
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        },
+        "result_saved_to": "r4",
+        "null_branch": "zero result branches to function return/cleanup path at 0x11422c",
+        "payload_getter_vma": "0xe5b18"
+      },
+      "local_paramlists": {
+        "list_one": {
+          "stack_offset": "0x18",
+          "constructor_callsite": "0x114176",
+          "destructor_callsite": "0x1141f6",
+          "lifetime": "constructed before the add path and destroyed after the loop"
+        },
+        "list_two": {
+          "stack_offset": "0x20",
+          "constructor_callsite": "0x11416e",
+          "destructor_callsite": "0x1141fe",
+          "lifetime": "constructed before the add path and destroyed after the loop"
+        }
+      },
+      "number_element": {
+        "allocator_callsite": "0x114186",
+        "allocation_size_bytes": 16,
+        "constructor_callsite": "0x11418e",
+        "constructor_vma": "0xf0fb0",
+        "value_source": "r5 at callsite; r5 is populated by an earlier helper and remains dynamic",
+        "payload_type": "PrmNumber word payload remains governed by its separate scalar contract"
+      },
+      "add": {
+        "callsite": "0x11419a",
+        "receiver": "stack +0x18 local ParamList",
+        "key": {
+          "load_vma": "0x114196",
+          "literal_vma": "0x114258",
+          "value": "0x17005003",
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        },
+        "element": "r8 local PrmNumber allocation",
+        "binding": {
+          "entry_vma": "0xdfdc0",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102e340",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZN9ParamList3addEmP9ParamBase",
+              "symbol_value": "0x7ee0e7",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        }
+      },
+      "second_lookup": {
+        "receiver": "stack +0x20 local ParamList",
+        "key": {
+          "load_vma": "0x1141b0",
+          "literal_vma": "0x11425c",
+          "value": "0x17005008",
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        },
+        "forwarder_vma": "0xe5b20",
+        "payload_getter_vma": "0xe5b18"
+      },
+      "rebind": {
+        "callsite": "0x1141e2",
+        "destination_register": "r0 from preserved original input",
+        "source_register": "r1 = stack +0x20 local ParamList",
+        "target_vma": "0x7edcc6",
+        "guard": "conditional key/value comparisons reach this call only on selected branches",
+        "source_level_identity": "UNKNOWN"
+      },
+      "destruction": {
+        "callsite_one": "0x1141f6",
+        "callsite_two": "0x1141fe",
+        "binding": {
+          "entry_vma": "0xe0080",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102e420",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZN9ParamListD1Ev",
+              "symbol_value": "0x7edd09",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "stack_objects_are_destroyed_after_use": true
+      },
+      "return": {
+        "return_register": "r0",
+        "last_local_assignment": "r4 at 0x11422c",
+        "source_level_return_type": "UNKNOWN"
+      },
+      "address_space": "ELF_VMA"
+    }
+  },
+  "lifetime": {
+    "local_paramlists": "PRIMARY_ELF_VERIFIED constructor/destructor callsite pairing within the symbol-bounded body",
+    "shared_rebind": "STATIC_INFERRED from guarded call with original input as destination and local list as source",
+    "element_ownership": "UNKNOWN; allocation and ParamList::add are observed, but transfer/destruction ownership is not proven",
+    "source_level_static_member_form": "UNKNOWN",
+    "concurrency_verified": false,
+    "runtime_verified": false,
+    "callable": false
+  },
+  "raw_instruction_bytes_published": false,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "The InputService symbol does not independently prove a C++ static/member form",
+    "The function has no direct caller in the bounded direct-BL scan; dispatch/registration context is UNKNOWN",
+    "PrmNumber value source is dynamic and its exact semantic domain remains UNKNOWN",
+    "ParamList::add ownership transfer, exception cleanup, locking and runtime binding remain UNKNOWN",
+    "No firmware code was executed and no device was accessed"
+  ]
+}

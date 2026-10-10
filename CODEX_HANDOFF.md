@@ -1028,3 +1028,30 @@ Ghidra 12.1.3 `paramlist-lifetime` export completed with 11 targets, 130
 instruction rows, 26 blocks and 43 edges. Runtime-verified and callable API
 counts remain 0. The next target is a uniquely identified external
 construction/use caller, not a live wrapper.
+
+## Latest continuation checkpoint — ParamList external owner/use witness (2026-10-10)
+
+The exact SHA-pinned ELF was scanned with Capstone and the new
+`fwplatform/paramlist_owner_use_probe.py`. It verifies the complete exported
+symbol `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_` at
+`0x114104` (356 bytes), without repeating `ParamList::get`. The body preserves
+the incoming `r0`, uses incoming `r1` for a lookup of key `0x17005003`, creates
+two local ParamLists at stack `+0x18` and `+0x20` through the relocation-bound
+constructor PLT, allocates a 16-byte PrmNumber candidate, adds it with key
+`0x17005003`, then looks up `0x17005008` in the second local list. A guarded
+call at `0x1141e2` passes the original input as the destination and local
+`+0x20` as the source of the shared-rebind candidate `0x7edcc6`. Both local
+lists are destroyed through the uniquely bound ParamList destructor PLT at
+`0xe0080`.
+
+These register/call/literal/relocation facts are `PRIMARY_ELF_VERIFIED`; the
+shared-rebind and ownership interpretation is `STATIC_INFERRED`. The
+InputService C++ static/member form, return type, dispatch registration,
+ParamList::add ownership transfer, exception cleanup, locking and runtime
+binding remain UNKNOWN. A bounded whole-text Thumb direct-BL scan found no caller for
+this exported function, which leaves dispatch coverage unresolved. The
+descriptive contract is `sdk/paramlist_owner_use_3_21.json`, the CLI is
+`fw sdk parameter-owner-use --elf <private-libObj.so> --json`, and the private
+Ghidra profile completed with 6 targets, 210 instructions, 37 blocks and 87
+edges. Eleven fail-closed synthetic validator tests pass; the complete local
+suite passes 392 tests. Runtime-verified and callable API counts remain zero.

@@ -65,6 +65,25 @@ struct ParamListLifetimeEvidenceConstants {
     static constexpr std::uint32_t allocator_plt_vma = 0x000dc100;
     static constexpr std::uint32_t object_delete_plt_vma = 0x000dd620;
 };
+
+// External construction/use witnesses from the SHA-pinned primary ELF. These
+// constants identify evidence locations only; they are not a callable API.
+struct ParamListOwnerUseEvidenceConstants {
+    static constexpr std::uint32_t input_status_entry_vma = 0x00114104;
+    static constexpr std::uint32_t input_status_size_bytes = 0x164;
+    static constexpr std::uint32_t first_lookup_key = 0x17005003;
+    static constexpr std::uint32_t second_lookup_key = 0x17005008;
+    static constexpr std::uint32_t local_list_one_offset = 0x18;
+    static constexpr std::uint32_t local_list_two_offset = 0x20;
+    static constexpr std::uint32_t local_list_one_constructor_callsite = 0x00114176;
+    static constexpr std::uint32_t local_list_two_constructor_callsite = 0x0011416e;
+    static constexpr std::uint32_t number_allocation_callsite = 0x00114186;
+    static constexpr std::uint32_t number_constructor_callsite = 0x0011418e;
+    static constexpr std::uint32_t add_callsite = 0x0011419a;
+    static constexpr std::uint32_t rebind_callsite = 0x001141e2;
+    static constexpr std::uint32_t local_list_one_destructor_callsite = 0x001141f6;
+    static constexpr std::uint32_t local_list_two_destructor_callsite = 0x001141fe;
+};
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::int32_t payload;

@@ -902,6 +902,24 @@ and runtime/callable safety remain UNKNOWN. The sanitized contract is
 `sdk/paramlist_lifetime_3_21.json`; it is descriptive evidence, not a live
 wrapper.
 
+### ParamList external owner/use witness
+
+The primary-ELF owner/use probe follows a symbol-bounded InputService path:
+
+```powershell
+python -m fwplatform.cli sdk parameter-owner-use --elf C:\private\libObj.so --json
+```
+
+It verifies `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_` at
+`0x114104`, two local ParamList constructor/destructor pairs, a 16-byte
+PrmNumber allocation and `ParamList::add` call, lookup keys `0x17005003` and
+`0x17005008`, and a guarded call to the shared-rebind candidate `0x7edcc6`.
+The C++ static/member form, return type, ownership transfer, dispatch
+registration, exception behavior, concurrency and runtime/callable safety
+remain UNKNOWN. The sanitized contract is
+`sdk/paramlist_owner_use_3_21.json`; it is descriptive metadata, not a live
+wrapper.
+
 ## PrmObjMsg primary-ELF checkpoint
 
 The `parameter-objmsg` probe adds a bounded static check:

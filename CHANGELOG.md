@@ -481,3 +481,15 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
 - Added eight fail-closed regression tests and a private Ghidra cross-check
   (11 targets, 130 instructions, 26 blocks, 43 edges). Runtime verification
   and callable SDK counts remain zero.
+
+## Unreleased — ParamList external owner/use witness
+
+- Added the SHA-pinned `parameter-owner-use` probe for the bounded
+  `InputService::getInputEventStatus` body, including local ParamList
+  construction/destruction, PrmNumber allocation, `ParamList::add`, lookup
+  literals and the guarded shared-rebind call.
+- Added a descriptive contract and eleven fail-closed regression tests. The
+  C++ static/member form, ownership, dispatch, exception, concurrency and
+  runtime/callable semantics remain unknown.
+- Added a private Ghidra cross-check (6 targets, 210 instructions, 37 blocks,
+  87 edges) without publishing firmware-derived bytes or exports.
