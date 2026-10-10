@@ -256,6 +256,22 @@ python -m fwplatform.cli --db database/private-copy.sqlite sdk coverage --json
 所需 SDK 核心 API 的總分母尚未建立，逆向完成度保持 UNKNOWN。
 詳細規格請見 [sdk/README.md](sdk/README.md)。
 
+### ParamList 查詢 helper 的 direct-call 索引
+
+針對已授權的私有 `libObj.so`，可以用下列唯讀命令建立查詢 wrapper、
+`ParamList::get` forwarder 及 payload getter 的 Thumb direct-call metadata：
+
+```powershell
+python -m fwplatform.cli sdk parameter-query-callers --elf C:\private\libObj.so --json
+```
+
+這個探針以 Capstone 驗證指令級 branch，只有當 callsite 落在一個明確 ELF
+symbol range 內才回報 caller；其餘保持 `UNRESOLVED`，不使用最近函式推測。
+結果只保存 ELF VMA、SHA-256、地址空間和可信度，不包含 firmware bytes，
+也不代表 C++ ownership、runtime binding 或安全可呼叫性。摘要契約在
+[`sdk/param_query_callers_3_21.json`](sdk/param_query_callers_3_21.json)，
+核心契約以 `query_callsite_index` 連結它；runtime/callable 仍為 `false`。
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

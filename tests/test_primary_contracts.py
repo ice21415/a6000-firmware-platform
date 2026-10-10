@@ -61,6 +61,13 @@ class PrimaryContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 validate_primary_contracts(doc)
 
+    def test_query_callsite_index_remains_separate_static_evidence(self):
+        index = self.contract["query_callsite_index"]
+        self.assertEqual(index["contract"], "sdk/param_query_callers_3_21.json")
+        self.assertEqual(index["address_space"], "ELF_VMA")
+        self.assertFalse(index["runtime_verified"])
+        self.assertFalse(index["callable"])
+
     def test_identity_address_and_evidence_fail_closed(self):
         for field, value in (("binary_sha256", "0" * 64), ("address_space", "ram")):
             doc = copy.deepcopy(self.contract)

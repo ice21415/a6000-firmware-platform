@@ -84,6 +84,23 @@ struct ParamListOwnerUseEvidenceConstants {
     static constexpr std::uint32_t local_list_one_destructor_callsite = 0x001141f6;
     static constexpr std::uint32_t local_list_two_destructor_callsite = 0x001141fe;
 };
+
+// Direct-call index targets from the SHA-pinned primary ELF. These are
+// evidence locators only; unresolved callers, CFG reachability, loader
+// binding, ownership and runtime safety remain unknown.
+struct ParamQueryCallsiteEvidenceConstants {
+    static constexpr std::uint32_t view_initializer_vma = 0x0042abcc;
+    static constexpr std::uint32_t adjacent_lookup_vma = 0x0042abdc;
+    static constexpr std::uint32_t word_lookup_vma = 0x0042ac00;
+    static constexpr std::uint32_t paramlist_get_forwarder_vma = 0x000e5b20;
+    static constexpr std::uint32_t param_payload_getter_vma = 0x000e5b18;
+    static constexpr std::uint32_t bool_get_forwarder_vma = 0x00120970;
+    static constexpr std::uint32_t point_get_forwarder_vma = 0x000fe9be;
+    static constexpr std::uint32_t word_lookup_to_get_callsite = 0x0042ac0c;
+    static constexpr std::uint32_t word_lookup_to_payload_callsite = 0x0042ac12;
+    static constexpr std::uint32_t adjacent_to_get_callsite = 0x0042abe8;
+    static constexpr std::uint32_t adjacent_to_payload_callsite = 0x0042abee;
+};
 struct PrmNumberSnapshotWords {
     std::uint32_t vptr_address, discriminator_word, key_word;
     std::int32_t payload;

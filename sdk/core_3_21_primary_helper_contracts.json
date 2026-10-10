@@ -338,5 +338,15 @@
     "container": {"0x0": "PRIMARY_ELF_VERIFIED array begin", "0x4": "PRIMARY_ELF_VERIFIED array end", "0x8": "UNKNOWN"},
     "element_prefix": {"0x0": "PRIMARY_ELF_VERIFIED virtual dispatch table pointer during cleanup", "0x4": "PRIMARY_ELF_VERIFIED discriminator from ParamBase C2 argument", "0x8": "PRIMARY_ELF_VERIFIED lookup key", "0xc": "PRIMARY_ELF_VERIFIED returned word; concrete type UNKNOWN"},
     "ParamBase": {"constructor": "0xe50b4", "rtti_symbol": "_ZTI9ParamBase", "rtti_vma": "0xfe6e24", "vtable_vma": "0xfe6e30", "vtable_address_point": "0xfe6e38", "destruction_dispatch": "0x7edb64 invokes element vptr slot +8; deleting-destructor identity STATIC_INFERRED"}
+  },
+  "query_callsite_index": {
+    "contract": "sdk/param_query_callers_3_21.json",
+    "analyzer": "fwplatform.param_query_callers",
+    "verification": "PRIMARY_ELF_VERIFIED for Capstone-validated direct Thumb branch instruction sites; caller identity only when an exact ELF symbol range contains the site",
+    "address_space": "ELF_VMA",
+    "runtime_verified": false,
+    "callable": false,
+    "scope": "bounded direct-call index for 0x42abcc, 0x42abdc, 0x42ac00 and local query forwarders",
+    "limitations": "No function-boundary recovery for unresolved callers; no register/GOT/vtable dispatch or runtime loader proof"
   }
 }

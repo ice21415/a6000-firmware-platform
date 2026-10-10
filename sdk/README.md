@@ -1289,3 +1289,23 @@ The optional repeated `--symbol` argument replaces the profile symbol set;
 the low-level analyzer remains independent of Sony symbol names. A symbol
 import, relocation and PLT/GOT record establish linkage evidence only; they
 do not establish C++ ownership, return semantics or a safe live wrapper.
+
+## ParamList query callsite index
+
+`fwplatform.param_query_callers` is a generic metadata-only scanner for the
+authenticated private primary ELF. It checks instruction-aligned Thumb
+`BL`/`BLX` candidates with Capstone and uses exact ELF symbol ranges for caller
+identity; there is no nearest-address fallback. The public summary is
+`sdk/param_query_callers_3_21.json` and remains descriptive only:
+
+```powershell
+python -m fwplatform.cli sdk parameter-query-callers --elf C:\private\libObj.so --json
+```
+
+The private 3.21 pass indexed 4,504 direct Thumb rows across the query
+wrappers/forwarders and payload forwarders. The local helper chain at
+`0x42ac00`/`0x42abdc` to `0xe5b20`/`0xe5b18` is instruction-level primary
+evidence; unresolved caller ranges, CFG reachability, ARM calls, register/GOT/
+vtable dispatch, loader binding, ownership and concurrency remain unknown.
+The contract contains no firmware bytes and keeps `runtime_verified=false` and
+`callable=false`.

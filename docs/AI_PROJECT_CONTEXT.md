@@ -759,3 +759,22 @@ the demangled external `InputService::getInputEventStatus` and static GOT/PLT
 references at ELF VMA `0x1ae5c8` / `0x3d434`. Only sanitized metadata is in
 the checked-in contract; the raw JSONL and project stay private. This does
 not prove a runtime call path, loader binding or callable ABI.
+
+### ParamList query callsite index (2026-10-10)
+
+`fwplatform/param_query_callers.py` scans the authenticated private `libObj.so`
+for direct Thumb `BL`/`BLX` candidates to `0x42abcc`, `0x42abdc`, `0x42ac00`,
+`0xe5b20`, `0xe5b18`, `0x120970` and `0xfe9be`. Each candidate is validated
+with Capstone; caller identity is supplied only by an exact ELF symbol range.
+The private run produced 4,504 rows and the sanitized contract is
+`sdk/param_query_callers_3_21.json`.
+
+The direct local chain is recorded at `0x42ac0c` -> `0xe5b20`, `0x42ac12` ->
+`0xe5b18`, `0x42abe8` -> `0xe5b20` and `0x42abee` -> `0xe5b18`. Aggregate
+counts remain `STATIC_INFERRED`; unresolved caller ranges, full CFG path
+reachability, ARM calls, indirect dispatch, loader binding, ownership,
+synchronization and runtime callability remain unknown. Run it with:
+
+```powershell
+python -m fwplatform.cli sdk parameter-query-callers --elf <private-libObj.so> --json
+```

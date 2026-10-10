@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — ParamList query callsite index
+
+- Added the generic `fwplatform.param_query_callers` scanner and
+  `fw sdk parameter-query-callers`. It validates instruction-aligned Thumb
+  direct branches with Capstone and assigns callers only from exact ELF symbol
+  ranges; no nearest-function fallback is used.
+- Added `sdk/param_query_callers_3_21.json` with 4,504 sanitized callsite rows
+  from the private SHA-pinned `libObj.so`, including the direct helper chain
+  between `0x42ac00`/`0x42abdc` and `0xe5b20`/`0xe5b18`. Unresolved caller
+  ranges stay unresolved and no CFG, ownership, loader or runtime claim is
+  made.
+- Linked the index from the descriptive core contract and added seven
+  fail-closed synthetic tests. Firmware bytes, private paths and callable
+  wrappers remain excluded; runtime-verified and callable API counts remain 0.
+
 ## Unreleased — ParamList cross-ELF profile
 
 - Added the reusable `fwplatform.paramlist_cross_elf` profile and

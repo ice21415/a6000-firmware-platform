@@ -448,6 +448,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_param_owner_use.add_argument("--elf", type=Path, required=True)
     sdk_param_owner_use.add_argument("--expected-sha256", default=None)
     sdk_param_owner_use.add_argument("--json", action="store_true")
+    sdk_query_callers = sdk_sub.add_parser("parameter-query-callers")
+    sdk_query_callers.add_argument("--elf", type=Path, required=True)
+    sdk_query_callers.add_argument("--expected-sha256", default=None)
+    sdk_query_callers.add_argument("--json", action="store_true")
     sdk_param_cross_elf = sdk_sub.add_parser("parameter-cross-elf")
     sdk_param_cross_elf.add_argument("--root", type=Path, required=True)
     sdk_param_cross_elf.add_argument("--provider-elf", type=Path)
@@ -880,6 +884,15 @@ def main(argv: list[str] | None = None) -> int:
         from .paramlist_owner_use_probe import probe_paramlist_owner_use
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_paramlist_owner_use(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-query-callers":
+        from .param_query_callers import probe_param_query_callers
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_param_query_callers(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

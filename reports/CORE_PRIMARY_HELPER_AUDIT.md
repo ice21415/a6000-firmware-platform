@@ -1569,3 +1569,58 @@ python -m fwplatform.cli sdk parameter-cross-elf-set --root C:\private\firmware-
 The profile has seven synthetic regression tests. It preserves
 `runtime_verified=false` and `callable=false`; no SDK declaration is promoted
 to a safe live wrapper.
+
+## ParamList query direct-call index — 2026-10-10
+
+The previous cross-ELF scan intentionally covered imported symbols only. This
+checkpoint adds a separate primary-ELF callsite index for the local query
+wrappers and forwarders. `fwplatform.param_query_callers` scans executable
+sections at Thumb instruction alignment, validates each candidate with
+Capstone, and never chooses a caller by nearest lower address. A caller is
+reported only when one exact `.dynsym`/`.symtab` function range contains the
+callsite; all other caller identities remain `UNRESOLVED`.
+
+The authenticated `libObj.so` produced **4,504** Capstone-validated direct
+Thumb branch rows. The checked-in sanitized contract is
+`sdk/param_query_callers_3_21.json`; its deterministic callsite-set digest is
+`655e9fbfdf2da4f3143af802977b3dde1a235672c9237bd34179cec2e4d9f242`.
+
+| Target | Candidate callsites | Exact ELF-symbol caller ranges | Unresolved caller ranges |
+|---|---:|---:|---:|
+| `0x42abcc` view initializer | 312 | 0 | 312 |
+| `0x42abdc` adjacent lookup | 243 | 0 | 243 |
+| `0x42ac00` word lookup | 402 | 0 | 402 |
+| `0xe5b20` ParamList get forwarder | 1,659 | 9 | 1,650 |
+| `0xe5b18` payload word getter | 1,668 | 14 | 1,654 |
+| `0x120970` discriminator-five forwarder | 198 | 0 | 198 |
+| `0xfe9be` discriminator-three forwarder | 22 | 0 | 22 |
+
+The direct helper chain is independently present in the primary bytes:
+`0x42ac00` calls `0xe5b20` at `0x42ac0c` and `0xe5b18` at `0x42ac12`;
+`0x42abdc` calls the same two targets at `0x42abe8` and `0x42abee`.
+These four instruction sites are `PRIMARY_ELF_VERIFIED`. The aggregate
+callsite index is `STATIC_INFERRED` because it does not prove CFG reachability
+or that every executable-section candidate is on a live path. The known exact
+symbol ranges include `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_`
+at `0x114114`/`0x1141b2` and its payload reads at `0x114140`/`0x1141b8`, plus
+the previously indexed `ScalarView`, `ViewBase`, `LkmIconguide` and
+`LkmDispmode` symbols. The remaining rows have no uniquely recoverable symbol
+range and are not assigned a guessed function.
+
+The earlier ASCII-path Ghidra 12.1.3 targeted profiles still provide the
+independent CFG/address cross-check for the helper bodies; this new callsite
+index is a bounded Capstone pass and is not presented as a new full-program
+Ghidra run. ARM direct branches, register/GOT/vtable dispatch, loader binding,
+C++ return types, ownership and concurrency remain `UNKNOWN`. The descriptive
+core contract now links this index through `query_callsite_index`.
+
+The new read-only command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-query-callers --elf C:\private\libObj.so --json
+```
+
+Seven synthetic tests cover Thumb target decoding, exact symbol-range caller
+assignment, unresolved caller preservation, duplicate target rejection, chain
+identity binding and runtime/callable promotion. Runtime-verified and callable core API counts
+remain **0**. No firmware code was executed and no device was accessed.

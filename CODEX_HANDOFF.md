@@ -1127,3 +1127,32 @@ Raw JSONL and project files remain private. Seven new fail-closed synthetic
 tests cover profile identity, empty custom symbol sets, Ghidra provenance,
 provider mismatch, duplicate symbols and runtime promotion. Runtime-verified
 and callable API counts remain zero.
+
+## Latest continuation checkpoint — ParamList query callsite index (2026-10-10)
+
+`fwplatform/param_query_callers.py` adds a generic address-aware Thumb
+callsite scanner for the SHA-pinned primary ELF. It validates candidate
+two-halfword branches with Capstone and assigns a caller only from an exact
+ELF symbol range; there is no nearest-function fallback. The private pass
+found 4,504 direct Thumb rows across the query wrapper/forwarder targets:
+`0x42abcc` 312, `0x42abdc` 243, `0x42ac00` 402, `0xe5b20` 1,659,
+`0xe5b18` 1,668, `0x120970` 198 and `0xfe9be` 22. Only 9 and 14 rows for
+`0xe5b20` and `0xe5b18` respectively fall inside a unique ELF symbol range;
+the remaining caller identities are intentionally `UNRESOLVED`.
+
+The helper chain is directly witnessed at `0x42ac0c` -> `0xe5b20`,
+`0x42ac12` -> `0xe5b18`, `0x42abe8` -> `0xe5b20` and `0x42abee` ->
+`0xe5b18`. The sanitized contract is `sdk/param_query_callers_3_21.json`,
+and the core contract links it under `query_callsite_index`. This is a
+bounded Capstone callsite index, not a full CFG or new whole-ELF Ghidra
+analysis; register/GOT/vtable dispatch, loader binding, ownership,
+synchronization and runtime callability remain unknown. The read-only command
+is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-query-callers --elf <private-libObj.so> --json
+```
+
+Seven synthetic tests cover target decoding, exact caller-range matching,
+unresolved callers, target identity, chain identity and status promotion. Runtime-verified
+and callable core API counts remain zero.
