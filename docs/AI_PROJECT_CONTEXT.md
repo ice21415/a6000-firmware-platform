@@ -778,3 +778,30 @@ synchronization and runtime callability remain unknown. Run it with:
 ```powershell
 python -m fwplatform.cli sdk parameter-query-callers --elf <private-libObj.so> --json
 ```
+
+### EventManager cleanup candidate (2026-10-10)
+
+`fwplatform/event_manager_destroy_probe.py` is a bounded primary-ELF probe for
+the unnamed even-VMA body `0x7efa1e..0x7efa68`. With the authenticated private
+3.21 `libObj.so`, it verifies receiver `+0x08` clearing, two null-guarded
+linked-root releases through `0x7f09d2` and `_ZdlPv`, state-array release via
+`_ZdaPv`, the EventManager-associated lock/unlock wrappers, and
+`pthread_mutex_destroy` on receiver `+0x0c`. These are instruction/relocation
+facts; cleanup/destructor identity is `STATIC_INFERRED` because no
+EventManager destructor symbol or RTTI/vtable ownership proof was found.
+The descriptive contract is `sdk/event_manager_destroy_3_21.json` and the
+read-only command is:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-destroy --elf <private-libObj.so> --json
+```
+
+The contract keeps `runtime_verified=false` and `callable=false`. Null receiver,
+double-destroy, exception/EHABI, allocator interposition, concurrency and
+runtime-loader behavior remain UNKNOWN. A targeted private Ghidra 12.1.3
+`-noanalysis` profile exited 0 with `COMPLETE_TARGET_EXPORT` (four target
+bodies, 15 blocks and 35 CFG/call records; image base `0x10000`), while a
+separate full Auto Analysis attempt stalled on instruction conflicts and
+returned `4294967295` without a completion marker. The latter is a blocker,
+not a successful whole-program analysis; raw projects and decompiler output
+remain private.

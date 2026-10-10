@@ -402,6 +402,10 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_count.add_argument("--elf", type=Path, required=True)
     sdk_count.add_argument("--expected-sha256", default=None)
     sdk_count.add_argument("--json", action="store_true")
+    sdk_destroy = sdk_sub.add_parser("event-manager-destroy")
+    sdk_destroy.add_argument("--elf", type=Path, required=True)
+    sdk_destroy.add_argument("--expected-sha256", default=None)
+    sdk_destroy.add_argument("--json", action="store_true")
     sdk_request_event = sdk_sub.add_parser("request-event-factory")
     sdk_request_event.add_argument("--elf", type=Path, required=True)
     sdk_request_event.add_argument("--expected-sha256", default=None)
@@ -746,6 +750,15 @@ def main(argv: list[str] | None = None) -> int:
         from .event_manager_count_probe import probe_event_manager_count
         from .private_thumb_research import EXPECTED_LIBOBJ_SHA
         result = probe_event_manager_count(
+            args.elf,
+            expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "event-manager-destroy":
+        from .event_manager_destroy_probe import probe_event_manager_destroy
+        from .private_thumb_research import EXPECTED_LIBOBJ_SHA
+        result = probe_event_manager_destroy(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
         )

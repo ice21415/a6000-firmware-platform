@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased — EventManager cleanup ownership boundary
+
+- Added the SHA-pinned `fwplatform.event_manager_destroy_probe` and
+  `fw sdk event-manager-destroy` for the unnamed cleanup body at even ELF VMA
+  `0x7efa1e`. The bounded primary-ELF facts cover receiver `+0x08` clearing,
+  two null-guarded linked roots, `_ZdlPv`/`_ZdaPv` release bindings, the
+  EventManager-associated mutex wrappers and `pthread_mutex_destroy`.
+- Added `sdk/event_manager_destroy_3_21.json` and six fail-closed synthetic
+  tests. The cleanup/destructor role remains `STATIC_INFERRED` because no
+  EventManager destructor symbol or RTTI/vtable proof was found; runtime and
+  callable flags remain false.
+- Added an isolated Ghidra metadata cross-check to the research record
+  (12.1.3, `ARM:LE:32:v8`, image base `0x10000`, targeted `-noanalysis`, exit
+  0, complete marker, four targets/15 blocks/35 CFG-call records). The failed
+  full Auto Analysis attempt is recorded as a blocker; no private export or
+  firmware bytes are included.
+- The six targeted tests and complete local `python -m unittest discover -s
+  tests -v` suite (422 tests) pass; runtime-verified and callable API counts
+  remain 0.
+
 ## Unreleased — ParamList query callsite index
 
 - Added the generic `fwplatform.param_query_callers` scanner and

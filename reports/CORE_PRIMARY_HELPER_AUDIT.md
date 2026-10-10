@@ -1624,3 +1624,68 @@ Seven synthetic tests cover Thumb target decoding, exact symbol-range caller
 assignment, unresolved caller preservation, duplicate target rejection, chain
 identity binding and runtime/callable promotion. Runtime-verified and callable core API counts
 remain **0**. No firmware code was executed and no device was accessed.
+
+## EventManager cleanup ownership boundary — 2026-10-10
+
+This checkpoint follows the EventManager state-link work and does not repeat
+the ParamList query recovery. The exact SHA-pinned primary `libObj.so` was
+read locally and verified as
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a` before
+decoding. A bounded Capstone probe now covers the unnamed body at even ELF VMA
+`0x7efa1e` through `0x7efa68` (76 bytes). The body:
+
+* clears receiver offset `+0x08` before taking the EventManager-associated
+  lock wrapper at `0x7ef8f4`;
+* loads two words from the state-array candidate at receiver `+0x00`, checks
+  each root for null, passes non-null roots to the linked-state cleanup helper
+  `0x7f09d2`, and releases each root through the unique `_ZdlPv` PLT binding;
+* null-checks the state-array pointer and releases it through the unique
+  `_ZdaPv` binding;
+* unlocks through `0x7ef902`, then passes receiver `+0x0c` to the unique
+  `pthread_mutex_destroy` PLT binding; and
+* returns with the receiver pointer still in `r0` after the mutex-destroy
+  callsite. The source return type is UNKNOWN.
+
+The instruction targets and the three PLT bindings are
+`PRIMARY_ELF_VERIFIED`. The release ordering and field-role descriptions are
+`STATIC_INFERRED`: the body shares the receiver offsets and lock wrappers used
+by the indexed `EventManager` methods, but no `EventManager` destructor symbol,
+RTTI record or vtable ownership proof was found in the available symbol data.
+The public probe and contract therefore call this
+`event_manager_cleanup_candidate`; `destructor_role` is intentionally
+`STATIC_INFERRED`, not a confirmed C++ destructor. `null_receiver`,
+double-destroy behavior, exception/EHABI cleanup, allocator interposition,
+concurrent destruction and runtime loader bindings remain UNKNOWN. The local
+null guards only establish observed branch guards for the three pointers; they
+do not establish a general memory-safety or ownership guarantee.
+
+The sanitized artefacts are `fwplatform/event_manager_destroy_probe.py`,
+`sdk/event_manager_destroy_3_21.json`, the CLI command
+`fw sdk event-manager-destroy --elf <private-libObj.so> --json`, and six
+fail-closed synthetic tests. The contract contains no firmware bytes or
+private paths and retains `runtime_verified=false` and `callable=false`.
+
+### Private Ghidra cross-check and blocker
+
+An isolated ASCII-path Ghidra 12.1.3 targeted `-noanalysis` run used language
+`ARM:LE:32:v8`, compiler spec `default`, image base `0x10000`, and the `ram`
+address space. It exited `0`, emitted `COMPLETE_TARGET_EXPORT`, and produced
+the following metadata-only counts: four target bodies, 15 basic blocks and
+35 exported CFG/call records. The cleanup body mapped to Ghidra program
+address `0x7ffa1e` with body range `0x7ffa1e..0x7ffa69`; subtracting the image
+base agrees with the ELF VMA. The raw decompiler/export/project remain outside
+the repository.
+
+A separate full Auto Analysis attempt was started in the same private,
+writable ASCII environment but was terminated after the analysis stalled on
+instruction conflicts; it returned exit code `4294967295` and did not emit a
+completion marker or public result. This is an environment/analysis blocker,
+not evidence that whole-program Ghidra analysis succeeded. The targeted
+`-noanalysis` export is only an address/control-flow cross-check.
+
+The current targeted regression set passes **6 tests** and the complete local
+`python -m unittest discover -s tests -v` suite passes **422 tests**. The next
+primary-ELF target is to identify the source-level owner/destructor or a unique constructor
+pair for this cleanup body, then test whether the state-array and link roots
+are shared across all EventManager operations. No runtime-verified or callable
+core API has been added.

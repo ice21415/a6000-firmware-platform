@@ -1309,3 +1309,22 @@ evidence; unresolved caller ranges, CFG reachability, ARM calls, register/GOT/
 vtable dispatch, loader binding, ownership and concurrency remain unknown.
 The contract contains no firmware bytes and keeps `runtime_verified=false` and
 `callable=false`.
+
+## EventManager cleanup candidate
+
+`fwplatform.event_manager_destroy_probe` is a bounded, SHA-pinned metadata
+probe for the unnamed cleanup body at even ELF VMA `0x7efa1e` in the private
+3.21 `libObj.so`. It records observed field accesses, null guards, linked-root
+release calls, allocator PLT bindings and mutex destruction in
+`sdk/event_manager_destroy_3_21.json`:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-destroy --elf C:\private\libObj.so --json
+```
+
+The body is **not** exported as a callable destructor. No EventManager
+destructor symbol, RTTI/vtable ownership proof, receiver validity,
+double-destroy policy, exception cleanup, concurrency contract or runtime
+loader binding is available. Its `destructor_role` is `STATIC_INFERRED`, and
+both `runtime_verified` and `callable` are false. The JSON is descriptive
+metadata only and contains no firmware bytes or private absolute paths.

@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_EVENT_MANAGER_DESTROY_CANDIDATE",
+  "firmware_version": "3.21",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "target": {
+    "name": "event_manager_cleanup_candidate",
+    "entry": 8321566,
+    "size": 76,
+    "symbol": null
+  },
+  "observation": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "semantic_level": "STATIC_INFERRED",
+    "source_level_identity": "UNKNOWN; no EventManager destructor symbol or RTTI/vtable proof for this body",
+    "destructor_role": "STATIC_INFERRED; cleanup body shares the receiver fields and mutex wrappers used by EventManager methods",
+    "abi": {
+      "r0": "receiver pointer candidate",
+      "r1_r3": "no semantic use observed in the bounded body",
+      "return": "receiver pointer remains in r0 after mutex destruction; source return type UNKNOWN"
+    },
+    "layout": {
+      "+0x00": "state array pointer candidate; two root words at [state] and [state + 4] are released",
+      "+0x04": "callback/function pointer field in the related EventManager layout; not read by this body",
+      "+0x08": "cleared to zero at entry",
+      "+0x0c": "pthread mutex object passed through lock/unlock wrappers and destroy binding"
+    },
+    "release_sequence": {
+      "root_0": "null-guarded; local 0x7f09d2 walks/releases linked state, then _ZdlPv",
+      "root_1": "null-guarded; local 0x7f09d2 walks/releases linked state, then _ZdlPv",
+      "state_array": "null-guarded; released through _ZdaPv after both roots",
+      "mutex": "unlocks through 0x7ef902, then calls pthread_mutex_destroy on receiver +0x0c"
+    },
+    "bindings": {
+      "operator_delete": {
+        "entry_vma": "0xdd620",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d6bc",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZdlPv",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "operator_delete_array": {
+        "entry_vma": "0xdf098",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102df10",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZdaPv",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "pthread_mutex_destroy": {
+        "entry_vma": "0xe1610",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102eae8",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "pthread_mutex_destroy",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    },
+    "safety": {
+      "null_roots": "local cbz guards are present for both roots and the state array",
+      "null_receiver": "UNKNOWN; first store and lock wrapper require a valid receiver",
+      "double_destroy": "UNKNOWN",
+      "concurrency": "UNKNOWN; observed lock/unlock does not prove destruction synchronization",
+      "exception_cleanup": "UNKNOWN; no complete EHABI/throw path is asserted for this body"
+    },
+    "runtime_verified": false,
+    "callable": false
+  },
+  "runtime_verified": false,
+  "callable": false
+}

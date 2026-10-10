@@ -1156,3 +1156,40 @@ python -m fwplatform.cli sdk parameter-query-callers --elf <private-libObj.so> -
 Seven synthetic tests cover target decoding, exact caller-range matching,
 unresolved callers, target identity, chain identity and status promotion. Runtime-verified
 and callable core API counts remain zero.
+
+## Latest continuation checkpoint — EventManager cleanup ownership boundary (2026-10-10)
+
+The exact private `libObj.so` was rehashed to
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a` before
+decoding. The new bounded probe `fwplatform/event_manager_destroy_probe.py`
+covers the unnamed even-VMA body `0x7efa1e..0x7efa68` (76 bytes). It verifies
+that the body clears receiver `+0x08`, locks via `0x7ef8f4`, null-checks and
+releases two state roots through `0x7f09d2` and the uniquely bound `_ZdlPv`
+PLT, releases the state array through `_ZdaPv`, unlocks via `0x7ef902`, and
+passes receiver `+0x0c` to the uniquely bound `pthread_mutex_destroy` PLT.
+The instruction and relocation facts are `PRIMARY_ELF_VERIFIED`; field roles,
+release ordering and cleanup/destructor role are `STATIC_INFERRED` because no
+EventManager destructor symbol, RTTI record or vtable proof was found. The
+probe therefore uses `event_manager_cleanup_candidate` and keeps
+`destructor_role=STATIC_INFERRED`, `runtime_verified=false` and `callable=false`.
+Null-receiver, double-destroy, exception/EHABI, allocator interposition,
+concurrency and runtime-loader behavior remain UNKNOWN.
+
+The sanitized contract is `sdk/event_manager_destroy_3_21.json`; query it with:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-destroy --elf C:\private\libObj.so --json
+```
+
+Six fail-closed synthetic tests cover identity, static-only status, binding
+identity and promotion rejection. A private ASCII-path Ghidra 12.1.3 targeted
+`-noanalysis` run used `ARM:LE:32:v8`, image base `0x10000`, exited 0 and
+emitted `COMPLETE_TARGET_EXPORT` for four targets, 15 blocks and 35 CFG/call
+records. The raw project/export remain private. A separate full Auto Analysis
+attempt stalled on instruction conflicts, returned `4294967295`, and emitted
+no completion marker; it is recorded as a blocker and is not represented as a
+successful whole-program analysis. The targeted tests pass 6 tests and the
+complete local `python -m unittest discover -s tests -v` suite passes 422 tests.
+The next target is a unique constructor or source-level destructor identity for
+this cleanup body. Runtime-verified and
+callable API counts remain zero.
