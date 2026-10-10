@@ -31,6 +31,9 @@ class CameraCoreHeaderCompileTests(unittest.TestCase):
 using namespace a6000_research::camera_core_3_21;
 static_assert(sizeof(Arm32Word) == 4);
 static_assert(sizeof(RequestEventEnvelopeObservation) == 16);
+static_assert(sizeof(ModelRegistryRecordObservation) == 36);
+static_assert(offsetof(ModelRegistryRecordObservation, instance_address) == 28);
+static_assert(CameraRegistryDispatchObservation::compact_event_example == 0x1200bf01);
 static_assert(sizeof(RequestEventEnvelopeHostObservation) >=
               sizeof(RequestEventEnvelopeObservation));
 int main() { return 0; }

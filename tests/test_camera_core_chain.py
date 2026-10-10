@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from fwplatform.camera_core_chain import validate_camera_core_chain
+from fwplatform.camera_core_chain import validate_camera_core_chain, normalize_compact_model_event
 def _report() -> dict:
     contract = json.loads(
         Path("sdk/camera_core_3_21.json").read_text(encoding="utf-8")
@@ -159,6 +159,52 @@ class CameraCoreChainTests(unittest.TestCase):
         report = _report()
         report["edges"][-1]["evidence"]["source_binary_sha256"] = "0" * 64
         self.assertTrue(any(e.startswith("edge_identity:") for e in validate_camera_core_chain(report)["errors"]))
+
+    def test_compact_event_encoding_preserves_namespaces_and_existing_ids(self):
+        self.assertEqual(normalize_compact_model_event(11, 0xF01), 0x1200BF01)
+        self.assertNotEqual(normalize_compact_model_event(11, 0xF01), 0x11004003)
+        self.assertEqual(normalize_compact_model_event(11, 0x1200BF01), 0x1200BF01)
+        for model_id in (0, 11, 0xFFF):
+            for selector in (0, 1, 0xF01, 0xFFF):
+                event = normalize_compact_model_event(model_id, selector)
+                self.assertEqual((event - 0x12000000) >> 12, model_id)
+                self.assertEqual(event & 0xFFF, selector)
+
+    def test_offline_argument_guards_do_not_accept_host_values(self):
+        for model, selector in ((-1, 0), (0x1000, 0), (11, -1), (11, 0x100000000), (True, 0)):
+            with self.assertRaises(ValueError):
+                normalize_compact_model_event(model, selector)
+
+    def test_library_resolution_cannot_be_promoted_by_factory_name(self):
+        report = _report()
+        report["observations"]["camera_registry_dispatch"]["instance_identity"] = "PRIMARY_ELF_VERIFIED"
+        self.assertIn("registry_instance_promotion", validate_camera_core_chain(report)["errors"])
+        report = _report()
+        report["observations"]["camera_registry_dispatch"]["loader"]["library_alias_identity"] = "libObj.so"
+        self.assertIn("registry_loader_promotion", validate_camera_core_chain(report)["errors"])
+
+    def test_final_virtual_slot_is_not_the_action_entry(self):
+        report = _report()
+        registry = report["observations"]["camera_registry_dispatch"]
+        self.assertEqual(registry["slots"]["0x18"], "0x132624")
+        self.assertEqual(registry["slots"]["0x44"], "0x4d02e4")
+        registry["slots"]["0x18"] = "0x4cfb9c"
+        self.assertIn("registry_camera_vtable", validate_camera_core_chain(report)["errors"])
+
+    def test_action_index_and_selector_cannot_be_merged(self):
+        report = _report()
+        report["observations"]["compact_model_selector"]["checker"]["action_index"] = 0xF01
+        self.assertIn("compact_selector_namespace", validate_camera_core_chain(report)["errors"])
+
+    def test_conditional_instance_dispatch_cannot_be_promoted(self):
+        report = _report()
+        edge = report["observations"]["camera_registry_dispatch"]["conditional_relations"][0]
+        edge["verification_status"] = "PRIMARY_ELF_VERIFIED"
+        self.assertIn("registry_conditional_edge_promotion", validate_camera_core_chain(report)["errors"])
+        report = _report()
+        edge = report["observations"]["camera_registry_dispatch"]["conditional_relations"][-1]
+        edge["target_vma"] = "0x4cfb9c"
+        self.assertIn("registry_conditional_target", validate_camera_core_chain(report)["errors"])
 
 
 if __name__ == "__main__":

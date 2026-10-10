@@ -82,6 +82,17 @@ public class ParamListTargets extends GhidraScript {
       {0x11130c,0xf4},{0x7eed0c,0x18c},{0x7ed49c,0xba},
       {0x7ed5c8,0xa2},{0x7ea918,0x10},{0x7eb8fa,0x48},
       {0x7f124a,0x16},{0x7efcca,0x1a}};
+   } else if(args[1].equals("camera-registry-dispatch")) {
+    targets=new long[][]{{0x7eb8fa,0x48},{0x7eb896,0x5a},{0x7eb848,0x4c},
+      {0x7ec8a4,0xbe},{0x7f1156,0x24},{0x7f11ca,0x80},
+      {0x40208c,0x18},{0x4c8c64,0x1a},{0x4c8af4,0x20},
+      {0x7efbfe,0x12},{0x7efc3a,0x30},{0x7efc9a,0x1a},
+      {0x131cf6,0x22},{0x4d02e4,0x10},{0x4d04a4,0x08}};
+   } else if(args[1].equals("camera-selector-dispatch")) {
+    targets=new long[][]{{0x12d71a,0x32},{0x12d824,0x32},{0x120168,0x1a},
+      {0x131fd2,0x38},{0x1326fc,0x24},{0x4acf80,0x28},
+      {0x4ad23e,0x0e},{0x4adafc,0x08},{0x131e24,0x1c},
+      {0x131c4c,0x24},{0x132624,0x26}};
    } else if(args[1].equals("event-core")) {
     targets=new long[][]{{0x7f17f8,0x34},{0x7f182c,0x20},{0x7f184c,0x2a},{0x7f1876,0x22},{0xf0f84,0x0e},{0x10d098,0x0e}};
    } else if(args[1].equals("param-set")) {
@@ -177,6 +188,14 @@ public class ParamListTargets extends GhidraScript {
      CodeBlock block=blocks.next();out.println("BLOCK="+block.getMinAddress()+".."+block.getMaxAddress());
      CodeBlockReferenceIterator refs=block.getDestinations(monitor);
      while(refs.hasNext()){CodeBlockReference ref=refs.next();out.println("EDGE="+ref.getReferent()+" -> "+ref.getDestinationAddress()+" TYPE="+ref.getFlowType());}
+    }
+    // This dispatch header excludes the TBH data and all case bodies.
+    // Decompiling it as a complete function follows unavailable targets and
+    // can time out. Preserve the instruction/CFG export and explicitly skip
+    // semantic decompilation; the primary-ELF table audit is separate.
+    if(profile.equals("camera-registry-dispatch") && target[0]==0x4d02e4) {
+     out.println("DECOMPILE_STATUS=SKIPPED_INCOMPLETE_DISPATCH_BODY");
+     continue;
     }
     DecompileResults result=dec.decompileFunction(f,30,monitor);
     if(!result.decompileCompleted()) throw new IllegalStateException(result.getErrorMessage());

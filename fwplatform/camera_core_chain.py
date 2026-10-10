@@ -728,6 +728,173 @@ def _observe_config_provider(fp: Any, elf: ELFFile, digest: str) -> dict[str, An
     }
 
 
+def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Join registry records, a conditional factory, and Camera vtable facts.
+
+    Loader success, library alias identity and current state are explicit
+    preconditions. A vtable entry is a proven data fact; it is not proof that
+    a particular runtime lookup selected that dynamic type.
+    """
+    witnesses = (
+        (0x7EB8FA, 0x48, ((0x7EB904, "add.w", "r4, r0, #0x88"), (0x7EB938, "ldr", "r0, [r0, #4]"))),
+        (0x7EC8A4, 0xBE, ((0x7EC8BA, "add.w", "r5, r4, #0x88"), (0x7EC91C, "bl", "#0x7f1156"), (0x7EC954, "bl", "#0x7ec6cc"))),
+        (0x7F1156, 0x24, ((0x7F1160, "stm.w", "r0, {r1, r2}"), (0x7F116C, "str", "r3, [r0, #0x14]"), (0x7F1174, "str", "r2, [r0, #0x1c]"))),
+        (0x7F11CA, 0x80, ((0x7F11D8, "blx", "#0xe0cec"), (0x7F11E6, "blx", "#0xdfed0"), (0x7F11F2, "blx", "r3"), (0x7F11F4, "str", "r0, [r4, #0x1c]"))),
+        (0x40208C, 0x18, ((0x402090, "blx", "#0xdffb8"), (0x4020A0, "blx", "#0xdf58c"))),
+        (0x4C8C64, 0x1A, ((0x4C8C66, "movw", "r0, #0x27d4"), (0x4C8C74, "bl", "#0x4c8af4"), (0x4C8C78, "str", "r5, [r4, #0x20]"))),
+        (0x4C8AF4, 0x20, ((0x4C8B08, "ldr", "r3, [r4, r3]"), (0x4C8B0A, "add.w", "r2, r3, #8"), (0x4C8B10, "str", "r2, [r5]"))),
+        (0x7EFBFE, 0x12, ((0x7EFC02, "ldr", "r3, [r0, #8]"), (0x7EFC06, "subs", "r3, #1"), (0x7EFC0C, "tbb", "[pc, r3]"))),
+        (0x7EFC3A, 0x30, ((0x7EFC46, "add.w", "r2, r4, #0x10"), (0x7EFC4E, "ldr", "r3, [r3, #8]"), (0x7EFC50, "blx", "r3"))),
+        (0x7EFC9A, 0x1A, ((0x7EFC9A, "ldr", "r1, [r0, #0x10]"), (0x7EFCA4, "ldr", "r3, [r3, #0x14]"), (0x7EFCA6, "blx", "r3"))),
+        (0x131CF6, 0x22, ((0x131D06, "mov", "r1, r5"), (0x131D08, "ldr", "r3, [r3, #0x44]"), (0x131D0A, "blx", "r3"))),
+        (0x1326FC, 0x24, ((0x13270A, "bl", "#0x131cd0"), (0x13270E, "cmp", "r0, #1"), (0x132716, "mov", "r2, r5"), (0x13271A, "ldr", "r3, [r3, #0x40]"), (0x13271C, "blx", "r3"))),
+        (0x4D02E4, 0x10, ((0x4D02EA, "cmp", "r1, #0x73"), (0x4D02F0, "tbh", "[pc, r1, lsl #1]"))),
+        (0x4D04A4, 8, ((0x4D04A8, "b.w", "#0x4cfb9c"),)),
+    )
+    for entry, size, checks in witnesses:
+        rows = _decode_at(fp, elf, entry, size)
+        for address, mnemonic, operands in checks:
+            _require(rows, address, mnemonic, operands=operands)
+    if not _symbol_matches(elf, "ModelCameraToInstance", 0x4C8C64, 36):
+        raise ValueError("Camera factory symbol mismatch")
+    if _binding(fp, elf, 0xDF58C)["candidates"][0]["symbol"] != "_ZN9IdSoTable3addEiPKcS1_":
+        raise ValueError("Camera factory configuration binding mismatch")
+    # PIC strings are computed from their literal and architectural Thumb PC.
+    strings: dict[str, str] = {}
+    for name, literal, pc, expected in (
+        ("compact_model_name", 0x4022E0, 0x402092, b"@M00B\0"),
+        ("library", 0x4022E4, 0x40209C, b"modelCamera.so\0"),
+        ("factory", 0x4022E8, 0x40209E, b"ModelCameraToInstance\0"),
+    ):
+        address = (_read_load_word(fp, elf, literal) + pc) & 0xFFFFFFFF
+        # A string is checked word-by-word against the original file; no raw
+        # firmware bytes are included in the returned observation.
+        observed = b"".join(_read_load_word(fp, elf, address + offset).to_bytes(4, "little") for offset in range(0, len(expected), 4))
+        if not observed.startswith(expected):
+            raise ValueError(f"Camera configuration string mismatch: {name}")
+        strings[name] = expected[:-1].decode("ascii")
+    # Constructor installs this address point, independently of saved RTTI.
+    got = (_read_load_word(fp, elf, 0x4C8C5C) + 0x4C8B06 + _read_load_word(fp, elf, 0x4C8C60)) & 0xFFFFFFFF
+    if got != 0x1032CFC or _read_load_word(fp, elf, got) != 0x100A328:
+        raise ValueError("Camera constructor vptr source mismatch")
+    if _relocation_type(elf, got) != 23:
+        raise ValueError("Camera vtable source relocation missing")
+    address_point = 0x100A330
+    typeinfo = _read_load_word(fp, elf, address_point - 4)
+    if typeinfo != 0x100A31C or _read_load_word(fp, elf, typeinfo + 4) != 0xCF201C:
+        raise ValueError("Camera RTTI identity pointer mismatch")
+    rtti = b"".join(_read_load_word(fp, elf, 0xCF201C + offset).to_bytes(4, "little") for offset in range(0, 16, 4))
+    if not rtti.startswith(b"11ModelCamera\0"):
+        raise ValueError("Camera RTTI name mismatch")
+    slots = {0x08: 0x1326FC, 0x0C: 0x131C4C, 0x14: 0x131CF6, 0x18: 0x132624, 0x40: 0x4ACF80, 0x44: 0x4D02E4}
+    for offset, target in slots.items():
+        if _read_load_word(fp, elf, address_point + offset) != target + 1 or _relocation_type(elf, address_point + offset) != 23:
+            raise ValueError(f"Camera vtable slot mismatch: {offset:#x}")
+    tbb = [_read_load_word(fp, elf, 0x7EFC10 + offset) for offset in (0, 4, 8, 12)]
+    table_bytes = b"".join(word.to_bytes(4, "little") for word in tbb)
+    state_targets = [0x7EFC10 + value * 2 for value in table_bytes]
+    if state_targets[0] != 0x7EFC3A or state_targets[3] != 0x7EFC9A:
+        raise ValueError("execution TBB state mapping mismatch")
+    action_index = 25
+    halfword = _read_load_word(fp, elf, 0x4D0326) & 0xFFFF
+    if 0x4D02F4 + halfword * 2 != 0x4D04A4:
+        raise ValueError("Camera Action TBH index mapping mismatch")
+    edges = [
+        _edge("registry.register.record", "model registry registration candidate", "model registry record initializer", "CALLS", 0x7EC8A4, digest, target_vma=0x7F1156, callsite_vma=0x7EC91C),
+        _edge("registry.register.insert", "model registry registration candidate", "model registry insertion candidate", "CALLS", 0x7EC8A4, digest, target_vma=0x7EC6CC, callsite_vma=0x7EC954),
+        _edge("registry.camera.config", "Camera model configuration", "IdSoTable::add", "REGISTERS_FACTORY", 0x401F78, digest, target_vma=0x7F08A0, callsite_vma=0x4020A0, method="CAPSTONE_PRIMARY_ELF+PLT_RELOCATION", note="@M00B / modelCamera.so / ModelCameraToInstance; not runtime loader resolution."),
+        _edge("camera.factory.constructor", "ModelCameraToInstance", "Camera object initializer", "CALLS", 0x4C8C64, digest, target_vma=0x4C8AF4, callsite_vma=0x4C8C74),
+        _edge("camera.constructor.vptr", "Camera object initializer", "CameraVtable:0x100a330", "INITIALIZES_VPTR", 0x4C8AF4, digest, callsite_vma=0x4C8B10, method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE"),
+        _edge("camera.vtable.final_slot", "CameraVtable:0x100a330", "Camera completion candidate", "VTABLE_SLOT", address_point, digest, target_vma=0x132624, callsite_vma=0x100A348, method="ELF_DATA+R_ARM_RELATIVE", note="Slot +0x18 only; callsite 0x7efce0 selects it only if the receiver has this vptr."),
+        _edge("camera.vtable.checker_slot", "CameraVtable:0x100a330", "Camera transition checker", "VTABLE_SLOT", address_point, digest, target_vma=0x4ACF80, callsite_vma=0x100A370, method="ELF_DATA+R_ARM_RELATIVE"),
+        _edge("camera.vtable.action_slot", "CameraVtable:0x100a330", "Camera action index dispatcher", "VTABLE_SLOT", address_point, digest, target_vma=0x4D02E4, callsite_vma=0x100A374, method="ELF_DATA+R_ARM_RELATIVE"),
+        _edge("camera.action.index25", "Camera action index dispatcher", "ModelCamera::ActionGpSetSetting", "TAIL_BRANCH", 0x4D02E4, digest, target_vma=0x4CFB9C, callsite_vma=0x4D04A8, note="TBH action index 25, distinct from request ID and selector 0x0f01."),
+    ]
+    return edges, {
+        "status": "PRIMARY_ELF_VERIFIED", "semantic_level": "STATIC_INFERRED",
+        "configuration": strings,
+        "registry": {"receiver_offset": "+0x88", "node_key_offset": "+0x10", "node_value_offset": "+0x14", "miss_result": "zero", "registration_entry": "0x7ec8a4", "insert_callsite": "0x7ec954"},
+        "record": {"size": "0x24", "fields": {"+0x00": "model ID", "+0x04": "descriptor +0x0c word", "+0x08": "state/type 0x10000", "+0x10": "library name", "+0x14": "factory symbol name", "+0x18": "dlopen handle", "+0x1c": "factory result instance", "+0x20": "owner/context"}},
+        "loader": {"entry_vma": "0x7f11ca", "factory_callsite": "0x7f11f2", "instance_store": "0x7f11f4", "library_alias_identity": "UNKNOWN; modelCamera.so path has not been resolved to this ELF", "success_required": True},
+        "factory": {"entry_vma": "0x4c8c64", "allocation_size": "0x27d4", "owner_field": "+0x20", "vtable_address_point": hex(address_point), "vptr_write": "0x4c8b10", "rtti_name": "11ModelCamera", "rtti_vma": hex(typeinfo)},
+        "slots": {hex(offset): hex(target) for offset, target in slots.items()},
+        "executor": {"tbb_base": "0x7efc10", "state1_target": hex(state_targets[0]), "state4_target": hex(state_targets[3]), "event_field": "+0x14", "pending_action_field": "+0x10", "final_slot_plus_0x18_target": "0x132624", "precondition": "receiver must be factory result with vptr 0x100a330; loader/registration success UNKNOWN"},
+        "action": {"index": action_index, "table_entry": "0x4d0326", "branch_target": "0x4d04a4", "tail_callsite": "0x4d04a8", "target": "0x4cfb9c"},
+        "conditional_relations": [
+            _edge("camera.execute.checker_bridge", "model execution state machine", "Camera checker bridge", "CONDITIONAL_VIRTUAL_CALL", 0x7EFBFE, digest, target_vma=0x1326FC, callsite_vma=0x7EFC50, status="STATIC_INFERRED", confidence="MEDIUM", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE", note="Only if receiver has factory-established Camera vptr 0x100a330; r2 points to receiver+0x10."),
+            _edge("camera.bridge.checker", "Camera checker bridge", "Camera transition checker", "CONDITIONAL_VIRTUAL_CALL", 0x1326FC, digest, target_vma=0x4ACF80, callsite_vma=0x13271C, status="STATIC_INFERRED", confidence="MEDIUM", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE", note="Requires Camera vptr and filter result 1; checker writes through forwarded r2."),
+            _edge("camera.execute.action_bridge", "model execution state machine", "Camera action bridge", "CONDITIONAL_VIRTUAL_CALL", 0x7EFBFE, digest, target_vma=0x131CF6, callsite_vma=0x7EFCA6, status="STATIC_INFERRED", confidence="MEDIUM", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE", note="Requires Camera vptr and state4; r1 loaded from pending action field +0x10, excluding -1."),
+            _edge("camera.bridge.action_dispatch", "Camera action bridge", "Camera action index dispatcher", "CONDITIONAL_VIRTUAL_CALL", 0x131CF6, digest, target_vma=0x4D02E4, callsite_vma=0x131D0A, status="STATIC_INFERRED", confidence="MEDIUM", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE", note="Requires Camera vptr; r1 is retained Action index, not Event ID."),
+            _edge("camera.execute.final_callback", "model execution candidate", "Camera completion candidate", "CONDITIONAL_VIRTUAL_CALL", 0x7EFCCA, digest, target_vma=0x132624, callsite_vma=0x7EFCE0, status="STATIC_INFERRED", confidence="MEDIUM", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE", note="Requires Camera vptr; this post-state-machine callback is not ActionGpSetSetting."),
+        ],
+        "instance_identity": "STATIC_INFERRED; configuration names the factory, but loaded library alias and registry runtime population are unverified",
+        "runtime_verified": False, "callable": False,
+    }
+
+
+def normalize_compact_model_event(model_id: int, selector: int) -> int:
+    """Offline arithmetic model of 0x120168 for the compact @M path.
+
+    Restrict the model ID to the three-hex-digit input domain. Validation
+    here is a host-model guard, not a claim that firmware rejects bad input.
+    No object code or camera API is invoked.
+    """
+    if type(model_id) is not int or not 0 <= model_id <= 0xFFF:
+        raise ValueError("compact model ID must be a 12-bit unsigned integer")
+    if type(selector) is not int or not 0 <= selector <= 0xFFFFFFFF:
+        raise ValueError("selector must be an ARM32 unsigned word")
+    if selector & 0xFFFFF000:
+        return selector
+    return (0x12000000 + (model_id << 12) + selector) & 0xFFFFFFFF
+
+
+def _observe_compact_selector_path(fp: Any, elf: ELFFile, digest: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    digits = _decode_at(fp, elf, 0x12D71A, 0x32)
+    for address, operands in ((0x12D71A, "r4, [r5, #2]"), (0x12D726, "r3, [r5, #3]"), (0x12D736, "r3, [r5, #4]")):
+        _require(digits, address, "ldrb", operands=operands)
+    _require(digits, 0x12D720, "subs", operands="r4, #0x37")
+    _require(digits, 0x12D728, "lsls", operands="r4, r4, #8")
+    _require(digits, 0x12D734, "lsls", operands="r2, r3, #4")
+    _require(digits, 0x12D744, "adds", operands="r4, r4, r3")
+    transform = _decode_at(fp, elf, 0x12D824, 0x32)
+    _require(transform, 0x12D824, "blx", target=0xDFFB8)
+    _require(transform, 0x12D82A, "cmp", operands="r3, #0x4d")
+    _require(transform, 0x12D830, "mov.w", operands="r0, #0x12000000")
+    _require(transform, 0x12D840, "bl", target=0x120168)
+    arithmetic = _decode_at(fp, elf, 0x120168, 0x1A)
+    _require(arithmetic, 0x12016A, "bic", operands="r0, r2, #0xfe0")
+    _require(arithmetic, 0x12016E, "bic", operands="r0, r0, #0x1f")
+    _require(arithmetic, 0x120176, "cbnz", target=0x12017E)
+    _require(arithmetic, 0x120178, "lsls", operands="r1, r1, #0xc")
+    _require(arithmetic, 0x12017A, "adds", operands="r2, r2, r1")
+    _require(arithmetic, 0x12017C, "adds", operands="r2, r2, r3")
+    checker = _decode_at(fp, elf, 0x4AD23E, 0x0E)
+    _require(checker, 0x4AD23E, "movw", immediate=0xF01)
+    _require(checker, 0x4AD242, "cmp", operands="r8, r3")
+    _require(checker, 0x4AD248, "b.w", target=0x4ADAFC)
+    action_output = _decode_at(fp, elf, 0x4ADAFC, 8)
+    _require(action_output, 0x4ADAFC, "movs", operands="r3, #0x19")
+    _require(action_output, 0x4ADAFE, "str", operands="r3, [r6]")
+    # This checker path is selected by the state jump table (state 2).
+    state2 = (_read_load_word(fp, elf, 0x4ACFB0) + 0x4ACFA8) & 0xFFFFFFFE
+    if state2 != 0x4ACFF6:
+        raise ValueError("Camera checker state2 jump mapping mismatch")
+    edges = [
+        _edge("camera.compact.selector_normalizer", "compact @M selector transform", "model selector arithmetic", "CALLS", 0x12D780, digest, target_vma=0x120168, callsite_vma=0x12D840, note="Compact @M path only; noncompact names and @V remain separate."),
+        _edge("camera.checker.selector0f01", "Camera transition checker", "ActionIndex:25", "SELECTS_ACTION", 0x4ACF80, digest, callsite_vma=0x4ADAFE, note="State2 checker path compares normalized r8 to 0x0f01 and writes 25 through its action-output pointer."),
+    ]
+    return edges, {
+        "status": "PRIMARY_ELF_VERIFIED", "scope": "compact @M inputs and bounded state2 checker arm",
+        "compact_model_name": "@M00B", "model_id": 11,
+        "model_id_evidence": "0x12d71a..0x12d744: three hexadecimal digits at +2/+3/+4, shifts 8/4/0",
+        "normalizer": {"entry": "0x120168", "base": "0x12000000", "model_shift": 12, "selector_mask": "0xfffff000", "already_encoded": "returned unchanged", "example_input": "0x0f01", "example_event_id": hex(normalize_compact_model_event(11, 0xF01))},
+        "checker": {"entry": "0x4acf80", "state": 2, "state_branch": hex(state2), "compare": "0x4ad242", "output_store": "0x4adafe", "action_index": 25},
+        "normalization_back_to_selector": "STATIC_INFERRED; 0x131fd2 maps Event ID via receiver+0x24 and removes matching model prefix; mapping-table population/completeness unverified",
+        "preconditions": ["compact name begins @M and is not special @MFFE", "registry ID 11 selects successful factory result", "0x131cd0 filter returns 1 before vtable +0x40", "Camera state getter returns 2 for the audited checker branch", "event mapping returns expected value"],
+        "runtime_verified": False, "callable": False,
+    }
+
+
 def _unresolved(digest: str) -> list[dict[str, Any]]:
     return [
         {
@@ -760,7 +927,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x7F0B74),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "Generic consumer 0x7ed49c handles this ID, reads keys 7/8 and forwards a new Event; model registry population and virtual target at 0x7efce0 remain UNKNOWN.",
+            "reason": "Model ID 11 configuration names ModelCameraToInstance; the factory/vptr/slot chain is conditional on modelCamera.so loader identity and successful registry population, neither verified at runtime.",
             "evidence": _evidence(digest, "ELF_VMA:0x7f0b74", confidence="MEDIUM"),
         },
         {
@@ -771,7 +938,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x7F0B44),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "Generic receiver reads key 7 for model lookup and key 8 for the new Event ID; exact ModelCamera registry entry and normalization to action selector remain UNKNOWN.",
+            "reason": "Compact @M00B and selector 0x0f01 produce Event ID 0x1200bf01; selected model instance, event-filter mapping and current Camera state are required before the conditional Action index 25 route.",
             "evidence": _evidence(digest, "ELF_VMA:0x7f0b44", confidence="MEDIUM"),
         },
         {
@@ -782,7 +949,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x12D780),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "Both request frontends establish the call and output register, but this pass does not claim the helper's semantic mapping.",
+            "reason": "The compact @M path is recovered; noncompact name lookup, @V paths and malformed input semantics remain outside the verified mapping scope.",
             "evidence": _evidence(digest, "ELF_VMA:0x12d780", confidence="LOW"),
         },
     ]
@@ -823,6 +990,8 @@ def probe_camera_core_chain(
         provider_observation = _observe_provider_callback_candidate(fp, elf, digest)
         consumer_edges, consumer_observation = _observe_request_consumer(fp, elf, digest)
         configured_provider = _observe_config_provider(fp, elf, digest)
+        registry_edges, registry_observation = _observe_camera_registry_dispatch(fp, elf, digest)
+        compact_edges, compact_observation = _observe_compact_selector_path(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
@@ -832,7 +1001,7 @@ def probe_camera_core_chain(
     key7_edge["key_literal_vma"] = hex(0x7F0B44)
     key8_edge = _edge("factory.key8", f"EventID:{hex(EVENT_ID)}", "EventParameterKey:8", "CARRIES_PARAMETER", 0x7F0B0C, digest, callsite_vma=0x7F0B60)
     key8_edge["key_literal_vma"] = hex(0x7F0B5C)
-    edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + [
+    edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + registry_edges + compact_edges + [
         event_edge,
         key7_edge,
         key8_edge,
@@ -869,6 +1038,8 @@ def probe_camera_core_chain(
             "event_manager_provider_candidate": provider_observation,
             "request_consumer": consumer_observation,
             "configured_provider_candidate": configured_provider,
+            "camera_registry_dispatch": registry_observation,
+            "compact_model_selector": compact_observation,
             "event_id_literal_scan": {
                 "status": "PRIMARY_ELF_VERIFIED",
                 "value": hex(EVENT_ID),
@@ -886,6 +1057,9 @@ def probe_camera_core_chain(
             "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
             "event_manager_owner_init_push": "PRIMARY_ELF_VERIFIED",
             "generic_request_consumer_and_keys_7_8": "PRIMARY_ELF_VERIFIED",
+            "camera_factory_configuration_and_vtable": "PRIMARY_ELF_VERIFIED",
+            "registry_to_camera_instance": "STATIC_INFERRED",
+            "compact_model_selector_path": "PRIMARY_ELF_VERIFIED",
             "event_manager_indirect_dispatch_target": "UNKNOWN",
             "event_consumer_model_camera": "UNKNOWN",
             "event_keys_7_8_to_model_camera": "UNKNOWN",
@@ -921,6 +1095,47 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
         errors.append("runtime_or_callable_promotion")
     summary = report.get("chain_summary", {})
     consumer = report.get("observations", {}).get("request_consumer")
+    registry = report.get("observations", {}).get("camera_registry_dispatch")
+    compact = report.get("observations", {}).get("compact_model_selector")
+    if registry is not None:
+        if registry.get("configuration") != {"compact_model_name": "@M00B", "library": "modelCamera.so", "factory": "ModelCameraToInstance"}:
+            errors.append("registry_camera_configuration")
+        expected_slots = {"0x8": "0x1326fc", "0xc": "0x131c4c", "0x14": "0x131cf6", "0x18": "0x132624", "0x40": "0x4acf80", "0x44": "0x4d02e4"}
+        if registry.get("factory", {}).get("vtable_address_point") != "0x100a330" or registry.get("slots") != expected_slots:
+            errors.append("registry_camera_vtable")
+        if registry.get("runtime_verified") is not False or registry.get("callable") is not False:
+            errors.append("registry_runtime_promotion")
+        if not str(registry.get("instance_identity", "")).startswith("STATIC_INFERRED"):
+            errors.append("registry_instance_promotion")
+        if registry.get("loader", {}).get("success_required") is not True or not str(registry.get("loader", {}).get("library_alias_identity", "")).startswith("UNKNOWN"):
+            errors.append("registry_loader_promotion")
+        if summary.get("registry_to_camera_instance") != "STATIC_INFERRED":
+            errors.append("registry_summary_promotion")
+        conditional_targets = {
+            "camera.execute.checker_bridge": ("0x1326fc", "0x7efc50"),
+            "camera.bridge.checker": ("0x4acf80", "0x13271c"),
+            "camera.execute.action_bridge": ("0x131cf6", "0x7efca6"),
+            "camera.bridge.action_dispatch": ("0x4d02e4", "0x131d0a"),
+            "camera.execute.final_callback": ("0x132624", "0x7efce0"),
+        }
+        relations = registry.get("conditional_relations", [])
+        if {e.get("id") for e in relations} != set(conditional_targets):
+            errors.append("registry_conditional_edges_missing")
+        for relation in relations:
+            if relation.get("verification_status") != "STATIC_INFERRED" or relation.get("evidence", {}).get("verification_status") != "STATIC_INFERRED":
+                errors.append("registry_conditional_edge_promotion")
+            if relation.get("evidence", {}).get("source_binary_sha256") != expected_sha256:
+                errors.append("registry_conditional_edge_identity")
+            if (relation.get("target_vma"), relation.get("callsite_vma")) != conditional_targets.get(relation.get("id")):
+                errors.append("registry_conditional_target")
+    if compact is not None:
+        normalizer = compact.get("normalizer", {})
+        if compact.get("model_id") != 11 or normalizer.get("example_event_id") != "0x1200bf01" or compact.get("checker", {}).get("action_index") != 25:
+            errors.append("compact_selector_namespace")
+        if (normalizer.get("base"), normalizer.get("model_shift"), normalizer.get("selector_mask")) != ("0x12000000", 12, "0xfffff000"):
+            errors.append("compact_selector_arithmetic")
+        if not compact.get("preconditions") or compact.get("runtime_verified") is not False or compact.get("callable") is not False:
+            errors.append("compact_selector_promotion")
     if consumer is not None:
         computed = consumer.get("computed_event_id", {})
         if computed != {"literal_vma": "0x7ed750", "literal_value": "0x11004005", "subtract": 3, "add": 1, "result": "0x11004003", "compare_vma": "0x7ed4fe", "branch_target": "0x7ed5c8"}:

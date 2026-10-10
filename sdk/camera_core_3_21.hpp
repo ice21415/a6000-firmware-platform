@@ -121,6 +121,31 @@ struct RequestConsumerObservation {
 };
 
 static_assert(sizeof(Arm32Word) == 4);
+// File-backed field observations, with ARM32 words for all target addresses.
+// +0x1c is filled only after successful dlopen/dlsym/factory execution.
+struct ModelRegistryRecordObservation {
+  Arm32Word model_id;
+  Arm32Word descriptor_word_0c;
+  Arm32Word state_or_type;
+  Arm32Word unknown_0c;
+  Arm32Word library_name_address;
+  Arm32Word factory_name_address;
+  Arm32Word loader_handle;
+  Arm32Word instance_address;
+  Arm32Word owner_address;
+};
+struct CameraRegistryDispatchObservation {
+  static constexpr Arm32Word compact_model_id = 11;
+  static constexpr Arm32Word factory_vma = 0x004c8c64;
+  static constexpr Arm32Word vtable_address_point = 0x0100a330;
+  static constexpr Arm32Word slot_18_target_vma = 0x00132624;
+  static constexpr Arm32Word checker_slot_40_target_vma = 0x004acf80;
+  static constexpr Arm32Word action_slot_44_target_vma = 0x004d02e4;
+  static constexpr Arm32Word action_index_set_setting = 25;
+  static constexpr Arm32Word compact_event_example = 0x1200bf01;
+};
+static_assert(sizeof(ModelRegistryRecordObservation) == 0x24);
+static_assert(offsetof(ModelRegistryRecordObservation, instance_address) == 0x1c);
 static_assert(std::is_standard_layout_v<RequestEventEnvelopeObservation>);
 static_assert(sizeof(RequestEventEnvelopeObservation) == 16);
 

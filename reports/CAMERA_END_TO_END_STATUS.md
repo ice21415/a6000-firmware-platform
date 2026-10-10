@@ -25,7 +25,7 @@
 | layout initializer → provider vtable slot `+0x30` | `0x7ef8b0` | `PRIMARY_ELF_VERIFIED` |
 | layout initializer → push dispatch state `+0x08` | `0x7ef8b2` | `PRIMARY_ELF_VERIFIED` |
 
-The integrated probe currently emits **28 verified static edges** and **5
+The integrated probe currently emits **39 verified static edges** and **5
 unresolved edges**.  Every verified edge carries the pinned binary hash,
 `ELF_VMA`, source/callsite address, evidence method and verification status.
 
@@ -142,11 +142,9 @@ pointing to `0x106900`, which returns GOT-relocated callback candidate
 `0x11130c` via `0x1030f6c`. Owner-name selection and runtime symbol
 interposition remain UNKNOWN; this does not resolve the actual push callback.
 
-Next targets: registry population for `0x7eb8fa` (receiver +0x88), the
-returned object's +0x1c pointer used by `0x7f124a`, and state machine
-`0x7efbfe`. It dispatches through TBB and vtable slots +0x0c/+0x08
-before the final +0x18 call at `0x7efce0`. ModelCamera vtable candidates
-alone cannot prove registry identity or delivery to `ActionGpSetSetting`.
+The registry writer, descriptor loader and Camera slots are now linked
+conditionally below. A particular request's successful loader resolution
+and selected registry instance remain unverified.
 
 Private targeted Ghidra `camera-consumer-chain` exited 0 with
 `COMPLETE_TARGET_EXPORT`: 11 targets, 480 instructions, 107 blocks,
@@ -157,3 +155,96 @@ cross-check ranges, not proof of source-level function extents.
 Overall status: PARTIAL. Generic request consumption is proven; five
 Camera/provider/normalization links remain unresolved. Fully verified
 callable core APIs: **0**. Raw exports remain private.
+
+## Model Registry → Camera：有前置條件的靜態鏈
+
+`0x7eb8fa` searches the tree at receiver +0x88 through `0x7eb8f0`
+and `0x7eb896`. The node payload starts at +0x10; key is +0x10 and
+the returned record pointer is +0x14. End-iterator comparison yields a
+zero result on miss. Registration `0x7ec8a4` checks for an existing key,
+allocates a 0x24-byte record, initializes it at `0x7f1156`, and inserts
+it via `0x7ec954 → 0x7ec6cc`. Duplicate entries skip this allocation path.
+The registry is initialized in `0x7ec384`; cleanup/removal witnesses at
+`0x7ec274` and `0x7ec476` are scoped observations, not a complete concurrent
+ownership contract.
+
+The configuration witness at `0x40208c..0x4020a3` supplies
+`@M00B`, `modelCamera.so`, and `ModelCameraToInstance` to `IdSoTable::add`.
+The compact ID parser `0x12d71a..0x12d744` interprets the final three
+hexadecimal digits, giving **Model ID 11**. This identifies configured
+metadata; it does not establish that initialization ran on a device.
+
+The record has library string at +0x10, factory symbol string at +0x14,
+loader handle at +0x18, instance at +0x1c, and context at +0x20.
+`0x7f11ca` performs dlopen/dlsym and invokes the returned symbol at
+`0x7f11f2`; its result is stored at +0x1c (`0x7f11f4`). Failed steps
+take the cleanup path. The available extracted directory contains no
+`modelCamera.so` file or preserved symlink proving its alias to `libObj.so`.
+A read-only directory walk of the original ext-family root image also
+found no such name: 29 directories / 744 entries. Image SHA-256:
+`938daf4f8ed2bec72497a8f992d565832517de1311357eb79064869b6d183a99`.
+Its `/lib/libObj.so` inode 135903 (inode record offset 0x8801f00) reconstructs
+to the pinned ELF SHA-256. This excludes a lost symlink in that image only;
+other mounted filesystems, runtime aliases or loader name rewriting remain
+unverified. Library alias identity therefore remains UNKNOWN.
+
+The SHA-pinned ELF does export `ModelCameraToInstance` at `0x4c8c64`:
+it allocates 0x27d4 bytes, calls `0x4c8af4`, stores context at +0x20,
+and returns the allocation. The initializer writes vptr **0x100a330**
+at `0x4c8b10`; its typeinfo `0x100a31c` references RTTI name
+`11ModelCamera`. These are direct static facts.
+
+| Conditional Camera vtable relation | Slot / target | Evidence |
+|---|---|---|
+| Executor checker bridge | +0x08 → `0x1326fc` | slot `0x100a338`; call `0x7efc50` |
+| Checker | +0x40 → `0x4acf80` | slot `0x100a370`; call `0x13271c` |
+| Action bridge | +0x14 → `0x131cf6` | slot `0x100a344`; call `0x7efca6` |
+| Action dispatcher | +0x44 → `0x4d02e4` | slot `0x100a374`; call `0x131d0a` |
+| Final callback | +0x18 → `0x132624` | slot `0x100a348`; call `0x7efce0` |
+
+The slot words and R_ARM_RELATIVE records are PRIMARY_ELF_VERIFIED.
+The five instance-specific call edges are separately stored as
+**STATIC_INFERRED**, conditioned on the receiver having this factory's
+vptr. The final +0x18 callback is not the Action entry: Action executes
+earlier in the TBB state machine. State 1 selects `0x7efc3a`; state 4
+selects `0x7efc9a` and passes pending action field +0x10.
+
+## Selector、Event ID 和 Action index
+
+For compact `@M00B`, `0x12d840 → 0x120168` encodes a selector with no
+bits above bit 11 as `0x12000000 + (11 << 12) + selector`.
+Already encoded selectors are returned unchanged. Thus input **0x0f01**
+produces Model Event ID **0x1200bf01**, distinct from request
+Event ID **0x11004003**.
+
+`0x131fd2` looks up the Event ID through the +0x24 mapping object and
+subtracts the matching model prefix. Mapping aliases/completeness are
+not fully audited. The checker must pass `0x131cd0 == 1`, and the audited
+state branch requires Camera state 2. Its compare at `0x4ad242` reaches
+`0x4adafc`, writing **Action index 25** through the forwarded output
+pointer. The TBH word at `0x4d0326` maps index 25 to `0x4d04a4`;
+tail branch `0x4d04a8` reaches `ActionGpSetSetting` (`0x4cfb9c`).
+The independently verified selector arm then calls `pvt_ActionSetInit`.
+
+The offline Python arithmetic model and ARM32 descriptive header preserve
+these namespaces and expose no executable camera wrapper. Borrowed Event
+at instance +0x14, ParamList aliases, current state, loader success and
+threading requirements remain necessary ABI constraints.
+
+## 本輪交叉驗證與下一個阻礙
+
+Two private Ghidra 12.1.3 profiles completed with exit 0 and explicit
+completion markers: registry (15 targets / 317 instructions / 46 blocks /
+135 flow references), selector (11 / 148 / 35 / 54). Both are targeted
+`-noanalysis` cross-checks. Two earlier registry attempts returned process
+exit 0 but had a script decompiler timeout and no completion marker;
+they are recorded INCOMPLETE. The final registry export explicitly skips
+decompilation of its truncated TBH header while retaining instructions/CFG.
+Capstone and original table words independently verify that table.
+
+Current graph: **39 primary static edges, 5 conditional inferred edges,
+5 unresolved edges**. End-to-end status remains PARTIAL. The next decisive
+input is original filesystem symlink/loader metadata for `modelCamera.so`;
+then audit the descriptor initialization state and Event-filter mapping
+for `0x1200bf01`. EventManager provider selection and completion handoff
+also remain UNKNOWN. No runtime verification or callable API was added.
