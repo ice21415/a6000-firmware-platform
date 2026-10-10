@@ -84,8 +84,9 @@ def parse_pnputil(text: str) -> tuple[UsbDevice, ...]:
 
 def enumerate_usb(*, runner: Callable[[list[str]], tuple[int, str, str]] | None = None) -> HardwareValidation:
     """Enumerate USB devices using the OS tool; no device handle is opened."""
+    synthetic_runner = runner is not None
     runner = runner or _run_pnputil
-    if platform.system().lower() != "windows":
+    if not synthetic_runner and platform.system().lower() != "windows":
         return HardwareValidation(STATUS_USB_NOT_ACCESSIBLE, platform.node(), platform.system(), "pnputil", "Windows pnputil unavailable", (), (), False)
     command = ["pnputil", "/enum-devices", "/connected", "/class", "USB"]
     try:
