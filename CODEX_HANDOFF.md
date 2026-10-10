@@ -1371,3 +1371,42 @@ semantics, null/invalid-element behavior, locking, concurrent validity and
 runtime binding remain UNKNOWN. Runtime-verified and callable SDK counts are
 0. The seven focused tests and the complete local suite (**457 tests**) pass;
 the commit hash is recorded after this checkpoint is committed.
+
+
+## Latest continuation checkpoint -- ParamBase destructor and D1/D0 cleanup audit (2026-10-10)
+
+The authenticated private `libObj.so` was checked again by
+`fwplatform.param_destructor_probe` using the exact SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`. The
+bounded pass covers all ten known ParamBase-derived families and records
+direct receiver-relative field operations, direct Thumb call targets and
+statically resolved PLT/GOT bindings only.
+
+The primary ELF facts are 10/10 nondeleting D1 bodies calling the ParamBase
+nondeleting destructor at `0xe4734`, and 10/10 D0 candidates calling their
+family D1 then `_ZdlPv` at `0xdd620`. Six D1 bodies contain a payload-cleanup
+call candidate: PrmString (`+0x0c` to `_ZdaPv`), PrmStruct (`+0x0c` to a
+`free` binding), PrmSet, PrmNumberList, PrmCntInfoList and PrmObjMsg. These
+are direct static observations; helper semantics and allocator ownership are
+not established.
+
+The private Ghidra 12.1.3 targeted `param-destructor-field-audit` export
+completed with exit code 0 and its completion marker: 20 target bodies, 233
+instructions, 24 blocks and 47 CFG/call edges. It ran in targeted
+`-noanalysis` mode, so `auto_analysis_completed=false` remains explicit and
+whole-program Ghidra coverage is still a blocker. The sanitized contract is
+`sdk/param_destructor_3_21.json`; the raw export and project remain private.
+
+The repeatable local command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-destructor-audit --elf C:\private\libObj.so --json
+```
+
+The contract is descriptive and remains `runtime_verified=false`,
+`callable=false`, with runtime-verified and callable core API counts at zero.
+It does not prove a complete C++ destructor ABI, null/invalid-object policy,
+double-destroy behavior, exception cleanup, locking, concurrent validity or
+safe invocation on a camera. Seven new fail-closed tests cover identity,
+cleanup-chain and unsafe-status regressions; the complete local suite passes
+**464 tests**.

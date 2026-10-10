@@ -1419,3 +1419,29 @@ The private Ghidra 12.1.3 targeted `-noanalysis` cross-check completed with
 and the project are not public. The SDK contract remains descriptive with
 `runtime_verified=false`, `callable=false` and no permission to invoke the
 firmware on hardware.
+
+
+## ParamBase D1/D0 destructor audit
+
+The bounded destructor pass is available locally as:
+
+```powershell
+python -m fwplatform.cli sdk parameter-destructor-audit --elf C:\private\libObj.so --json
+```
+
+`fwplatform.param_destructor_probe` authenticates the private 3.21 ELF before
+decoding ten ParamBase-derived D1/D0 pairs. It observes a ParamBase D1 call in
+all ten nondeleting bodies and a family-D1-then-`_ZdlPv` sequence in all ten
+deleting-wrapper candidates. Six D1 bodies have a payload-cleanup call
+candidate. The normalized contract is `param_destructor_3_21.json` and keeps
+the key field `+0x08` separate from the payload region beginning at `+0x0c`.
+
+The facts are direct primary-ELF observations; cleanup helper semantics,
+allocation provenance, ownership transfer, exception behavior, null and
+double-destroy policy, locking, concurrent validity and loader binding remain
+unknown. A private targeted Ghidra 12.1.3 cross-check has exit 0 and a
+completion marker (20 targets, 233 instructions, 24 blocks, 47 CFG/call
+edges), but it is `-noanalysis` metadata and not whole-program Auto Analysis.
+The contract remains descriptive with `runtime_verified=false` and
+`callable=false`; it is not a live destructor wrapper or permission to invoke
+firmware code.

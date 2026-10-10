@@ -43,6 +43,21 @@ struct ParamBaseLifecycleEvidenceConstants {
     static constexpr std::uint32_t clones_with_direct_payload_access = 9;
 };
 
+// ParamBase D1/D0 cleanup metadata from the SHA-pinned 3.21 primary ELF.
+// These are static call/relocation witnesses only. They do not authorize
+// invoking a destructor, deleting a live object, or assuming allocator or
+// ownership compatibility outside the firmware process.
+struct ParamBaseDestructorEvidenceConstants {
+    static constexpr std::uint32_t key_offset = 0x08;
+    static constexpr std::uint32_t parambase_nondeleting_destructor_vma = 0x000e4734;
+    static constexpr std::uint32_t operator_delete_plt_vma = 0x000dd620;
+    static constexpr std::uint32_t operator_array_delete_plt_vma = 0x000df098;
+    static constexpr std::uint32_t objmsg_payload_destructor_vma = 0x000ddd94;
+    static constexpr std::uint32_t family_count = 10;
+    static constexpr std::uint32_t deleting_wrappers_with_d1_and_delete = 10;
+    static constexpr std::uint32_t payload_cleanup_call_candidates = 6;
+};
+
 // ParamList::add mutation witnesses from the SHA-pinned 3.21 primary ELF.
 // These are evidence locators only.  The replacement body is unnamed in the
 // stripped image, and none of these values is a host pointer or callable API.

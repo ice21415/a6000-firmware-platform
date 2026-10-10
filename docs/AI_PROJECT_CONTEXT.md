@@ -911,3 +911,29 @@ behavior, shared-counter semantics, locking, concurrency and runtime binding
 remain UNKNOWN. Runtime-verified and callable SDK counts remain 0. Use the
 CLI command `fw sdk parameter-lifecycle-audit --elf <private-libObj.so>
 --json` to repeat the private check.
+
+
+## ParamBase destructor and payload-cleanup checkpoint (2026-10-10)
+
+The current continuation adds `fwplatform/param_destructor_probe.py`, the
+sanitized `sdk/param_destructor_3_21.json` contract and seven fail-closed
+regression tests. The probe rechecks the exact private `libObj.so` SHA-256
+before decoding all ten known ParamBase-derived D1/D0 pairs. It records 10/10
+nondeleting calls to ParamBase D1, 10/10 deleting wrappers with family D1
+followed by `_ZdlPv`, and six payload-cleanup call candidates. Key `+0x08`
+accesses remain absent in these bounded destructor bodies; payload access is
+tracked from `+0x0c` without assigning a source-level type.
+
+The matching private Ghidra 12.1.3 targeted profile exits 0 with a completion
+marker and records 20 targets, 233 instructions, 24 blocks and 47 CFG/call
+edges. It uses ARM:LE:32:v8, the default compiler, image base `0x10000` and
+`ram`; `auto_analysis_completed=false` is preserved because this is a bounded
+`-noanalysis` cross-check. Raw firmware-derived output and the Ghidra project
+remain private.
+
+Use `fw sdk parameter-destructor-audit --elf <private-libObj.so> --json` for
+the repeatable local check. The result is static evidence only: helper
+semantics, allocator/ownership pairing, exception and null behavior,
+double-destroy policy, synchronization, concurrent validity, runtime binding,
+runtime verification and callable status remain unknown/false. Runtime and
+callable core API counts remain zero.

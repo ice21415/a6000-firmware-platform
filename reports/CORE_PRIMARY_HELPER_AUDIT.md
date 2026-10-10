@@ -1942,3 +1942,52 @@ loader binding. The descriptive SDK remains `safe_to_call=false`,
 `runtime_verified=false` and `callable=false`; runtime-verified and callable
 core API counts remain **0**. The seven new fail-closed synthetic tests pass,
 and the complete local suite passes **457 tests**.
+
+## ParamBase D1/D0 destructor and payload-cleanup audit (2026-10-10)
+
+The next pass extends the constructor/clone field audit to the ten known
+ParamBase-derived destructor pairs. `fwplatform.param_destructor_probe` uses
+the same authenticated private ELF and records only bounded direct
+receiver-field operations, direct call targets, ARM PLT/GOT symbol bindings
+and first-return extents. It does not execute a destructor or infer a source
+level ownership contract.
+
+The sanitized contract is `sdk/param_destructor_3_21.json`; the repeatable
+private command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-destructor-audit --elf C:\private\libObj.so --json
+```
+
+The primary-ELF facts are:
+
+* All 10 nondeleting D1 bodies call the ParamBase nondeleting destructor at
+  `0xe4734`; none directly accesses key field `+0x08`.
+* All 10 deleting-wrapper candidates call their family D1 (four through a
+  statically resolved PLT binding) and then the `_ZdlPv` PLT at `0xdd620`;
+  none directly accesses `+0x08`.
+* Six D1 bodies contain a payload cleanup call candidate. The direct evidence
+  includes `PrmString` loading `+0x0c` and calling `_ZdaPv` through `0xdf098`,
+  `PrmStruct` loading `+0x0c` before the statically bound `free` call at
+  `0xe0768`, `PrmSet` advancing to `+0x0c` before `0xffe0c`,
+  `PrmNumberList` using the `+0x0c` region before `0xecd5e`/`0xece54`,
+  `PrmCntInfoList` using `+0x0c` and `+0x34` before its helper calls, and
+  `PrmObjMsg` loading `+0x0c` before `_ZN3MWF6ObjMsgD1Ev` at `0xddd94` and
+  `_ZdlPv`.
+
+The private Ghidra 12.1.3 targeted `-noanalysis` profile
+(`param-destructor-field-audit`) exited 0 with `COMPLETE_TARGET_EXPORT`:
+20 target bodies, 233 instruction rows, 24 basic blocks and 47 CFG edges.
+The sanitized metadata preserves exact binary/program SHA-256, ARM:LE:32:v8,
+default compiler, image base `0x10000`, `ram` address space and
+`auto_analysis_completed=false`; raw output and project remain private.
+
+These observations support a static D1/D0 cleanup-chain description. They do
+not prove allocation provenance, ownership transfer, exception cleanup,
+double-destroy policy, null/invalid-object behavior, locking, concurrent
+safety, loader binding or a callable C++ ABI. Helper semantics remain
+UNKNOWN even where a symbol such as `free` or `_ZdaPv` is statically resolved.
+The contract remains `runtime_verified=false` and `callable=false`; the
+runtime-verified and callable core API counts remain **0**. Seven new
+fail-closed tests cover the contract and unsafe-status rejection. The complete
+local suite passes **464 tests**.

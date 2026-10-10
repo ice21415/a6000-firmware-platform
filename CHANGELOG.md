@@ -630,3 +630,17 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
   312 instructions, 20 blocks, 52 CFG edges) and seven fail-closed tests.
   C++ type identity, ownership, concurrency, runtime verification and
   callable SDK status remain unknown/false.
+
+
+## Unreleased -- ParamBase D1/D0 destructor cleanup evidence
+
+- Added `fwplatform.param_destructor_probe` and the sanitized
+  `sdk/param_destructor_3_21.json` contract for ten SHA-pinned ParamBase
+  destructor pairs. The bounded primary-ELF pass observes ParamBase D1 calls
+  in all ten nondeleting bodies, family-D1-then-`_ZdlPv` in all ten deleting
+  wrappers, and six payload-cleanup call candidates.
+- Added a private targeted Ghidra 12.1.3 metadata cross-check (20 targets,
+  233 instructions, 24 blocks, 47 CFG/call edges) and seven fail-closed
+  tests. The export is not whole-program Auto Analysis, and the helper
+  semantics, ownership/allocator contract, exception paths, concurrency,
+  runtime verification and callable SDK status remain unknown/false.
