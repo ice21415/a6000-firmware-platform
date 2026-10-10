@@ -208,6 +208,15 @@ fixture、Ghidra multi-ELF runs 和實機觀測才能提升 verification status�
 - 完成 Camera、UI、Lens、Sensor、Media、Android、Networking 等 domain index。
 - 建立可回復、可驗證的 modding framework adapter；任何實機 adapter 都必須另行審查。
 - 支援公開資料來源的可重現分析，不把私人 firmware 納入 CI 或 release。
+
+## Phase 4.2 硬體證據與協定研究
+
+- 完成唯讀 USB descriptor 的多 configuration、alternate setting、endpoint
+  關聯與 fail-closed 驗證。
+- 以去識別化 descriptor observation 建立 USB mode classifier；目前實機
+  證據為 Mass Storage `08/06/50`，PTP/MTP 仍未驗證。
+- 建立離線 PTP container parser 與標準 code index；禁止實機 PTP、Sony
+  vendor request、driver 變更及儲存裝置讀寫。
 # Primary helper checkpoint — 2026-10-09
 
 The two handoff target bodies have now been read from the authenticated private

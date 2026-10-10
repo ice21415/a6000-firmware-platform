@@ -33,6 +33,7 @@ class DescriptorTransport(Protocol):
 
 @dataclass(frozen=True)
 class UsbInterface:
+    configuration: int
     number: int
     alternate: int
     interface_class: int
@@ -43,6 +44,9 @@ class UsbInterface:
 
 @dataclass(frozen=True)
 class UsbEndpoint:
+    configuration: int
+    interface_number: int
+    alternate: int
     address: int
     direction: str
     transfer_type: str
@@ -90,7 +94,7 @@ def parse_device_descriptor(data: bytes) -> dict[str, int]:
             "product_id": fields[8], "configurations": fields[13]}
 
 
-def parse_configuration_descriptor(data: bytes) -> tuple[tuple[UsbInterface, ...], tuple[UsbEndpoint, ...]]:
+def parse_configuration_descriptor(data: bytes, configuration_index: int = 0) -> tuple[tuple[UsbInterface, ...], tuple[UsbEndpoint, ...]]:
     if len(data) < 9 or data[0] < 9 or data[1] != USB_DT_CONFIG:
         raise ValueError("truncated or invalid configuration descriptor")
     total = struct.unpack_from("<H", data, 2)[0]
@@ -98,6 +102,8 @@ def parse_configuration_descriptor(data: bytes) -> tuple[tuple[UsbInterface, ...
         raise ValueError("invalid configuration total length")
     interfaces: list[UsbInterface] = []
     endpoints: list[UsbEndpoint] = []
+    current_interface: tuple[int, int] | None = None
+    endpoint_counts: dict[tuple[int, int], int] = {}
     offset = 0
     while offset < total:
         length = data[offset]
@@ -106,13 +112,26 @@ def parse_configuration_descriptor(data: bytes) -> tuple[tuple[UsbInterface, ...
         kind = data[offset + 1]
         if kind == 4 and length >= 9:
             cls, sub, proto = data[offset + 5], data[offset + 6], data[offset + 7]
-            interfaces.append(UsbInterface(data[offset + 2], data[offset + 3], cls, sub, proto,
+            current_interface = (data[offset + 2], data[offset + 3])
+            endpoint_counts[current_interface] = data[offset + 4]
+            interfaces.append(UsbInterface(configuration_index, data[offset + 2], data[offset + 3], cls, sub, proto,
                                            cls == 6 and sub == 1 and proto == 1))
         elif kind == 5 and length >= 7:
+            if current_interface is None:
+                raise ValueError("endpoint is not associated with an interface")
             address, attrs, packet = data[offset + 2], data[offset + 3], struct.unpack_from("<H", data, offset + 4)[0]
-            endpoints.append(UsbEndpoint(address, "IN" if address & 0x80 else "OUT",
+            endpoint_counts[current_interface] -= 1
+            if endpoint_counts[current_interface] < 0:
+                raise ValueError("too many endpoints for interface")
+            endpoints.append(UsbEndpoint(configuration_index, current_interface[0], current_interface[1], address, "IN" if address & 0x80 else "OUT",
                                           ("CONTROL", "ISOCHRONOUS", "BULK", "INTERRUPT")[attrs & 3], packet))
         offset += length
+    if len({(item.number, item.alternate) for item in interfaces}) != len(interfaces):
+        raise ValueError("duplicate interface alternate descriptor")
+    if any(count != 0 for count in endpoint_counts.values()):
+        raise ValueError("interface endpoint count does not match descriptors")
+    if len({item.number for item in interfaces}) != data[4]:
+        raise ValueError("bNumInterfaces does not match interface descriptors")
     return tuple(interfaces), tuple(endpoints)
 
 
@@ -126,16 +145,21 @@ def probe_descriptors(transport: DescriptorTransport, *, expected_vid: int = 0x0
         identity = parse_device_descriptor(device)
         if identity["vendor_id"] != expected_vid or identity["product_id"] != expected_pid:
             return _result(STATUS_INCONCLUSIVE, source, "PRIMARY_DESCRIPTOR_VERIFIED", "VID/PID mismatch", **identity)
-        header = transport.get_descriptor(USB_DT_CONFIG, 0, 9, timeout_ms)
-        if len(header) < 4:
-            raise ValueError("truncated configuration header")
-        total = struct.unpack_from("<H", header, 2)[0]
-        if total < 9 or total > MAX_DESCRIPTOR_BYTES:
-            raise ValueError("configuration length outside safety bound")
-        config = transport.get_descriptor(USB_DT_CONFIG, 0, total, timeout_ms)
-        interfaces, endpoints = parse_configuration_descriptor(config)
+        all_interfaces: list[UsbInterface] = []
+        all_endpoints: list[UsbEndpoint] = []
+        for configuration_index in range(identity["configurations"]):
+            header = transport.get_descriptor(USB_DT_CONFIG, configuration_index, 9, timeout_ms)
+            if len(header) < 9 or header[0] < 9:
+                raise ValueError("truncated configuration header")
+            total = struct.unpack_from("<H", header, 2)[0]
+            if total < 9 or total > MAX_DESCRIPTOR_BYTES:
+                raise ValueError("configuration length outside safety bound")
+            config = transport.get_descriptor(USB_DT_CONFIG, configuration_index, total, timeout_ms)
+            interfaces, endpoints = parse_configuration_descriptor(config, configuration_index)
+            all_interfaces.extend(interfaces)
+            all_endpoints.extend(endpoints)
         return _result(STATUS_READ_ONLY_VERIFIED, source, "PRIMARY_DESCRIPTOR_VERIFIED",
-                       interfaces=interfaces, endpoints=endpoints, **identity)
+                       interfaces=tuple(all_interfaces), endpoints=tuple(all_endpoints), **identity)
     except TimeoutError as exc:
         return _result(STATUS_INCONCLUSIVE, source, "UNVERIFIED", str(exc))
     except PermissionError as exc:

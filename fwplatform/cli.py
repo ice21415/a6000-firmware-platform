@@ -276,6 +276,11 @@ def build_parser() -> argparse.ArgumentParser:
     hardware_desc.add_argument("--pid", type=lambda value: int(value, 0), default=0x07C4)
     hardware_desc.add_argument("--timeout-ms", type=int, default=1000)
     hardware_desc.add_argument("--json", action="store_true")
+    hardware_modes = hardware_sub.add_parser("modes", help="Classify sanitized descriptor observations offline")
+    hardware_modes.add_argument("--input", type=Path, default=Path("sdk/usb_descriptor_observation_2026-10-10.json"))
+    hardware_modes.add_argument("--before", type=Path)
+    hardware_modes.add_argument("--after", type=Path)
+    hardware_modes.add_argument("--json", action="store_true")
     protocol = commands.add_parser("protocol"); protocol_sub = protocol.add_subparsers(dest="protocol_command", required=True)
     protocol_queue = protocol_sub.add_parser("queue"); protocol_queue.add_argument("value"); protocol_queue.add_argument("--json", action="store_true")
     state = commands.add_parser("state"); state.add_argument("term"); state.add_argument("--json", action="store_true")
@@ -632,6 +637,18 @@ def main(argv: list[str] | None = None) -> int:
                 result = {"status": "USB_NOT_ACCESSIBLE", "verification_level": "UNVERIFIED", "error": str(exc), "vid": args.vid, "pid": args.pid}
         _json_or_text(result, args.json)
         return 0 if result["status"] in {"DRY_RUN", "READ_ONLY_VERIFIED"} else 2
+    if args.command == "hardware" and args.hardware_command == "modes":
+        import json as _json
+        from .usb_modes import classify_descriptor, compare_descriptor_results, result_from_observation
+        if args.before and args.after:
+            before = result_from_observation(_json.loads(args.before.read_text(encoding="utf-8")))
+            after = result_from_observation(_json.loads(args.after.read_text(encoding="utf-8")))
+            result = compare_descriptor_results(before, after)
+        else:
+            observation = _json.loads(args.input.read_text(encoding="utf-8"))
+            result = classify_descriptor(result_from_observation(observation))
+        _json_or_text(result, args.json)
+        return 0
     if args.command == "sdk" and args.sdk_command == "request-frontends":
         from .model_request_frontends import audit_model_request_frontends
         result = audit_model_request_frontends(args.fixture,

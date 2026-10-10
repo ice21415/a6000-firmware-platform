@@ -59,3 +59,16 @@ mass-storage-class interface through the currently installed driver; it does
 not prove PTP support, camera protocol success, firmware 3.21, or any Camera
 Core callback/API behavior. No string descriptor, serial number, storage
 mount, or file operation was requested.
+
+## Phase 4.2 mode classification and offline PTP research
+
+`python -m fwplatform.cli hardware modes --json` classifies the sanitized
+observation as `USB_MASS_STORAGE`, based on interface class `08/06/50` and its
+bulk endpoints. No PTP Still Image interface was observed. The classifier keeps
+the PTP/MTP class tuple as a candidate only when a future descriptor contains
+`06/01/01`; it cannot distinguish PTP from MTP by descriptors alone.
+
+`fwplatform/ptp_protocol.py` parses synthetic PTP container headers, validates
+lengths and standard container types, and provides descriptive standard
+operation/response names. It has no device transport and does not contain Sony
+vendor operation codes. No PTP packet was sent to the camera.

@@ -92,3 +92,18 @@ class USBDescriptorProbeTests(unittest.TestCase):
             self.assertIn(descriptor_type, (USB_DT_DEVICE, USB_DT_CONFIG))
             self.assertEqual(index, 0)
 
+    def test_multiple_configurations_and_alternate_settings_keep_scope(self):
+        tr = MockTransport({(1, 0): device(configs=2), (2, 0): config(False), (2, 1): config()})
+        result = probe_descriptors(tr)
+        self.assertEqual(result.configurations, 2)
+        self.assertEqual({item.configuration for item in result.interfaces}, {0, 1})
+        self.assertTrue(all(endpoint.configuration in {0, 1} for endpoint in result.endpoints))
+
+        alt0 = bytes([9, 4, 0, 0, 1, 6, 1, 1, 0]) + bytes([7, 5, 0x81, 2, 0x40, 0, 0])
+        alt1 = bytes([9, 4, 0, 1, 1, 6, 1, 1, 0]) + bytes([7, 5, 0x82, 2, 0x40, 0, 0])
+        body = alt0 + alt1
+        raw = bytes([9, 2, 9 + len(body), 0, 1, 1, 0, 0x80, 50]) + body
+        interfaces, endpoints = parse_configuration_descriptor(raw)
+        self.assertEqual({item.alternate for item in interfaces}, {0, 1})
+        self.assertEqual({item.alternate for item in endpoints}, {0, 1})
+

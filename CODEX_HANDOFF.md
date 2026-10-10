@@ -1584,3 +1584,19 @@ CFG/flow edges. It is targeted metadata export only;
 `auto_analysis_completed=false` remains explicit and raw output stays private.
 Six synthetic fail-closed tests cover identity, evidence, and promotion
 guards. No device or firmware execution was performed.
+
+## Latest continuation checkpoint -- Phase 4.2 USB evidence (2026-10-10)
+
+`fwplatform/usb_descriptor_probe.py` now validates device/configuration lengths,
+multiple configurations, alternate settings, interface endpoint counts and
+interface-scoped endpoints. Its explicit execution path uses only the existing
+libusb-win32 ABI and standard `GET_DESCRIPTOR`; default CLI behavior remains a
+dry-run. Synthetic malformed-input tests are fail-closed.
+
+The sanitized real observation is stored in
+`sdk/usb_descriptor_observation_2026-10-10.json`: device `054C:07C4`, one
+configuration, interface `08/06/50`, and two bulk endpoints. The generic
+classifier reports `USB_MASS_STORAGE`; PTP/MTP are not proven. `usb_modes.py`
+supports offline comparison of two observations. `ptp_protocol.py` parses only
+offline PTP containers and standard descriptive codes; no PTP transport exists.
+Camera Core runtime verification and safe callability remain zero.

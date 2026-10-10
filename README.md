@@ -196,6 +196,15 @@ python -m fwplatform.cli hardware descriptors --execute-readonly --json
 靜態相容性證據；即使描述符讀取成功，也不代表 PTP 通訊或 Camera Core ABI
 已通過實機驗證。原始描述符與裝置序號不會提交到公開 repository。
 
+離線模式分類與 PTP header 解析：
+
+```powershell
+python -m fwplatform.cli hardware modes --json
+```
+
+`fwplatform/ptp_protocol.py` 僅解析離線或合成的 PTP container，並提供標準
+operation/response 描述；不會傳送 PTP 封包，也不包含 Sony vendor opcode。
+
 本地資料庫報告可用：
 
 ```powershell
