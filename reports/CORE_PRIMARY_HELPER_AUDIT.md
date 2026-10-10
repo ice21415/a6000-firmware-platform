@@ -1689,3 +1689,50 @@ primary-ELF target is to identify the source-level owner/destructor or a unique 
 pair for this cleanup body, then test whether the state-array and link roots
 are shared across all EventManager operations. No runtime-verified or callable
 core API has been added.
+
+## EventManager cleanup owner witness — 2026-10-10
+
+The next primary-ELF pass found a direct caller for the previously unnamed
+cleanup candidate. In the bounded Thumb region beginning at `0x7ef3d8`, the
+caller candidate loads `[owner + 0x10]` at `0x7ef42c`, null-checks it at
+`0x7ef42e`, calls `0x7efa1e` at `0x7ef432`, then passes the same preserved
+pointer to the uniquely bound `_ZdlPv` PLT at `0x7ef438`. It subsequently calls
+the adjacent base-cleanup candidate `0x7ef3a8` at `0x7ef43e` and returns at
+`0x7ef444`. These instruction and relocation facts are
+`PRIMARY_ELF_VERIFIED`.
+
+This makes the object relationship more precise: `0x7efa1e` is used as a
+heap-owned subobject cleanup candidate for the field at owner offset `+0x10`,
+with cleanup followed by deletion of that same pointer. The owner function's
+source class, destructor name, RTTI/vtable identity and complete construction
+path remain UNKNOWN. The pattern supports a `STATIC_INFERRED` ownership
+interpretation; it does not prove that the owner or the field is an
+`EventManager`, nor that the cleanup candidate is a public or virtual
+destructor. It also does not establish double-destroy, exception, concurrency,
+allocator-interposition or runtime-loader behavior.
+
+The sanitized contract now includes `owner_target`, `owner_observation` and
+the direct callsite/field/delete evidence in
+`sdk/event_manager_destroy_3_21.json`. The CLI and private ELF SHA gate are
+unchanged. Nine fail-closed synthetic tests cover the owner callsite and
+delete-binding identity as well as the original static-only checks.
+The complete local `python -m unittest discover -s tests -v` suite now passes
+**425 tests**.
+
+### Updated private Ghidra cross-check
+
+The isolated ASCII-path Ghidra 12.1.3 `-noanalysis` profile was rerun after
+adding the owner candidate and the adjacent base helper. It exited `0`,
+emitted `COMPLETE_TARGET_EXPORT`, and used `ARM:LE:32:v8`, compiler spec
+`default`, image base `0x10000` and `ram` address space. The metadata-only
+export contains six target bodies, 30 basic blocks and 70 CFG/call records.
+The owner body maps to Ghidra `0x7ff3d8..0x7ff445`; the ELF-VMA conversion is
+Ghidra address minus `0x10000`. Generated names remain non-semantic and the
+raw export/project stay private. The separate full Auto Analysis attempt is
+still incomplete (`4294967295`, no completion marker), so this remains a
+targeted cross-check rather than whole-program analysis.
+
+The next investigation is to identify the source-level class that owns offset
+`+0x10` or a constructor that initializes it, using direct callsites and
+relocation/vtable evidence. No runtime-verified or callable API has been
+added.

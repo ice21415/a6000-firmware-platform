@@ -6,6 +6,10 @@ deallocates the state array, unlocks, and destroys the mutex.  There is no
 exported destructor symbol or RTTI proof for this body, so the source-level
 destructor identity remains ``STATIC_INFERRED`` rather than verified.
 
+The probe also checks the direct owner witness at ``0x7ef432``: a bounded
+unnamed caller loads ``owner + 0x10``, calls this cleanup candidate, and passes
+the same pointer to ``_ZdlPv``.  The owner type remains unknown.
+
 Only sanitized metadata is returned.  The private ELF is never executed and
 no firmware bytes are emitted.
 """
@@ -27,6 +31,12 @@ TARGET = {
     "name": "event_manager_cleanup_candidate",
     "entry": 0x7EFA1E,
     "size": 0x4C,
+    "symbol": None,
+}
+OWNER_TARGET = {
+    "name": "event_manager_cleanup_owner_candidate",
+    "entry": 0x7EF3D8,
+    "size": 0x6E,
     "symbol": None,
 }
 ADDRESS_SPACE = "ELF_VMA"
@@ -60,15 +70,21 @@ def _read_exec_range(fp: Any, elf: ELFFile, start: int, size: int) -> bytes:
     return data
 
 
-def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+def _decode_at(fp: Any, elf: ELFFile, entry: int, size: int, label: str) -> dict[int, Any]:
     decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
     decoder.detail = True
     rows = list(decoder.disasm(
-        _read_exec_range(fp, elf, TARGET["entry"], TARGET["size"]), TARGET["entry"]
+        _read_exec_range(fp, elf, entry, size), entry
     ))
     if not rows:
-        raise ValueError("EventManager cleanup candidate did not decode")
+        raise ValueError(f"{label} did not decode")
     return {int(row.address): row for row in rows}
+
+
+def _decode(fp: Any, elf: ELFFile) -> dict[int, Any]:
+    return _decode_at(
+        fp, elf, TARGET["entry"], TARGET["size"], "EventManager cleanup candidate"
+    )
 
 
 def _immediates(instruction: Any) -> list[int]:
@@ -181,6 +197,41 @@ def _observe(rows: dict[int, Any], bindings: dict[str, dict[str, Any]]) -> dict[
     }
 
 
+def _observe_owner(rows: dict[int, Any], delete_binding: dict[str, Any]) -> dict[str, Any]:
+    """Verify the direct owner-field cleanup and delete sequence."""
+    _require(rows, 0x7EF3D8, "push")
+    _require(rows, 0x7EF3DA, "mov", operands="r4, r0")
+    _require(rows, 0x7EF42C, "ldr", operands="r5, [r4, #0x10]")
+    _require(rows, 0x7EF42E, "cbz", target=0x7EF43C)
+    _require(rows, 0x7EF430, "mov", operands="r0, r5")
+    _require(rows, 0x7EF432, "bl", target=TARGET["entry"])
+    _require(rows, 0x7EF436, "mov", operands="r0, r5")
+    _require(rows, 0x7EF438, "blx", target=0xDD620)
+    _require(rows, 0x7EF43C, "mov", operands="r0, r4")
+    _require(rows, 0x7EF43E, "bl", target=0x7EF3A8)
+    _require(rows, 0x7EF442, "mov", operands="r0, r4")
+    _require(rows, 0x7EF444, "pop")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_level": "STATIC_INFERRED",
+        "owner_function_entry": "0x7ef3d8",
+        "owner_function_identity": "UNKNOWN; no unique ELF symbol or RTTI/vtable identity",
+        "cleanup_callsite": "0x7ef432",
+        "field_offset": "+0x10",
+        "sequence": (
+            "load [owner + 0x10], null-check, call cleanup candidate, then pass the "
+            "same pointer to _ZdlPv"
+        ),
+        "base_cleanup_callsite": "0x7ef43e -> 0x7ef3a8",
+        "delete_binding": delete_binding,
+        "ownership_interpretation": (
+            "STATIC_INFERRED; direct cleanup-then-delete pattern supports a "
+            "heap-owned subobject candidate, but source type and complete owner "
+            "lifetime are UNKNOWN"
+        ),
+    }
+
+
 def probe_event_manager_destroy(
     elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA,
 ) -> dict[str, Any]:
@@ -203,6 +254,13 @@ def probe_event_manager_destroy(
             "pthread_mutex_destroy": _binding(fp, elf, 0xE1610),
         }
         observation = _observe(_decode(fp, elf), bindings)
+        owner = _observe_owner(
+            _decode_at(
+                fp, elf, OWNER_TARGET["entry"], OWNER_TARGET["size"],
+                "EventManager cleanup owner candidate",
+            ),
+            bindings["operator_delete"],
+        )
     return {
         "schema_version": 1,
         "status": "LOCAL_PRIMARY_ELF_EVENT_MANAGER_DESTROY_CANDIDATE",
@@ -210,7 +268,9 @@ def probe_event_manager_destroy(
         "binary_file_sha256": digest,
         "address_space": ADDRESS_SPACE,
         "target": TARGET,
+        "owner_target": OWNER_TARGET,
         "observation": observation,
+        "owner_observation": owner,
         "runtime_verified": False,
         "callable": False,
     }
@@ -230,6 +290,9 @@ def validate_event_manager_destroy(report: dict[str, Any]) -> dict[str, Any]:
     target = report.get("target", {})
     if target.get("entry") != TARGET["entry"] or target.get("size") != TARGET["size"]:
         errors.append("target_identity")
+    owner_target = report.get("owner_target", {})
+    if owner_target.get("entry") != OWNER_TARGET["entry"] or owner_target.get("size") != OWNER_TARGET["size"]:
+        errors.append("owner_target_identity")
     observation = report.get("observation", {})
     if observation.get("status") != "PRIMARY_ELF_VERIFIED":
         errors.append("observation_status")
@@ -248,4 +311,23 @@ def validate_event_manager_destroy(report: dict[str, Any]) -> dict[str, Any]:
         candidates = binding.get("candidates", [])
         if binding.get("status") != "VERIFIED_STATIC" or len(candidates) != 1 or candidates[0].get("symbol") != symbol:
             errors.append(f"binding:{key}")
+    owner = report.get("owner_observation", {})
+    if owner.get("status") != "PRIMARY_ELF_VERIFIED":
+        errors.append("owner_observation_status")
+    if owner.get("semantic_level") != "STATIC_INFERRED":
+        errors.append("owner_semantic_level")
+    if owner.get("owner_function_entry") != "0x7ef3d8":
+        errors.append("owner_function_entry")
+    if owner.get("cleanup_callsite") != "0x7ef432":
+        errors.append("owner_cleanup_callsite")
+    if owner.get("field_offset") != "+0x10":
+        errors.append("owner_field_offset")
+    owner_binding = owner.get("delete_binding", {})
+    owner_candidates = owner_binding.get("candidates", [])
+    if (
+        owner_binding.get("status") != "VERIFIED_STATIC"
+        or len(owner_candidates) != 1
+        or owner_candidates[0].get("symbol") != "_ZdlPv"
+    ):
+        errors.append("owner_delete_binding")
     return {"valid": not errors, "errors": sorted(set(errors))}

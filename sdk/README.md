@@ -1328,3 +1328,10 @@ double-destroy policy, exception cleanup, concurrency contract or runtime
 loader binding is available. Its `destructor_role` is `STATIC_INFERRED`, and
 both `runtime_verified` and `callable` are false. The JSON is descriptive
 metadata only and contains no firmware bytes or private absolute paths.
+
+The same contract also records a direct owner witness: the bounded candidate
+at `0x7ef3d8` loads field `+0x10`, calls `0x7efa1e` at `0x7ef432`, and deletes
+the same pointer through `_ZdlPv` at `0x7ef438`. This supports a
+`STATIC_INFERRED` heap-owned-subobject relationship. The owner type and
+constructor remain unknown, so this evidence does not promote either body to
+a confirmed EventManager destructor or a callable SDK API.

@@ -603,6 +603,7 @@ non-overlapping cleanup ranges and completed with Ghidra 12.1.3,
 `ARM:LE:32:v8`, image base `0x10000`, exit 0, `COMPLETE_TARGET_EXPORT`,
 4 targets, 39 instructions, 4 blocks and 11 edges. Raw exports and projects
 remain private.
+
 ### ParamBase family EHABI lifecycle index (2026-10-10)
 
 `fwplatform/param_family_probe.py` now records sanitized `.ARM.exidx`
@@ -805,3 +806,12 @@ separate full Auto Analysis attempt stalled on instruction conflicts and
 returned `4294967295` without a completion marker. The latter is a blocker,
 not a successful whole-program analysis; raw projects and decompiler output
 remain private.
+
+The latest EventManager pass adds an owner witness to that contract: an
+unnamed bounded function at `0x7ef3d8` loads field `+0x10`, calls cleanup
+candidate `0x7efa1e` at `0x7ef432`, and deletes the same pointer through the
+static `_ZdlPv` binding. This is a `PRIMARY_ELF_VERIFIED` callsite/field fact
+with a `STATIC_INFERRED` heap-owned-subobject interpretation; owner class,
+constructor and source destructor identity remain UNKNOWN. The targeted
+Ghidra profile now covers six bodies, 30 blocks and 70 CFG/call records. The
+full Auto Analysis blocker and all runtime/callable limitations remain.

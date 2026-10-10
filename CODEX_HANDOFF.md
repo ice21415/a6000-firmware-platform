@@ -1193,3 +1193,36 @@ complete local `python -m unittest discover -s tests -v` suite passes 422 tests.
 The next target is a unique constructor or source-level destructor identity for
 this cleanup body. Runtime-verified and
 callable API counts remain zero.
+
+## Latest continuation checkpoint — EventManager cleanup owner witness (2026-10-10)
+
+The exact SHA-pinned `libObj.so` was scanned again without executing it. A
+Capstone-validated direct Thumb call at `0x7ef432` now connects a bounded
+owner-function candidate beginning at `0x7ef3d8` to cleanup candidate
+`0x7efa1e`. The caller loads `[owner + 0x10]`, null-checks it, calls the
+cleanup candidate, then passes the same pointer to the unique `_ZdlPv` PLT at
+`0x7ef438`; it later calls the adjacent base-cleanup candidate `0x7ef3a8` and
+returns. This is `PRIMARY_ELF_VERIFIED` instruction/relocation evidence.
+
+The relationship is recorded as `STATIC_INFERRED` heap-owned-subobject
+cleanup. The owner class, source destructor identity, RTTI/vtable, constructor
+path and complete lifetime remain UNKNOWN. It does not prove that either
+unnamed function is an `EventManager` public/virtual destructor, and null
+guards do not establish general memory safety, double-destroy behavior,
+exception cleanup, concurrency or runtime loader binding.
+
+`fwplatform/event_manager_destroy_probe.py` and
+`sdk/event_manager_destroy_3_21.json` now include `owner_target` and
+`owner_observation`; the command remains:
+
+```powershell
+python -m fwplatform.cli sdk event-manager-destroy --elf C:\private\libObj.so --json
+```
+
+The private targeted Ghidra 12.1.3 profile was rerun with six targets. It
+exited 0 with `COMPLETE_TARGET_EXPORT`, `ARM:LE:32:v8`, image base `0x10000`,
+30 basic blocks and 70 CFG/call records. The full Auto Analysis attempt still
+returned `4294967295` without a completion marker and remains a blocker. Nine
+targeted tests now pass; the complete local `python -m unittest discover -s tests -v` suite passes 425 tests; runtime-verified and callable API counts remain zero.
+Next target: identify a constructor or source-level class for the owner field
+at `+0x10`.
