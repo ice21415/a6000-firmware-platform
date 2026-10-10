@@ -830,6 +830,48 @@
       },
       "note": "",
       "key_literal_vma": "0x7f0b5c"
+    },
+    {
+      "id": "loader.dlopen_helper",
+      "source": "ModelCamera loader",
+      "target": "internal loader helper",
+      "target_vma": "0xe0cec",
+      "source_vma": "0x7f11ca",
+      "callsite_vma": "0x7f11d8",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "STATIC_INFERRED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f11d8",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "STATIC_INFERRED",
+        "confidence": "HIGH"
+      },
+      "note": "r0 is loaded from record +0x10; relation to imported dlopen PLT remains unresolved."
+    },
+    {
+      "id": "loader.dlsym_helper",
+      "source": "ModelCamera loader",
+      "target": "internal symbol resolver helper",
+      "target_vma": "0xdfed0",
+      "source_vma": "0x7f11ca",
+      "callsite_vma": "0x7f11e6",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "STATIC_INFERRED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f11e6",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "STATIC_INFERRED",
+        "confidence": "HIGH"
+      },
+      "note": "record +0x18 is the loader-handle candidate and +0x14 is the symbol-name candidate; imported dlsym relation remains unresolved."
     }
   ],
   "unresolved_edges": [
@@ -1639,5 +1681,29 @@
     "alias_proven": false,
     "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY",
     "runtime_loader_selection": "UNKNOWN"
+  },
+  "phase4_8_loader_dataflow": {
+    "loader_entry": "0x7f11ca",
+    "dlopen_callsite": "0x7f11d8",
+    "dlsym_callsite": "0x7f11e6",
+    "factory_callsite": "0x7f11f2",
+    "instance_storage": "+0x1c",
+    "plt_relocations": {
+      "dlopen": "PLT candidate 0xe085c; helper 0xe0cec relation UNKNOWN",
+      "dlsym": "PLT candidate 0xdfb0c; helper 0xdfed0 relation UNKNOWN"
+    },
+    "verification": "STATIC_INFERRED",
+    "runtime_loader_identity": "UNKNOWN",
+    "registry_instance_identity": "UNKNOWN"
+  },
+  "phase4_8_event_manager_callback": {
+    "slot_vma": "0x1031894",
+    "relocation": "R_ARM_RELATIVE",
+    "stored_thumb_value": "0x7eeb25",
+    "callback_entry_vma": "0x7eeb24",
+    "consumer_callsite": "0x7ef9ce",
+    "verification": "STATIC_INFERRED",
+    "semantic_identity": "error/termination callback candidate; not a ModelCamera consumer",
+    "runtime_verified": false
   }
 }

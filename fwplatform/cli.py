@@ -453,6 +453,14 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_camera_core.add_argument("--elf", type=Path, required=True)
     sdk_camera_core.add_argument("--expected-sha256", default=None)
     sdk_camera_core.add_argument("--json", action="store_true")
+    sdk_loader_dataflow = sdk_sub.add_parser("camera-loader-dataflow")
+    sdk_loader_dataflow.add_argument("--elf", type=Path, required=True)
+    sdk_loader_dataflow.add_argument("--expected-sha256", default=None)
+    sdk_loader_dataflow.add_argument("--json", action="store_true")
+    sdk_event_callback = sdk_sub.add_parser("event-manager-callback")
+    sdk_event_callback.add_argument("--elf", type=Path, required=True)
+    sdk_event_callback.add_argument("--expected-sha256", default=None)
+    sdk_event_callback.add_argument("--json", action="store_true")
     sdk_event_core = sdk_sub.add_parser("event-core")
     sdk_event_core.add_argument("--elf", type=Path, required=True)
     sdk_event_core.add_argument("--expected-sha256", default=None)
@@ -921,6 +929,20 @@ def main(argv: list[str] | None = None) -> int:
         result = probe_camera_core_chain(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "camera-loader-dataflow":
+        from .camera_loader_dataflow import analyze_loader_dataflow, EXPECTED_SHA256
+        result = analyze_loader_dataflow(
+            args.elf, expected_sha256=args.expected_sha256 or EXPECTED_SHA256
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "event-manager-callback":
+        from .event_manager_callback_probe import probe_event_manager_callback, EXPECTED_SHA256
+        result = probe_event_manager_callback(
+            args.elf, expected_sha256=args.expected_sha256 or EXPECTED_SHA256
         )
         _json_or_text(result, args.json)
         return 0

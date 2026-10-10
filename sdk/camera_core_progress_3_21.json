@@ -2,16 +2,22 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 49,
+  "tracked_core_edges": 51,
   "primary_elf_verified_edges": 39,
-  "static_inferred_edges": 5,
+  "static_inferred_edges": 7,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
   "callback_candidates": 3,
   "abi_candidate_functions": 13,
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
-  "new_evidence_added": 0,
+  "new_evidence_added": 13,
+  "primary_edges_added": 0,
+  "inferred_edges_added": 2,
+  "unresolved_edges_reduced": 0,
+  "candidates_excluded": 0,
+  "blockers_narrowed": 2,
+  "blockers_resolved": 0,
   "blockers_removed": 1,
   "loader_alias": {
     "configured_library": "modelCamera.so",
@@ -19,7 +25,24 @@
     "separate_filesystem_candidate_count": 0,
     "resolved_binary_identity": "UNKNOWN",
     "alias_proven": false,
-    "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY"
+    "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY",
+    "dataflow": {
+      "loader_entry": "0x7f11ca",
+      "dlopen_callsite": "0x7f11d8",
+      "dlsym_callsite": "0x7f11e6",
+      "factory_callsite": "0x7f11f2",
+      "instance_storage": "+0x1c",
+      "runtime_identity": "UNKNOWN"
+    }
+  },
+  "event_manager_callback": {
+    "slot_vma": "0x1031894",
+    "stored_thumb_value": "0x7eeb25",
+    "callback_entry_vma": "0x7eeb24",
+    "consumer_callsite": "0x7ef9ce",
+    "verification": "STATIC_INFERRED",
+    "semantic_identity": "error/termination callback candidate; not a ModelCamera consumer",
+    "runtime_verified": false
   },
   "progress_definition": "verified_edges / tracked_core_edges; this is not whole-firmware SDK completion",
   "verification": {

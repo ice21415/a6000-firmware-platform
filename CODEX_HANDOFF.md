@@ -1634,3 +1634,21 @@ and 5 unresolved Camera Core edges; no new edge was promoted. Added reusable
 indirect-target candidate ranking and a machine-readable progress scope. USB
 observation JSON now requires an external provenance decision before retaining
 its verification status. Runtime and safe-callable API counts remain zero.
+## Phase 4.8 checkpoint
+
+The SHA-pinned private ELF was rechecked. `fwplatform/camera_loader_dataflow.py`
+records the loader body at `0x7f11ca`: record `+0x10` and `+0x14` feed
+internal helpers `0xe0cec` and `0xdfed0`, their results populate `+0x18` and
+the indirect factory at `0x7f11f2`, and the factory result is stored at
+`+0x1c`; registration reaches the record initializer at `0x7ec91c`. The
+helper-to-`dlopen`/`dlsym` PLT relationship is deliberately UNKNOWN after a
+relocation audit, so these two relations are `STATIC_INFERRED`.
+
+`fwplatform/event_manager_callback_probe.py` traces relocated slot
+`0x1031894` (`R_ARM_RELATIVE`, value `0x7eeb25`) to callback entry `0x7eeb24`
+used by completion callsite `0x7ef9ce`. Its bounded body is an
+error/termination path and is not a ModelCamera consumer. Main dispatch
+`0x7ef988`, runtime DSO identity, Registry to ModelCamera identity and all
+runtime/safe-callable APIs remain UNKNOWN/false. The progress contract is now
+39 primary, 7 static-inferred and 5 unresolved edges. Tests pass; no device or
+firmware execution was performed.

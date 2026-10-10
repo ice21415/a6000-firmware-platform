@@ -20,6 +20,8 @@ from elftools.elf.elffile import ELFFile
 from .camera_request_event_probe import probe_request_event_factory
 from .elf_plt import resolve_plt_binding
 from .event_manager_push_probe import probe_event_manager_push
+from .camera_loader_dataflow import analyze_loader_dataflow
+from .event_manager_callback_probe import probe_event_manager_callback
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -994,6 +996,8 @@ def probe_camera_core_chain(
         compact_edges, compact_observation = _observe_compact_selector_path(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
+        loader_dataflow = analyze_loader_dataflow(path, expected_sha256=expected_sha256)
+        event_callback = probe_event_manager_callback(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
     event_edge["target_value"] = hex(EVENT_ID)
     event_edge["literal_vma"] = hex(0x7F0B74)
@@ -1001,7 +1005,15 @@ def probe_camera_core_chain(
     key7_edge["key_literal_vma"] = hex(0x7F0B44)
     key8_edge = _edge("factory.key8", f"EventID:{hex(EVENT_ID)}", "EventParameterKey:8", "CARRIES_PARAMETER", 0x7F0B0C, digest, callsite_vma=0x7F0B60)
     key8_edge["key_literal_vma"] = hex(0x7F0B5C)
-    edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + registry_edges + compact_edges + [
+    loader_edges = [
+        _edge("loader.dlopen_helper", "ModelCamera loader", "internal loader helper", "CALLS", 0x7F11CA, digest,
+              target_vma=0xE0CEC, callsite_vma=0x7F11D8, status="STATIC_INFERRED",
+              method="CAPSTONE_PRIMARY_ELF", note="record +0x10 is the input; relation to imported dlopen PLT remains unresolved."),
+        _edge("loader.dlsym_helper", "ModelCamera loader", "internal symbol resolver helper", "CALLS", 0x7F11CA, digest,
+              target_vma=0xDFED0, callsite_vma=0x7F11E6, status="STATIC_INFERRED",
+              method="CAPSTONE_PRIMARY_ELF", note="record +0x18 handle and +0x14 symbol are inputs; relation to imported dlsym PLT remains unresolved."),
+    ]
+    edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + registry_edges + compact_edges + loader_edges + [
         event_edge,
         key7_edge,
         key8_edge,
@@ -1048,6 +1060,8 @@ def probe_camera_core_chain(
                 "consumer_relation": "UNKNOWN; literal presence does not identify a receiver or event dispatch path",
             },
             "camera_action": action_observation,
+            "loader_dataflow": loader_dataflow,
+            "event_manager_callback_provenance": event_callback,
         },
         "nodes": nodes,
         "edges": edges,
@@ -1194,6 +1208,8 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
             if not isinstance(edge, dict):
                 errors.append("edge_not_object")
                 continue
+            if edge.get("evidence", {}).get("source_binary_sha256") not in {None, expected_sha256}:
+                errors.append(f"edge_identity:{edge.get('id')}")
             if edge.get("verification_status") == "PRIMARY_ELF_VERIFIED":
                 if not edge.get("source") or not edge.get("target") or not edge.get("source_vma") or not edge.get("evidence", {}).get("source_binary_sha256"):
                     errors.append(f"edge_evidence:{edge.get('id')}")

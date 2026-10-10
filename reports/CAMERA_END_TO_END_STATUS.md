@@ -188,6 +188,19 @@ to the pinned ELF SHA-256. This excludes a lost symlink in that image only;
 other mounted filesystems, runtime aliases or loader name rewriting remain
 unverified. Library alias identity therefore remains UNKNOWN.
 
+Phase 4.8 instruction-level loader dataflow confirms internal helper calls and
+field flow without claiming imported API identity: `0x7f11d8` calls internal
+helper `0xe0cec` with record `+0x10`, and stores its result at `+0x18`
+(`0x7f11dc`); `0x7f11e6` calls internal helper `0xdfed0` with the handle and
+record `+0x14`; `0x7f11f2` calls the returned function pointer with record
+`+0x20` in `r1`; and `0x7f11f4` stores the factory result at `+0x1c`.
+Separate `dlopen`/`dlsym` PLT candidates exist, but the helper-to-PLT
+relationship is not proven. Registration reaches the record initializer at
+`0x7ec91c`.
+Null handle, symbol, dlsym result and instance branches remain explicit
+failure paths. The selected DSO, registry key-to-instance mapping and
+ModelCamera vtable identity remain `UNKNOWN`.
+
 The SHA-pinned ELF does export `ModelCameraToInstance` at `0x4c8c64`:
 it allocates 0x27d4 bytes, calls `0x4c8af4`, stores context at +0x20,
 and returns the allocation. The initializer writes vptr **0x100a330**
@@ -208,6 +221,18 @@ The five instance-specific call edges are separately stored as
 vptr. The final +0x18 callback is not the Action entry: Action executes
 earlier in the TBB state machine. State 1 selects `0x7efc3a`; state 4
 selects `0x7efc9a` and passes pending action field +0x10.
+
+## Phase 4.8 EventManager completion callback provenance
+
+The completion callsite at `0x7ef9ce` reads `EventManager +0x04` and invokes
+it only when the incoming `r2` flag is non-zero. The owner initialization path
+loads a Thumb pointer from relocated slot `0x1031894` (`R_ARM_RELATIVE`, stored
+value `0x7eeb25`), yielding entry `0x7eeb24`. The bounded body is an
+error/termination path (`write`, `__errno_location`, `fprintf`, `exit`), so it
+is retained as `STATIC_INFERRED` callback provenance and explicitly excluded
+as a ModelCamera consumer. Provider selection, activation conditions and
+runtime object identity remain unresolved; the main dispatch at `0x7ef988`
+and ModelCamera consumer are still `UNKNOWN`.
 
 ## Selector、Event ID 和 Action index
 
