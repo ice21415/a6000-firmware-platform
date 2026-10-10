@@ -1629,5 +1629,15 @@
     },
     "scope": "this image only; other mounts, runtime aliases and loader rewrites UNKNOWN",
     "runtime_verified": false
+  },
+  "phase4_7_loader_alias_audit": {
+    "configured_library": "modelCamera.so",
+    "factory_symbol": "ModelCameraToInstance",
+    "factory_symbol_present_in_pinned_elf": true,
+    "separate_model_camera_file_matches": 0,
+    "resolved_binary_identity": "UNKNOWN",
+    "alias_proven": false,
+    "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY",
+    "runtime_loader_selection": "UNKNOWN"
   }
 }

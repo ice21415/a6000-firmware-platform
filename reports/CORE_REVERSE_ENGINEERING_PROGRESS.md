@@ -11,3 +11,8 @@ address-space, binary hash, vtable-slot and instruction/relocation evidence.
 It explicitly keeps every result unresolved until a unique primary proof exists.
 The highest-value next target remains the registry/loader condition connecting
 the ModelCamera factory and the EventManager dispatch receiver.
+
+The Phase 4.7 loader audit found the configured library/factory strings in the
+pinned ELF but no separate `modelCamera.so` file in the authorized extracted
+filesystem. This excludes one filesystem candidate, but does not establish the
+runtime alias or registry instance identity.

@@ -12,7 +12,15 @@
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
   "new_evidence_added": 0,
-  "blockers_removed": 0,
+  "blockers_removed": 1,
+  "loader_alias": {
+    "configured_library": "modelCamera.so",
+    "factory_symbol_present": true,
+    "separate_filesystem_candidate_count": 0,
+    "resolved_binary_identity": "UNKNOWN",
+    "alias_proven": false,
+    "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY"
+  },
   "progress_definition": "verified_edges / tracked_core_edges; this is not whole-firmware SDK completion",
   "verification": {
     "primary_elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",

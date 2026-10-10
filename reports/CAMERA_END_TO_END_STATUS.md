@@ -248,3 +248,12 @@ input is original filesystem symlink/loader metadata for `modelCamera.so`;
 then audit the descriptor initialization state and Event-filter mapping
 for `0x1200bf01`. EventManager provider selection and completion handoff
 also remain UNKNOWN. No runtime verification or callable API was added.
+
+## Phase 4.7 loader audit
+
+The pinned ELF contains the configured `modelCamera.so` and
+`ModelCameraToInstance` strings, and the factory symbol is present. A bounded
+search of the authorized extracted filesystem found no separate
+`modelCamera.so` file. This excludes one candidate file but does not prove the
+runtime DSO alias, loader selection, or registry instance identity. Graph
+counts remain 39 primary, 5 inferred and 5 unresolved.
