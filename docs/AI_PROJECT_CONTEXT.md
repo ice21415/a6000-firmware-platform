@@ -1021,3 +1021,8 @@ then records `[receiver]` followed by an unresolved indirect `blx r3`; the
 callback target and argument state remain `CANDIDATE`/UNKNOWN. The corrected
 Ghidra profile is 11 targets, 142 instructions, 26 blocks and 47 edges, still
 targeted `-noanalysis` with no public raw export.
+
+The registry-helper witness at `0x7f0916` additionally records the null
+argument return and the bounded opaque linked-state comparison/advance path
+through `0x111264`, `0x111234`, `0x7ea7ec` and `0x7ea7dc`. It remains a
+source-level `UNKNOWN` container and is not exposed as an SDK callback API.

@@ -217,6 +217,19 @@
         "status": "PRIMARY_ELF_VERIFIED"
       },
       "helper_identities": "0x7f0916 and 0x1116de container/registration semantics UNKNOWN"
+    },
+    "callback_registry_helper": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "receiver": "r0 preserved as r5; r1 preserved as r4",
+      "null_argument": "cbz r1 returns r1 (zero) through 0x7f0954",
+      "non_null_path": "calls 0x111264 and 0x111234 to obtain opaque linked-state words",
+      "comparison": "loads [opaque_cursor] and compares it with original r1",
+      "advance_helpers": [
+        "0x7ea7ec",
+        "0x7ea7dc"
+      ],
+      "return_paths": "equal candidate returns zero; loop/termination return values are machine facts but source semantics UNKNOWN",
+      "source_type": "UNKNOWN"
     }
   },
   "event_id_under_investigation": "0x11004003",
@@ -231,6 +244,7 @@
     "Event consumer, parameter keys 7/8 and ModelCamera dispatch remain UNKNOWN",
     "No firmware execution or device interaction",
     "Callback gate indirect target is unresolved; callback ownership and argument state remain UNKNOWN",
+    "Callback registry traversal helpers are bounded but their container and insertion semantics remain UNKNOWN",
     "Ghidra result is a targeted metadata/CFG cross-check, not whole-program Auto Analysis"
   ],
   "ghidra_crosscheck": {

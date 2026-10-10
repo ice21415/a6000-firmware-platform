@@ -15,6 +15,8 @@
   callback candidate rather than a fabricated target. The private Ghidra
   cross-check now covers 11 targets, 142 instructions, 26 blocks and 47 CFG
   edges.
+- Added bounded evidence for callback registry helper `0x7f0916`; its linked
+  state, source-level container and ownership semantics remain UNKNOWN.
 
 ## Unreleased -- Camera EE-neutral primary evidence
 

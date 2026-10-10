@@ -39,6 +39,9 @@ class AppEventPrimaryProbeTests(unittest.TestCase):
             report["observation"]["callback_application_helper"]["registration_call"]["target"],
             "0x1116de",
         )
+        registry = report["observation"]["callback_registry_helper"]
+        self.assertEqual(registry["source_type"], "UNKNOWN")
+        self.assertIn("0x7ea7ec", registry["advance_helpers"])
         ghidra = report["ghidra_crosscheck"]
         self.assertEqual(ghidra["exit_code"], 0)
         self.assertEqual(ghidra["completion_marker"], "COMPLETE_TARGET_EXPORT")

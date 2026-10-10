@@ -1029,6 +1029,12 @@ argument locally, calls `0x7f0916`, and only on a nonzero result calls
 are direct control-flow facts; they do not identify the callback class,
 container, event ID or completion protocol.
 
+The bounded `0x7f0916` helper now has its own evidence record: null `r1`
+returns immediately; the non-null path obtains opaque linked-state words via
+`0x111264`/`0x111234`, compares a loaded candidate against the original `r1`,
+and advances through `0x7ea7ec`/`0x7ea7dc`. This is a linked-state traversal
+shape, not proof of a registration container or callback ownership.
+
 This proves a semaphore-gated handoff and its static PLT bindings at
 `PRIMARY_ELF_VERIFIED` level. It does **not** prove that event `0x11004003`
 reaches these sites, decode parameter keys 7/8, identify a ModelCamera

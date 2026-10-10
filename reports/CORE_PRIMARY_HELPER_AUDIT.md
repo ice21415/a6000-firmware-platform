@@ -2116,6 +2116,12 @@ argument, calls `0x7f0916`, and conditionally calls `0x1116de`. Callback target,
 container identity, argument state after signalling and event semantics remain
 UNKNOWN.
 
+The bounded `0x7f0916` registry-helper candidate is now recorded separately:
+null `r1` returns immediately, while the non-null path obtains opaque state
+through `0x111264`/`0x111234`, compares a loaded candidate with the original
+`r1`, and advances via `0x7ea7ec`/`0x7ea7dc`. Its source-level container and
+registration semantics remain UNKNOWN.
+
 These are `PRIMARY_ELF_VERIFIED` instruction facts only. They do not establish
 the saved event ID `0x11004003` as a consumer, parameter-key 7/8 semantics,
 ModelCamera dispatch, semaphore error behavior, or a callable/runtime API.

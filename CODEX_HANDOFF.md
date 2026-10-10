@@ -1532,6 +1532,12 @@ executes `blx r3`. The indirect callback target is unresolved. `0x7f0aac`
 stores the argument, calls `0x7f0916`, and conditionally calls `0x1116de`;
 container, callback ABI and event semantics remain UNKNOWN.
 
+The bounded `0x7f0916` path is now also checked: null `r1` returns directly;
+the non-null path obtains opaque linked-state words through
+`0x111264`/`0x111234`, compares a loaded candidate with the original `r1`, and
+advances via `0x7ea7ec`/`0x7ea7dc`. This does not identify a source-level
+registry or ownership model.
+
 The private ASCII-path Ghidra 12.1.3 `app-event-primary` profile completed
 with exit 0 and `COMPLETE_TARGET_EXPORT`: 11 targets, 142 instructions, 26
 blocks and 47 CFG edges. `auto_analysis_completed=false` remains explicit;

@@ -28,6 +28,7 @@ TARGETS: tuple[dict[str, Any], ...] = (
     {"name": "guarded_application_helper", "entry": 0x7F099C, "size": 0x22},
     {"name": "dispatch_count_thunk", "entry": 0x7F0AA0, "size": 0x0C},
     {"name": "callback_application_helper", "entry": 0x7F0AAC, "size": 0x20},
+    {"name": "callback_registry_helper", "entry": 0x7F0916, "size": 0x4C},
 )
 
 SEMAPHORE_LITERAL = 0x830451
@@ -251,6 +252,36 @@ def _observe_callback_helper(rows: dict[int, Any]) -> dict[str, Any]:
     }
 
 
+def _observe_callback_registry_helper(rows: dict[int, Any]) -> dict[str, Any]:
+    """Record the bounded null/linked-state path without naming its type."""
+    _require(rows, 0x7F0916, "push")
+    _require(rows, 0x7F091A, "mov", operands="r5, r0")
+    _require(rows, 0x7F091E, "mov", operands="r4, r1")
+    _require(rows, 0x7F0920, "cbz", target=0x7F0954)
+    _require(rows, 0x7F0922, "bl", target=0x111264)
+    _require(rows, 0x7F0926, "str", operands="r0, [r7, #4]")
+    _require(rows, 0x7F092A, "bl", target=0x111234)
+    _require(rows, 0x7F092E, "str", operands="r0, [r7]")
+    _require(rows, 0x7F0938, "ldr", operands="r3, [r0]")
+    _require(rows, 0x7F093A, "cmp", operands="r3, r4")
+    _require(rows, 0x7F093C, "beq", target=0x7F0958)
+    _require(rows, 0x7F0940, "bl", target=0x7EA7EC)
+    _require(rows, 0x7F0948, "bl", target=0x7EA7DC)
+    _require(rows, 0x7F094E, "bne", target=0x7F0932)
+    _require(rows, 0x7F0954, "mov", operands="r0, r1")
+    _require(rows, 0x7F0958, "movs", operands="r0, #0")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "receiver": "r0 preserved as r5; r1 preserved as r4",
+        "null_argument": "cbz r1 returns r1 (zero) through 0x7f0954",
+        "non_null_path": "calls 0x111264 and 0x111234 to obtain opaque linked-state words",
+        "comparison": "loads [opaque_cursor] and compares it with original r1",
+        "advance_helpers": ["0x7ea7ec", "0x7ea7dc"],
+        "return_paths": "equal candidate returns zero; loop/termination return values are machine facts but source semantics UNKNOWN",
+        "source_type": "UNKNOWN",
+    }
+
+
 def _observe_callback_gate(
     fp: Any, elf: ELFFile, rows: dict[int, Any], *,
     wait: dict[str, Any], signal: dict[str, Any],
@@ -338,6 +369,7 @@ def probe_app_event_primary(
             "guarded_application_helper": _observe_guarded_helper(rows["guarded_application_helper"]),
             "dispatch_count_thunk": _observe_count_thunk(rows["dispatch_count_thunk"]),
             "callback_application_helper": _observe_callback_helper(rows["callback_application_helper"]),
+            "callback_registry_helper": _observe_callback_registry_helper(rows["callback_registry_helper"]),
         }
     return {
         "status": "LOCAL_PRIMARY_ELF_APP_EVENT_EVIDENCE_ONLY",
@@ -381,7 +413,7 @@ def validate_app_event_primary(report: dict[str, Any]) -> dict[str, Any]:
     for name in (
         "dispatch_tail", "semaphore_dispatch_gate", "semaphore_application_gate",
         "callback_application_gate", "guarded_application_helper", "dispatch_count_thunk",
-        "callback_application_helper",
+        "callback_application_helper", "callback_registry_helper",
     ):
         if not isinstance(observation.get(name), dict) or observation[name].get("status") != "PRIMARY_ELF_VERIFIED":
             errors.append(f"observation_{name}")
