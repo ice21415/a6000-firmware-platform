@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "verification": "PRIMARY_ELF_VERIFIED bounded Event methods and unique static bindings",
+  "layout": {
+    "+0x00": "pointer to Event copy counter word",
+    "+0x04": "event ID word",
+    "+0x08": "constructor byte argument r2",
+    "+0x09": "constructor byte argument r3",
+    "+0x0c": "ParamList* candidate"
+  },
+  "methods": {
+    "constructor": {"entry": "0x7f17f8", "symbol": "_ZN5EventC1Emhh", "safe_to_call": false},
+    "copy_constructor": {"entry": "0x7f182c", "symbol": "_ZN5EventC1ERKS_", "safe_to_call": false},
+    "destructor": {"entry": "0x7f184c", "symbol": "_ZN5EventD1Ev", "safe_to_call": false},
+    "set_param_list": {"entry": "0x7f1876", "symbol": "_ZN5Event12setParamListEP9ParamList", "safe_to_call": false},
+    "add_parameter": {"entry": "0xf0f84", "symbol": "_ZN5Event12addParameterEmP9ParamBase", "target": "ParamList::add", "safe_to_call": false},
+    "get_parameter": {"entry": "0x10d098", "symbol": "_ZN5Event12getParameterEmm", "target": "ParamList::get", "safe_to_call": false}
+  },
+  "ownership": {
+    "constructor": "allocates a ParamList candidate and an Event copy-counter word",
+    "copy": "shares counter and ParamList pointer; increments counter word",
+    "destructor": "last counter owner destructs/deletes ParamList and counter allocation",
+    "set_param_list": "different non-null pointer is destructed/deleted before replacement; null input is observed as no-op",
+    "status": "STATIC_INFERRED; aliasing, external ownership and synchronization remain UNKNOWN"
+  },
+  "limitations": [
+    "Event has no exported RTTI/vtable witness in the inspected symbol tables",
+    "ParamList::add interworking veneer and ParamList::get interworking veneer are statically resolved, but runtime loader binding remains UNKNOWN",
+    "No runtime or device execution"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

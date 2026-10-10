@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "verification": "PRIMARY_ELF_VERIFIED bounded constructor/destructor/clone observations",
+  "type": {
+    "name": "PrmStruct",
+    "source_level_constructor_symbol": "UNKNOWN",
+    "discriminator": 6,
+    "vtable_vma": "0xfe7400",
+    "rtti_vma": "0xfe7418",
+    "vtable_slots": {
+      "+0x08_clone": "0xe72a0",
+      "+0x0c_destructor": "0xe7150",
+      "+0x10_deleting_destructor": "0xe717c"
+    },
+    "allocation_size_bytes": 20,
+    "payload": {
+      "+0x0c": "malloc-backed copied byte-buffer pointer candidate",
+      "+0x10": "byte-length candidate",
+      "nested_type": "UNKNOWN"
+    },
+    "constructor": {
+      "entry": "0xe7260",
+      "r0": "receiver candidate",
+      "r1": "source byte pointer candidate",
+      "r2": "byte length candidate",
+      "behavior": "malloc(r2), memcpy(destination,r1,r2), store pointer and length",
+      "safe_to_call": false
+    },
+    "destructor": {
+      "entry": "0xe7150",
+      "free_plt": "0xe0768",
+      "base_path": "0xe4734",
+      "safe_to_call": false
+    },
+    "deleting_destructor": {
+      "entry": "0xe717c",
+      "delete_object_plt": "0xdd620",
+      "safe_to_call": false
+    },
+    "clone_candidate": {
+      "entry": "0xe72a0",
+      "allocates": 20,
+      "source_level_return": "UNKNOWN",
+      "safe_to_call": false
+    }
+  },
+  "bindings": {
+    "param_base_constructor": {"plt": "0xe11a4", "got": "0x102e984", "symbol": "_ZN9ParamBaseC2Em", "runtime_binding": "UNKNOWN"},
+    "malloc": {"plt": "0xdd560", "got": "0x102d680", "symbol": "malloc", "runtime_binding": "UNKNOWN"},
+    "memcpy": {"plt": "0xe0964", "got": "0x102e6f0", "symbol": "memcpy", "runtime_binding": "UNKNOWN"},
+    "free": {"plt": "0xe0768", "got": "0x102e650", "symbol": "free", "runtime_binding": "UNKNOWN"},
+    "new_object": {"plt": "0xdc100", "got": "0x102cffc", "symbol": "_Znwj", "runtime_binding": "UNKNOWN"},
+    "delete_object": {"plt": "0xdd620", "got": "0x102d6bc", "symbol": "_ZdlPv", "runtime_binding": "UNKNOWN"}
+  },
+  "ownership": {
+    "payload": "constructor makes a malloc-backed copy and destructor calls free",
+    "transfer_aliasing": "UNKNOWN",
+    "null_zero_input": "No local guard before malloc/memcpy/free; exact runtime behavior UNKNOWN"
+  },
+  "limitations": [
+    "Nested schema/type and serialization semantics are UNKNOWN",
+    "Allocator/exception behavior, aliases, synchronization and runtime loader binding UNKNOWN",
+    "Static evidence is not runtime verification or callability"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

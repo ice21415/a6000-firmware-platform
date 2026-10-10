@@ -1,0 +1,915 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "runtime_verified": false,
+  "callable": false,
+  "types": [
+    {
+      "name": "PrmNumber",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe8938",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe8940",
+      "vtable": "0xfe8920",
+      "vptr_address_point": "0xfe8928",
+      "constructor": "0xf0fb0",
+      "constructor_vtable_got": "0x10308f4",
+      "discriminator": 1,
+      "key_initialization": "Not initialized by observed base/derived constructor; list add writes key through 0x7eda84",
+      "payload_offset": 12,
+      "payload_width": 4,
+      "payload_type": "int; signed 32-bit under ARM AAPCS32",
+      "payload_type_evidence": "_ZN9PrmNumber9setNumberEi at symbol 0x10f9fd; store at 0x10fa00",
+      "clone_candidate": "0xf1034 allocates 16 bytes and passes original payload into 0xf0fb0; no key copy observed here",
+      "deleting_destructor": "0xf0f5c",
+      "nondeleting_destructor": "0xf0f2c",
+      "evidence_locators": [
+        "ELF_VMA:0xf0fb6",
+        "ELF_VMA:0xf0fc8",
+        "ELF_VMA:0xf0fcc",
+        "ELF_RELOCATION:0x10308f4",
+        "ELF_RELOCATION:0xfe8940",
+        "ELF_VMA:0xf0f62",
+        "ELF_VMA:0xf0f68"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xf0fb0",
+            "entry_offset": "0xf612fc",
+            "exidx_entry_vma": "0xf612fc",
+            "extab_vma": "0xe9338c",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xf1034",
+            "entry_offset": "0xf6130c",
+            "exidx_entry_vma": "0xf6130c",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xf0f2c",
+            "entry_offset": "0xf612cc",
+            "exidx_entry_vma": "0xf612cc",
+            "extab_vma": "0xe93368",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xf0f5c",
+            "entry_offset": "0xf612dc",
+            "exidx_entry_vma": "0xf612dc",
+            "extab_vma": "0xe93374",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmBool",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe6e18",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe6e20",
+      "vtable": "0xfe6e00",
+      "vptr_address_point": "0xfe6e08",
+      "constructor": "0xe50e8",
+      "constructor_vtable_got": "0x1033f7c",
+      "discriminator": 5,
+      "key_initialization": "Not initialized by observed base/derived constructor; list add writes key through 0x7eda84",
+      "payload_offset": 12,
+      "payload_width": 1,
+      "payload_type": "bool; bytes +13..+15 are not initialized by observed payload stores",
+      "payload_type_evidence": "_ZN7PrmBool7setBoolEb at symbol 0x426acd; byte store at 0x426ad0",
+      "clone_candidate": "0xe5110 allocates 16 bytes, reads a byte and calls 0xe50e8; no key copy observed here",
+      "deleting_destructor": "0xe4840",
+      "nondeleting_destructor": "0xe4750",
+      "evidence_locators": [
+        "ELF_VMA:0xe50ee",
+        "ELF_VMA:0xe5100",
+        "ELF_VMA:0xe5104",
+        "ELF_RELOCATION:0x1033f7c",
+        "ELF_RELOCATION:0xfe6e20",
+        "ELF_VMA:0xe4846",
+        "ELF_VMA:0xe484c"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe50e8",
+            "entry_offset": "0xf601ec",
+            "exidx_entry_vma": "0xf601ec",
+            "extab_vma": "0xe923b4",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe5110",
+            "entry_offset": "0xf601f4",
+            "exidx_entry_vma": "0xf601f4",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe4750",
+            "entry_offset": "0xf600cc",
+            "exidx_entry_vma": "0xf600cc",
+            "extab_vma": "0xe92240",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe4840",
+            "entry_offset": "0xf60104",
+            "exidx_entry_vma": "0xf60104",
+            "extab_vma": "0xe92258",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmString",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe9650",
+      "rtti_name": "9PrmString",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe9658",
+      "vtable": "0xfe9638",
+      "vptr_address_point": "0xfe9640",
+      "constructor": "0xff9c8",
+      "discriminator": 2,
+      "object_size_witness": 16,
+      "payload_offset": 12,
+      "payload_width": 4,
+      "payload_type": "pointer to an allocated string buffer; string ABI and allocator remain UNKNOWN",
+      "clone_candidate": "0xffa18 allocates 16 bytes and invokes the string constructor",
+      "deleting_destructor": "0xff980",
+      "nondeleting_destructor": "0xff954",
+      "vtable_slots": {
+        "clone": "0xffa18",
+        "nondeleting_destructor": "0xff954",
+        "deleting_destructor": "0xff980"
+      },
+      "method_evidence": {
+        "constructor": "0xff9c8 sets discriminator 2, allocates/copies a string and stores its pointer at +0x0c",
+        "destructor": "0xff954 releases a non-null +0x0c pointer through helper 0xdf098 before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0xff9c8",
+        "ELF_VMA:0xff9f0",
+        "ELF_VMA:0xff954",
+        "ELF_VMA:0xff980",
+        "ELF_VMA:0xffa18",
+        "ELF_VMA:0xfe9650",
+        "ELF_VMA:0xfe9638",
+        "ELF_RELOCATION:0xfe9658"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xff9c8",
+            "entry_offset": "0xf628cc",
+            "exidx_entry_vma": "0xf628cc",
+            "extab_vma": "0xe94958",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xffa18",
+            "entry_offset": "0xf628d4",
+            "exidx_entry_vma": "0xf628d4",
+            "extab_vma": "0xe94970",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xff954",
+            "entry_offset": "0xf628b4",
+            "exidx_entry_vma": "0xf628b4",
+            "extab_vma": "0xe94934",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xff980",
+            "entry_offset": "0xf628bc",
+            "exidx_entry_vma": "0xf628bc",
+            "extab_vma": "0xe94940",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmPoint",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe9628",
+      "rtti_name": "8PrmPoint",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe9630",
+      "vtable": "0xfe9610",
+      "vptr_address_point": "0xfe9618",
+      "constructor": "0xffa3c",
+      "discriminator": 3,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "two 32-bit words at +0x0c/+0x10; coordinate semantics remain UNKNOWN",
+      "clone_candidate": "0xffa70 allocates 20 bytes and passes both payload words to the constructor",
+      "deleting_destructor": "0xff940",
+      "nondeleting_destructor": "0xff904",
+      "vtable_slots": {
+        "clone": "0xffa70",
+        "nondeleting_destructor": "0xff904",
+        "deleting_destructor": "0xff940"
+      },
+      "method_evidence": {
+        "constructor": "0xffa3c sets discriminator 3 and stores r1/r2 at +0x0c/+0x10"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0xffa3c",
+        "ELF_VMA:0xffa58",
+        "ELF_VMA:0xff904",
+        "ELF_VMA:0xff940",
+        "ELF_VMA:0xffa70",
+        "ELF_VMA:0xfe9628",
+        "ELF_VMA:0xfe9610",
+        "ELF_RELOCATION:0xfe9630"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xffa3c",
+            "entry_offset": "0xf628dc",
+            "exidx_entry_vma": "0xf628dc",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xffa70",
+            "entry_offset": "0xf628e4",
+            "exidx_entry_vma": "0xf628e4",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xff904",
+            "entry_offset": "0xf6289c",
+            "exidx_entry_vma": "0xf6289c",
+            "extab_vma": "0xe9491c",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xff940",
+            "entry_offset": "0xf628ac",
+            "exidx_entry_vma": "0xf628ac",
+            "extab_vma": "0xe94928",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmDimension",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe6e60",
+      "rtti_name": "12PrmDimension",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe6e68",
+      "vtable": "0xfe6e48",
+      "vptr_address_point": "0xfe6e50",
+      "constructor": "0xe5128",
+      "discriminator": 4,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "two 32-bit words at +0x0c/+0x10; dimension semantics remain UNKNOWN",
+      "clone_candidate": "0xe515c allocates 20 bytes and passes both payload words to the constructor",
+      "deleting_destructor": "0xe4868",
+      "nondeleting_destructor": "0xe4774",
+      "vtable_slots": {
+        "clone": "0xe515c",
+        "nondeleting_destructor": "0xe4774",
+        "deleting_destructor": "0xe4868"
+      },
+      "method_evidence": {
+        "constructor": "0xe5128 sets discriminator 4 and stores r1/r2 at +0x0c/+0x10"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0xe5128",
+        "ELF_VMA:0xe5144",
+        "ELF_VMA:0xe4774",
+        "ELF_VMA:0xe4868",
+        "ELF_VMA:0xe515c",
+        "ELF_VMA:0xfe6e60",
+        "ELF_VMA:0xfe6e48",
+        "ELF_RELOCATION:0xfe6e68"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe5128",
+            "entry_offset": "0xf601fc",
+            "exidx_entry_vma": "0xf601fc",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe515c",
+            "entry_offset": "0xf60204",
+            "exidx_entry_vma": "0xf60204",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe4774",
+            "entry_offset": "0xf600d4",
+            "exidx_entry_vma": "0xf600d4",
+            "extab_vma": "0xe9224c",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe4868",
+            "entry_offset": "0xf60114",
+            "exidx_entry_vma": "0xf60114",
+            "extab_vma": "0xe92270",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmStruct",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe7418",
+      "rtti_name": "9PrmStruct",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe7420",
+      "vtable": "0xfe7400",
+      "vptr_address_point": "0xfe7408",
+      "constructor": "0xe7260",
+      "discriminator": 6,
+      "object_size_witness": 20,
+      "payload_offset": 12,
+      "payload_width": 8,
+      "payload_type": "opaque pointer-like word plus word at +0x0c/+0x10; helpers and ownership remain UNKNOWN",
+      "clone_candidate": "0xe72a0 allocates 20 bytes and invokes the struct constructor",
+      "deleting_destructor": "0xe717c",
+      "nondeleting_destructor": "0xe7150",
+      "vtable_slots": {
+        "clone": "0xe72a0",
+        "nondeleting_destructor": "0xe7150",
+        "deleting_destructor": "0xe717c"
+      },
+      "method_evidence": {
+        "constructor": "0xe7260 sets discriminator 6, stores a helper-produced word at +0x0c and r2 at +0x10",
+        "destructor": "0xe7150 passes +0x0c to helper 0xe0768 before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0xe7260",
+        "ELF_VMA:0xe7278",
+        "ELF_VMA:0xe7288",
+        "ELF_VMA:0xe7150",
+        "ELF_VMA:0xe717c",
+        "ELF_VMA:0xe72a0",
+        "ELF_VMA:0xfe7418",
+        "ELF_VMA:0xfe7400",
+        "ELF_RELOCATION:0xfe7420"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe7260",
+            "entry_offset": "0xf604a4",
+            "exidx_entry_vma": "0xf604a4",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe72a0",
+            "entry_offset": "0xf604ac",
+            "exidx_entry_vma": "0xf604ac",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe7150",
+            "entry_offset": "0xf60474",
+            "exidx_entry_vma": "0xf60474",
+            "extab_vma": "0xe9263c",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xe717c",
+            "entry_offset": "0xf6047c",
+            "exidx_entry_vma": "0xf6047c",
+            "extab_vma": "0xe92648",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmSet",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0x1019d08",
+      "rtti_name": "6PrmSet",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0x1019d10",
+      "vtable": "0x1019d18",
+      "vptr_address_point": "0x1019d20",
+      "constructor": "0x7efb00",
+      "discriminator": 7,
+      "object_size_witness": 36,
+      "payload_offset": 12,
+      "payload_width": 24,
+      "payload_type": "opaque embedded 24-byte payload at +0x0c; helper ABI and fields remain UNKNOWN",
+      "clone_candidate": "0x7efbb4 allocates 36 bytes and invokes the payload copy path",
+      "deleting_destructor": "0x7efb58",
+      "nondeleting_destructor": "0x7efb2c",
+      "vtable_slots": {
+        "clone": "0x7efbb4",
+        "nondeleting_destructor": "0x7efb2c",
+        "deleting_destructor": "0x7efb58"
+      },
+      "method_evidence": {
+        "getSet": "0x7efae8 returns this+0x0c",
+        "GET": "0x7efaf0 forwards with discriminator 7",
+        "constructor": "0x7efb00 initializes the opaque payload through helper 0xffd22",
+        "destructor": "0x7efb2c passes the payload to helper 0xffe0c"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0x7efae8",
+        "ELF_VMA:0x7efaf0",
+        "ELF_VMA:0x7efb00",
+        "ELF_VMA:0x7efb18",
+        "ELF_VMA:0x7efb2c",
+        "ELF_VMA:0x7efb58",
+        "ELF_VMA:0x7efbb4",
+        "ELF_VMA:0x1019d08",
+        "ELF_VMA:0x1019d18",
+        "ELF_RELOCATION:0x1019d10"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x7efb00",
+            "entry_offset": "0xfb2a5c",
+            "exidx_entry_vma": "0xfb2a5c",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x7efbb4",
+            "entry_offset": "0xfb2a7c",
+            "exidx_entry_vma": "0xfb2a7c",
+            "extab_vma": "0xf19730",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x7efb2c",
+            "entry_offset": "0xfb2a64",
+            "exidx_entry_vma": "0xfb2a64",
+            "extab_vma": "0xf19700",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x7efb58",
+            "entry_offset": "0xfb2a6c",
+            "exidx_entry_vma": "0xfb2a6c",
+            "extab_vma": "0xf1970c",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmNumberList",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfe7ed8",
+      "rtti_name": "13PrmNumberList",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfe7ee0",
+      "vtable": "0xfe7ee8",
+      "vptr_address_point": "0xfe7ef0",
+      "constructor": "0xecdb8",
+      "discriminator": 10,
+      "object_size_witness": 24,
+      "payload_offset": 12,
+      "payload_width": 12,
+      "payload_type": "embedded vector-like uint32 storage; begin/end/capacity words at +0x0c/+0x10/+0x14",
+      "clone_candidate": "0xed3a4",
+      "deleting_destructor": "0xece98",
+      "nondeleting_destructor": "0xece64",
+      "vtable_slots": {
+        "clone": "0xed3a4",
+        "nondeleting_destructor": "0xece64",
+        "deleting_destructor": "0xece98"
+      },
+      "method_evidence": {
+        "getList": "0xeccf4 returns this+0x0c",
+        "getNumber": "0xecd26 reads a uint32 element",
+        "getLength": "0xecd42 computes (end-begin)>>2",
+        "addNumber": "0xed1a2 appends a uint32 value"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0xecdb8",
+        "ELF_VMA:0xecdd0",
+        "ELF_VMA:0xed3a4",
+        "ELF_VMA:0xece64",
+        "ELF_VMA:0xece98",
+        "ELF_VMA:0xfe7ed8",
+        "ELF_VMA:0xfe7ee8",
+        "ELF_RELOCATION:0xfe7ee0"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xecdb8",
+            "entry_offset": "0xf60d3c",
+            "exidx_entry_vma": "0xf60d3c",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xed3a4",
+            "entry_offset": "0xf60e44",
+            "exidx_entry_vma": "0xf60e44",
+            "extab_vma": "0xe92edc",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xece64",
+            "entry_offset": "0xf60d74",
+            "exidx_entry_vma": "0xf60d74",
+            "extab_vma": null,
+            "unwind_kind": "COMPACT",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0xece98",
+            "entry_offset": "0xf60d7c",
+            "exidx_entry_vma": "0xf60d7c",
+            "extab_vma": "0xe92e58",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmCntInfoList",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfeb5a4",
+      "rtti_name": "14PrmCntInfoList",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfeb5ac",
+      "vtable": "0xfeb5b0",
+      "vptr_address_point": "0xfeb5b8",
+      "constructor": "0x11d680",
+      "discriminator": 9,
+      "object_size_witness": 92,
+      "payload_offset": 12,
+      "payload_width": 80,
+      "payload_type": "two embedded dynamic collection regions at +0x0c and +0x34; element semantics remain descriptive",
+      "clone_candidate": "0x11da18",
+      "deleting_destructor": "0x11d590",
+      "nondeleting_destructor": "0x11d54c",
+      "vtable_slots": {
+        "clone": "0x11da18",
+        "nondeleting_destructor": "0x11d54c",
+        "deleting_destructor": "0x11d590"
+      },
+      "method_evidence": {
+        "getLength": "0x11d45a forwards to the +0x0c collection",
+        "getGroup": "0x11d4da reads from the +0x0c collection",
+        "getItem": "0x11d4cc reads from the +0x34 collection",
+        "setGroup": "0x11d4bc writes the +0x0c collection",
+        "setItem": "0x11d4ac writes the +0x34 collection",
+        "add": "0x11d90e appends one value to each collection"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0x11d42c",
+        "ELF_VMA:0x11d680",
+        "ELF_VMA:0x11d696",
+        "ELF_VMA:0x11da18",
+        "ELF_VMA:0x11d54c",
+        "ELF_VMA:0x11d590",
+        "ELF_VMA:0xfeb5a4",
+        "ELF_VMA:0xfeb5b0",
+        "ELF_RELOCATION:0xfeb5ac"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x11d680",
+            "entry_offset": "0xf64ebc",
+            "exidx_entry_vma": "0xf64ebc",
+            "extab_vma": "0xe96bbc",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x11da18",
+            "entry_offset": "0xf64f14",
+            "exidx_entry_vma": "0xf64f14",
+            "extab_vma": "0xe96c38",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x11d54c",
+            "entry_offset": "0xf64e74",
+            "exidx_entry_vma": "0xf64e74",
+            "extab_vma": "0xe96b68",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x11d590",
+            "entry_offset": "0xf64e7c",
+            "exidx_entry_vma": "0xf64e7c",
+            "extab_vma": "0xe96b74",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    },
+    {
+      "name": "PrmObjMsg",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "rtti": "0xfec488",
+      "rtti_name": "9PrmObjMsg",
+      "base": "ParamBase",
+      "base_rtti_relocation": "0xfec490",
+      "vtable": "0xfec498",
+      "vptr_address_point": "0xfec4a0",
+      "constructor": "0x12c754",
+      "constructor_vtable_got": "0x10339f0",
+      "discriminator": 8,
+      "object_size_witness": 16,
+      "payload_offset": 12,
+      "payload_width": 4,
+      "payload_type": "pointer to MWF::ObjMsg; pointer ownership and pointee ABI remain UNKNOWN",
+      "clone_candidate": "0x12c784",
+      "deleting_destructor": "0x12c740",
+      "nondeleting_destructor": "0x12c700",
+      "vtable_slots": {
+        "clone": "0x12c784",
+        "nondeleting_destructor": "0x12c700",
+        "deleting_destructor": "0x12c740"
+      },
+      "method_evidence": {
+        "getParamTypeObjMsg": "0x12c77c reads the pointer at +0x0c",
+        "destructor": "0x12c700 releases the non-null +0x0c pointer before ParamBase destruction"
+      },
+      "key_initialization": "Not initialized by observed constructor; list add writes key through 0x7eda84",
+      "evidence_locators": [
+        "ELF_VMA:0x12c754",
+        "ELF_VMA:0x12c76c",
+        "ELF_VMA:0x12c77c",
+        "ELF_VMA:0x12c700",
+        "ELF_VMA:0x12c740",
+        "ELF_VMA:0xfec488",
+        "ELF_VMA:0xfec498",
+        "ELF_RELOCATION:0xfec490",
+        "ELF_RELOCATION:0x10339f0"
+      ],
+      "exception_unwind": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "format": "ARM EHABI .ARM.exidx metadata",
+        "targets": {
+          "constructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x12c754",
+            "entry_offset": "0xf661bc",
+            "exidx_entry_vma": "0xf661bc",
+            "extab_vma": "0xe97e64",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "clone": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x12c784",
+            "entry_offset": "0xf661cc",
+            "exidx_entry_vma": "0xf661cc",
+            "extab_vma": "0xe97e70",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "nondeleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x12c700",
+            "entry_offset": "0xf661ac",
+            "exidx_entry_vma": "0xf661ac",
+            "extab_vma": "0xe97e44",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          },
+          "deleting_destructor": {
+            "section": ".ARM.exidx",
+            "entry_vma": "0x12c740",
+            "entry_offset": "0xf661b4",
+            "exidx_entry_vma": "0xf661b4",
+            "extab_vma": "0xe97e58",
+            "unwind_kind": "EXTAB",
+            "status": "PRIMARY_ELF_VERIFIED",
+            "address_space": "ELF_VMA"
+          }
+        },
+        "semantic_limit": "EHABI records and function-local cleanup metadata do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract"
+      }
+    }
+  ],
+  "lifetime": {
+    "verification": "PRIMARY_ELF_VERIFIED for listed operations; validity rules STATIC_INFERRED",
+    "counter_storage": "ParamList +4 points to counter word",
+    "assignment_candidate": "0x7edcc6",
+    "assignment_operations": "Checks receiver==source; decrements old counter, cleans on zero; increments source counter; shares container and counter pointers",
+    "last_owner_destructor": "0x7edd08",
+    "cleanup": "0x7edb40 invokes each non-null element vptr +8",
+    "replacement": "0x7ededa rejects null incoming element; identical incoming/stored pointer returns 0; same key+discriminator deletes old element then removes slot",
+    "delete_binding": {
+      "plt": "0xdd620",
+      "got": "0x102d6bc",
+      "symbol": "_ZdlPv",
+      "runtime_binding": "UNKNOWN"
+    },
+    "borrowed_pointer_validity": "STATIC_INFERRED: must retain initialized owning storage and avoid deleting/replacing that element; get does not extend lifetime",
+    "copy_on_write": "No detach in examined assignment/add/replacement path; mutation affects shared container. Other mutation APIs UNKNOWN",
+    "atomicity": "Counter updates are ordinary load/add-or-sub/store, no atomic instructions in examined bodies",
+    "external_synchronization": "UNKNOWN; no claim that all callers lack locking",
+    "evidence_locators": [
+      "ELF_VMA:0x7edcc6",
+      "ELF_VMA:0x7edcd6",
+      "ELF_VMA:0x7edcfc",
+      "ELF_VMA:0x7edd02",
+      "ELF_VMA:0x7edd12",
+      "ELF_VMA:0x7edb64",
+      "ELF_VMA:0x7edf36",
+      "ELF_VMA:0x7edf3c",
+      "ELF_RELOCATION:0x102d6bc"
+    ]
+  },
+  "firmware_safety_observations": {
+    "lookup": "get lacks null receiver/container/element guards; wrappers guard list/output only after reading wrapper+4",
+    "invalid_key": "Valid collection with no matching pair returns null",
+    "counter_underflow": "No zero-counter precondition check in examined decrement path",
+    "concurrent_access": "Runtime caller locking and scheduler assumptions UNKNOWN",
+    "snapshot_parser_guards": "Self-authored bounds, budget, null-element and type validation; these do NOT describe Sony firmware protections"
+  },
+  "limitations": [
+    "No runtime execution",
+    "Only PrmNumber and PrmBool payload semantics are verified; additional families remain layout-only",
+    "Discriminator alone does not prove type",
+    "No blanket ABI completeness",
+    "RTTI follows single-inheritance record candidates; no complete class hierarchy claim",
+    "Other copy/mutation APIs and exception allocation behavior UNKNOWN"
+  ],
+  "lifetime_exception_evidence": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "format": "ARM EHABI .ARM.exidx metadata",
+    "scope": "one unique record for each listed constructor, clone and destructor entry",
+    "semantic_limit": "EHABI records do not prove every throw edge, exception object, allocator pairing or runtime lifetime contract",
+    "runtime_verified": false,
+    "callable": false
+  }
+}

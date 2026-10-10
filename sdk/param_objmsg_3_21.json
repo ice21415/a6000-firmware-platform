@@ -1,0 +1,125 @@
+{
+  "schema_version": 2,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": {
+    "architecture": "ARMv7 little-endian ELF32",
+    "instruction_mode": "Thumb with ARM AAPCS32 register convention",
+    "receiver_register": "r0",
+    "argument_registers": "r1-r3 when present",
+    "runtime_loader_binding": "UNKNOWN",
+    "runtime_verified": false,
+    "callable": false
+  },
+  "type": "PrmObjMsg candidate",
+  "verification": "PRIMARY_ELF_VERIFIED for bounded instructions, RTTI/vtable words and unique static PLT relocations; source-level ownership and runtime ABI remain unverified",
+  "object": {
+    "discriminator": 8,
+    "payload_offset": "0x0c",
+    "payload": "MWF::ObjMsg* candidate",
+    "payload_ownership": "STATIC_INFERRED release-on-destruction path; constructor transfer precondition is UNKNOWN",
+    "vptr_address_point": "0xfec4a0",
+    "vtable_prefix_vma": "0xfec498",
+    "rtti_vma": "0xfec488",
+    "rtti_name": "9PrmObjMsg",
+    "base_rtti": "0xfe6e24",
+    "base_rtti_relation": "_ZTI9ParamBase relocation at RTTI +0x08",
+    "object_size_witness": 16,
+    "key_offset": "0x08",
+    "key_initialization": "not written by the bounded PrmObjMsg constructor; ParamBase/key-setter path is separate evidence"
+  },
+  "vtable": {
+    "offset_to_top": 0,
+    "slot_plus_8_clone": "0x12c784",
+    "slot_plus_12_destructor": "0x12c700",
+    "slot_plus_16_deleting_destructor": "0x12c740",
+    "verification": "PRIMARY_ELF_VERIFIED"
+  },
+  "usage_evidence": {
+    "source": "private targeted Ghidra 12.1.3 metadata export, -noanalysis, SHA-pinned libObj.so",
+    "status": "STATIC_INFERRED",
+    "scope": "xref metadata from the imported libObj.so program; not a proof of exhaustive whole-firmware usage",
+    "observed_callers": [
+      {"target": "0xe2080", "target_symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE", "caller_entry": "0x12c784", "callsite": "0x12c7a6", "relation": "CALLS"},
+      {"target": "0xddee4", "target_symbol": "_ZNK9PrmObjMsg18getParamTypeObjMsgEv", "caller_entry": "0x12c784", "callsite": "0x12c788", "relation": "CALLS"},
+      {"target": "0xe0388", "target_symbol": "_ZN3MWF6ObjMsgC1ERKS0_", "caller_entry": "0x12c784", "callsite": "0x12c798", "relation": "CALLS"},
+      {"target": "0xddd94", "target_symbol": "_ZN3MWF6ObjMsgD1Ev", "caller_entry": "0x12c700", "callsite": "0x12c718", "relation": "CALLS"}
+    ],
+    "local_constructor_internal_callers": "NONE_OBSERVED_IN_TARGETED_GHIDRA_XREF_EXPORT; external/data references to the local symbol remain",
+    "xrefs_total": 8,
+    "limitations": ["-noanalysis targeted metadata is not an exhaustive whole-program call graph", "generated Ghidra function labels are not semantic names"]
+  },
+  "bindings": {
+    "param_base_constructor": {"entry": "0xe11a4", "symbol": "_ZN9ParamBaseC2Em", "got_slot": "0x102e984", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "payload_destructor": {"entry": "0xddd94", "symbol": "_ZN3MWF6ObjMsgD1Ev", "got_slot": "0x102d910", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "delete_object": {"entry": "0xdd620", "symbol": "_ZdlPv", "got_slot": "0x102d6bc", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "payload_getter": {"entry": "0xddee4", "symbol": "_ZNK9PrmObjMsg18getParamTypeObjMsgEv", "got_slot": "0x102d978", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "new_object": {"entry": "0xdc100", "symbol": "_Znwj", "got_slot": "0x102cffc", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "payload_copy_constructor": {"entry": "0xe0388", "symbol": "_ZN3MWF6ObjMsgC1ERKS0_", "got_slot": "0x102e514", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"},
+    "prm_objmsg_constructor": {"entry": "0xe2080", "symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE", "got_slot": "0x102ee38", "status": "VERIFIED_STATIC", "runtime_binding": "UNKNOWN"}
+  },
+  "functions": {
+    "constructor": {
+      "entry": "0x12c754",
+      "symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE",
+      "size": 40,
+      "registers": {"r0": "destination PrmObjMsg* candidate", "r1": "MWF::ObjMsg* candidate"},
+      "facts": ["passes discriminator 8 to ParamBase constructor PLT 0xe11a4", "stores incoming r1 at receiver +0x0c", "stores relocated vtable address point at receiver +0x00"],
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "getter": {
+      "entry": "0x12c77c",
+      "symbol": "_ZNK9PrmObjMsg18getParamTypeObjMsgEv",
+      "size": 8,
+      "registers": {"r0": "const PrmObjMsg* candidate"},
+      "return": "word loaded from receiver +0x0c; MWF::ObjMsg* return candidate",
+      "retains_or_clones": false,
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "destructor": {
+      "entry": "0x12c700",
+      "size": 52,
+      "facts": ["loads payload from +0x0c", "null payload skips the release branch", "non-null payload calls MWF::ObjMsg D1 PLT 0xddd94", "non-null payload then calls operator delete PLT 0xdd620", "calls local ParamBase destruction path 0xe4734"],
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "deleting_destructor": {
+      "entry": "0x12c740",
+      "size": 20,
+      "facts": ["calls the non-deleting destructor at 0x12c700", "calls operator delete PLT 0xdd620 for the PrmObjMsg object"],
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "clone_candidate": {
+      "entry": "0x12c784",
+      "size": 52,
+      "facts": ["calls the PrmObjMsg payload getter PLT 0xddee4", "allocates an 8-byte payload candidate through _Znwj PLT 0xdc100", "calls MWF::ObjMsg copy constructor PLT 0xe0388", "allocates a separate 16-byte destination through _Znwj PLT 0xdc100", "calls PrmObjMsg constructor PLT 0xe2080 with the copied payload", "contains a visible operator-delete cleanup path for the temporary payload"],
+      "return": "new PrmObjMsg-like pointer candidate; exact virtual clone return type UNKNOWN",
+      "verification": "PRIMARY_ELF_VERIFIED"
+    }
+  },
+  "abi_candidates": {
+    "constructor": {"declaration": "PrmObjMsg::PrmObjMsg(MWF::ObjMsg*) [destination in r0]", "verification": "STATIC_INFERRED object-construction shape; constructor symbol and argument type are static evidence"},
+    "getter": {"declaration": "MWF::ObjMsg* candidate PrmObjMsg::getParamTypeObjMsg() const", "verification": "STATIC_INFERRED return type from symbol context and +0x0c load; no callable claim"},
+    "payload_copy": {"declaration": "MWF::ObjMsg::ObjMsg(MWF::ObjMsg const&) candidate", "verification": "PRIMARY_ELF_VERIFIED PLT symbol/mangling and clone callsite; complete MWF layout UNKNOWN"},
+    "clone": {"declaration": "ParamBase* candidate PrmObjMsg::clone() const", "verification": "UNVERIFIED source-level declaration; vtable slot and destination shape are static evidence only"}
+  },
+  "lifetime": {
+    "getter": "returns a borrowed payload pointer candidate without retaining or cloning it",
+    "destructor": "non-null payload is destructed and passed to object delete before ParamBase destruction",
+    "clone": "creates an independent ObjMsg copy candidate before constructing a new 16-byte PrmObjMsg candidate",
+    "element_invalidation": "UNKNOWN here; ParamList replacement/destruction evidence applies to the containing element",
+    "constructor_transfer": "UNKNOWN; constructor stores the incoming pointer without a local retain/clone",
+    "exception_behavior": "UNKNOWN; bounded landing/cleanup path is not a complete exception ABI proof",
+    "concurrency": "UNKNOWN; no synchronization is established by these bounded bodies",
+    "runtime_verified": false,
+    "callable": false
+  },
+  "safety": {
+    "null_constructor_input": "UNKNOWN; no local null guard before storing the pointer",
+    "null_getter_receiver": "UNKNOWN; no local receiver guard",
+    "null_destructor_payload": "null is explicitly skipped by the observed branch",
+    "invalid_or_shared_payload": "UNKNOWN; static release sequence does not establish safe aliasing or sharing",
+    "snapshot_decoder_protections": "not Sony behavior"
+  },
+  "limitations": ["MWF::ObjMsg object layout, copy semantics and allocator pairing are unknown", "Dynamic loader interposition for every PLT binding remains UNKNOWN", "The C++ clone return type and complete exception/unwind behavior are not proven", "ParamList key initialization is outside this constructor and remains a separate relation", "No runtime or device execution; this contract is descriptive and non-callable"]
+}

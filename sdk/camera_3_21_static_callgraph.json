@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "source_scope": "Manually checked against saved 2026-10-07 private raw ELF instruction audits; no original bytes redistributed; instruction-immediate displacements are distinguished from derived model-root offsets",
+  "proof_policy": "RESEARCH_REPORT_ONLY",
+  "static_calls": [
+    {
+      "caller": "ModelCamera::ActionGpSetSetting",
+      "callee": "ModelCamera::pvt_ActionSetInit",
+      "callsite": "0x4cfe98",
+      "instruction": "bl #0x4cf7a8",
+      "source_artifact": "FINDINGS.zh-TW.md",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::pvt_ActionSetInit",
+      "callee": "ModelCamera::pvt_ExeEENeutralCmd",
+      "callsite": "0x4cf814",
+      "instruction": "bl #0x4b1a20",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::pvt_ActionSetInit",
+      "callee": "ModelCamera::PrepChk",
+      "callsite": "0x4cf81a",
+      "instruction": "bl #0x4b096c",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::pvt_ExeEENeutralCmd",
+      "callee": "ModelCamera::EE_neutral_sender_candidate",
+      "callsite": "0x4b1a42",
+      "instruction": "bl #0x443d14",
+      "source_artifact": "model-camera-methods.txt",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::PrepChk",
+      "callee": "ModelCamera::prepare_setter_candidate",
+      "callsite": "0x4b0984",
+      "instruction": "bl #0x132028",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::PrepON",
+      "callee": "ModelCamera::prepare_setter_candidate",
+      "callsite": "0x4b083a",
+      "instruction": "bl #0x132028",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::PrepOFF",
+      "callee": "ModelCamera::prepare_setter_candidate",
+      "callsite": "0x4b0882",
+      "instruction": "bl #0x132028",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "DIRECT_CALL",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::ActionActive",
+      "callee": "ModelCamera::active_completion_helper_candidate",
+      "callsite": "0x4b07f0",
+      "instruction": "b.w #0x132160",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "TAIL_BRANCH",
+      "independent_proof_in_public_repo": false
+    },
+    {
+      "caller": "ModelCamera::active_completion_helper_candidate",
+      "callee": "ModelCamera::prepare_setter_candidate",
+      "callsite": "0x1321be",
+      "instruction": "b.w #0x132028",
+      "source_artifact": "camera-prepare-audit.json",
+      "kind": "TAIL_BRANCH",
+      "independent_proof_in_public_repo": false
+    }
+  ],
+  "field_observations": [
+    {
+      "owner": "ModelCamera::pvt_ExeEENeutralCmd",
+      "kind": "FIELD_WRITE",
+      "instruction_address": "0x4b1a50",
+      "object_field_offset": "0x26fc",
+      "width_bits": 8,
+      "observed_value": 1,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
+    },
+    {
+      "owner": "ModelCamera::PrepChk",
+      "kind": "FIELD_READ",
+      "instruction_address": "0x4b0978",
+      "object_field_offset": "0x26fc",
+      "width_bits": 8,
+      "observed_value": null,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
+    },
+    {
+      "owner": "ModelCamera::prepare_setter_candidate",
+      "kind": "FIELD_WRITE_CONDITIONAL",
+      "instruction_address": "0x132052",
+      "object_field_offset": "0x64",
+      "width_bits": 8,
+      "observed_value": null,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x64",
+      "inferred_base_adjustment": "0x0"
+    },
+    {
+      "owner": "ModelCamera::prepare_setter_candidate",
+      "kind": "FIELD_WRITE_DEFERRED",
+      "instruction_address": "0x132040",
+      "object_field_offset": "0x80",
+      "width_bits": 8,
+      "observed_value": null,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x80",
+      "inferred_base_adjustment": "0x0"
+    },
+    {
+      "owner": "ModelCamera::active_completion_helper_candidate",
+      "kind": "FIELD_WRITE_CONDITIONAL",
+      "instruction_address": "0x1321b2",
+      "object_field_offset": "0x81",
+      "width_bits": 8,
+      "observed_value": 1,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x81",
+      "inferred_base_adjustment": "0x0"
+    },
+    {
+      "owner": "ModelCamera::clear_neutral_pending_candidate",
+      "kind": "FIELD_WRITE",
+      "instruction_address": "0x4b09da",
+      "object_field_offset": "0x26fc",
+      "width_bits": 8,
+      "observed_value": 0,
+      "source_artifact": "camera-prepare-audit.json",
+      "proof_scope": "SAVED_OFFLINE_INSTRUCTION_REPORT",
+      "runtime_observed": false,
+      "instruction_immediate_offset": "0x7c",
+      "inferred_base_adjustment": "0x2680"
+    }
+  ],
+  "normalized_selector_routes": [
+    {
+      "owner": "ModelCamera::state_selector_dispatch_candidate",
+      "state": 5,
+      "selector": "0x11004014",
+      "action": 80,
+      "next_state": 2,
+      "source_artifact": "camera-state-transitions.json",
+      "status": "STATIC_BOUNDED_EVALUATION"
+    },
+    {
+      "owner": "ModelCamera::state_selector_dispatch_candidate",
+      "state": 2,
+      "selector": "0x310085cd",
+      "action": 115,
+      "next_state": null,
+      "source_artifact": "camera-state-transitions.json",
+      "status": "STATIC_BOUNDED_EVALUATION"
+    },
+    {
+      "owner": "ModelCamera::state_selector_dispatch_candidate",
+      "state": 5,
+      "selector": "0x310085cd",
+      "action": 115,
+      "next_state": null,
+      "source_artifact": "camera-state-transitions.json",
+      "status": "STATIC_BOUNDED_EVALUATION"
+    },
+    {
+      "owner": "ModelCamera::state_selector_dispatch_candidate",
+      "state": 6,
+      "selector": "0x310085cd",
+      "action": 97,
+      "next_state": null,
+      "source_artifact": "camera-state-transitions.json",
+      "status": "STATIC_BOUNDED_EVALUATION"
+    }
+  ],
+  "unresolved_external": [
+    {
+      "owner": "ModelCamera::EE_neutral_sender_candidate",
+      "callsite": "0x443d54",
+      "target_symbol": "ObjIf::IssueCommandAsync",
+      "target_library_hint": "libMWF.so",
+      "kind": "INDIRECT_DISPATCH",
+      "source_artifact": "FINDINGS.zh-TW.md",
+      "reason": "Concrete virtual interface target and message delivery/error conventions not proven"
+    }
+  ],
+  "remaining_blockers": [
+    "Exact binary-independent prototype and AAPCS argument/return layout",
+    "OSAL EE-neutral command consumer, producer and relay completion mapping",
+    "Camera readiness vs first-shot-ready semantics",
+    "ModelCamera event-filter normalization and full state/action coverage",
+    "Independent runtime behavior verification"
+  ],
+  "camera_sdk_callable_count": null,
+  "verified_static_api_count": 0
+}

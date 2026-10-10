@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "entry": "0x7ef894",
+  "size": 78,
+  "verification": "PRIMARY_ELF_VERIFIED instruction/layout/PLT facts; composed link and cleanup structure STATIC_INFERRED",
+  "abi_observation": {
+    "r0": "initializer receiver candidate",
+    "r1": "callback/function pointer candidate stored at +0x04",
+    "r2": "provider/context object candidate",
+    "safe_to_call": false
+  },
+  "layout": {
+    "+0x00": "8-byte state allocation candidate",
+    "+0x04": "incoming r1 callback candidate",
+    "+0x08": "provider vtable +0x30 return candidate",
+    "+0x0c": "pthread_mutex_init target",
+    "state_+0/+4": "two 8-byte words allocated and initialized by local helper 0x7f09be"
+  },
+  "state_initialization": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "semantic_level": "STATIC_INFERRED",
+    "helper_entry": "0x7f09be",
+    "helper_chain": ["0x1111cc", "0x1111b8", "0x1111ac", "0x1111a2", "0x1114b0"],
+    "state_object_size": 8,
+    "state_object_layout": {
+      "+0x00": "link word; exact self-link store is [object] = object",
+      "+0x04": "link word; exact self-link store is [object + 4] = object"
+    },
+    "initialization": "bounded helper invokes zero-then-self-link and a clear-path that ends with self-link",
+    "source_container_type": "UNKNOWN; no source-level class or standard-container identity is proven",
+    "ownership": "UNKNOWN; allocation/deallocation pairing is not established by this helper chain",
+    "cleanup": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "semantic_level": "STATIC_INFERRED",
+      "entry": "0x7f09d2",
+      "head_helper": "0x111264 returns the first link word [object]",
+      "sentinel_helper": "0x111234 preserves the input object as the sentinel",
+      "node_payload": "0x111178 returns [current_link] + 8; the following load supplies a payload pointer candidate",
+      "release_sequence": "payload pointer is passed to Event::~Event then _ZdlPv",
+      "advance_compare": "0x7ea7ec follows the current link word and 0x7ea7dc compares it with the sentinel",
+      "normal_teardown": "0x1114b0 then 0x111460",
+      "exception_teardown": "0x111460 then __cxa_end_cleanup",
+      "event_destructor_binding": {
+        "entry": "0xe1b1c",
+        "got_slot": "0x102ec80",
+        "symbol": "_ZN5EventD1Ev",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN"
+      },
+      "deallocator_binding": {
+        "entry": "0xdd620",
+        "got_slot": "0x102d6bc",
+        "symbol": "_ZdlPv",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN"
+      },
+      "exception_cleanup_binding": {
+        "entry": "0xdd4f8",
+        "got_slot": "0x102d660",
+        "symbol": "__cxa_end_cleanup",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN"
+      },
+      "owner_identity": "UNKNOWN; this adjacent cleanup candidate is not proven to be an EventManager destructor"
+    }
+  },
+  "bindings": {
+    "mutex_init": {"entry": "0xe2aa0", "symbol": "pthread_mutex_init", "status": "VERIFIED_STATIC"},
+    "state_array_alloc": {"entry": "0xe0e00", "symbol": "_Znaj", "status": "VERIFIED_STATIC"},
+    "state_word_alloc": {"entry": "0xdc100", "symbol": "_Znwj", "status": "VERIFIED_STATIC"}
+  },
+  "limitations": [
+    "No constructor symbol proves the EventManager class identity; relation to push is layout-compatible STATIC_INFERRED",
+    "Provider vtable slot +0x30 and source-level state container identity remain UNKNOWN",
+    "The adjacent cleanup candidate has static Event::~Event, _ZdlPv and __cxa_end_cleanup bindings but is not proven to be an EventManager destructor or ownership path",
+    "Callback ownership, synchronization beyond the observed mutex init, exception behavior, allocation/deallocation pairing and runtime binding remain UNKNOWN",
+    "No runtime or device execution"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

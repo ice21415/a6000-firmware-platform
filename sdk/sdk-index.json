@@ -1,68 +1,30 @@
 {
   "format": "a6000-unofficial-descriptive-sdk",
-  "version": "0.1.0",
+  "version": "0.3.1-dev",
+  "generated_at": "2026-10-08T07:31:16.295806+00:00",
   "firmware": {
     "model": "Sony ILCE-6000",
     "version": "3.21"
   },
-  "generated_at": "2026-10-08T05:44:41.889720+00:00",
-  "interfaces": {
-    "lifecycle_callbacks": {
-      "status": "VERIFIED_STATIC",
-      "names": [
-        "init",
-        "exit",
-        "suspend",
-        "resume",
-        "inactivate",
-        "activate"
-      ],
-      "calling_convention": "unknown",
-      "side_effects": "module-specific; recover from evidence before invocation"
-    },
-    "imdb_entry": {
-      "status": "VERIFIED_STATIC",
-      "layout": "raw uint32 words",
-      "known_fields": [
-        "index",
-        "address",
-        "phase",
-        "entry_type",
-        "flags",
-        "target_mask",
-        "id",
-        "kind",
-        "library"
-      ],
-      "unknown_fields": [
-        "callback_fields semantics",
-        "word[4..10] ABI"
-      ],
-      "source": "<private-research>/boot-static-analysis/imdb-entries.json"
-    },
-    "model_camera_selector_dispatch": {
-      "status": "VERIFIED_STATIC",
-      "selector_namespace": "camera_selector",
-      "state_machine": "ModelCamera.selector_dispatch",
-      "runtime_safety": "descriptive only; no direct call wrapper",
-      "source": "<private-research>/boot-static-analysis/camera-state-transitions.json"
-    },
-    "vtable_methods": {
-      "status": "VERIFIED_STATIC",
-      "dispatch": "candidate virtual dispatch slots",
-      "runtime_safety": "descriptive only; imported slots require ABI validation",
-      "source": [
-        "view-boot-vtables.json",
-        "model-camera-vtables.json"
-      ]
+  "generated_from": "local evidence database (private snapshot is not shipped)",
+  "database_snapshot_included": false,
+  "coverage": {
+    "indexed_functions": 135313,
+    "cfg_recovered_functions": 98,
+    "semantically_understood_functions": 0,
+    "runtime_verified_interfaces": 0,
+    "verified_protocol_edges": 2087,
+    "sdk_documented_interfaces": 0,
+    "callable_validated_interfaces": null,
+    "denominators": {
+      "indexed_functions": "all function rows in current database",
+      "cfg_recovered_functions": "distinct function_id with basic_block rows",
+      "semantically_understood_functions": "explicit sdk_interface rows with verified/mock status",
+      "runtime_verified_interfaces": "explicit sdk_interface rows marked VERIFIED_RUNTIME",
+      "verified_protocol_edges": "semantic protocol edges whose edge and primary evidence statuses are VERIFIED_*",
+      "callable_validated_interfaces": "UNKNOWN until an independent runtime validation exists"
     }
   },
-  "database_counts": {
-    "module": 745,
-    "function": 135178,
-    "vtable": 560,
-    "event_id": 8,
-    "lifecycle_callback": 846
-  },
-  "rule": "Only VERIFIED_* evidence may be promoted to a callable API; all others remain descriptive or mock-only."
+  "interfaces": [],
+  "rule": "Indexed symbols and static names are not callable APIs. Only explicit sdk_interface evidence can be documented; runtime safety is a separate field and remains descriptive unless VERIFIED_RUNTIME evidence exists."
 }

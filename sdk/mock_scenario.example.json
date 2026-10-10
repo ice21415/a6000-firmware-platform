@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic OSAL/Camera state machine for offline SDK tests only; not Sony firmware behavior.",
+  "initial_state": "idle",
+  "transitions": [
+    {
+      "from": "idle",
+      "to": "ui_ready_mock",
+      "namespace": "ui-mock",
+      "command": "unmute",
+      "reply": "ui-rendered"
+    },
+    {
+      "from": "ui_ready_mock",
+      "to": "camera_prepare_mock",
+      "namespace": "camera-mock",
+      "command": "prepare",
+      "reply": "accepted"
+    },
+    {
+      "from": "camera_prepare_mock",
+      "to": "camera_ready_mock",
+      "namespace": "camera-mock",
+      "command": "ready-notification",
+      "reply": "ready"
+    }
+  ],
+  "steps": [
+    {
+      "namespace": "ui-mock",
+      "command": "unmute",
+      "expect_state": "ui_ready_mock",
+      "expect_reply": "ui-rendered"
+    },
+    {
+      "namespace": "camera-mock",
+      "command": "prepare",
+      "expect_state": "camera_prepare_mock",
+      "expect_reply": "accepted"
+    },
+    {
+      "namespace": "camera-mock",
+      "command": "ready-notification",
+      "expect_state": "camera_ready_mock",
+      "expect_reply": "ready"
+    }
+  ]
+}

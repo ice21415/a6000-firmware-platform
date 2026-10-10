@@ -1,0 +1,415 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "analyzer": {
+    "name": "ParamFamilyUsage.java",
+    "version": "Ghidra 12.1.3; ParamFamilyUsage.java",
+    "analysis_status": "PARTIAL_TIMEOUT",
+    "scope": "PARAMBASE_CONSTRUCTOR_XREF_METADATA",
+    "ghidra_language": "ARM:LE:32:v8",
+    "ghidra_image_base": "00010000",
+    "timeout_seconds": 300,
+    "raw_export_private": true
+  },
+  "families": [
+    {
+      "name": "PrmBool",
+      "target": "0xe50e8",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 95,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 95
+      },
+      "call_xref_count": 95,
+      "unique_callers": 30,
+      "unresolved_caller_count": 3,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xfddd2",
+          "callsite_ghidra": "0010ddd2",
+          "caller_entry_elf_vma": "0xe7008",
+          "caller_entry_ghidra": "000f7008",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x10361a",
+          "callsite_ghidra": "0011361a",
+          "caller_entry_elf_vma": "0x1033aa",
+          "caller_entry_ghidra": "001133aa",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x113e7a",
+          "callsite_ghidra": "00123e7a",
+          "caller_entry_elf_vma": "0x113d60",
+          "caller_entry_ghidra": "00123d60",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x122720",
+          "callsite_ghidra": "00132720",
+          "caller_entry_elf_vma": "0x1226d8",
+          "caller_entry_ghidra": "001326d8",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmNumber",
+      "target": "0xf0fb0",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 628,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 628
+      },
+      "call_xref_count": 628,
+      "unique_callers": 149,
+      "unresolved_caller_count": 17,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xf6674",
+          "callsite_ghidra": "00106674",
+          "caller_entry_elf_vma": "0xf6600",
+          "caller_entry_ghidra": "00106600",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x10be90",
+          "callsite_ghidra": "0011be90",
+          "caller_entry_elf_vma": "0x10be28",
+          "caller_entry_ghidra": "0011be28",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x110cfa",
+          "callsite_ghidra": "00120cfa",
+          "caller_entry_elf_vma": "0x110cc0",
+          "caller_entry_ghidra": "00120cc0",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x111b96",
+          "callsite_ghidra": "00121b96",
+          "caller_entry_elf_vma": "0x111aa4",
+          "caller_entry_ghidra": "00121aa4",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmString",
+      "target": "0xff9c8",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 21,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 21
+      },
+      "call_xref_count": 21,
+      "unique_callers": 13,
+      "unresolved_caller_count": 0,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0x10288c",
+          "callsite_ghidra": "0011288c",
+          "caller_entry_elf_vma": "0xe5b74",
+          "caller_entry_ghidra": "000f5b74",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x10299e",
+          "callsite_ghidra": "0011299e",
+          "caller_entry_elf_vma": "0x102978",
+          "caller_entry_ghidra": "00112978",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x102916",
+          "callsite_ghidra": "00112916",
+          "caller_entry_elf_vma": "0x1028f0",
+          "caller_entry_ghidra": "001128f0",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x1007c6",
+          "callsite_ghidra": "001107c6",
+          "caller_entry_elf_vma": "0xfffe8",
+          "caller_entry_ghidra": "0010ffe8",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmPoint",
+      "target": "0xffa3c",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 10,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 10
+      },
+      "call_xref_count": 10,
+      "unique_callers": 8,
+      "unresolved_caller_count": 1,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0x113e8e",
+          "callsite_ghidra": "00123e8e",
+          "caller_entry_elf_vma": "0x113d60",
+          "caller_entry_ghidra": "00123d60",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x110aa4",
+          "callsite_ghidra": "00120aa4",
+          "caller_entry_elf_vma": "0x110a04",
+          "caller_entry_ghidra": "00120a04",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x10074e",
+          "callsite_ghidra": "0011074e",
+          "caller_entry_elf_vma": "0xfffe8",
+          "caller_entry_ghidra": "0010ffe8",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x42ad4a",
+          "callsite_ghidra": "0043ad4a",
+          "caller_entry_elf_vma": "0x42acd4",
+          "caller_entry_ghidra": "0043acd4",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmDimension",
+      "target": "0xe5128",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 13,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 13
+      },
+      "call_xref_count": 13,
+      "unique_callers": 7,
+      "unresolved_caller_count": 3,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0x100760",
+          "callsite_ghidra": "00110760",
+          "caller_entry_elf_vma": "0xfffe8",
+          "caller_entry_ghidra": "0010ffe8",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x4fc0fc",
+          "callsite_ghidra": "0050c0fc",
+          "caller_entry_elf_vma": "0x4fb36c",
+          "caller_entry_ghidra": "0050b36c",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x4fc138",
+          "callsite_ghidra": "0050c138",
+          "caller_entry_elf_vma": "0x4fb36c",
+          "caller_entry_ghidra": "0050b36c",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0x4fc158",
+          "callsite_ghidra": "0050c158",
+          "caller_entry_elf_vma": "0x4fb36c",
+          "caller_entry_ghidra": "0050b36c",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmStruct",
+      "target": "0xe7260",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 82,
+      "relation_counts": {
+        "UNCONDITIONAL_CALL": 82
+      },
+      "call_xref_count": 82,
+      "unique_callers": 42,
+      "unresolved_caller_count": 14,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xe73d6",
+          "callsite_ghidra": "000f73d6",
+          "caller_entry_elf_vma": "0xe730c",
+          "caller_entry_ghidra": "000f730c",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0xe74da",
+          "callsite_ghidra": "000f74da",
+          "caller_entry_elf_vma": "0xe7408",
+          "caller_entry_ghidra": "000f7408",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0xe82a8",
+          "callsite_ghidra": "000f82a8",
+          "caller_entry_elf_vma": "0xe81e0",
+          "caller_entry_ghidra": "000f81e0",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        },
+        {
+          "callsite_elf_vma": "0xe91cc",
+          "callsite_ghidra": "000f91cc",
+          "caller_entry_elf_vma": "0xe9106",
+          "caller_entry_ghidra": "000f9106",
+          "address_space": "ram",
+          "reference_type": "UNCONDITIONAL_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmSet",
+      "target": "0x7efb00",
+      "locator": "ELF_VMA",
+      "symbol": "",
+      "status": "RESOLVED",
+      "xref_count": 0,
+      "relation_counts": {},
+      "call_xref_count": 0,
+      "unique_callers": 0,
+      "unresolved_caller_count": 0,
+      "callsite_examples": []
+    },
+    {
+      "name": "PrmNumberList",
+      "target": "0xecdb8",
+      "locator": "SYMBOL",
+      "symbol": "_ZN13PrmNumberListC1Ev",
+      "status": "RESOLVED",
+      "xref_count": 3,
+      "relation_counts": {
+        "COMPUTED_CALL": 1,
+        "DATA": 1,
+        "EXTERNAL": 1
+      },
+      "call_xref_count": 1,
+      "unique_callers": 1,
+      "unresolved_caller_count": 0,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xdb7e8",
+          "callsite_ghidra": "000eb7e8",
+          "caller_entry_elf_vma": "0xdb7e0",
+          "caller_entry_ghidra": "000eb7e0",
+          "address_space": "ram",
+          "reference_type": "COMPUTED_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmCntInfoList",
+      "target": "0x11d680",
+      "locator": "SYMBOL",
+      "symbol": "_ZN14PrmCntInfoListC1Ev",
+      "status": "RESOLVED",
+      "xref_count": 3,
+      "relation_counts": {
+        "COMPUTED_CALL": 1,
+        "DATA": 1,
+        "EXTERNAL": 1
+      },
+      "call_xref_count": 1,
+      "unique_callers": 1,
+      "unresolved_caller_count": 0,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xe282c",
+          "callsite_ghidra": "000f282c",
+          "caller_entry_elf_vma": "0xe2824",
+          "caller_entry_ghidra": "000f2824",
+          "address_space": "ram",
+          "reference_type": "COMPUTED_CALL"
+        }
+      ]
+    },
+    {
+      "name": "PrmObjMsg",
+      "target": "0x12c754",
+      "locator": "SYMBOL",
+      "symbol": "_ZN9PrmObjMsgC1EPN3MWF6ObjMsgE",
+      "status": "RESOLVED",
+      "xref_count": 3,
+      "relation_counts": {
+        "COMPUTED_CALL": 1,
+        "DATA": 1,
+        "EXTERNAL": 1
+      },
+      "call_xref_count": 1,
+      "unique_callers": 1,
+      "unresolved_caller_count": 0,
+      "callsite_examples": [
+        {
+          "callsite_elf_vma": "0xe2088",
+          "callsite_ghidra": "000f2088",
+          "caller_entry_elf_vma": "0xe2080",
+          "caller_entry_ghidra": "000f2080",
+          "address_space": "ram",
+          "reference_type": "COMPUTED_CALL"
+        }
+      ]
+    }
+  ],
+  "family_count": 10,
+  "xref_count": 858,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Constructor xrefs are metadata observations, not proof of source-level caller types",
+    "Generated Ghidra labels are not semantic function names",
+    "PARTIAL_TIMEOUT exports are not exhaustive whole-firmware usage graphs",
+    "Computed calls, external references and data references remain distinct from direct calls",
+    "No ownership, lifetime extension, locking, runtime binding or callable safety is inferred"
+  ],
+  "source": {
+    "input_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "export_marker_verified": true,
+    "scope": "Single private libObj.so project; constructor target xrefs only",
+    "exhaustive": false,
+    "private_export_identity": "NOT_PUBLISHED"
+  }
+}

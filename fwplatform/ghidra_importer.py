@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -21,14 +22,34 @@ def _address(value: Any) -> str | None:
         return text
 
 
+def _address_int(value: Any) -> int | None:
+    text = _address(value)
+    if text is None:
+        return None
+    try:
+        return int(text, 0)
+    except ValueError:
+        return None
+
+
 def _binary_id(db: Database, binary: Path, root: Path) -> int | None:
-    normalized = binary.resolve().relative_to(root.resolve()).as_posix()
-    row = db.connection.execute("SELECT id FROM binary WHERE path=?", (normalized,)).fetchone()
-    if row:
-        return int(row[0])
-    row = db.connection.execute("SELECT id FROM binary WHERE path LIKE ? ORDER BY length(path) LIMIT 1",
-                               (f"%{binary.name}",)).fetchone()
-    return int(row[0]) if row else None
+    try:
+        normalized = binary.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        normalized = None
+    if normalized:
+        row = db.connection.execute("SELECT id FROM binary WHERE path=?", (normalized,)).fetchone()
+        if row:
+            return int(row[0])
+    # A basename fallback can silently select a different firmware version.
+    # Resolve by the content identity only when it is unique.
+    digest = sha256_file(binary)
+    rows = db.connection.execute("SELECT id FROM binary WHERE sha256=? ORDER BY id", (digest,)).fetchall()
+    if len(rows) == 1:
+        return int(rows[0][0])
+    if len(rows) > 1:
+        raise ValueError(f"binary identity is ambiguous for {binary} ({len(rows)} rows)")
+    return None
 
 
 def _module(db: Database, binary_id: int) -> int:
@@ -58,7 +79,33 @@ def _load(path: Path) -> list[dict[str, Any]]:
             records.append(value)
     if not records or records[0].get("kind") != "metadata":
         raise ValueError("Ghidra JSONL has no metadata record")
+    if records[-1].get("kind") != "complete" or records[-1].get("export_status") != "complete":
+        raise ValueError("Ghidra JSONL is truncated or has no complete marker")
+    expected = records[-1].get("record_count")
+    if not isinstance(expected, int) or expected != len(records) - 1:
+        raise ValueError(f"Ghidra JSONL record count mismatch: expected={expected} actual={len(records) - 1}")
+    metadata, marker = records[0], records[-1]
+    for field in ("run_id", "binary_sha256"):
+        first = metadata.get(field)
+        last = marker.get(field)
+        if not isinstance(first, str) or not first or not isinstance(last, str) or not last:
+            raise ValueError(f"Ghidra JSONL {field} must be present in metadata and complete marker")
+        if (first.lower() if field == "binary_sha256" else first) != (last.lower() if field == "binary_sha256" else last):
+            raise ValueError(f"Ghidra JSONL {field} differs between metadata and complete marker")
     return records
+
+
+def _record_failure(db: Database, binary_id: int, digest: str, analyzer_version: str,
+                    checkpoint: str, error: str, metadata: dict[str, Any]) -> int:
+    run_id = db.upsert("analysis_run", {"binary_id": binary_id, "analyzer": "ghidra_headless",
+        "analyzer_version": analyzer_version, "input_sha256": digest, "started_at": utc_now(),
+        "completed_at": utc_now(), "status": "FAILED", "checkpoint": checkpoint, "error_text": error,
+        "metadata_json": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+        "run_key": str(metadata.get("run_id") or ""), "jsonl_sha256": metadata.get("jsonl_sha256"),
+        "record_count": metadata.get("record_count"), "integrity_status": "FAILED"},
+        ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
+    db.commit()
+    return run_id
 
 
 def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> dict[str, Any]:
@@ -75,31 +122,33 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
     if binary_id is None:
         raise ValueError(f"binary is not present in manifest: {binary}")
     binary_row = db.connection.execute("SELECT sha256 FROM binary WHERE id=?", (binary_id,)).fetchone()
+    if binary_row is None:
+        raise ValueError(f"binary row disappeared during manifest lookup: {binary}")
     digest = str(binary_row[0]).lower()
     try:
         records = _load(jsonl)
     except Exception as exc:
-        failed_id = db.upsert("analysis_run", {"binary_id": binary_id, "analyzer": "ghidra_headless",
-            "analyzer_version": "ghidra:input-validation", "input_sha256": digest, "started_at": utc_now(),
-            "completed_at": utc_now(), "status": "FAILED", "checkpoint": "input-validation", "error_text": str(exc),
-            "metadata_json": json.dumps({"jsonl": str(jsonl), "retry": "rerun headless wrapper and re-import"}, sort_keys=True)},
-            ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
-        db.commit()
+        _record_failure(db, binary_id, digest, "ghidra:input-validation", "input-validation", str(exc),
+                        {"jsonl": str(jsonl), "retry": "rerun headless wrapper and re-import"})
         raise
     observed = str(records[0].get("binary_sha256") or "").lower()
-    if observed and observed != digest:
-        db.upsert("analysis_run", {"binary_id": binary_id, "analyzer": "ghidra_headless",
-            "analyzer_version": "ghidra:input-validation", "input_sha256": digest, "started_at": utc_now(),
-            "completed_at": utc_now(), "status": "FAILED", "checkpoint": "hash-validation",
-            "error_text": f"Ghidra hash mismatch: manifest={digest} export={observed}",
-            "metadata_json": json.dumps({"jsonl": str(jsonl), "retry": "rerun headless wrapper"}, sort_keys=True)},
-            ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
-        db.commit()
-        raise ValueError(f"Ghidra hash mismatch: manifest={digest} export={observed}")
+    if not re.fullmatch(r"[0-9a-f]{64}", observed):
+        _record_failure(db, binary_id, digest, "ghidra:input-validation", "hash-validation",
+                        "metadata binary_sha256 is required and must be a 64-character SHA-256",
+                        {"jsonl": str(jsonl), "observed": observed, "retry": "rerun headless wrapper"})
+        raise ValueError("Ghidra export must contain a valid metadata binary_sha256")
+    if observed != digest:
+        error = f"Ghidra hash mismatch: manifest={digest} export={observed}"
+        _record_failure(db, binary_id, digest, "ghidra:input-validation", "hash-validation", error,
+                        {"jsonl": str(jsonl), "observed": observed, "retry": "rerun headless wrapper"})
+        raise ValueError(error)
     metadata = records[0]
     program_identity = json.dumps(metadata.get("program_identity") or {}, ensure_ascii=False, sort_keys=True)
     analyzer_version = f"ghidra:{metadata.get('analyzer_version', 'unknown')}"
     run_key = str(metadata.get("run_id") or f"ghidra-{digest}")
+    jsonl_digest = sha256_file(jsonl)
+    db.commit()
+    db.connection.execute("SAVEPOINT ghidra_import")
     evidence_id = db.evidence(str(jsonl.relative_to(root).as_posix()) if jsonl.is_relative_to(root) else str(jsonl),
                               sha256_file(jsonl), "ghidra_jsonl", "metadata", json.dumps(metadata, sort_keys=True),
                               "VERIFIED_STATIC", {"run_id": run_key, "program_identity": metadata.get("program_identity")},
@@ -108,16 +157,19 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
         "analyzer_version": analyzer_version, "input_sha256": digest, "started_at": utc_now(),
         "completed_at": None, "status": "RUNNING", "checkpoint": "metadata", "error_text": None,
         "metadata_json": json.dumps({"run_id": run_key, "program_identity": metadata.get("program_identity"),
-                                      "jsonl": str(jsonl), "tool_version": __version__}, ensure_ascii=False, sort_keys=True)},
+                                      "jsonl": str(jsonl), "tool_version": __version__,
+                                      "record_count": len(records), "jsonl_sha256": jsonl_digest}, ensure_ascii=False, sort_keys=True),
+        "run_key": run_key, "jsonl_sha256": jsonl_digest, "record_count": len(records), "integrity_status": "VALIDATED"},
         ("binary_id", "analyzer", "analyzer_version", "input_sha256"))
     module_id = _module(db, binary_id)
     identity = metadata.get("program_identity") or {}
     db.connection.execute("UPDATE binary SET ghidra_program_identity=?,ghidra_image_base=?,ghidra_address_space=? WHERE id=?",
                           (program_identity, identity.get("image_base"), identity.get("address_space"), binary_id))
     function_ids: dict[str, int] = {}
+    block_ids: dict[str, int] = {}
     counts = {"metadata": 1, "functions": 0, "basic_blocks": 0, "instructions": 0,
-              "callsites": 0, "cross_references": 0, "symbols": 0, "vtable_candidates": 0,
-              "unresolved_edges": 0}
+              "cfg_edges": 0, "callsites": 0, "cross_references": 0, "symbols": 0, "vtable_candidates": 0,
+              "body_ranges": 0, "unresolved_edges": 0}
     try:
         # Function boundaries are loaded first so all later observations can
         # resolve caller/callee IDs without assuming a semantic name.
@@ -148,19 +200,94 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                     "generated_name": int(bool(record.get("generated"))), "origin": "ghidra_auto_function",
                     "analysis_run_id": run_id, "prototype": record.get("prototype"),
                     "address_space": identity.get("address_space")}, ("identity_key",))
+            # Function-entry evidence is distinct from the export's metadata.
+            # A Ghidra prototype is a raw observation, *not* a verified ABI,
+            # argument layout, return contract, or API semantic meaning.
+            function_evidence = db.evidence(
+                str(jsonl), jsonl_digest, "ghidra_function_entry",
+                f"function:{entry}",
+                json.dumps({
+                    "binary_sha256": digest, "function_entry": entry,
+                    "function_name": name, "prototype_text": record.get("prototype"),
+                    "address_space": identity.get("address_space"),
+                    "generated_name": bool(record.get("generated")),
+                }, ensure_ascii=False, sort_keys=True),
+                "VERIFIED_STATIC", {
+                    "binary_sha256": digest, "run_id": run_key, "record_kind": "function",
+                    "prototype_abi_verified": False,
+                },
+                evidence_type="ghidra_function_location",
+                status_basis="validated_jsonl_function_record",
+            )
+            db.connection.execute("UPDATE function SET source_evidence_id=? WHERE id=?",
+                                  (function_evidence, function_id))
             function_ids[entry] = function_id
             counts["functions"] += 1
+
+        # Function bodies can be discontiguous (for example after a
+        # compiler-generated split block).  Persist the exact AddressSet
+        # ranges emitted by the exporter and use those ranges for ownership.
+        body_ranges: dict[int, list[tuple[int, int, str]]] = {}
+        for record in records:
+            if record.get("kind") != "function_body_range":
+                continue
+            function_id = function_ids.get(_address(record.get("function_entry")))
+            start = _address_int(record.get("start_vma")); end = _address_int(record.get("end_vma"))
+            if function_id is None or start is None or end is None or end < start:
+                continue
+            address_space = str(record.get("address_space") or identity.get("address_space") or "")
+            key = f"body-range:{binary_id}:{function_id}:{address_space}:{hex(start)}:{hex(end)}"
+            db.upsert("function_body_range", {"function_id": function_id, "binary_id": binary_id,
+                "start_vma": hex(start), "end_vma": hex(end), "address_space": address_space,
+                "source_evidence_id": evidence_id, "analysis_run_id": run_id,
+                "identity_key": key, "status": record.get("status") or "VERIFIED_STATIC",
+                "confidence_id": db.confidence_id(record.get("status") or "VERIFIED_STATIC"),
+                "metadata_json": json.dumps(record, sort_keys=True)}, ("identity_key",))
+            body_ranges.setdefault(function_id, []).append((start, end, address_space))
+            counts["body_ranges"] += 1
+
+        # Load the complete block set before resolving CFG edges.  A CFG edge
+        # is never inferred from address proximity; both block identities must
+        # be present in this run and address space.
+        for record in records:
+            if record.get("kind") != "basic_block":
+                continue
+            start = _address(record.get("start_vma")); owner = function_ids.get(_address(record.get("function_entry")))
+            if not start or owner is None:
+                continue
+            block_id = db.upsert("basic_block", {"function_id": owner, "binary_id": binary_id, "start_vma": start,
+                "end_vma": _address(record.get("end_vma")), "size": None, "status": "VERIFIED_STATIC",
+                "address_space": identity.get("address_space"), "analysis_run_id": run_id}, ("function_id", "start_vma"))
+            block_ids[start] = block_id
 
         for record in records:
             kind = record.get("kind")
             if kind == "basic_block":
-                start = _address(record.get("start_vma")); owner = function_ids.get(_address(record.get("function_entry")))
-                if not start or owner is None:
+                start = _address(record.get("start_vma"))
+                if start in block_ids:
+                    counts["basic_blocks"] += 1
+            elif kind == "cfg_edge":
+                from_address = _address(record.get("from_address")); to_address = _address(record.get("to_address"))
+                source_block = block_ids.get(from_address or ""); target_block = block_ids.get(to_address or "")
+                if not from_address or not to_address or source_block is None or target_block is None:
                     continue
-                db.upsert("basic_block", {"function_id": owner, "binary_id": binary_id, "start_vma": start,
-                    "end_vma": _address(record.get("end_vma")), "size": None, "status": "VERIFIED_STATIC",
-                    "address_space": identity.get("address_space"), "analysis_run_id": run_id}, ("function_id", "start_vma"))
-                counts["basic_blocks"] += 1
+                key = f"cfg:{binary_id}:{identity.get('address_space') or ''}:{from_address}:{to_address}:{record.get('edge_kind') or 'control_flow'}"
+                source_instruction_address = _address(record.get("source_instruction")) or from_address
+                source_instruction = db.connection.execute("SELECT id FROM instruction WHERE binary_id=? AND address=? ORDER BY id LIMIT 1",
+                                                            (binary_id, source_instruction_address)).fetchone()
+                target_instruction = db.connection.execute("SELECT id FROM instruction WHERE binary_id=? AND address=? ORDER BY id LIMIT 1",
+                                                           (binary_id, to_address)).fetchone()
+                db.upsert("cfg_edge", {"binary_id": binary_id, "function_id": function_ids.get(_address(record.get("function_entry"))),
+                    "from_block_id": source_block, "to_block_id": target_block, "from_address": from_address,
+                    "to_address": to_address, "address_space": identity.get("address_space"),
+                    "source_instruction_id": source_instruction[0] if source_instruction else None,
+                    "target_instruction_id": target_instruction[0] if target_instruction else None,
+                    "source_instruction_address": source_instruction_address,
+                    "edge_kind": record.get("edge_kind") or "control_flow", "status": "VERIFIED_STATIC",
+                    "confidence_id": db.confidence_id("VERIFIED_STATIC"), "source_evidence_id": evidence_id,
+                    "analysis_run_id": run_id, "identity_key": key, "metadata_json": json.dumps(record, sort_keys=True)},
+                    ("identity_key",))
+                counts["cfg_edges"] += 1
             elif kind == "instruction":
                 address = _address(record.get("address")); owner = function_ids.get(_address(record.get("function_entry")))
                 if not address or owner is None:
@@ -174,21 +301,57 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
                 counts["instructions"] += 1
             elif kind == "callsite":
                 from_address = _address(record.get("from_address")); target = _address(record.get("to_address"))
-                caller = db.connection.execute("SELECT id FROM function WHERE binary_id=? AND address=? LIMIT 1", (binary_id, from_address)).fetchone()
-                if not caller:
-                    caller = db.connection.execute("SELECT id FROM function WHERE binary_id=? AND address<=? ORDER BY address DESC LIMIT 1", (binary_id, from_address)).fetchone()
-                if not caller or not from_address:
-                    continue
+                caller_entry = _address(record.get("function_entry"))
+                caller = function_ids.get(caller_entry or "")
+                from_number = _address_int(from_address)
+                caller_resolution = "EXPLICIT_AND_BODY_RANGE_VALID"
+                ranges = body_ranges.get(caller) if caller is not None else None
+                space = str(record.get("address_space") or identity.get("address_space") or "")
+                if caller is None:
+                    caller_resolution = "UNRESOLVED_MISSING_ENTRY"
+                elif from_number is None or not ranges:
+                    caller_resolution = "UNRESOLVED_NO_BODY_RANGES"
+                    caller = None
+                elif not any(start <= from_number <= end and (not rspace or rspace == space) for start, end, rspace in ranges):
+                    caller_resolution = "UNRESOLVED_OUT_OF_BODY_RANGES"
+                    caller = None
                 callee = function_ids.get(_address(record.get("callee_entry")))
                 relation = str(record.get("relation_kind") or "call")
-                key = f"callsite:{binary_id}:{from_address}:{target or ''}:{relation}"
-                db.upsert("callsite", {"caller_id": int(caller[0]), "callee_id": callee, "address": from_address,
+                key = f"callsite:{binary_id}:{caller_entry or ''}:{from_address or ''}:{target or ''}:{relation}"
+                if not from_address:
+                    continue
+                callsite_values = {"caller_id": caller, "callee_id": callee, "address": from_address,
                     "target": target, "kind": relation, "identity_key": key, "status": record.get("status") or ("VERIFIED_STATIC" if callee else "CANDIDATE"),
-                    "source_evidence_id": evidence_id, "address_space": identity.get("address_space"), "analysis_run_id": run_id}, ("identity_key",))
+                    "source_evidence_id": evidence_id, "address_space": identity.get("address_space"),
+                    "target_address_space": identity.get("address_space"), "analysis_run_id": run_id,
+                    "caller_entry": caller_entry, "caller_resolution": caller_resolution,
+                    "analyzer_version": analyzer_version}
+                # The identity includes export ownership, not the nullable
+                # caller_id. Keep one row when caller resolution changes.
+                existing_callsite = db.connection.execute(
+                    "SELECT id FROM callsite WHERE identity_key=? LIMIT 1", (key,)
+                ).fetchone()
+                if existing_callsite is None and caller is not None:
+                    # A uniquely owned historical row may still have a v4 key;
+                    # upgrade it in place without matching anonymous callers
+                    # from other binaries by address alone.
+                    legacy_matches = db.query(
+                        "SELECT id FROM callsite WHERE caller_id=? AND address=? AND target IS ?",
+                        (caller, from_address, target),
+                    )
+                    if len(legacy_matches) == 1:
+                        existing_callsite = legacy_matches[0]
+                if existing_callsite:
+                    assignments = ",".join(f"{key_name}=?" for key_name in callsite_values)
+                    db.connection.execute(f"UPDATE callsite SET {assignments} WHERE id=?",
+                                          [callsite_values[key_name] for key_name in callsite_values] + [existing_callsite[0]])
+                else:
+                    db.upsert("callsite", callsite_values, ("identity_key",))
                 counts["callsites"] += 1
-                if callee is None:
-                    db.upsert("unresolved_edge", {"identity_key": f"indirect:{key}", "from_type": "function", "from_id": int(caller[0]),
-                        "to_type": "address", "to_id": None, "relation": "indirect_call", "reason": "Ghidra reference has no containing function",
+                if callee is None or caller is None:
+                    db.upsert("unresolved_edge", {"identity_key": f"indirect:{key}", "from_type": "function", "from_id": caller,
+                        "to_type": "address", "to_id": None, "relation": "indirect_call" if callee is None else "callsite_caller",
+                        "reason": "Ghidra reference has no containing callee function" if callee is None else caller_resolution,
                         "status": "CANDIDATE", "source_evidence_id": evidence_id}, ("identity_key",))
                     counts["unresolved_edges"] += 1
             elif kind == "cross_reference":
@@ -212,13 +375,16 @@ def import_ghidra_jsonl(db: Database, root: Path, binary: Path, jsonl: Path) -> 
             elif kind == "vtable_candidate":
                 counts["vtable_candidates"] += 1
         db.connection.execute("UPDATE binary SET analysis_status='ANALYZED_GHIDRA' WHERE id=?", (binary_id,))
-        db.connection.execute("UPDATE analysis_run SET completed_at=?,status='COMPLETE',checkpoint=?,error_text=NULL WHERE id=?",
-                              (utc_now(), "cfg-xrefs", run_id))
+        db.connection.execute("UPDATE analysis_run SET completed_at=?,status='COMPLETE',checkpoint=?,error_text=NULL,integrity_status='VALIDATED',record_count=?,jsonl_sha256=? WHERE id=?",
+                              (utc_now(), "cfg-xrefs", len(records), jsonl_digest, run_id))
+        db.connection.execute("RELEASE SAVEPOINT ghidra_import")
         db.commit()
     except Exception as exc:
-        db.connection.execute("UPDATE analysis_run SET completed_at=?,status='FAILED',checkpoint=?,error_text=? WHERE id=?",
-                              (utc_now(), "error", str(exc), run_id))
-        db.commit()
+        db.connection.execute("ROLLBACK TO SAVEPOINT ghidra_import")
+        db.connection.execute("RELEASE SAVEPOINT ghidra_import")
+        _record_failure(db, binary_id, digest, analyzer_version, "error", str(exc),
+                        {"run_id": run_key, "jsonl": str(jsonl), "jsonl_sha256": jsonl_digest,
+                         "record_count": len(records), "retry": "rerun headless wrapper and re-import"})
         raise
     counts.update({"run_id": run_key, "analysis_run_id": run_id, "binary_id": binary_id, "jsonl": str(jsonl),
                    "program_identity": identity, "evidence_id": evidence_id})

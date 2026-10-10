@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "research_id": "request-model-execute-aapcs32-register-evidence",
+  "status": "STATIC_ARGUMENT_ABI_INFERRED_RETURN_AND_RUNTIME_UNVERIFIED",
+  "binaries": [
+    {
+      "library": "libObj.so",
+      "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "saved_disassembly": "model-camera-methods.txt"
+    },
+    {
+      "library": "viewUnified2.so",
+      "sha256": "7fbfa8539717ba3dca0cb5a82cf976b50a2b97443972fe321a064cbb09a75588",
+      "saved_disassembly": "view-boot-methods.txt"
+    }
+  ],
+  "abi_platform": "ELF32 little-endian ARM AAPCS32; return ABI and implicit hidden result parameters not universally verified",
+  "entrypoints": [
+    {
+      "entry_vma": "0x12106e",
+      "symbol": "_ZN8ViewBase19requestModelExecuteEPKcmP9ParamList",
+      "method_form": "INSTANCE_METHOD_CANDIDATE",
+      "named_inputs": [
+        "char const* model_name",
+        "unsigned long selector",
+        "ParamList* params"
+      ],
+      "aapcs32_input_registers": {
+        "r0": "ViewBase* this",
+        "r1": "char const* model_name",
+        "r2": "unsigned long selector",
+        "r3": "ParamList* params"
+      },
+      "helper_callsite": "0x12108c",
+      "helper_target": "0x12d780",
+      "helper_inputs": {
+        "r0": "original r1 (model_name)",
+        "r1": "original r2 (selector)"
+      },
+      "factory_callsite": "0x121098",
+      "factory_stub": "0xdfbdc",
+      "factory_inputs": {
+        "r0": "[original this + 0x7c] context (exact type unknown)",
+        "r1": "IdGenerator::Get(original model_name) result",
+        "r2": "0x12d780 result",
+        "r3": "original r3 (ParamList*)"
+      },
+      "submit_callsite": "0x1210a4",
+      "submit_target": "0xdb578",
+      "observable_return": "UNKNOWN_TAIL_TO_View_requestApplicationExecute",
+      "abi_verified": false,
+      "return_type_verified": false,
+      "usable_on_device": false
+    },
+    {
+      "entry_vma": "0x1250c0",
+      "symbol": "_ZN13viewManagerIf19requestModelExecuteEPKcmP9ParamList",
+      "method_form": "STATIC_METHOD_CANDIDATE",
+      "named_inputs": [
+        "char const* model_name",
+        "unsigned long selector",
+        "ParamList* params"
+      ],
+      "aapcs32_input_registers": {
+        "r0": "char const* model_name",
+        "r1": "unsigned long selector",
+        "r2": "ParamList* params"
+      },
+      "ignored_incoming_register": "r3 is overwritten by an ELF-relative literal/GOT lookup before use; not proof of fourth argument",
+      "helper_callsite": "0x1250e2",
+      "helper_target": "0x12d780",
+      "helper_inputs": {
+        "r0": "original r0 (model_name)",
+        "r1": "original r1 (selector)"
+      },
+      "factory_callsite": "0x1250ee",
+      "factory_stub": "0xdfbdc",
+      "factory_inputs": {
+        "r0": "GOT-loaded context/singleton pointer (precise type unknown)",
+        "r1": "IdGenerator::Get(original model_name) result",
+        "r2": "0x12d780 result",
+        "r3": "original r2 (ParamList*)"
+      },
+      "submit_callsite": "0x1250f6",
+      "submit_target": "0x125084",
+      "observable_return": "UNKNOWN_TAIL_TO_0x125084",
+      "abi_verified": false,
+      "return_type_verified": false,
+      "usable_on_device": false
+    },
+    {
+      "entry_vma": "0x7f0b0c",
+      "symbol": "_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+      "method_form": "INSTANCE_METHOD_CANDIDATE",
+      "named_inputs": [
+        "int model_id",
+        "unsigned long transformed_selector",
+        "ParamList* params"
+      ],
+      "aapcs32_input_registers": {
+        "r0": "AbstractUtilityManager* context",
+        "r1": "int model_id",
+        "r2": "unsigned long transformed_selector",
+        "r3": "ParamList* params"
+      },
+      "constructor_event_id": "0x11004003",
+      "new_allocation_arg": "0x10",
+      "returned_value_observed": "allocation pointer copied to r4 after Event constructor; r0 restored from r4 at 0x7f0b64 prior to return 0x7f0b66",
+      "observed_return": "Event* STATIC_INFERRED_NOT_TYPE_SIGNATURE_ENCODED",
+      "observed_event_slots": [
+        7,
+        8
+      ],
+      "abi_verified": false,
+      "return_type_verified": false,
+      "usable_on_device": false
+    }
+  ],
+  "ui_crosscheck": {
+    "library": "viewUnified2.so",
+    "callsite_vma": "0x1a26e6",
+    "import_target": "0xeb610",
+    "symbol": "_ZN8ViewBase19requestModelExecuteEPKcmP9ParamList",
+    "requested_destination": "model/CAMERA",
+    "requested_selector": "0x0f01",
+    "register_snapshot": {
+      "r0": "saved ViewBase pointer candidate r5",
+      "r1": "PIC literal resolved model/CAMERA",
+      "r2": "0x0f01",
+      "r3": "saved ParamList candidate sb"
+    },
+    "dynamic_plt_resolution_verified": false,
+    "called_runtime_path_verified": false,
+    "saved_instruction_locations": [
+      "0x1a26dc",
+      "0x1a26de",
+      "0x1a26e2",
+      "0x1a26e4",
+      "0x1a26e6"
+    ]
+  },
+  "unresolved": [
+    "ELF original bytes and exact dynamic linker relocations not reread in this session",
+    "ViewBase and viewManagerIf function return types, error paths, and hidden-result ABI cases",
+    "Definition and opcode semantics for selector helper at 0x12d780",
+    "Factory instance/context object layouts and ParamList lifetime/ownership",
+    "Event 0x11004003 recipient, key 7/8 extraction, link to ModelCamera::ActionGpSetSetting",
+    "Runtime execution permission, initialization, threading and physical camera safety",
+    "The ModelCamera::pvt_ActionSetInit second argument originates from 0x13200a but lacks verified C++ type, layout, ownership and return/error semantics"
+  ],
+  "callable_camera_api_count": 0,
+  "core_camera_internal_dispatch": {
+    "dispatcher_vma": "0x4cfb9c",
+    "callee_vma": "0x4cf7a8",
+    "status": "STATIC_INTERNAL_CALL_ARGUMENT_SHAPE_OBSERVED",
+    "dispatcher_name_lead": "ModelCamera::ActionGpSetSetting",
+    "callee_name_lead": "ModelCamera::pvt_ActionSetInit",
+    "trigger_selector": "0x0f01",
+    "selector_value_source": "0x131fd2 returns r0",
+    "parameter_value_source": "0x13200a returns r0 stored into r4",
+    "callsite": "0x4cfe98",
+    "callsite_input_registers": {
+      "r0": "saved entry r0 via r5 (ModelCamera this candidate)",
+      "r1": "return of 0x13200a via r4; type NOT VERIFIED"
+    },
+    "callee_entry_observes": {
+      "r0": "saved in r4 at 0x4cf7b6",
+      "r1": "saved in sl at 0x4cf7ac and forwarded at 0x4cf7ee"
+    },
+    "helper_outgoing_calls": [
+      {
+        "site": "0x4cf814",
+        "target": "0x4b1a20",
+        "role": "EE-neutral sender candidate"
+      },
+      {
+        "site": "0x4cf81a",
+        "target": "0x4b096c",
+        "role": "PrepChk candidate"
+      }
+    ],
+    "raw_opcode_full_sha_rechecked_in_this_run": false,
+    "parameter1_type_verified": false,
+    "return_type_verified": false,
+    "callable_api_abi_complete": false
+  }
+}

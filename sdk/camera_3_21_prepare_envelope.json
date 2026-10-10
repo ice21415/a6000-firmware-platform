@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "entry": "0x125084",
+  "verification": "PRIMARY_ELF_VERIFIED bounded construction, Event::addParameter and submission-helper relation",
+  "abi_observation": {
+    "r0": "opaque receiver candidate preserved in r5",
+    "r1": "zero for the direct 0xf0fb0 construction; key 6 for Event::addParameter",
+    "r2": "new 16-byte parameter candidate",
+    "tail_target": "0x7f25e0; helper register facts verified, complete C++ identity and delivery semantics UNKNOWN",
+    "safe_to_call": false
+  },
+  "operations": [
+    {"address": "0x12508e", "operation": "16-byte allocation through 0xdc100", "binding": "_Znwj", "status": "VERIFIED_STATIC"},
+    {"address": "0x12509a", "operation": "direct call with r1=0", "target": "0xf0fb0", "identity": "PrmNumber constructor candidate", "status": "STATIC_INFERRED"},
+    {"address": "0x1250a4", "operation": "add parameter with key 6 and object r6", "target": "0xdd194", "binding": "Event::addParameter", "status": "VERIFIED_STATIC"},
+    {"address": "0x1250b4", "operation": "tail branch", "target": "0x7f25e0", "status": "PRIMARY_ELF_VERIFIED", "identity": "UNKNOWN"},
+    {"address": "0x7f25e0", "operation": "load receiver +0x10, set r2=1, tail branch", "target": "0xdf270", "binding": "EventManager::push", "status": "VERIFIED_STATIC"}
+  ],
+  "limitations": [
+    "The direct 0xf0fb0 constructor identity uses the existing PrmNumber static family contract and is not a new symbol proof",
+    "Receiver object identity, event ID, tail target identity and delivery/completion semantics remain UNKNOWN",
+    "No runtime or device execution; this is not a callable Camera API"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

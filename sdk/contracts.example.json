@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "interfaces": [
+    {
+      "name": "example_read_state",
+      "domain": "Camera",
+      "verification_status": "CANDIDATE",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "parameter_layout": null,
+      "return_semantics": null
+    },
+    {
+      "name": "example_osal_message",
+      "domain": "OSAL",
+      "verification_status": "UNKNOWN",
+      "runtime_safety": "DESCRIPTIVE_ONLY",
+      "abi": null,
+      "parameter_layout": null,
+      "return_semantics": null
+    }
+  ]
+}

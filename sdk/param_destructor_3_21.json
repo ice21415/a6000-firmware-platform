@@ -1,0 +1,1526 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_PARAMBASE_DESTRUCTOR_AUDIT",
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "families": [
+    {
+      "name": "PrmBool",
+      "discriminator": 5,
+      "nondeleting_destructor": {
+        "entry_vma": "0xe4750",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe4760",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe4762",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xe4840",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe4846",
+              "target_vma": "0xe0570",
+              "target_symbol": "_ZN7PrmBoolD1Ev",
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102e5b0",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN7PrmBoolD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xe484c",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmNumber",
+      "discriminator": 1,
+      "nondeleting_destructor": {
+        "entry_vma": "0xf0f2c",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xf0f3c",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xf0f3e",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xf0f5c",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xf0f62",
+              "target_vma": "0xf0f2c",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xf0f68",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmString",
+      "discriminator": 2,
+      "nondeleting_destructor": {
+        "entry_vma": "0xff954",
+        "bounded_extent_bytes": 36,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xff964",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            },
+            {
+              "instruction_vma": "0xff966",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r0, [r0, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xff966",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r0, [r0, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xff96a",
+              "target_vma": "0xdf098",
+              "target_symbol": "_ZdaPv",
+              "role": "ARRAY_DELETE_PLT",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102df10",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdaPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xff970",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0xff96a",
+              "target_vma": "0xdf098",
+              "target_symbol": "_ZdaPv",
+              "role": "ARRAY_DELETE_PLT",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102df10",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdaPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xff980",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xff986",
+              "target_vma": "0xff954",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xff98c",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmPoint",
+      "discriminator": 3,
+      "nondeleting_destructor": {
+        "entry_vma": "0xff904",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xff914",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xff916",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xff940",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xff946",
+              "target_vma": "0xff904",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xff94c",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmDimension",
+      "discriminator": 4,
+      "nondeleting_destructor": {
+        "entry_vma": "0xe4774",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe4784",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe4786",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xe4868",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe486e",
+              "target_vma": "0xdfb30",
+              "target_symbol": "_ZN12PrmDimensionD1Ev",
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102e26c",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN12PrmDimensionD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xe4874",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmStruct",
+      "discriminator": 6,
+      "nondeleting_destructor": {
+        "entry_vma": "0xe7150",
+        "bounded_extent_bytes": 34,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe7160",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            },
+            {
+              "instruction_vma": "0xe7162",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r0, [r0, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe7162",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r0, [r0, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe7164",
+              "target_vma": "0xe0768",
+              "target_symbol": "free",
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102e650",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "free",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xe716a",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0xe7164",
+              "target_vma": "0xe0768",
+              "target_symbol": "free",
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102e650",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "free",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xe717c",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xe7182",
+              "target_vma": "0xe7150",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xe7188",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmSet",
+      "discriminator": 7,
+      "nondeleting_destructor": {
+        "entry_vma": "0x7efb2c",
+        "bounded_extent_bytes": 34,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0x7efb3c",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0], #0xc"
+            },
+            {
+              "instruction_vma": "0x7efb3c",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r0",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r0], #0xc"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x7efb3c",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r0",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r0], #0xc"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x7efb40",
+              "target_vma": "0xffe0c",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x7efb46",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0x7efb40",
+              "target_vma": "0xffe0c",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0x7efb58",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x7efb5e",
+              "target_vma": "0x7efb2c",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x7efb64",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmNumberList",
+      "discriminator": 10,
+      "nondeleting_destructor": {
+        "entry_vma": "0xece64",
+        "bounded_extent_bytes": 44,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0xece76",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4], #0xc"
+            },
+            {
+              "instruction_vma": "0xece76",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r4",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r4], #0xc"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xece76",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r4",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r4], #0xc"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xece7c",
+              "target_vma": "0xecd5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xece82",
+              "target_vma": "0xece54",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xece88",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0xece7c",
+              "target_vma": "0xecd5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xece82",
+              "target_vma": "0xece54",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0xece98",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0xece9e",
+              "target_vma": "0xe2a10",
+              "target_symbol": "_ZN13PrmNumberListD1Ev",
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102f13c",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN13PrmNumberListD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0xecea4",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmCntInfoList",
+      "discriminator": 9,
+      "nondeleting_destructor": {
+        "entry_vma": "0x11d54c",
+        "bounded_extent_bytes": 60,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0x11d562",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r3, [r5], #0xc"
+            },
+            {
+              "instruction_vma": "0x11d562",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r5",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r5], #0xc"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x11d562",
+              "kind": "POST_INDEX_STEP",
+              "offset": 12,
+              "base_register": "r5",
+              "step_bytes": 12,
+              "mnemonic": "str",
+              "operands": "r3, [r5], #0xc"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x11d568",
+              "target_vma": "0x11d52a",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d56e",
+              "target_vma": "0x11d52a",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0x34",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d574",
+              "target_vma": "0xe7a5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0x34",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d57a",
+              "target_vma": "0xe7a5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d580",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0x11d568",
+              "target_vma": "0x11d52a",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d56e",
+              "target_vma": "0x11d52a",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0x34",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d574",
+              "target_vma": "0xe7a5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0x34",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d57a",
+              "target_vma": "0xe7a5e",
+              "target_symbol": null,
+              "role": "UNKNOWN_DIRECT_TARGET",
+              "r0_argument_expression": "receiver+0xc",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0x11d590",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x11d596",
+              "target_vma": "0xdf3d0",
+              "target_symbol": "_ZN14PrmCntInfoListD1Ev",
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102e010",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN14PrmCntInfoListD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x11d59c",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    },
+    {
+      "name": "PrmObjMsg",
+      "discriminator": 8,
+      "nondeleting_destructor": {
+        "entry_vma": "0x12c700",
+        "bounded_extent_bytes": 44,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [
+            {
+              "instruction_vma": "0x12c70e",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r4, [r0, #0xc]"
+            },
+            {
+              "instruction_vma": "0x12c712",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x12c70e",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r0",
+              "mnemonic": "ldr",
+              "operands": "r4, [r0, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x12c718",
+              "target_vma": "0xddd94",
+              "target_symbol": "_ZN3MWF6ObjMsgD1Ev",
+              "role": "PAYLOAD_OBJMSG_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102d910",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN3MWF6ObjMsgD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x12c71e",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x12c724",
+              "target_vma": "0xe4734",
+              "target_symbol": null,
+              "role": "PARAMBASE_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [
+            {
+              "instruction_vma": "0x12c718",
+              "target_vma": "0xddd94",
+              "target_symbol": "_ZN3MWF6ObjMsgD1Ev",
+              "role": "PAYLOAD_OBJMSG_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "load(receiver+0xc)",
+              "plt_binding": {
+                "got_slot": "0x102d910",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZN3MWF6ObjMsgD1Ev",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "base_destructor_call_observed": true
+        }
+      },
+      "deleting_destructor": {
+        "entry_vma": "0x12c740",
+        "bounded_extent_bytes": 20,
+        "termination": "RETURN_OBSERVED",
+        "direct_observations": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "calls": [
+            {
+              "instruction_vma": "0x12c746",
+              "target_vma": "0x12c700",
+              "target_symbol": null,
+              "role": "FAMILY_NONDELETING_DESTRUCTOR",
+              "r0_argument_expression": "receiver",
+              "plt_binding": null,
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            },
+            {
+              "instruction_vma": "0x12c74c",
+              "target_vma": "0xdd620",
+              "target_symbol": "_ZdlPv",
+              "role": "OPERATOR_DELETE_PLT",
+              "r0_argument_expression": "receiver",
+              "plt_binding": {
+                "got_slot": "0x102d6bc",
+                "status": "VERIFIED_STATIC",
+                "runtime_binding": "UNKNOWN",
+                "candidates": [
+                  {
+                    "symbol": "_ZdlPv",
+                    "relocation_type": 22,
+                    "section": ".rel.plt"
+                  }
+                ]
+              },
+              "direct": true,
+              "status": "PRIMARY_ELF_VERIFIED"
+            }
+          ],
+          "payload_cleanup_call_candidates": [],
+          "base_destructor_call_observed": false
+        }
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses and direct call targets only; helper semantics, allocator ownership, exception behavior, locking and runtime validity remain UNKNOWN"
+    }
+  ],
+  "aggregate": {
+    "family_count": 10,
+    "nondeleting_with_base_destructor_call": 10,
+    "deleting_with_family_d1_and_operator_delete": 10,
+    "families_with_payload_cleanup_call_candidate": 6,
+    "nondeleting_with_direct_key_access": 0,
+    "deleting_with_direct_key_access": 0
+  },
+  "lifetime_boundary": {
+    "d1_role": "nondeleting destructor candidate; direct base call is observed",
+    "d0_role": "deleting-wrapper candidate; family D1 followed by _ZdlPv is observed",
+    "verification": "PRIMARY_ELF_VERIFIED",
+    "ownership_semantics": "STATIC_INFERRED at most; allocation provenance and external ownership remain UNKNOWN"
+  },
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Body bounds are bounded first-return extents, not complete source-level function boundaries",
+    "Payload cleanup call candidates do not prove helper semantics or ownership transfer",
+    "No exception/EHABI edge, allocator pairing, null policy or double-destroy policy is inferred",
+    "No locking, atomicity, concurrency or runtime loader behavior is observed by this static pass",
+    "No firmware code is executed and no camera is accessed"
+  ],
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC_METADATA_CROSSCHECK",
+    "tool": "Ghidra",
+    "version": "12.1.3",
+    "profile": "param-destructor-field-audit",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "program_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "language": "ARM:LE:32:v8",
+    "compiler_spec": "default",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "execution": {
+      "exit_code": 0,
+      "completion_marker": true,
+      "auto_analysis_completed": false,
+      "mode": "targeted_noanalysis"
+    },
+    "target_count": 20,
+    "instruction_count": 233,
+    "basic_block_count": 24,
+    "cfg_edge_count": 47,
+    "target_records": [
+      {
+        "elf_vma": "0xe4750",
+        "ghidra_address": "000f4750",
+        "body_range": "[[000f4750, 000f4769]]",
+        "instruction_count": 12,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xe4840",
+        "ghidra_address": "000f4840",
+        "body_range": "[[000f4840, 000f4853]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xf0f2c",
+        "ghidra_address": "00100f2c",
+        "body_range": "[[00100f2c, 00100f45]]",
+        "instruction_count": 12,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xf0f5c",
+        "ghidra_address": "00100f5c",
+        "body_range": "[[00100f5c, 00100f6f]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xff954",
+        "ghidra_address": "0010f954",
+        "body_range": "[[0010f954, 0010f977]]",
+        "instruction_count": 16,
+        "basic_block_count": 3,
+        "cfg_edge_count": 5
+      },
+      {
+        "elf_vma": "0xff980",
+        "ghidra_address": "0010f980",
+        "body_range": "[[0010f980, 0010f993]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xff904",
+        "ghidra_address": "0010f904",
+        "body_range": "[[0010f904, 0010f91d]]",
+        "instruction_count": 12,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xff940",
+        "ghidra_address": "0010f940",
+        "body_range": "[[0010f940, 0010f953]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xe4774",
+        "ghidra_address": "000f4774",
+        "body_range": "[[000f4774, 000f478d]]",
+        "instruction_count": 12,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xe4868",
+        "ghidra_address": "000f4868",
+        "body_range": "[[000f4868, 000f487b]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xe7150",
+        "ghidra_address": "000f7150",
+        "body_range": "[[000f7150, 000f7171]]",
+        "instruction_count": 15,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xe717c",
+        "ghidra_address": "000f717c",
+        "body_range": "[[000f717c, 000f718f]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x7efb2c",
+        "ghidra_address": "007ffb2c",
+        "body_range": "[[007ffb2c, 007ffb4d]]",
+        "instruction_count": 14,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x7efb58",
+        "ghidra_address": "007ffb58",
+        "body_range": "[[007ffb58, 007ffb6b]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xece64",
+        "ghidra_address": "000fce64",
+        "body_range": "[[000fce64, 000fce8f]]",
+        "instruction_count": 18,
+        "basic_block_count": 1,
+        "cfg_edge_count": 3
+      },
+      {
+        "elf_vma": "0xece98",
+        "ghidra_address": "000fce98",
+        "body_range": "[[000fce98, 000fceab]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x11d54c",
+        "ghidra_address": "0012d54c",
+        "body_range": "[[0012d54c, 0012d587]]",
+        "instruction_count": 23,
+        "basic_block_count": 1,
+        "cfg_edge_count": 5
+      },
+      {
+        "elf_vma": "0x11d590",
+        "ghidra_address": "0012d590",
+        "body_range": "[[0012d590, 0012d5a3]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x12c700",
+        "ghidra_address": "0013c700",
+        "body_range": "[[0013c700, 0013c72b]]",
+        "instruction_count": 19,
+        "basic_block_count": 3,
+        "cfg_edge_count": 6
+      },
+      {
+        "elf_vma": "0x12c740",
+        "ghidra_address": "0013c740",
+        "body_range": "[[0013c740, 0013c753]]",
+        "instruction_count": 8,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      }
+    ],
+    "script_sha256": "92f5579a2a643eaf6776b80dc79235484f1224815baf12d45511a9bb4b2a44e2",
+    "source_export_sha256": "96030e97fae85667ac9dd7b8e759203cc625c09a48b1b68285ac34904c18848b",
+    "raw_export_private": true,
+    "semantic_names_verified": false
+  }
+}

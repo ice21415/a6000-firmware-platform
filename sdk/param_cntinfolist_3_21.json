@@ -1,0 +1,235 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "type": "PrmCntInfoList",
+  "verification": "PRIMARY_ELF_VERIFIED machine facts; collection element and runtime ABI remain UNKNOWN",
+  "discriminator": 9,
+  "layout": {
+    "object_size_bytes": 92,
+    "collection_regions": ["+0x0c", "+0x34"],
+    "element_type": "32-bit word candidate; Ejj method arguments and 0xecd7a word copy support width only, not a C++ container element type",
+    "vtable_contract": "RTTI/vtable slots are recorded by parameter-family-probe; this contract does not claim a standard-library container",
+    "key_initialization": "not observed in constructors; ParamList::add key setter 0x7eda84 remains the primary witness"
+  },
+  "methods": [
+    {
+      "name": "type_initializer",
+      "entry": "0x11d42c",
+      "abi": "r0=object",
+      "effect": "stores relocated vptr address point at +0 and discriminator 9 at +4",
+      "evidence": ["ELF_VMA:0x11d430", "ELF_VMA:0x11d438", "ELF_VMA:0x11d43c", "ELF_VMA:0x11d43e"],
+      "safe_to_call": false
+    },
+    {
+      "name": "GET",
+      "entry": "0x11d44c",
+      "symbol": "_ZN14PrmCntInfoList3GETEPK9ParamListm",
+      "abi": "r0=ParamList-shaped receiver; r1=key candidate",
+      "effect": "sets discriminator 9 and tail-branches to lookup PLT 0xe2890",
+      "evidence": ["ELF_SYMBOL:0x11d44d:size=14", "ELF_VMA:0x11d44e", "ELF_VMA:0x11d456"],
+      "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "getLength",
+      "entry": "0x11d45a",
+      "symbol": "_ZN14PrmCntInfoList9getLengthEv",
+      "abi": "r0=PrmCntInfoList*",
+      "effect": "forwards first collection at +0x0c to local helper 0xe77a2",
+      "evidence": ["ELF_SYMBOL:0x11d45b:size=14", "ELF_VMA:0x11d45c", "ELF_VMA:0x11d464"],
+      "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "setItem",
+      "entry": "0x11d4ac",
+      "symbol": "_ZN14PrmCntInfoList7setItemEjj",
+      "abi": "r0=object; r1=unsigned int index candidate; r2=unsigned int value candidate",
+      "effect": "indexes collection +0x34 and stores one word",
+      "evidence": ["ELF_SYMBOL:0x11d4ad:size=16", "ELF_VMA:0x11d4ae", "ELF_VMA:0x11d4b4", "ELF_VMA:0x11d4b8"],
+      "bounds_check": "not observed in wrapper",
+      "safe_to_call": false
+    },
+    {
+      "name": "setGroup",
+      "entry": "0x11d4bc",
+      "symbol": "_ZN14PrmCntInfoList8setGroupEjj",
+      "abi": "r0=object; r1=unsigned int index candidate; r2=unsigned int value candidate",
+      "effect": "indexes collection +0x0c and stores one word",
+      "evidence": ["ELF_SYMBOL:0x11d4bd:size=16", "ELF_VMA:0x11d4be", "ELF_VMA:0x11d4c4", "ELF_VMA:0x11d4c8"],
+      "bounds_check": "not observed in wrapper",
+      "safe_to_call": false
+    },
+    {
+      "name": "getItem",
+      "entry": "0x11d4cc",
+      "symbol": "_ZN14PrmCntInfoList7getItemEj",
+      "abi": "r0=object; r1=unsigned int index candidate",
+      "effect": "indexes collection +0x34 and loads one word",
+      "evidence": ["ELF_SYMBOL:0x11d4cd:size=14", "ELF_VMA:0x11d4ce", "ELF_VMA:0x11d4d2", "ELF_VMA:0x11d4d6"],
+      "bounds_check": "not observed in wrapper",
+      "return_type": "UNKNOWN; word-shaped result",
+      "safe_to_call": false
+    },
+    {
+      "name": "getGroup",
+      "entry": "0x11d4da",
+      "symbol": "_ZN14PrmCntInfoList8getGroupEj",
+      "abi": "r0=object; r1=unsigned int index candidate",
+      "effect": "indexes collection +0x0c and loads one word",
+      "evidence": ["ELF_SYMBOL:0x11d4db:size=14", "ELF_VMA:0x11d4dc", "ELF_VMA:0x11d4e0", "ELF_VMA:0x11d4e4"],
+      "bounds_check": "not observed in wrapper",
+      "return_type": "UNKNOWN; word-shaped result",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_index_helper",
+      "entry": "0x11d47e",
+      "abi": "r0=collection-like storage; r1=index candidate",
+      "effect": "forwards the index through local helpers 0xe7cd6 and 0xe7e5c using a 16-byte temporary, then reads its first word",
+      "evidence": ["ELF_VMA:0x11d482", "ELF_VMA:0x11d486", "ELF_VMA:0x11d48c", "ELF_VMA:0x11d492", "ELF_VMA:0x11d49c"],
+      "bounds_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_length_helper",
+      "entry": "0xe77a2",
+      "abi": "r0=collection-like storage",
+      "effect": "forwards metadata words at +0x18 and +0x20 to local length arithmetic at 0xe7774",
+      "evidence": ["ELF_VMA:0xe77a2", "ELF_VMA:0xe77a4", "ELF_VMA:0xe77aa", "ELF_VMA:0xe77b2"],
+      "return_type": "UNKNOWN; length-like arithmetic result",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_copy_and_drop",
+      "entry": "0x11d468",
+      "abi": "r0=destination collection-like storage; r1=source collection-like storage",
+      "effect": "copies four words and advances the destination through the local drop-first helper",
+      "evidence": ["ELF_VMA:0x11d470", "ELF_VMA:0x11d476", "ELF_VMA:0x11d47c"],
+      "element_width": "32-bit word candidate",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_drop_first",
+      "entry": "0xe7e86",
+      "abi": "r0=collection-like storage",
+      "effect": "advances begin by one word; when begin reaches end, rebuilds metadata through 0xe77f6",
+      "evidence": ["ELF_VMA:0xe7e88", "ELF_VMA:0xe7e90", "ELF_VMA:0xe7e94", "ELF_VMA:0xe7e9c", "ELF_VMA:0xe7ea4"],
+      "empty_or_invalid_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "append_helper",
+      "entry": "0x11d8e6",
+      "abi": "r0=collection-like storage; r1=pointer to one input word",
+      "effect": "non-full path stores through 0xecd7a and advances end; full path reaches 0x11d8b0",
+      "evidence": ["ELF_VMA:0x11d8ea", "ELF_VMA:0x11d8ee", "ELF_VMA:0x11d8f4", "ELF_VMA:0x11d8f6", "ELF_VMA:0x11d8fa", "ELF_VMA:0x11d902"],
+      "identity": "local helper identity UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "append_growth_helper",
+      "entry": "0x11d8b0",
+      "abi": "r0=collection-like storage; r1=pointer to one input word",
+      "effect": "full-capacity path requests one element, obtains replacement storage, copies one word and rebuilds end/capacity metadata",
+      "evidence": ["ELF_VMA:0x11d8b8", "ELF_VMA:0x11d8ba", "ELF_VMA:0x11d8c2", "ELF_VMA:0x11d8d2", "ELF_VMA:0x11d8dc", "ELF_VMA:0x11d8e2"],
+      "allocator_and_exception_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "collection_word_copy",
+      "entry": "0xecd7a",
+      "abi": "r1=destination word pointer; r2=source word pointer",
+      "effect": "when r1 is non-null, copies one 32-bit word from [r2] to [r1]",
+      "evidence": ["ELF_VMA:0xecd7e", "ELF_VMA:0xecd80", "ELF_VMA:0xecd82", "ELF_VMA:0xecd84"],
+      "null_behavior": "null destination skips the copy; source validity remains UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "add",
+      "entry": "0x11d90e",
+      "symbol": "_ZN14PrmCntInfoList3addEjj",
+      "abi": "r0=object; r1/r2=unsigned int candidates",
+      "effect": "appends r1 to +0x0c and r2 to +0x34 through 0x11d8e6",
+      "evidence": ["ELF_SYMBOL:0x11d90f:size=40", "ELF_VMA:0x11d916", "ELF_VMA:0x11d920", "ELF_VMA:0x11d924", "ELF_VMA:0x11d92a"],
+      "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "remove",
+      "entry": "0x11d82e",
+      "symbol": "_ZN14PrmCntInfoList6removeEj",
+      "abi": "r0=PrmCntInfoList*; r1=unsigned int index candidate",
+      "effect": "copies both collection regions, drops one word per loop iteration from each temporary, and passes both through 0x11d72a",
+      "evidence": ["ELF_SYMBOL:0x11d82f:size=130", "ELF_VMA:0x11d838", "ELF_VMA:0x11d846", "ELF_VMA:0x11d862", "ELF_VMA:0x11d86e", "ELF_VMA:0x11d872", "ELF_VMA:0x11d88a", "ELF_VMA:0x11d8a2"],
+      "invalid_index_alias_and_return_behavior": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "remove_rebuild_helper",
+      "entry": "0x11d72a",
+      "abi": "local collection/temporary candidates in r0/r1/r2 and related stack temporaries",
+      "effect": "compares metadata, follows capacity/length branches, and rebuilds temporary collection state through local helpers",
+      "evidence": ["ELF_VMA:0x11d73e", "ELF_VMA:0x11d746", "ELF_VMA:0x11d75a", "ELF_VMA:0x11d762", "ELF_VMA:0x11d76a", "ELF_VMA:0x11d7b0", "ELF_VMA:0x11d802", "ELF_VMA:0x11d81e"],
+      "source_level_identity": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "clone",
+      "entry": "0x11da18",
+      "abi": "r0=source PrmCntInfoList* candidate",
+      "effect": "allocates a distinct 0x5c-byte destination, copies both collection regions through local paths, and cleans temporary copies",
+      "evidence": ["ELF_VMA:0x11da20", "ELF_VMA:0x11da2e", "ELF_VMA:0x11da36", "ELF_VMA:0x11da38", "ELF_VMA:0x11da44", "ELF_VMA:0x11da4a", "ELF_VMA:0x11da52", "ELF_VMA:0x11da5e", "PLT:0xdc100:_Znwj"],
+      "return_type": "UNKNOWN; destination-shaped pointer only",
+      "ownership": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "C1",
+      "entry": "0x11d680",
+      "symbol": "_ZN14PrmCntInfoListC1Ev",
+      "abi": "r0=destination object",
+      "effect": "initializes discriminator/vptr and both embedded collection regions",
+      "evidence": ["ELF_SYMBOL:0x11d681:size=84", "ELF_VMA:0x11d688", "ELF_VMA:0x11d69c", "ELF_VMA:0x11d6a6"],
+      "safe_to_call": false
+    },
+    {
+      "name": "C1_uint_uint",
+      "entry": "0x11d938",
+      "symbol": "_ZN14PrmCntInfoListC1Ejj",
+      "abi": "r0=destination; r1/r2=unsigned int candidates",
+      "effect": "initializes both regions then appends the two arguments",
+      "evidence": ["ELF_SYMBOL:0x11d939:size=120", "ELF_VMA:0x11d948", "ELF_VMA:0x11d978", "ELF_VMA:0x11d980"],
+      "safe_to_call": false
+    },
+    {
+      "name": "D1",
+      "entry": "0x11d54c",
+      "symbol": "_ZN14PrmCntInfoListD1Ev",
+      "abi": "r0=object",
+      "effect": "cleans both collection regions and invokes local ParamBase destruction path 0xe4734",
+      "evidence": ["ELF_SYMBOL:0x11d54d:size=68", "ELF_VMA:0x11d568", "ELF_VMA:0x11d56e", "ELF_VMA:0x11d574", "ELF_VMA:0x11d57a", "ELF_VMA:0x11d580"],
+      "ownership": "allocator and exception behavior UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "deleting_destructor",
+      "entry": "0x11d590",
+      "abi": "r0=object candidate",
+      "effect": "calls the relocation-bound PrmCntInfoList destructor through PLT 0xdf3d0, then operator delete through PLT 0xdd620",
+      "evidence": ["ELF_VMA:0x11d596", "ELF_VMA:0x11d59c", "ELF_VMA:0x11d5a2", "PLT:0xdf3d0:_ZN14PrmCntInfoListD1Ev", "PLT:0xdd620:_ZdlPv"],
+      "allocator_and_runtime_binding": "UNKNOWN",
+      "safe_to_call": false
+    }
+  ],
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "No runtime execution or device validation",
+    "Collection C++ element type, bounds behavior, allocator, exception and synchronization semantics remain UNKNOWN",
+    "Local helper and base-destruction names are not promoted to confirmed C++ identities",
+    "This is a descriptive ABI evidence record, not a native wrapper"
+  ]
+}
