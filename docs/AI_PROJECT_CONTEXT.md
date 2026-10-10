@@ -815,3 +815,20 @@ with a `STATIC_INFERRED` heap-owned-subobject interpretation; owner class,
 constructor and source destructor identity remain UNKNOWN. The targeted
 Ghidra profile now covers six bodies, 30 blocks and 70 CFG/call records. The
 full Auto Analysis blocker and all runtime/callable limitations remain.
+
+### InputService direct importer callsites (2026-10-10)
+
+The generic cross-ELF importer now starts decoding at `SHF_EXECINSTR` section
+bases and excludes PLT sections. This preserves Thumb alignment when a load
+segment contains data before `.text`. Against the private 3.21 root it
+considered 491 ELF/DSO files and found two direct calls to the imported
+`InputService::getInputEventStatus` symbol: `waterProofHousing.so:0x1310`
+from `_ZN20CmnWaterProofHousing19getHousingKeyStatusEj` with bounded
+`r0=r7+0x08,r1=r7,r2=r4`, and
+`wrapperSettingUtil.so:0x3dea` from
+`_ZN18WrapperSettingUtil19_getEyeSensorStatusEP15ViewBaseProductPa` with
+`r0=r7,r1=r7+0x08,r2=r4`. These are static instruction/register facts, not
+complete C++ ABI or runtime loader proof. `viewUnified4.so` still has no
+direct callsite in this pass. The sanitized metadata is in
+`sdk/input_service_cross_elf_3_21.json`; runtime and callable flags remain
+false.

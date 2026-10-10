@@ -1736,3 +1736,33 @@ The next investigation is to identify the source-level class that owns offset
 `+0x10` or a constructor that initializes it, using direct callsites and
 relocation/vtable evidence. No runtime-verified or callable API has been
 added.
+
+## InputService direct importer callsites — 2026-10-10
+
+The generic cross-ELF importer was corrected to decode from `SHF_EXECINSTR`
+section starts and to exclude PLT sections as caller bodies. The prior
+PT_LOAD-origin scan could desynchronise a Thumb stream when a load segment
+contained non-code bytes before `.text`. The authenticated private 3.21 root
+was rescanned read-only: 491 ELF/DSO files were considered, nine imported the
+exact `InputService::getInputEventStatus` symbol, and two exact Thumb direct
+callsites were recovered.
+
+| Importer | Caller | Callsite | Bounded register observations |
+|---|---|---:|---|
+| `waterProofHousing.so` | `_ZN20CmnWaterProofHousing19getHousingKeyStatusEj` | `0x1310` → importer PLT `0x1130` | `r0 = r7 + 0x08`, `r1 = r7`, `r2 = r4` |
+| `wrapperSettingUtil.so` | `_ZN18WrapperSettingUtil19_getEyeSensorStatusEP15ViewBaseProductPa` | `0x3dea` → importer PLT `0x2b90` | `r0 = r7`, `r1 = r7 + 0x08`, `r2 = r4` |
+
+The branch, caller-range and register-assignment observations are
+`PRIMARY_ELF_VERIFIED` for the two authenticated importer ELFs. The register
+flow is intentionally bounded to the preceding eight decoded instructions;
+it is not a complete interprocedural data-flow or C++ type recovery. The
+provider export, PLT/GOT relocation and loader route remain separate facts;
+`libObj.so` is not named by these importers' `DT_NEEDED` entries, so runtime
+binding is still `UNKNOWN`.
+
+`viewUnified4.so` still has no direct callsite in this static pass. Its
+metadata-only Ghidra import/PLT cross-check remains valid, while register,
+vtable, callback and other dispatch forms remain unresolved. The sanitized
+contract is `sdk/input_service_cross_elf_3_21.json`; the reusable analyzer is
+`fwplatform.cross_elf_import_probe._direct_calls`. No firmware bytes, private
+paths or runtime/callable claim were added.

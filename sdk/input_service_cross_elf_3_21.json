@@ -23,7 +23,7 @@
     {
       "source_binary": {
         "name": "cmn_view_processDataMgr.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/cmn_view_processDataMgr.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/cmn_view_processDataMgr.so",
         "sha256": "e2968b2836edd55c3e033ff077c05a54413dda227ee70a791345c180a3eecaf0",
         "size_bytes": 598400,
         "address_space": "ELF_VMA"
@@ -65,7 +65,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -92,7 +92,7 @@
     {
       "source_binary": {
         "name": "libInputServant.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libInputServant.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libInputServant.so",
         "sha256": "2c57f4854baf34fb647c1bdb45e9df6de3d62436603d43ea0eea910e28f43401",
         "size_bytes": 16260,
         "address_space": "ELF_VMA"
@@ -134,7 +134,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -161,7 +161,7 @@
     {
       "source_binary": {
         "name": "viewUnified2.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified2.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified2.so",
         "sha256": "7fbfa8539717ba3dca0cb5a82cf976b50a2b97443972fe321a064cbb09a75588",
         "size_bytes": 4953524,
         "address_space": "ELF_VMA"
@@ -203,7 +203,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -226,7 +226,7 @@
     {
       "source_binary": {
         "name": "viewUnified4.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified4.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified4.so",
         "sha256": "149282ac0f1e1a1cf1ef7302214c6ab843e889945ce613cc9e7ec15823fd26e1",
         "size_bytes": 1784836,
         "address_space": "ELF_VMA"
@@ -268,7 +268,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -325,7 +325,7 @@
     {
       "source_binary": {
         "name": "viewUnified6.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified6.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified6.so",
         "sha256": "13f18bf054f85c494f6237654d9acbe6d6f8cb470b43c1979682ded797ca9796",
         "size_bytes": 394432,
         "address_space": "ELF_VMA"
@@ -367,7 +367,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -389,7 +389,7 @@
     {
       "source_binary": {
         "name": "viewUnified7.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified7.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified7.so",
         "sha256": "ca581f5a23361d0a0467e4ae02415281dd61dfd39dfa7bd2bea47f93da8858b1",
         "size_bytes": 366676,
         "address_space": "ELF_VMA"
@@ -431,7 +431,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -453,7 +453,7 @@
     {
       "source_binary": {
         "name": "viewUnified8.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified8.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified8.so",
         "sha256": "5dcd54082f3e3941fee14f905da0d5638da31e5fd8610a2b7f16c3ff6565f452",
         "size_bytes": 240764,
         "address_space": "ELF_VMA"
@@ -495,7 +495,7 @@
       "direct_calls": [],
       "direct_call_scan": {
         "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
         "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
       },
       "needed": [
@@ -517,7 +517,7 @@
     {
       "source_binary": {
         "name": "waterProofHousing.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/waterProofHousing.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/waterProofHousing.so",
         "sha256": "4d184ed19377b595100254492adbcc9c736e58a588e8f0fec259afc38da8150d",
         "size_bytes": 7740,
         "address_space": "ELF_VMA"
@@ -556,11 +556,48 @@
           "address_space": "ELF_VMA"
         }
       ],
-      "direct_calls": [],
+      "direct_calls": [
+        {
+          "callsite_vma": "0x1310",
+          "section": ".text",
+          "instruction_mode": "THUMB",
+          "target_plt_vma": "0x1130",
+          "caller_candidates": [
+            {
+              "symbol": "_ZN20CmnWaterProofHousing19getHousingKeyStatusEj",
+              "entry_vma": 4804,
+              "size_bytes": 160
+            }
+          ],
+          "argument_flow": {
+            "scope": "preceding eight instructions; direct register/immediate assignments only",
+            "verification": "PRIMARY_ELF_VERIFIED",
+            "registers": {
+              "r1": {
+                "instruction_vma": "0x130e",
+                "expression": "r7",
+                "status": "PRIMARY_ELF_VERIFIED"
+              },
+              "r0": {
+                "instruction_vma": "0x130a",
+                "expression": "r7 + 0x8",
+                "status": "PRIMARY_ELF_VERIFIED"
+              },
+              "r2": {
+                "instruction_vma": "0x1304",
+                "expression": "r4",
+                "status": "PRIMARY_ELF_VERIFIED"
+              }
+            }
+          },
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
       "direct_call_scan": {
-        "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
-        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+        "status": "PRIMARY_ELF_VERIFIED",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": null
       },
       "needed": [
         "libc.so.6",
@@ -586,7 +623,7 @@
     {
       "source_binary": {
         "name": "wrapperSettingUtil.so",
-        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/wrapperSettingUtil.so",
+        "relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/wrapperSettingUtil.so",
         "sha256": "17928d371c785145f4f1b731e6b8984265d24f0d9f8fea5fdd5468e720be2581",
         "size_bytes": 20940,
         "address_space": "ELF_VMA"
@@ -625,11 +662,48 @@
           "address_space": "ELF_VMA"
         }
       ],
-      "direct_calls": [],
+      "direct_calls": [
+        {
+          "callsite_vma": "0x3dea",
+          "section": ".text",
+          "instruction_mode": "THUMB",
+          "target_plt_vma": "0x2b90",
+          "caller_candidates": [
+            {
+              "symbol": "_ZN18WrapperSettingUtil19_getEyeSensorStatusEP15ViewBaseProductPa",
+              "entry_vma": 15792,
+              "size_bytes": 168
+            }
+          ],
+          "argument_flow": {
+            "scope": "preceding eight instructions; direct register/immediate assignments only",
+            "verification": "PRIMARY_ELF_VERIFIED",
+            "registers": {
+              "r0": {
+                "instruction_vma": "0x3de4",
+                "expression": "r7",
+                "status": "PRIMARY_ELF_VERIFIED"
+              },
+              "r2": {
+                "instruction_vma": "0x3dde",
+                "expression": "r4",
+                "status": "PRIMARY_ELF_VERIFIED"
+              },
+              "r1": {
+                "instruction_vma": "0x3de6",
+                "expression": "r7 + 0x8",
+                "status": "PRIMARY_ELF_VERIFIED"
+              }
+            }
+          },
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
       "direct_call_scan": {
-        "status": "UNKNOWN",
-        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
-        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+        "status": "PRIMARY_ELF_VERIFIED",
+        "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": null
       },
       "needed": [
         "libc.so.6",
@@ -655,7 +729,7 @@
   ],
   "scan": {
     "root_scope": "explicit private root; only .so/.elf files",
-    "files_considered": 511,
+    "files_considered": 491,
     "files_with_import": 9,
     "failure_count": 0,
     "failures": []

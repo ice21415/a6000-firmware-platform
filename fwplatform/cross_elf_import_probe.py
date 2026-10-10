@@ -15,7 +15,7 @@ from pathlib import Path, PureWindowsPath
 from typing import Any, Iterable
 
 from capstone import CS_ARCH_ARM, CS_MODE_ARM, CS_MODE_THUMB, Cs
-from capstone.arm import ARM_OP_IMM
+from capstone.arm import ARM_OP_IMM, ARM_OP_REG
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
 
@@ -155,15 +155,30 @@ def _direct_calls(
     if not targets:
         return []
     rows: list[dict[str, Any]] = []
-    for segment in elf.iter_segments():
-        if segment["p_type"] != "PT_LOAD" or not (int(segment["p_flags"]) & 1):
+    # Decode from executable sections rather than PT_LOAD segment starts.  A
+    # load segment can contain non-code data before .text; using its first byte
+    # as the Thumb stream origin can desynchronise the decoder and hide valid
+    # BL/BLX sites.  The section boundary is an address-space fact, not a
+    # semantic function-boundary guess.
+    sections: list[tuple[str, int, bytes]] = []
+    for section in elf.iter_sections():
+        flags = int(section["sh_flags"])
+        size = int(section["sh_size"])
+        if not size or not (flags & 0x4):  # SHF_EXECINSTR
             continue
-        start = int(segment["p_vaddr"])
-        raw = data[int(segment["p_offset"]):int(segment["p_offset"]) + int(segment["p_filesz"])]
+        if section.name.startswith(".plt"):
+            # PLT entries are targets, not callers.  Excluding them avoids
+            # reporting resolver scaffolding as an application callsite.
+            continue
+        start = int(section["sh_addr"])
+        offset = int(section["sh_offset"])
+        sections.append((section.name, start, data[offset:offset + size]))
+    for section_name, start, raw in sections:
         for mode, mode_name in ((CS_MODE_THUMB, "THUMB"), (CS_MODE_ARM, "ARM")):
             decoder = Cs(CS_ARCH_ARM, mode)
             decoder.detail = True
-            for instruction in decoder.disasm(raw, start):
+            instructions = list(decoder.disasm(raw, start))
+            for index, instruction in enumerate(instructions):
                 if instruction.mnemonic.lower() not in {"bl", "blx"}:
                     continue
                 immediate = next(
@@ -178,13 +193,65 @@ def _direct_calls(
                 ]
                 rows.append({
                     "callsite_vma": hex(int(instruction.address)),
+                    "section": section_name,
                     "instruction_mode": mode_name,
                     "target_plt_vma": hex(immediate),
                     "caller_candidates": callers,
+                    "argument_flow": _bounded_register_flow(instructions, index),
                     "status": "PRIMARY_ELF_VERIFIED",
                     "address_space": "ELF_VMA",
                 })
     return rows
+
+
+def _bounded_register_flow(instructions: list[Any], call_index: int) -> dict[str, Any]:
+    """Return only simple register assignments immediately before a call.
+
+    This is deliberately a bounded observation, not a data-flow engine.  It
+    records the last direct ``mov``/``add``/``sub``/``movs`` assignment to an
+    argument register in the preceding eight decoded instructions.  Loads,
+    branches, aliases and values carried from earlier blocks are left out so
+    an imported call cannot be presented as a complete ABI recovery.
+    """
+    result: dict[str, Any] = {
+        "scope": "preceding eight instructions; direct register/immediate assignments only",
+        "verification": "PRIMARY_ELF_VERIFIED",
+        "registers": {},
+    }
+    for instruction in instructions[max(0, call_index - 8):call_index]:
+        mnemonic = instruction.mnemonic.lower()
+        operands = instruction.operands
+        if not operands or operands[0].type != ARM_OP_REG:
+            continue
+        destination = instruction.reg_name(operands[0].reg).lower()
+        if destination not in {"r0", "r1", "r2", "r3"}:
+            continue
+        expression: str | None = None
+        if mnemonic in {"mov", "mov.w"} and len(operands) == 2:
+            source = operands[1]
+            if source.type == ARM_OP_REG:
+                expression = instruction.reg_name(source.reg).lower()
+            elif source.type == ARM_OP_IMM:
+                expression = hex(int(source.imm) & 0xffffffff)
+        elif mnemonic in {"movs", "movs.w"} and len(operands) == 2:
+            source = operands[1]
+            if source.type == ARM_OP_IMM:
+                expression = hex(int(source.imm) & 0xffffffff)
+        elif mnemonic.startswith("add") and len(operands) == 3:
+            left, right = operands[1], operands[2]
+            if left.type == ARM_OP_REG and right.type == ARM_OP_IMM:
+                expression = f"{instruction.reg_name(left.reg).lower()} + {hex(int(right.imm))}"
+        elif mnemonic.startswith("sub") and len(operands) == 3:
+            left, right = operands[1], operands[2]
+            if left.type == ARM_OP_REG and right.type == ARM_OP_IMM:
+                expression = f"{instruction.reg_name(left.reg).lower()} - {hex(int(right.imm))}"
+        if expression is not None:
+            result["registers"][destination] = {
+                "instruction_vma": hex(int(instruction.address)),
+                "expression": expression,
+                "status": "PRIMARY_ELF_VERIFIED",
+            }
+    return result
 
 
 def _needed(elf: ELFFile) -> list[str]:
@@ -249,7 +316,7 @@ def _scan_one(
         "direct_calls": direct_calls,
         "direct_call_scan": {
             "status": "PRIMARY_ELF_VERIFIED" if direct_calls else "UNKNOWN",
-            "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+            "scope": "SHF_EXECINSTR sections (excluding PLT) decoded from section starts as ARM and Thumb; direct BL/BLX immediate targets only",
             "unresolved_reason": None if direct_calls else "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved",
         },
         "needed": needed,
@@ -404,6 +471,25 @@ def validate_cross_elf_import_contract(report: dict[str, Any]) -> dict[str, Any]
             errors.append(f"relocations:{index}")
         if not item.get("plt"):
             errors.append(f"plt:{index}")
+        direct_calls = item.get("direct_calls", [])
+        if not isinstance(direct_calls, list):
+            errors.append(f"direct_calls_type:{index}")
+            direct_calls = []
+        for call_index, call in enumerate(direct_calls):
+            if not isinstance(call, dict):
+                errors.append(f"direct_call_type:{index}:{call_index}")
+                continue
+            if call.get("status") != "PRIMARY_ELF_VERIFIED":
+                errors.append(f"direct_call_status:{index}:{call_index}")
+            if call.get("address_space") != "ELF_VMA":
+                errors.append(f"direct_call_address_space:{index}:{call_index}")
+            if call.get("instruction_mode") not in {"ARM", "THUMB"}:
+                errors.append(f"direct_call_mode:{index}:{call_index}")
+            flow = call.get("argument_flow")
+            if not isinstance(flow, dict) or flow.get("verification") != "PRIMARY_ELF_VERIFIED":
+                errors.append(f"direct_call_argument_flow:{index}:{call_index}")
+            elif not isinstance(flow.get("registers"), dict):
+                errors.append(f"direct_call_argument_registers:{index}:{call_index}")
         for relocation in item.get("relocations", []):
             if relocation.get("status") != "PRIMARY_ELF_VERIFIED" or relocation.get("address_space") != "ELF_VMA":
                 errors.append(f"relocation_status:{index}")

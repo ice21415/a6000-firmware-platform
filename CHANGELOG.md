@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — executable-section cross-ELF callsite recovery
+
+- Fixed the generic cross-ELF direct-call scanner to decode from executable
+  section starts and exclude PLT sections, preserving Thumb alignment.
+- Added bounded register-flow metadata and exact symbol-range caller identity
+  for two real `InputService::getInputEventStatus` importer calls at
+  `waterProofHousing.so:0x1310` and `wrapperSettingUtil.so:0x3dea`.
+- Updated the sanitized cross-ELF contract and fail-closed provenance tests;
+  runtime-verified and callable API counts remain 0.
+
 ## Unreleased — EventManager cleanup ownership boundary
 
 - Added the SHA-pinned `fwplatform.event_manager_destroy_probe` and

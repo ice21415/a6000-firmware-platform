@@ -1226,3 +1226,30 @@ returned `4294967295` without a completion marker and remains a blocker. Nine
 targeted tests now pass; the complete local `python -m unittest discover -s tests -v` suite passes 425 tests; runtime-verified and callable API counts remain zero.
 Next target: identify a constructor or source-level class for the owner field
 at `+0x10`.
+
+## Latest continuation checkpoint — direct InputService importer callsites (2026-10-10)
+
+The generic cross-ELF importer now decodes from executable section starts and
+excludes PLT sections. This fixes a real Thumb alignment issue in the former
+PT_LOAD-origin scan without changing the evidence gate. A read-only scan of
+the authenticated private root considered 491 ELF/DSO files and retained the
+nine exact `InputService::getInputEventStatus` import observations. It now
+recovers two exact direct Thumb calls:
+
+* `waterProofHousing.so` callsite `0x1310`, caller
+  `_ZN20CmnWaterProofHousing19getHousingKeyStatusEj`, importer PLT `0x1130`;
+  bounded preceding assignments are `r0=r7+0x08`, `r1=r7`, `r2=r4`.
+* `wrapperSettingUtil.so` callsite `0x3dea`, caller
+  `_ZN18WrapperSettingUtil19_getEyeSensorStatusEP15ViewBaseProductPa`,
+  importer PLT `0x2b90`; bounded preceding assignments are `r0=r7`,
+  `r1=r7+0x08`, `r2=r4`.
+
+These callsite, exact symbol-range caller and register-assignment facts are
+`PRIMARY_ELF_VERIFIED`; the bounded flow is not complete ABI or interprocedural
+data-flow proof. The provider export and relocation facts remain static, and
+runtime loader binding remains unknown. `viewUnified4.so` still has no direct
+callsite in this pass; register/GOT/vtable/callback dispatch remains
+unresolved. The public metadata is in
+`sdk/input_service_cross_elf_3_21.json`, and the fail-closed cross-ELF tests
+now cover section-origin recovery and direct-call provenance. Runtime-verified
+and callable API counts remain zero.

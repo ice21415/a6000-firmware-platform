@@ -67,11 +67,38 @@ class CrossELFImportProbeTests(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("ghidra_crosscheck_identity:3", result["errors"])
 
-    def test_direct_call_negative_scan_does_not_become_unused_claim(self) -> None:
+    def test_direct_calls_use_executable_section_boundaries_and_keep_unknowns(self) -> None:
         report = _contract()
-        self.assertTrue(all(not item["direct_calls"] for item in report["observations"]))
-        self.assertTrue(all(item["direct_call_scan"]["status"] == "UNKNOWN" for item in report["observations"]))
+        by_name = {item["source_binary"]["name"]: item for item in report["observations"]}
+        water = by_name["waterProofHousing.so"]["direct_calls"]
+        wrapper = by_name["wrapperSettingUtil.so"]["direct_calls"]
+        self.assertEqual(len(water), 1)
+        self.assertEqual(len(wrapper), 1)
+        self.assertEqual(water[0]["callsite_vma"], "0x1310")
+        self.assertEqual(wrapper[0]["callsite_vma"], "0x3dea")
+        self.assertEqual(water[0]["caller_candidates"][0]["symbol"],
+                         "_ZN20CmnWaterProofHousing19getHousingKeyStatusEj")
+        self.assertEqual(wrapper[0]["caller_candidates"][0]["symbol"],
+                         "_ZN18WrapperSettingUtil19_getEyeSensorStatusEP15ViewBaseProductPa")
+        self.assertEqual(water[0]["argument_flow"]["registers"]["r0"]["expression"], "r7 + 0x8")
+        self.assertEqual(water[0]["argument_flow"]["registers"]["r1"]["expression"], "r7")
+        self.assertEqual(wrapper[0]["argument_flow"]["registers"]["r0"]["expression"], "r7")
+        self.assertEqual(wrapper[0]["argument_flow"]["registers"]["r1"]["expression"], "r7 + 0x8")
+        self.assertEqual(by_name["viewUnified4.so"]["direct_call_scan"]["status"], "UNKNOWN")
         self.assertIn("register-indirect", report["limitations"][2])
+
+    def test_direct_call_provenance_tampering_is_rejected(self) -> None:
+        report = _contract()
+        report["observations"][0]["direct_calls"] = [{
+            "callsite_vma": "0x1",
+            "status": "VERIFIED_RUNTIME",
+            "address_space": "ELF_VMA",
+            "instruction_mode": "THUMB",
+            "argument_flow": {"verification": "PRIMARY_ELF_VERIFIED", "registers": {}},
+        }]
+        result = validate_cross_elf_import_contract(report)
+        self.assertFalse(result["valid"])
+        self.assertIn("direct_call_status:0:0", result["errors"])
 
     def test_runtime_or_callable_promotion_is_rejected(self) -> None:
         report = _contract()
