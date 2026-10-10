@@ -689,6 +689,17 @@
       "runtime_verified": false,
       "callable": false
     },
+    "event_id_literal_scan": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "value": "0x11004003",
+      "scope": "all executable PT_LOAD bytes; literal inventory only",
+      "literal_vmas": [
+        "0x463448",
+        "0x4637e4",
+        "0x7f0b74"
+      ],
+      "consumer_relation": "UNKNOWN; literal presence does not identify a receiver or event dispatch path"
+    },
     "camera_action": {
       "status": "PRIMARY_ELF_VERIFIED",
       "selector_dispatch": {

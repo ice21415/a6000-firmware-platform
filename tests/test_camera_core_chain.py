@@ -16,6 +16,7 @@ def _report() -> dict:
         "address_space": contract["address_space"],
         "verification": contract["verification"],
         "chain_summary": contract["chain_summary"],
+        "observations": contract["observations"],
         "edges": contract["verified_edges"],
         "unresolved_edges": contract["unresolved_edges"],
         "ghidra_crosscheck": contract["ghidra_crosscheck"],
@@ -105,6 +106,17 @@ class CameraCoreChainTests(unittest.TestCase):
         result = validate_camera_core_chain(report)
         self.assertFalse(result["valid"])
         self.assertIn("edge_target:event_manager.owner.push", result["errors"])
+
+    def test_event_literal_inventory_does_not_promote_consumer(self):
+        contract = json.loads(
+            Path("sdk/camera_core_3_21.json").read_text(encoding="utf-8")
+        )
+        scan = contract["observations"]["event_id_literal_scan"]
+        self.assertEqual(scan["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(scan["value"], "0x11004003")
+        self.assertEqual(scan["literal_vmas"], ["0x463448", "0x4637e4", "0x7f0b74"])
+        self.assertIn("does not identify", scan["consumer_relation"])
+        self.assertEqual(contract["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
 
 
 if __name__ == "__main__":

@@ -35,6 +35,11 @@ the provider vtable slot used to populate the later indirect dispatch state.
 They do not identify the callback target or prove that this owner is the
 ModelCamera event consumer.
 
+The executable-PT_LOAD literal inventory found `0x11004003` at `0x463448`,
+`0x4637e4` and the factory literal at `0x7f0b74`.  This is an address inventory
+only: matching a 32-bit word does not identify a receiver or prove a dispatch
+edge, so the ModelCamera consumer remains `UNKNOWN`.
+
 ## 尚未接通的關鍵邊
 
 - `EventManager::push` invokes a function pointer reached through a state

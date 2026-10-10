@@ -163,6 +163,29 @@ def _symbol_matches(elf: ELFFile, name: str, entry: int, size: int) -> bool:
     return False
 
 
+def _scan_executable_literal_vmas(fp: Any, elf: ELFFile, value: int) -> list[int]:
+    """Locate a 32-bit little-endian literal in executable PT_LOAD ranges.
+
+    This is intentionally a literal inventory only.  A matching word is not
+    treated as an event consumer, instruction, or semantic relationship; the
+    caller must still prove the surrounding control flow and function owner.
+    """
+    needle = int(value).to_bytes(4, "little", signed=False)
+    locations: list[int] = []
+    for segment in elf.iter_segments():
+        if segment["p_type"] != "PT_LOAD" or not (int(segment["p_flags"]) & 1):
+            continue
+        data = segment.data()
+        offset = 0
+        while True:
+            hit = data.find(needle, offset)
+            if hit < 0:
+                break
+            locations.append(int(segment["p_vaddr"]) + hit)
+            offset = hit + 1
+    return sorted(set(locations))
+
+
 def _evidence(
     digest: str, locator: str, *, method: str = "CAPSTONE_PRIMARY_ELF",
     status: str = "PRIMARY_ELF_VERIFIED", confidence: str = "HIGH",
@@ -529,6 +552,7 @@ def probe_camera_core_chain(
         elf = ELFFile(fp)
         if elf.elfclass != 32 or not elf.little_endian or elf["e_machine"] != "EM_ARM":
             raise ValueError("probe accepts only ELF32 little-endian ARM")
+        event_id_literal_vmas = _scan_executable_literal_vmas(fp, elf, EVENT_ID)
         for name in ("ViewBase::requestModelExecute", "viewManagerIf::requestModelExecute", "AbstractUtilityManager::createRequestModelExecuteEvent", "View::requestApplicationExecute", "View::pushEvent", "EventManager::push"):
             target = FUNCTIONS[name]
             if not _symbol_matches(elf, str(target["symbol"]), int(target["entry"]), int(target["size"])):
@@ -587,6 +611,13 @@ def probe_camera_core_chain(
             "submission": submit_observation,
             "event_manager": event_manager["observation"],
             "event_manager_owner_setup": owner_observation,
+            "event_id_literal_scan": {
+                "status": "PRIMARY_ELF_VERIFIED",
+                "value": hex(EVENT_ID),
+                "scope": "all executable PT_LOAD bytes; literal inventory only",
+                "literal_vmas": [hex(value) for value in event_id_literal_vmas],
+                "consumer_relation": "UNKNOWN; literal presence does not identify a receiver or event dispatch path",
+            },
             "camera_action": action_observation,
         },
         "nodes": nodes,
@@ -633,6 +664,18 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
     for key in ("event_manager_indirect_dispatch_target", "event_consumer_model_camera", "event_keys_7_8_to_model_camera", "ee_neutral_receiver_and_completion"):
         if summary.get(key) != "UNKNOWN":
             errors.append(f"unresolved:{key}")
+    literal_scan = report.get("observations", {}).get("event_id_literal_scan")
+    if literal_scan is not None:
+        if literal_scan.get("status") != "PRIMARY_ELF_VERIFIED":
+            errors.append("event_literal_scan_status")
+        if literal_scan.get("value") != hex(EVENT_ID):
+            errors.append("event_literal_scan_value")
+        locations = literal_scan.get("literal_vmas")
+        if not isinstance(locations, list) or locations != sorted(set(locations)) or not locations:
+            errors.append("event_literal_scan_locations")
+        relation = str(literal_scan.get("consumer_relation", ""))
+        if "UNKNOWN" not in relation or "does not identify" not in relation:
+            errors.append("event_literal_scan_semantic_scope")
     edges = report.get("edges")
     if not isinstance(edges, list) or not edges:
         errors.append("edges_missing")
