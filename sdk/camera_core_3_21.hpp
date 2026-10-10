@@ -80,9 +80,8 @@ struct ViewEventSubmissionObservation {
   EvidenceLevel evidence;
 };
 
-// EventManager::push loads an indirect dispatch target from a state object
-// reached through its receiver.  The callback target and C++ object type are
-// deliberately not named.
+// EventManager::push loads its function pointer from receiver +8 and passes
+// [state +4] in r0 and Event* in r1. Provider selection remains UNKNOWN.
 struct EventManagerDispatchObservation {
   static constexpr std::size_t completion_callback_offset = 0x04;
   static constexpr std::size_t dispatch_state_offset = 0x00;
@@ -103,6 +102,22 @@ struct ModelCameraActionObservation {
   static constexpr std::uint32_t ee_neutral_sender_vma = 0x00443d14;
   std::uint32_t payload_r1;
   EvidenceLevel evidence;
+};
+
+// Generic request consumer 0x7ed49c handles 0x11004003, reads keys 7/8,
+// and creates a new Event with key 8 as its ID. Registry population and the
+// final model vtable +0x18 target remain UNKNOWN. These are ARM32 addresses,
+// not host pointers or a callable ABI.
+struct RequestConsumerObservation {
+  static constexpr Arm32Word entry_vma = 0x007ed49c;
+  static constexpr Arm32Word request_event_id = 0x11004003;
+  static constexpr Arm32Word model_key = 7;
+  static constexpr Arm32Word selector_key = 8;
+  static constexpr Arm32Word model_lookup_vma = 0x007eb8fa;
+  static constexpr Arm32Word model_handoff_vma = 0x007f124a;
+  static constexpr Arm32Word model_execute_vma = 0x007efcca;
+  static constexpr std::size_t borrowed_event_offset = 0x14;
+  static constexpr std::size_t virtual_target_offset = 0x18;
 };
 
 static_assert(sizeof(Arm32Word) == 4);

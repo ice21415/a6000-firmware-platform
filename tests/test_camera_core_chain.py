@@ -131,6 +131,35 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertIn("not proven", candidate["event_manager_link"])
         self.assertIn("does not establish", candidate["model_camera_consumer"])
 
+    def test_computed_consumer_id_cannot_be_changed(self):
+        report = _report()
+        report["observations"]["request_consumer"]["computed_event_id"]["subtract"] = 2
+        self.assertIn("consumer_event_id_derivation", validate_camera_core_chain(report)["errors"])
+
+    def test_model_registry_does_not_self_attest_camera_identity(self):
+        report = _report()
+        report["observations"]["request_consumer"]["model_camera_identity"] = "ModelCamera"
+        self.assertIn("consumer_model_identity_promotion", validate_camera_core_chain(report)["errors"])
+        report = _report()
+        report["observations"]["request_consumer"]["final_dispatch"]["target"] = "0x4cfb9c"
+        self.assertIn("consumer_virtual_target_promotion", validate_camera_core_chain(report)["errors"])
+
+    def test_parameter_recovery_is_distinct_from_model_identity(self):
+        c = _report()["observations"]["request_consumer"]
+        self.assertEqual(c["parameters"]["7"]["missing"], "0xffffffff")
+        self.assertEqual(c["parameters"]["8"]["missing"], "zero")
+        self.assertEqual(c["final_dispatch"]["event_store"], "receiver +0x14 at 0x7efcd0")
+        self.assertEqual(c["final_dispatch"]["target"], "UNKNOWN")
+
+    def test_consumer_edge_requires_original_target_and_identity(self):
+        report = _report()
+        edge = next(e for e in report["edges"] if e["id"] == "consumer.model_handoff")
+        edge["target_vma"] = "0x4cfb9c"
+        self.assertIn("edge_target:consumer.model_handoff", validate_camera_core_chain(report)["errors"])
+        report = _report()
+        report["edges"][-1]["evidence"]["source_binary_sha256"] = "0" * 64
+        self.assertTrue(any(e.startswith("edge_identity:") for e in validate_camera_core_chain(report)["errors"]))
+
 
 if __name__ == "__main__":
     unittest.main()

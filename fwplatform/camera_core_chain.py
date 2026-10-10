@@ -609,6 +609,125 @@ def _observe_provider_callback_candidate(
     }
 
 
+def _observe_request_consumer(fp: Any, elf: ELFFile, digest: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Verify the computed event-ID branch and parameter-to-model handoff.
+
+    This proves the generic request consumer, not the dynamic identity of
+    the model selected from its registry.  Split normal code from literal
+    pools and keep the final vtable target unresolved.
+    """
+    dispatch = _decode_at(fp, elf, 0x7ED49C, 0xBA)
+    _require(dispatch, 0x7ED4AA, "blx", target=0xDBAFC)
+    _require(dispatch, 0x7ED4AE, "mov", operands="r6, r0")
+    _require(dispatch, 0x7ED4EA, "ldr", operands="r3, [pc, #0x264]")
+    base_id = _read_load_word(fp, elf, 0x7ED750)
+    if base_id != 0x11004005 or base_id - 3 + 1 != EVENT_ID:
+        raise ValueError("computed request event ID mismatch")
+    _require(dispatch, 0x7ED4F4, "subs", operands="r3, #3")
+    _require(dispatch, 0x7ED4FC, "adds", operands="r3, #1")
+    _require(dispatch, 0x7ED4FE, "cmp", operands="r6, r3")
+    _require(dispatch, 0x7ED500, "bne", target=0x7ED552)
+    _require(dispatch, 0x7ED502, "b", target=0x7ED5C8)
+    branch = _decode_at(fp, elf, 0x7ED5C8, 0xA2)
+    for address, key in ((0x7ED5D2, 7), (0x7ED5E8, 8)):
+        _require(branch, address, "movs", operands=f"r1, #{key}")
+    _require(branch, 0x7ED5D4, "bl", target=0x7EA918)
+    _require(branch, 0x7ED5EA, "bl", target=0x7EA918)
+    _require(branch, 0x7ED5DA, "bl", target=0xE5B18)
+    _require(branch, 0x7ED5F2, "bl", target=0xE5B18)
+    _require(branch, 0x7ED5FC, "bl", target=0x7EB8FA)
+    _require(branch, 0x7ED624, "mov", operands="r1, sb")
+    _require(branch, 0x7ED62A, "blx", target=0xDB66C)
+    _require(branch, 0x7ED630, "blx", target=0xDBD20)
+    _require(branch, 0x7ED640, "bl", target=0x7EDA9C)
+    _require(branch, 0x7ED648, "blx", target=0xDE3A4)
+    _require(branch, 0x7ED64C, "mov", operands="r0, r8")
+    _require(branch, 0x7ED64E, "mov", operands="r1, r6")
+    _require(branch, 0x7ED650, "bl", target=0x7F124A)
+    reader = _decode_at(fp, elf, 0x7EA918, 0x10)
+    _require(reader, 0x7EA91A, "movs", immediate=1)
+    _require(reader, 0x7EA91E, "ldr", operands="r0, [r0, #0xc]")
+    _require(reader, 0x7EA924, "b.w", target=0xE2890)
+    if _binding(fp, elf, 0xE2894)["candidates"][0]["symbol"] != "_ZNK9ParamList3getEmm":
+        raise ValueError("consumer ParamList query binding mismatch")
+    forward = _decode_at(fp, elf, 0x7F124A, 0x16)
+    _require(forward, 0x7F124A, "ldr", operands="r0, [r0, #0x1c]")
+    _require(forward, 0x7F1252, "bl", target=0x7EFCCA)
+    execute = _decode_at(fp, elf, 0x7EFCCA, 0x1A)
+    _require(execute, 0x7EFCD0, "str", operands="r1, [r0, #0x14]")
+    _require(execute, 0x7EFCDE, "ldr", operands="r3, [r3, #0x18]")
+    _require(execute, 0x7EFCE0, "blx", operands="r3")
+    loop = _decode_at(fp, elf, 0x7EEDDA, 0x1A)
+    _require(loop, 0x7EEDDA, "and", operands="r3, r6, #2")
+    _require(loop, 0x7EEDF0, "bl", target=0x7ED49C)
+    bindings = {name: _binding(fp, elf, address) for name, address in (
+        ("get_id", 0xDBAFC), ("event_constructor", 0xDB66C),
+        ("get_paramlist", 0xDBD20), ("set_paramlist", 0xDE3A4))}
+    edges = [
+        _edge("consumer.loop.model_dispatch", "application event router candidate", "request consumer candidate", "CALLS", 0x7EED0C, digest, target_vma=0x7ED49C, callsite_vma=0x7EEDF0, note="Conditional on Event destination bit 2; owner +4 supplies receiver."),
+        _edge("consumer.event_id", "request consumer candidate", "EventID:0x11004003", "HANDLES_EVENT", 0x7ED49C, digest, callsite_vma=0x7ED4FE, note="Literal 0x11004005 at 0x7ed750 minus 3 plus 1; equal branch reaches 0x7ed5c8."),
+        _edge("consumer.key7", "request consumer candidate", "EventParameterKey:7", "READS_PARAMETER", 0x7ED49C, digest, target_vma=0x7EA918, callsite_vma=0x7ED5D4),
+        _edge("consumer.key8", "request consumer candidate", "EventParameterKey:8", "READS_PARAMETER", 0x7ED49C, digest, target_vma=0x7EA918, callsite_vma=0x7ED5EA),
+        _edge("consumer.model_lookup", "request consumer candidate", "model registry lookup candidate", "CALLS", 0x7ED49C, digest, target_vma=0x7EB8FA, callsite_vma=0x7ED5FC, note="r1 contains key 7 payload; dynamic registry entry identity UNKNOWN."),
+        _edge("consumer.model_handoff", "request consumer candidate", "model event forwarder candidate", "CALLS", 0x7ED49C, digest, target_vma=0x7F124A, callsite_vma=0x7ED650, note="r0=registry result; r1=new Event whose ID comes from key 8."),
+        _edge("consumer.forward.execute", "model event forwarder candidate", "model execution candidate", "CALLS", 0x7F124A, digest, target_vma=0x7EFCCA, callsite_vma=0x7F1252),
+    ]
+    return edges, {
+        "status": "PRIMARY_ELF_VERIFIED", "entry_vma": "0x7ed49c",
+        "computed_event_id": {"literal_vma": "0x7ed750", "literal_value": hex(base_id), "subtract": 3, "add": 1, "result": hex(EVENT_ID), "compare_vma": "0x7ed4fe", "branch_target": "0x7ed5c8"},
+        "input": {"r0": "router owner +4 receiver candidate", "r1": "Event pointer retained in r5"},
+        "parameters": {"7": {"query_callsite": "0x7ed5d4", "word_getter": "0x7ed5da", "destination": "model registry lookup r1", "missing": "0xffffffff"}, "8": {"query_callsite": "0x7ed5ea", "word_getter": "0x7ed5f2", "destination": "new Event constructor r1", "missing": "zero"}},
+        "paramlist": "original Event getParamList result copied via 0x7eda9c then passed to Event::setParamList; ownership and concurrent aliases UNKNOWN",
+        "final_dispatch": {"entry_vma": "0x7efcca", "event_store": "receiver +0x14 at 0x7efcd0", "vtable_slot": "+0x18", "callsite_vma": "0x7efce0", "target": "UNKNOWN"},
+        "model_camera_identity": "UNKNOWN; registry population and +0x18 virtual target are not proven",
+        "bindings": bindings, "runtime_verified": False, "callable": False,
+    }
+
+
+def _observe_config_provider(fp: Any, elf: ELFFile, digest: str) -> dict[str, Any]:
+    """Verify the second provider branch without assuming runtime selection."""
+    caller = _decode_at(fp, elf, 0x7ED984, 0x54)
+    _require(caller, 0x7ED990, "mov", operands="r0, r7")
+    _require(caller, 0x7ED996, "bl", target=0x7EF254)
+    getter = _decode_at(fp, elf, 0x106C6C, 0x0C)
+    _require(getter, 0x106C72, "ldr", operands="r0, [r0]")
+    init = _decode_at(fp, elf, 0x106DA8, 0x18)
+    _require(init, 0x106DB4, "bl", target=0x106C7C)
+    _require(init, 0x106DBC, "str", operands="r4, [r3]")
+    getter_global = (_read_load_word(fp, elf, 0x106C78) + 0x106C74) & 0xFFFFFFFF
+    init_global = (_read_load_word(fp, elf, 0x106DCC) + 0x106DBE) & 0xFFFFFFFF
+    if getter_global != 0x10A8A9C or getter_global != init_global:
+        raise ValueError("getConfig singleton source mismatch")
+    for address, expected in ((0x1030350, 0xFE9B68), (0xFE9BA0, 0x106901), (0x1030F6C, 0x11130D)):
+        if _read_load_word(fp, elf, address) != expected or _relocation_type(elf, address) != 23:
+            raise ValueError("configured provider relocation mismatch")
+    constructor = _decode_at(fp, elf, 0x106C7C, 0x20)
+    _require(constructor, 0x106C90, "ldr", operands="r3, [r5, r3]")
+    _require(constructor, 0x106C96, "adds", immediate=8)
+    _require(constructor, 0x106C98, "str", operands="r3, [r4]")
+    slot = _decode_at(fp, elf, 0x106900, 0x0E)
+    _require(slot, 0x10690A, "ldr", operands="r0, [r3, r2]")
+    # Verify arithmetic that resolves the two GOT sources, including the
+    # unaligned architectural PC used by Thumb ADD (not literal-load PC).
+    if (_read_load_word(fp, elf, 0x106D40) + 0x106C8E + _read_load_word(fp, elf, 0x106D44)) & 0xFFFFFFFF != 0x1030350:
+        raise ValueError("config constructor GOT calculation mismatch")
+    if (_read_load_word(fp, elf, 0x106910) + 0x106908 + _read_load_word(fp, elf, 0x106914)) & 0xFFFFFFFF != 0x1030F6C:
+        raise ValueError("config callback GOT calculation mismatch")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED", "owner_callsite": "0x7ed996",
+        "owner_entry": "0x7ef254", "owner_storage": "stack receiver in r7",
+        "name_source": "0x10df828 (BSS); contents and selected branch UNKNOWN",
+        "get_config_entry": "0x106c6c", "initialize_config_entry": "0x106da8",
+        "singleton_address": hex(getter_global), "constructor_entry": "0x106c7c",
+        "vtable_address_point": "0xfe9b70", "slot_plus_0x30": "0xfe9ba0",
+        "slot_method": "0x106900", "callback_got": "0x1030f6c", "callback_candidate": "0x11130c",
+        "selection": "UNKNOWN; named BSS input is not statically initialized in this batch",
+        "runtime_loader_binding": "UNKNOWN; GLOB_DAT getConfig can be interposed",
+        "evidence": _evidence(digest, "ELF_VMA:0x7ed996,0x106c72,0x106dbc,0xfe9ba0,0x1030f6c", method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE"),
+        "runtime_verified": False, "callable": False,
+    }
+
+
 def _unresolved(digest: str) -> list[dict[str, Any]]:
     return [
         {
@@ -619,7 +738,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x7EF988),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "The body loads [this + 0x00] then invokes a function pointer from [state + 0x08]; no unique callback target is proven by the current bounded evidence.",
+            "reason": "The body invokes [this + 0x08] with r0=[state + 0x04], r1=Event*; provider selection is not uniquely proven.",
             "evidence": _evidence(digest, "ELF_VMA:0x7ef988", confidence="MEDIUM"),
         },
         {
@@ -641,7 +760,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x7F0B74),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "The factory proves event creation and keys 7/8, but no event-ID compare and receiver function linking this ID to ModelCamera has been found in the bounded primary-ELF pass.",
+            "reason": "Generic consumer 0x7ed49c handles this ID, reads keys 7/8 and forwards a new Event; model registry population and virtual target at 0x7efce0 remain UNKNOWN.",
             "evidence": _evidence(digest, "ELF_VMA:0x7f0b74", confidence="MEDIUM"),
         },
         {
@@ -652,7 +771,7 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
             "source_vma": hex(0x7F0B44),
             "address_space": ADDRESS_SPACE,
             "status": "UNKNOWN",
-            "reason": "Keys 7 and 8 are inserted by the factory; their receiver-side extraction and selector mapping are not proven.",
+            "reason": "Generic receiver reads key 7 for model lookup and key 8 for the new Event ID; exact ModelCamera registry entry and normalization to action selector remain UNKNOWN.",
             "evidence": _evidence(digest, "ELF_VMA:0x7f0b44", confidence="MEDIUM"),
         },
         {
@@ -702,6 +821,8 @@ def probe_camera_core_chain(
         action_edges, action_observation = _observe_action_path(fp, elf, digest)
         owner_edges, owner_observation = _observe_event_manager_owner(fp, elf, digest)
         provider_observation = _observe_provider_callback_candidate(fp, elf, digest)
+        consumer_edges, consumer_observation = _observe_request_consumer(fp, elf, digest)
+        configured_provider = _observe_config_provider(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
@@ -711,7 +832,7 @@ def probe_camera_core_chain(
     key7_edge["key_literal_vma"] = hex(0x7F0B44)
     key8_edge = _edge("factory.key8", f"EventID:{hex(EVENT_ID)}", "EventParameterKey:8", "CARRIES_PARAMETER", 0x7F0B0C, digest, callsite_vma=0x7F0B60)
     key8_edge["key_literal_vma"] = hex(0x7F0B5C)
-    edges = request_edges + submit_edges + action_edges + owner_edges + [
+    edges = request_edges + submit_edges + action_edges + owner_edges + consumer_edges + [
         event_edge,
         key7_edge,
         key8_edge,
@@ -746,6 +867,8 @@ def probe_camera_core_chain(
             "event_manager": event_manager["observation"],
             "event_manager_owner_setup": owner_observation,
             "event_manager_provider_candidate": provider_observation,
+            "request_consumer": consumer_observation,
+            "configured_provider_candidate": configured_provider,
             "event_id_literal_scan": {
                 "status": "PRIMARY_ELF_VERIFIED",
                 "value": hex(EVENT_ID),
@@ -762,6 +885,7 @@ def probe_camera_core_chain(
             "request_to_factory": "PRIMARY_ELF_VERIFIED",
             "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
             "event_manager_owner_init_push": "PRIMARY_ELF_VERIFIED",
+            "generic_request_consumer_and_keys_7_8": "PRIMARY_ELF_VERIFIED",
             "event_manager_indirect_dispatch_target": "UNKNOWN",
             "event_consumer_model_camera": "UNKNOWN",
             "event_keys_7_8_to_model_camera": "UNKNOWN",
@@ -796,6 +920,15 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
     if verification.get("runtime_verified") is not False or verification.get("callable") is not False or verification.get("safe_to_invoke") is not False:
         errors.append("runtime_or_callable_promotion")
     summary = report.get("chain_summary", {})
+    consumer = report.get("observations", {}).get("request_consumer")
+    if consumer is not None:
+        computed = consumer.get("computed_event_id", {})
+        if computed != {"literal_vma": "0x7ed750", "literal_value": "0x11004005", "subtract": 3, "add": 1, "result": "0x11004003", "compare_vma": "0x7ed4fe", "branch_target": "0x7ed5c8"}:
+            errors.append("consumer_event_id_derivation")
+        if consumer.get("final_dispatch", {}).get("target") != "UNKNOWN":
+            errors.append("consumer_virtual_target_promotion")
+        if not str(consumer.get("model_camera_identity", "")).startswith("UNKNOWN"):
+            errors.append("consumer_model_identity_promotion")
     for key in ("event_manager_indirect_dispatch_target", "event_consumer_model_camera", "event_keys_7_8_to_model_camera", "ee_neutral_receiver_and_completion"):
         if summary.get(key) != "UNKNOWN":
             errors.append(f"unresolved:{key}")
@@ -830,6 +963,18 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
             "event_manager.init.callback_factory": (None, "0x7ef8b0"),
             "event_manager.init.dispatch_state_store": (None, "0x7ef8b2"),
         }
+        if consumer is not None:
+            consumer_targets = {
+                "consumer.loop.model_dispatch": ("0x7ed49c", "0x7eedf0"),
+                "consumer.event_id": (None, "0x7ed4fe"),
+                "consumer.key7": ("0x7ea918", "0x7ed5d4"),
+                "consumer.key8": ("0x7ea918", "0x7ed5ea"),
+                "consumer.model_lookup": ("0x7eb8fa", "0x7ed5fc"),
+                "consumer.model_handoff": ("0x7f124a", "0x7ed650"),
+                "consumer.forward.execute": ("0x7efcca", "0x7f1252"),
+            }
+            errors.extend(f"edge_missing:{item}" for item in sorted(consumer_targets.keys() - present))
+            required_targets.update(consumer_targets)
         for edge in edges:
             if not isinstance(edge, dict):
                 errors.append("edge_not_object")
@@ -839,6 +984,8 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
                     errors.append(f"edge_evidence:{edge.get('id')}")
                 if edge.get("evidence", {}).get("verification_status") != "PRIMARY_ELF_VERIFIED":
                     errors.append(f"edge_provenance:{edge.get('id')}")
+                if edge.get("evidence", {}).get("source_binary_sha256") != expected_sha256 or edge.get("address_space") != ADDRESS_SPACE:
+                    errors.append(f"edge_identity:{edge.get('id')}")
                 if edge.get("id") in required_targets:
                     target_vma, callsite_vma = required_targets[edge["id"]]
                     if edge.get("target_vma") != target_vma:

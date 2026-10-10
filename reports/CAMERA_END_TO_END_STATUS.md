@@ -25,7 +25,7 @@
 | layout initializer → provider vtable slot `+0x30` | `0x7ef8b0` | `PRIMARY_ELF_VERIFIED` |
 | layout initializer → push dispatch state `+0x08` | `0x7ef8b2` | `PRIMARY_ELF_VERIFIED` |
 
-The integrated probe currently emits **21 verified static edges** and **5
+The integrated probe currently emits **28 verified static edges** and **5
 unresolved edges**.  Every verified edge carries the pinned binary hash,
 `ELF_VMA`, source/callsite address, evidence method and verification status.
 
@@ -54,8 +54,8 @@ edge, so the ModelCamera consumer remains `UNKNOWN`.
 
 ## 尚未接通的關鍵邊
 
-- `EventManager::push` invokes a function pointer reached through a state
-  object at `[this + 0x00]` and `[state + 0x08]`; the callback target is
+- `EventManager::push` invokes `[this + 0x08]`, passing
+  `r0=[state + 0x04]` and `r1=Event*`; the callback target is
   unresolved.
 - The owner candidate at `0x7ef254` allocates a `0x24`-byte layout, invokes
   the bounded initializer at `0x7ef894`, stores it at owner `+0x10`, obtains
@@ -67,8 +67,8 @@ edge, so the ModelCamera consumer remains `UNKNOWN`.
   `UNKNOWN`.
 - The optional completion path invokes a callback from `[this + 0x04]`; its
   target and ABI are unresolved.
-- No bounded primary-ELF evidence currently links event ID `0x11004003` to a
-  ModelCamera event consumer or proves receiver-side extraction of keys 7/8.
+- The generic consumer now proves receiver-side extraction of keys 7/8.
+  Its registry entry and actual ModelCamera virtual target remain UNKNOWN.
 - `0x12d780` is called by both request frontends and returns in `r0`, but its
   selector semantics remain `UNKNOWN`.
 - UI/application submission and Camera prepare/action paths are proven static
@@ -103,3 +103,57 @@ The fail-closed camera-chain tests in
 `tests/test_camera_core_chain.py` pass.  They reject binary identity errors,
 missing evidence, callable promotion and promotion of the unresolved
 ModelCamera consumer.  No runtime or hardware test was performed.
+
+## Generic request consumer — current breakthrough
+
+`0x7ed49c` calls `Event::getId` at `0x7ed4aa` and retains the result
+in r6. Literal `0x11004005` at `0x7ed750` is reduced by 3 then increased
+by 1 before comparison at `0x7ed4fe`. Equality branches at `0x7ed502`
+to `0x7ed5c8`. This proves the computed request-ID comparison, rather
+than merely a matching literal or a guessed function name.
+
+| Proven connection | Callsite/dataflow | Grade |
+|---|---|---|
+| Application event router → generic consumer | `0x7eedf0` → `0x7ed49c`, destination bit 2 | PRIMARY_ELF_VERIFIED |
+| Consumer → key 7 lookup | `0x7ed5d4` → `0x7ea918`; word getter `0x7ed5da` | PRIMARY_ELF_VERIFIED |
+| Consumer → key 8 lookup | `0x7ed5ea` → `0x7ea918`; word getter `0x7ed5f2` | PRIMARY_ELF_VERIFIED |
+| key 7 → registry lookup | `0x7ed5fc` → `0x7eb8fa`, r1=model identifier | PRIMARY_ELF_VERIFIED |
+| key 8 → new Event ID | r1=sb at `0x7ed624`, constructor `0x7ed62a` | PRIMARY_ELF_VERIFIED |
+| Registry result/new Event → model forwarder | `0x7ed650` → `0x7f124a`, r0=model, r1=Event | PRIMARY_ELF_VERIFIED |
+| Forwarder → execution candidate | `0x7f1252` → `0x7efcca`, Event store at receiver +0x14 | PRIMARY_ELF_VERIFIED |
+
+Missing key 7 uses `0xffffffff`; missing key 8 leaves zero. A null registry
+result or out-of-range model ID follows another branch. The original
+ParamList passes through copy-constructor candidate `0x7eda9c` before
+`Event::setParamList`; ownership and concurrent aliases remain UNKNOWN.
+
+The other literal regions have EHABI intervals `0x4633a0..0x46344c`
+and `0x46364c..0x4637f4`. Inspected creation/insertion paths are producer
+witnesses. EHABI intervals are boundary metadata, not complete CFG proof.
+
+## Provider source and next missing intersection
+
+Direct caller `0x7ed996` creates the owner on its stack and passes a name
+pointer into BSS at `0x10df828`; its contents are UNKNOWN. `getConfig`
+has local symbol entry `0x106c6c`; `initializeConfig` at `0x106da8`
+creates the object through `0x106c7c`. Both use singleton `0x10a8a9c`.
+Candidate vtable address point `0xfe9b70` has slot +0x30 at `0xfe9ba0`
+pointing to `0x106900`, which returns GOT-relocated callback candidate
+`0x11130c` via `0x1030f6c`. Owner-name selection and runtime symbol
+interposition remain UNKNOWN; this does not resolve the actual push callback.
+
+Next targets: registry population for `0x7eb8fa` (receiver +0x88), the
+returned object's +0x1c pointer used by `0x7f124a`, and state machine
+`0x7efbfe`. It dispatches through TBB and vtable slots +0x0c/+0x08
+before the final +0x18 call at `0x7efce0`. ModelCamera vtable candidates
+alone cannot prove registry identity or delivery to `ActionGpSetSetting`.
+
+Private targeted Ghidra `camera-consumer-chain` exited 0 with
+`COMPLETE_TARGET_EXPORT`: 11 targets, 480 instructions, 107 blocks,
+231 flow references. Language `ARM:LE:32:v8`, image base `0x10000`,
+space `ram`; Auto Analysis was not run. Forced bounded bodies are
+cross-check ranges, not proof of source-level function extents.
+
+Overall status: PARTIAL. Generic request consumption is proven; five
+Camera/provider/normalization links remain unresolved. Fully verified
+callable core APIs: **0**. Raw exports remain private.

@@ -387,6 +387,153 @@
       "note": "The indirect factory result is written to the field later read by EventManager::push at 0x7ef988."
     },
     {
+      "id": "consumer.loop.model_dispatch",
+      "source": "application event router candidate",
+      "target": "request consumer candidate",
+      "target_vma": "0x7ed49c",
+      "source_vma": "0x7eed0c",
+      "callsite_vma": "0x7eedf0",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eedf0",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Conditional on Event destination bit 2; owner +4 supplies receiver."
+    },
+    {
+      "id": "consumer.event_id",
+      "source": "request consumer candidate",
+      "target": "EventID:0x11004003",
+      "target_vma": null,
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed4fe",
+      "relation": "HANDLES_EVENT",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed4fe",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Literal 0x11004005 at 0x7ed750 minus 3 plus 1; equal branch reaches 0x7ed5c8."
+    },
+    {
+      "id": "consumer.key7",
+      "source": "request consumer candidate",
+      "target": "EventParameterKey:7",
+      "target_vma": "0x7ea918",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed5d4",
+      "relation": "READS_PARAMETER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed5d4",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "consumer.key8",
+      "source": "request consumer candidate",
+      "target": "EventParameterKey:8",
+      "target_vma": "0x7ea918",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed5ea",
+      "relation": "READS_PARAMETER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed5ea",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "consumer.model_lookup",
+      "source": "request consumer candidate",
+      "target": "model registry lookup candidate",
+      "target_vma": "0x7eb8fa",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed5fc",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed5fc",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "r1 contains key 7 payload; dynamic registry entry identity UNKNOWN."
+    },
+    {
+      "id": "consumer.model_handoff",
+      "source": "request consumer candidate",
+      "target": "model event forwarder candidate",
+      "target_vma": "0x7f124a",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed650",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed650",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "r0=registry result; r1=new Event whose ID comes from key 8."
+    },
+    {
+      "id": "consumer.forward.execute",
+      "source": "model event forwarder candidate",
+      "target": "model execution candidate",
+      "target_vma": "0x7efcca",
+      "source_vma": "0x7f124a",
+      "callsite_vma": "0x7f1252",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f1252",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
       "id": "factory.event_id",
       "source": "AbstractUtilityManager::createRequestModelExecuteEvent",
       "target": "EventID:0x11004003",
@@ -463,7 +610,7 @@
       "source_vma": "0x7ef988",
       "address_space": "ELF_VMA",
       "status": "UNKNOWN",
-      "reason": "The body loads [this + 0x00] then invokes a function pointer from [state + 0x08]; no unique callback target is proven by the current bounded evidence.",
+      "reason": "The body invokes [this + 0x08] with r0=[state + 0x04], r1=Event*; provider selection is not uniquely proven.",
       "evidence": {
         "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
         "source_locator": "ELF_VMA:0x7ef988",
@@ -499,7 +646,7 @@
       "source_vma": "0x7f0b74",
       "address_space": "ELF_VMA",
       "status": "UNKNOWN",
-      "reason": "The factory proves event creation and keys 7/8, but no event-ID compare and receiver function linking this ID to ModelCamera has been found in the bounded primary-ELF pass.",
+      "reason": "Generic consumer 0x7ed49c handles this ID, reads keys 7/8 and forwards a new Event; model registry population and virtual target at 0x7efce0 remain UNKNOWN.",
       "evidence": {
         "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
         "source_locator": "ELF_VMA:0x7f0b74",
@@ -517,7 +664,7 @@
       "source_vma": "0x7f0b44",
       "address_space": "ELF_VMA",
       "status": "UNKNOWN",
-      "reason": "Keys 7 and 8 are inserted by the factory; their receiver-side extraction and selector mapping are not proven.",
+      "reason": "Generic receiver reads key 7 for model lookup and key 8 for the new Event ID; exact ModelCamera registry entry and normalization to action selector remain UNKNOWN.",
       "evidence": {
         "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
         "source_locator": "ELF_VMA:0x7f0b44",
@@ -734,6 +881,138 @@
       "runtime_verified": false,
       "callable": false
     },
+    "request_consumer": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0x7ed49c",
+      "computed_event_id": {
+        "literal_vma": "0x7ed750",
+        "literal_value": "0x11004005",
+        "subtract": 3,
+        "add": 1,
+        "result": "0x11004003",
+        "compare_vma": "0x7ed4fe",
+        "branch_target": "0x7ed5c8"
+      },
+      "input": {
+        "r0": "router owner +4 receiver candidate",
+        "r1": "Event pointer retained in r5"
+      },
+      "parameters": {
+        "7": {
+          "query_callsite": "0x7ed5d4",
+          "word_getter": "0x7ed5da",
+          "destination": "model registry lookup r1",
+          "missing": "0xffffffff"
+        },
+        "8": {
+          "query_callsite": "0x7ed5ea",
+          "word_getter": "0x7ed5f2",
+          "destination": "new Event constructor r1",
+          "missing": "zero"
+        }
+      },
+      "paramlist": "original Event getParamList result copied via 0x7eda9c then passed to Event::setParamList; ownership and concurrent aliases UNKNOWN",
+      "final_dispatch": {
+        "entry_vma": "0x7efcca",
+        "event_store": "receiver +0x14 at 0x7efcd0",
+        "vtable_slot": "+0x18",
+        "callsite_vma": "0x7efce0",
+        "target": "UNKNOWN"
+      },
+      "model_camera_identity": "UNKNOWN; registry population and +0x18 virtual target are not proven",
+      "bindings": {
+        "get_id": {
+          "entry_vma": "0xdbafc",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102ce18",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZNK5Event5getIdEv",
+              "symbol_value": "0xfe9cd",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "event_constructor": {
+          "entry_vma": "0xdb66c",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102ccac",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZN5EventC1Emhh",
+              "symbol_value": "0x7f17f9",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "get_paramlist": {
+          "entry_vma": "0xdbd20",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102cec8",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZNK5Event12getParamListEv",
+              "symbol_value": "0xfe9d5",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "set_paramlist": {
+          "entry_vma": "0xde3a4",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102daf0",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZN5Event12setParamListEP9ParamList",
+              "symbol_value": "0x7f1877",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        }
+      },
+      "runtime_verified": false,
+      "callable": false
+    },
+    "configured_provider_candidate": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "owner_callsite": "0x7ed996",
+      "owner_entry": "0x7ef254",
+      "owner_storage": "stack receiver in r7",
+      "name_source": "0x10df828 (BSS); contents and selected branch UNKNOWN",
+      "get_config_entry": "0x106c6c",
+      "initialize_config_entry": "0x106da8",
+      "singleton_address": "0x10a8a9c",
+      "constructor_entry": "0x106c7c",
+      "vtable_address_point": "0xfe9b70",
+      "slot_plus_0x30": "0xfe9ba0",
+      "slot_method": "0x106900",
+      "callback_got": "0x1030f6c",
+      "callback_candidate": "0x11130c",
+      "selection": "UNKNOWN; named BSS input is not statically initialized in this batch",
+      "runtime_loader_binding": "UNKNOWN; GLOB_DAT getConfig can be interposed",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed996,0x106c72,0x106dbc,0xfe9ba0,0x1030f6c",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "runtime_verified": false,
+      "callable": false
+    },
     "event_id_literal_scan": {
       "status": "PRIMARY_ELF_VERIFIED",
       "value": "0x11004003",
@@ -768,6 +1047,7 @@
     "request_to_factory": "PRIMARY_ELF_VERIFIED",
     "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
     "event_manager_owner_init_push": "PRIMARY_ELF_VERIFIED",
+    "generic_request_consumer_and_keys_7_8": "PRIMARY_ELF_VERIFIED",
     "event_manager_indirect_dispatch_target": "UNKNOWN",
     "event_consumer_model_camera": "UNKNOWN",
     "event_keys_7_8_to_model_camera": "UNKNOWN",
@@ -825,5 +1105,21 @@
       "label": "ModelCamera event consumer",
       "status": "UNKNOWN"
     }
-  ]
+  ],
+  "consumer_ghidra_crosscheck": {
+    "version": "12.1.3",
+    "profile": "camera-consumer-chain",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "language": "ARM:LE:32:v8",
+    "process_exit": 0,
+    "completion_marker": "COMPLETE_TARGET_EXPORT",
+    "auto_analysis_completed": false,
+    "raw_export_private": true,
+    "target_count": 11,
+    "instruction_count": 480,
+    "block_count": 107,
+    "flow_edge_count": 231
+  }
 }
