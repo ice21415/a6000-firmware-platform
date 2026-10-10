@@ -91,12 +91,30 @@ def probe_event_manager_callback(path: Path, *, expected_sha256: str = EXPECTED_
 
 def validate_event_manager_callback(result: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    if result.get("status") != "PRIMARY_ELF_RELOCATION_STATIC":
+        errors.append("status")
     if result.get("address_space") != "ELF_VMA":
         errors.append("address_space")
+    if result.get("slot_vma") != hex(CALLBACK_SLOT):
+        errors.append("callback_slot")
+    if result.get("relocation") != "R_ARM_RELATIVE":
+        errors.append("relocation")
+    if result.get("stored_thumb_value") != "0x7eeb25":
+        errors.append("stored callback pointer")
     if result.get("verification") != "STATIC_INFERRED":
         errors.append("verification_promotion")
     if result.get("callback_entry_vma") != hex(CALLBACK_ENTRY):
         errors.append("callback_target")
+    if result.get("consumer_callsite") != "0x7ef9ce":
+        errors.append("completion callsite")
+    instructions = result.get("instructions")
+    if not isinstance(instructions, list) or not instructions:
+        errors.append("missing callback instruction evidence")
+    else:
+        first = instructions[0]
+        if (not isinstance(first, dict) or first.get("instruction_vma") != hex(CALLBACK_ENTRY)
+                or first.get("mnemonic") != "push"):
+            errors.append("callback instruction mismatch")
     if result.get("runtime_verified") is not False:
         errors.append("runtime_promotion")
     return errors

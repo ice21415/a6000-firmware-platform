@@ -1652,3 +1652,13 @@ error/termination path and is not a ModelCamera consumer. Main dispatch
 runtime/safe-callable APIs remain UNKNOWN/false. The progress contract is now
 39 primary, 7 static-inferred and 5 unresolved edges. Tests pass; no device or
 firmware execution was performed.
+## Phase 4.9 checkpoint
+
+Verified on the private SHA-pinned `libObj.so` (`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`):
+
+- `0x7ef988` performs an unresolved indirect main dispatch with static ABI `callback([state + 0x04], Event*)`.
+- `0x7ef9ce` is gated by nonzero input flag and invokes the completion pointer stored at `EventManager +0x04`; the relocation-backed pointer `0x1031894 -> 0x7eeb24` is an error/termination candidate, not a ModelCamera consumer.
+- Loader helper entries `0xe0cec` and `0xdfed0` are ARM three-instruction veneers. Their binding to imported `dlopen`/`dlsym` remains UNKNOWN.
+- Loader post-factory path is statically verified: `0x7f120e` reads instance vtable `+0x28`, `0x7f1210` invokes it, and null results branch to cleanup `0x7f117a`.
+
+The validators now reject empty/fabricated fact dictionaries, wrong instruction operands, missing callback relocation evidence, and runtime/callable promotion. Core counts remain 39 PRIMARY, 7 inferred, 5 unresolved; runtime verified and safe-to-invoke APIs remain zero.

@@ -36,3 +36,19 @@ initializer at `0x7ec91c`.  Null handle, symbol, dlsym result and factory
 result branches are retained as failure paths.  These facts establish the
 loader dataflow only.  The selected runtime DSO, registry key-to-instance
 mapping and ModelCamera vtable identity remain `UNKNOWN`.
+
+## Phase 4.9 helper veneer audit
+
+The exact SHA-pinned bytes at `0xe0cec` and `0xdfed0` decode as ARM-mode
+three-instruction veneers (`add ip,pc`, `add ip,ip`, `ldr pc,[ip,#imm]!`).
+They are not Thumb function bodies and the bounded probe now records their
+mode and instruction evidence. Their computed indirect table destinations do
+not, by themselves, identify the `dlopen`/`dlsym` imports; the helper-to-import
+binding remains `UNKNOWN`. This narrows the loader hypothesis without proving
+runtime DSO identity.
+
+The same bounded decode also verifies the post-factory path: `0x7f11d2`
+loads `0x101` into `r1` before the loader helper, `0x7f120e` reads the
+returned instance vtable slot `+0x28`, and `0x7f1210` invokes it. A null
+factory result branches to cleanup at `0x7f1238`; the cleanup helper is
+therefore not evidence that the factory object was a particular runtime DSO.

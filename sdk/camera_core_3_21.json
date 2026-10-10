@@ -1705,5 +1705,39 @@
     "verification": "STATIC_INFERRED",
     "semantic_identity": "error/termination callback candidate; not a ModelCamera consumer",
     "runtime_verified": false
+  },
+  "phase4_9_static_evidence": {
+    "loader_helpers": {
+      "loader_helper": {
+        "entry_vma": "0xe0cec",
+        "address_space": "ELF_VMA",
+        "instruction_mode": "ARM",
+        "veneer_shape": "add ip,pc; add ip,ip; ldr pc,[ip,#imm]!",
+        "import_binding": "UNKNOWN"
+      },
+      "symbol_resolver_helper": {
+        "entry_vma": "0xdfed0",
+        "address_space": "ELF_VMA",
+        "instruction_mode": "ARM",
+        "veneer_shape": "add ip,pc; add ip,ip; ldr pc,[ip,#imm]!",
+        "import_binding": "UNKNOWN"
+      }
+    },
+    "post_factory": {
+      "flag_load": "0x7f11d2 loads r1=0x101",
+      "vtable_slot_load": "0x7f120e reads returned instance vtable +0x28",
+      "virtual_call": "0x7f1210 blx r3",
+      "null_cleanup": "0x7f1238 -> 0x7f117a",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "runtime_dso_identity": "UNKNOWN"
+    },
+    "main_dispatch": {
+      "callsite": "0x7ef988",
+      "abi": "callback([state + 0x04], Event*)",
+      "pointer_producer": "provider vtable +0x30 return at 0x7ef8b0",
+      "provider_getter": "runtime-initialized BSS function pointer; target UNKNOWN",
+      "target": "UNKNOWN",
+      "completion_callback": "0x7eeb24 STATIC_INFERRED; error/termination candidate"
+    }
   }
 }

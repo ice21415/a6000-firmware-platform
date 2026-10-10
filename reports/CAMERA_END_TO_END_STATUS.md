@@ -282,3 +282,21 @@ search of the authorized extracted filesystem found no separate
 `modelCamera.so` file. This excludes one candidate file but does not prove the
 runtime DSO alias, loader selection, or registry instance identity. Graph
 counts remain 39 primary, 5 inferred and 5 unresolved.
+
+## Phase 4.9 evidence integrity checkpoint
+
+The loader helper probe now verifies the ARM veneer bytes at `0xe0cec` and
+`0xdfed0` and rejects fabricated or operand-mismatched fact records. The
+EventManager completion callback validator likewise requires the relocation,
+stored Thumb pointer, callsite and first callback instruction. Main dispatch
+at `0x7ef988` remains an unresolved indirect target; the completion pointer at
+`0x7eeb24` is retained only as a static error/termination candidate and is not
+classified as a ModelCamera consumer. Counts remain 39 primary, 7 inferred,
+5 unresolved; runtime-verified and safe-to-invoke APIs remain zero.
+
+The bounded provider audit additionally confirms the main dispatch ABI:
+`EventManager::push` passes `callback([state + 0x04], Event*)`. The pointer is
+returned by provider vtable slot `+0x30` at initializer `0x7ef8b0` and stored
+at `EventManager +0x08`; the provider getter itself uses a runtime-initialized
+BSS function pointer, so no unique callback implementation can be claimed
+from this ELF alone. This is a narrowed UNKNOWN edge, not a ModelCamera edge.
