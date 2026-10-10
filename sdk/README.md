@@ -1260,3 +1260,32 @@ external `InputService::getInputEventStatus` and the ELF-VMA GOT/PLT references
 (`0x1ae5c8` / `0x3d434`). The raw export is intentionally not published;
 these records are static evidence only and do not make the interface runtime
 verified or callable.
+
+## ParamList cross-ELF profile
+
+`fwplatform.paramlist_cross_elf` composes the generic import scanner for the
+three core ParamList symbols used by the 3.21 descriptive ABI: `add`, the
+const `get` and the deleting destructor. The private official-root scan
+considered 511 ELF files and recorded 27, 29 and 30 importers respectively
+(32 distinct source binaries across the union). The provider exports are
+`0x7ee0e7`/48 bytes, `0x7edacb`/76 bytes and `0x7edd09`/46 bytes in the
+authenticated `libObj.so`; odd values retain the Thumb symbol tag.
+
+The checked-in metadata is `sdk/paramlist_cross_elf_3_21.json`. It contains
+only SHA-256 identities, relative paths, ELF-VMA relocations, PLT/GOT
+addresses and sanitized Ghidra metadata. It does not contain firmware bytes.
+Provider selection remains `STATIC_INFERRED`: importer DT_NEEDED lists do not
+prove that the dynamic loader binds to this `libObj.so`. Empty direct BL/BLX
+results are `UNKNOWN` coverage, not unused proofs. Runtime and callable flags
+remain false.
+
+Run the reusable profile against an explicitly supplied private root:
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf-set --root C:\private\firmware-root --provider-elf C:\private\libObj.so --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+The optional repeated `--symbol` argument replaces the profile symbol set;
+the low-level analyzer remains independent of Sony symbol names. A symbol
+import, relocation and PLT/GOT record establish linkage evidence only; they
+do not establish C++ ownership, return semantics or a safe live wrapper.

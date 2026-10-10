@@ -738,6 +738,20 @@ remain false.
 python -m fwplatform.cli sdk parameter-cross-elf --root <private-root> --provider-elf <private-libObj.so> --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
 ```
 
+The ParamList profile `fwplatform/paramlist_cross_elf.py` composes that
+generic scanner for the 3.21 `add`, const `get` and deleting-destructor
+symbols. The private root scan considered 511 ELF files and found 27, 29 and
+30 importers (32 distinct source binaries in the union). The sanitized
+contract is `sdk/paramlist_cross_elf_3_21.json`; it has 86 import observations
+with SHA-256, relative path, ELF-VMA relocation and PLT/GOT evidence, plus a
+metadata-only Ghidra cross-check for `viewUnified4.so`. The provider export
+VMAs retain their Thumb tags: `0x7ee0e7` (add), `0x7edacb` (get) and
+`0x7edd09` (D1 destructor). These are linkage facts, not proof of loader
+binding, source-level ownership or a callable API. Use
+`fw sdk parameter-cross-elf-set --root <private-root> --provider-elf
+<private-libObj.so> --provider-sha256 <sha256> --json`; repeat `--symbol` to
+run the same generic engine with another symbol set.
+
 The private `viewUnified4.so` Ghidra 12.1.3 cross-check completed with exit
 0 using `ARM:LE:32:v8`, image base `0x10000` and `ram` address space. Ghidra's
 exact mangled-name lookup is recorded as `UNRESOLVED`; a wildcard lookup found

@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — ParamList cross-ELF profile
+
+- Added the reusable `fwplatform.paramlist_cross_elf` profile and
+  `fw sdk parameter-cross-elf-set`. It composes the generic exact-symbol
+  import scanner for ParamList `add`, const `get` and deleting-destructor
+  symbols; the generic scanner remains free of Sony-specific constants.
+- Added `sdk/paramlist_cross_elf_3_21.json` with 86 sanitized import
+  observations from the private 3.21 root (27/29/30 importers; 32 distinct
+  source binaries), provider Thumb-tagged export VMAs and a metadata-only
+  Ghidra cross-check. No firmware bytes, private absolute paths, runtime
+  claims or callable wrapper were added.
+- Added seven fail-closed regression tests for profile identity, custom symbol
+  sets, Ghidra provenance, duplicate/mismatched providers and unsafe status
+  promotion. Runtime-verified and callable API counts remain 0.
+
 ## Unreleased — EventManager::count static ABI evidence
 
 - Added the SHA-pinned `fwplatform.event_manager_count_probe` and

@@ -1531,3 +1531,41 @@ cross-check identity and runtime/callable promotion rejection. The latest
 full local suite passes **401 tests**; this count measures evidence-gate
 behavior only and does not increase the runtime-verified or callable API
 counts.
+
+## ParamList cross-ELF ownership boundary — 2026-10-10
+
+The new profile `fwplatform.paramlist_cross_elf` composes the generic
+symbol-parameterized scanner for `_ZN9ParamList3addEmP9ParamBase`,
+`_ZNK9ParamList3getEmm` and `_ZN9ParamListD1Ev`. The authenticated private
+3.21 root contained 511 ELF files. It yielded 27, 29 and 30 exact importers
+respectively, with 32 distinct source binaries in the union. The provider
+exports in the SHA-pinned `libObj.so` are Thumb-tagged values `0x7ee0e7`
+(48 bytes), `0x7edacb` (76 bytes) and `0x7edd09` (46 bytes).
+
+Each observation has an exact undefined `.dynsym` symbol,
+`R_ARM_JUMP_SLOT` relocation and ARM/Thumb PLT/GOT metadata. Those facts are
+`PRIMARY_ELF_VERIFIED`; provider selection is only `STATIC_INFERRED` because
+the importer DT_NEEDED lists do not establish the runtime loader search path.
+The bounded direct-immediate scan has no caller rows for this profile. That is
+`UNKNOWN` dispatch coverage, not an unused proof: register/GOT/vtable and
+other indirect paths remain unresolved. The union has 86 import observations
+and the checked-in metadata is `sdk/paramlist_cross_elf_3_21.json`.
+
+One private Ghidra 12.1.3 run on `viewUnified4.so` exited 0 with
+`ARM:LE:32:v8`, image base `0x10000`, compiler spec `default` and `ram`
+address space. The metadata-only export mapped the add/get/destructor
+external symbols to Ghidra addresses `0x1cc990`, `0x1ccab4` and `0x1ccad0`,
+with ELF-VMA GOT data references `0x1ae37c`, `0x1ae47c` and `0x1ae494`.
+Ghidra did not recover a containing caller for those data references, so the
+caller status remains `UNRESOLVED`; no source caller is claimed. The raw
+JSONL/project remains private.
+
+The reusable command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf-set --root C:\private\firmware-root --provider-elf C:\private\libObj.so --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+The profile has seven synthetic regression tests. It preserves
+`runtime_verified=false` and `callable=false`; no SDK declaration is promoted
+to a safe live wrapper.

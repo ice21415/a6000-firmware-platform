@@ -1092,3 +1092,38 @@ space translation; it does not prove a source caller, loader binding, runtime
 execution, or callable ABI. The raw Ghidra JSONL and project remain private.
 The cross-ELF validator has nine synthetic checks, and the latest complete
 local suite passes 401 tests; these are evidence-gate results only.
+
+## Latest continuation checkpoint — ParamList cross-ELF profile (2026-10-10)
+
+The generic `fwplatform.cross_elf_import_probe` is now composed by
+`fwplatform.paramlist_cross_elf` for the three core ParamList symbols:
+`_ZN9ParamList3addEmP9ParamBase`, `_ZNK9ParamList3getEmm` and
+`_ZN9ParamListD1Ev`. This is a profile adapter; the low-level scanner still
+accepts arbitrary symbols and contains no Sony-specific constants.
+
+The exact SHA-pinned private official root was scanned read-only (511 ELF
+files). The three symbol reports contain 27, 29 and 30 importers, with 32
+distinct source binaries in the union and 86 observations total. The provider
+exports in the authenticated `libObj.so` are `0x7ee0e7`/48 bytes,
+`0x7edacb`/76 bytes and `0x7edd09`/46 bytes; the odd values preserve the
+Thumb tags. Every observation has `.dynsym` undefined-symbol, `R_ARM_JUMP_SLOT`
+relocation and PLT/GOT evidence. Provider selection is `STATIC_INFERRED`;
+runtime loader binding, direct caller coverage, C++ ownership and live ABI
+remain unknown.
+
+The sanitized public contract is `sdk/paramlist_cross_elf_3_21.json` and the
+profile command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf-set --root <private-root> --provider-elf <private-libObj.so> --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+The contract also contains a metadata-only private Ghidra 12.1.3 check for
+`viewUnified4.so`: process exit 0, `ARM:LE:32:v8`, image base `0x10000`, and
+GOT data references at ELF VMA `0x1ae37c`, `0x1ae47c` and `0x1ae494` for add,
+get and D1. Ghidra did not identify a containing caller for those data
+references; this is explicitly `UNRESOLVED` and is not a negative proof.
+Raw JSONL and project files remain private. Seven new fail-closed synthetic
+tests cover profile identity, empty custom symbol sets, Ghidra provenance,
+provider mismatch, duplicate symbols and runtime promotion. Runtime-verified
+and callable API counts remain zero.

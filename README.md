@@ -134,6 +134,19 @@ python -m fwplatform.cli --db C:\private\firmware-copy.db analyze ghidra-batch -
 之外。此功能完全離線，不會寫入相機，也不代表完成整個 firmware 的 ABI、
 OSAL/JNI 或相機控制協定還原。
 
+核心 ParamList 的跨 ELF 證據可用 profile 指令重跑。它只保存精確
+`.dynsym` import、`R_ARM_JUMP_SLOT`、PLT/GOT 和私有 Ghidra 的 metadata；
+不會公開韌體 bytes，也不把 loader binding、C++ ownership 或 ABI 安全性
+當成已確認：
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf-set --root C:\private\firmware-root --provider-elf C:\private\libObj.so --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+公開的去識別化結果在
+[`sdk/paramlist_cross_elf_3_21.json`](sdk/paramlist_cross_elf_3_21.json)，
+其中 `runtime_verified` 和 `callable` 維持 `false`。
+
 ## Phase 3.10：Camera、Lens、Sensor 核心 API 靜態調查
 
 `sdk investigate` 在本地證據資料庫中將 ELF 函式候選與**直接 function ID**
