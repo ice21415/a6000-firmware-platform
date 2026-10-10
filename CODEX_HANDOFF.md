@@ -1554,3 +1554,33 @@ handoff to an event relation.
 The seven new fail-closed tests and the complete local suite (**496 tests**)
 pass. A direct CLI run against the authorized private ELF returned the pinned
 SHA, `osal_wai_sem_tmo`, and the application helper target `0x7f099c`.
+
+## Latest continuation checkpoint -- Camera Core request/event/action batch (2026-10-10)
+
+The new reusable bounded probe `fwplatform/camera_core_chain.py` authenticates
+the same private `libObj.so` SHA before reading Thumb instructions. It joins
+the two request frontends, factory `0x7f0b0c`, View submission helper,
+`EventManager::push`, and the independently verified ModelCamera action arm.
+The primary-ELF run produced 16 static edges and 5 unresolved edges. The
+verified edges include factory calls at `0x121098`/`0x1250ee`, the View
+submission and EventManager thunk at `0x7f25ec`, event `0x11004003` with keys
+7/8, selector `0x0f01` to `0x4cf7a8`, and the action-init calls to
+`0x4b1a20`/`0x4b096c`.
+
+The sanitized public contract is `sdk/camera_core_3_21.json`, the descriptive
+header is `sdk/camera_core_3_21.hpp`, and the concise current status is
+`reports/CAMERA_END_TO_END_STATUS.md`. The new CLI command is:
+
+```powershell
+python -m fwplatform.cli sdk camera-core-chain --elf C:\private\libObj.so --json
+```
+
+The EventManager indirect callback, completion callback, event consumer for
+`0x11004003`, receiver-side key 7/8 decoding, selector transform semantics,
+runtime verification and callable SDK status remain UNKNOWN/false. The
+private ASCII-path Ghidra 12.1.3 `camera-request-chain` profile exited 0 with
+`COMPLETE_TARGET_EXPORT`: 12 targets, 324 instructions, 26 blocks and 97
+CFG/flow edges. It is targeted metadata export only;
+`auto_analysis_completed=false` remains explicit and raw output stays private.
+Six synthetic fail-closed tests cover identity, evidence, and promotion
+guards. No device or firmware execution was performed.

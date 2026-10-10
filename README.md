@@ -340,6 +340,30 @@ metadata cross-checking; raw firmware-derived output is not public. The
 contract also records a third gate at `0x7f2238` and helper `0x7f0aac`; its
 final `blx r3` remains an unresolved callback candidate.
 
+### Camera Core request/event/action chain
+
+The integrated bounded probe
+[`fwplatform/camera_core_chain.py`](fwplatform/camera_core_chain.py) joins
+the two model-request frontends, request Event factory, View submission
+helper, EventManager push and the independently evidenced ModelCamera
+selector arm. Its sanitized contract is
+[`sdk/camera_core_3_21.json`](sdk/camera_core_3_21.json), with descriptive
+register and field observations in
+[`sdk/camera_core_3_21.hpp`](sdk/camera_core_3_21.hpp). Run it only against
+the authorized private ELF:
+
+```powershell
+python -m fwplatform.cli sdk camera-core-chain --elf C:\private\libObj.so --json
+```
+
+The current primary-ELF batch records 16 static edges and five explicit
+unresolved edges. It verifies event `0x11004003`, factory keys 7/8, the
+EventManager submission thunk and selector `0x0f01` to `pvt_ActionSetInit`,
+but does not claim the indirect callback target, the ModelCamera event
+consumer, receiver-side key decoding, runtime readiness or a callable SDK.
+See [`reports/CAMERA_END_TO_END_STATUS.md`](reports/CAMERA_END_TO_END_STATUS.md)
+for the current single-source status.
+
 ## 參與開發
 
 請先閱讀 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md) 和

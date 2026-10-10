@@ -1,0 +1,589 @@
+{
+  "schema_version": 1,
+  "contract_kind": "DESCRIPTIVE_CAMERA_CORE_STATIC_CHAIN",
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "source_scope": "Sanitized relation metadata from the authorized private primary ELF; no firmware bytes, decompiler text, or private database included.",
+  "proof_policy": "PRIMARY_ELF_VERIFIED does not imply runtime safety or callable ABI.",
+  "verified_edges": [
+    {
+      "id": "request.viewbase.factory",
+      "source": "ViewBase::requestModelExecute",
+      "target": "AbstractUtilityManager::createRequestModelExecuteEvent",
+      "target_vma": "0x7f0b0c",
+      "source_vma": "0x12106e",
+      "callsite_vma": "0x121098",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x121098",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "request.viewmanager.factory",
+      "source": "viewManagerIf::requestModelExecute",
+      "target": "AbstractUtilityManager::createRequestModelExecuteEvent",
+      "target_vma": "0x7f0b0c",
+      "source_vma": "0x1250c0",
+      "callsite_vma": "0x1250ee",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x1250ee",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "request.viewbase.submit",
+      "source": "ViewBase::requestModelExecute",
+      "target": "View::requestApplicationExecute",
+      "target_vma": "0x7f1b0c",
+      "source_vma": "0x12106e",
+      "callsite_vma": "0x1210a4",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x1210a4",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "request.viewmanager.submit_helper",
+      "source": "viewManagerIf::requestModelExecute",
+      "target": "viewManagerIf::requestModelExecute.submit_helper",
+      "target_vma": "0x125084",
+      "source_vma": "0x1250c0",
+      "callsite_vma": "0x1250f6",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x1250f6",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "request.helper.submit",
+      "source": "viewManagerIf::requestModelExecute.submit_helper",
+      "target": "EventManager::push",
+      "target_vma": "0x7ef960",
+      "source_vma": "0x125084",
+      "callsite_vma": "0x1250b4",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x1250b4",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The helper loads an opaque receiver from a global indirection before the push thunk."
+    },
+    {
+      "id": "submit.app.add_parameter",
+      "source": "View::requestApplicationExecute",
+      "target": "Event::addParameter",
+      "target_vma": "0xdd194",
+      "source_vma": "0x7f1b0c",
+      "callsite_vma": "0x7f1b2a",
+      "relation": "ADDS_PARAMETER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f1b2a",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Key 6 is added by the application submitter; it is distinct from request keys 7 and 8."
+    },
+    {
+      "id": "submit.app.push_helper",
+      "source": "View::requestApplicationExecute",
+      "target": "View::submit_event_helper",
+      "target_vma": "0x7f25e0",
+      "source_vma": "0x7f1b0c",
+      "callsite_vma": "0x7f1b36",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f1b36",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "submit.push_event.push_helper",
+      "source": "View::pushEvent",
+      "target": "View::submit_event_helper",
+      "target_vma": "0x7f25e0",
+      "source_vma": "0x7f1b68",
+      "callsite_vma": "0x7f1b72",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f1b72",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "submit.helper.event_manager",
+      "source": "View::submit_event_helper",
+      "target": "EventManager::push",
+      "target_vma": "0x7ef960",
+      "source_vma": "0x7f25e0",
+      "callsite_vma": "0x7f25ec",
+      "relation": "TAIL_BRANCH",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f25ec",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "r2 is set to 1; the receiver is loaded from the helper input +0x10."
+    },
+    {
+      "id": "camera.action.selector_0f01",
+      "source": "ModelCamera::ActionGpSetSetting",
+      "target": "ModelCamera::pvt_ActionSetInit",
+      "target_vma": "0x4cf7a8",
+      "source_vma": "0x4cfb9c",
+      "callsite_vma": "0x4cfe98",
+      "relation": "DISPATCHES_SELECTOR",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x4cfe98",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The dispatch arm compares a register against 0x0f01 and passes r4 as r1."
+    },
+    {
+      "id": "camera.action.init.neutral",
+      "source": "ModelCamera::pvt_ActionSetInit",
+      "target": "ModelCamera::pvt_ExeEENeutralCmd",
+      "target_vma": "0x4b1a20",
+      "source_vma": "0x4cf7a8",
+      "callsite_vma": "0x4cf814",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x4cf814",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "camera.action.init.prepchk",
+      "source": "ModelCamera::pvt_ActionSetInit",
+      "target": "ModelCamera::PrepChk",
+      "target_vma": "0x4b096c",
+      "source_vma": "0x4cf7a8",
+      "callsite_vma": "0x4cf81a",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x4cf81a",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": ""
+    },
+    {
+      "id": "camera.neutral.sender",
+      "source": "ModelCamera::pvt_ExeEENeutralCmd",
+      "target": "ModelCamera::EE_neutral_sender_candidate",
+      "target_vma": "0x443d14",
+      "source_vma": "0x4b1a20",
+      "callsite_vma": "0x4b1a42",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x4b1a42",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Sender identity and completion receiver remain unresolved."
+    },
+    {
+      "id": "factory.event_id",
+      "source": "AbstractUtilityManager::createRequestModelExecuteEvent",
+      "target": "EventID:0x11004003",
+      "target_vma": null,
+      "source_vma": "0x7f0b0c",
+      "callsite_vma": "0x7f0b1e",
+      "relation": "CREATES_EVENT",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f0b1e",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "The target is an event value, not a code address or VMA.",
+      "target_value": "0x11004003",
+      "literal_vma": "0x7f0b74"
+    },
+    {
+      "id": "factory.key7",
+      "source": "EventID:0x11004003",
+      "target": "EventParameterKey:7",
+      "target_vma": null,
+      "source_vma": "0x7f0b0c",
+      "callsite_vma": "0x7f0b48",
+      "relation": "CARRIES_PARAMETER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f0b48",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "",
+      "key_literal_vma": "0x7f0b44"
+    },
+    {
+      "id": "factory.key8",
+      "source": "EventID:0x11004003",
+      "target": "EventParameterKey:8",
+      "target_vma": null,
+      "source_vma": "0x7f0b0c",
+      "callsite_vma": "0x7f0b60",
+      "relation": "CARRIES_PARAMETER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f0b60",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "",
+      "key_literal_vma": "0x7f0b5c"
+    }
+  ],
+  "unresolved_edges": [
+    {
+      "id": "event_manager.dispatch_target",
+      "source": "EventManager::push",
+      "candidate_target": null,
+      "relation": "DISPATCHES_EVENT",
+      "source_vma": "0x7ef988",
+      "address_space": "ELF_VMA",
+      "status": "UNKNOWN",
+      "reason": "The body loads [this + 0x00] then invokes a function pointer from [state + 0x08]; no unique callback target is proven by the current bounded evidence.",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef988",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "MEDIUM"
+      }
+    },
+    {
+      "id": "event_manager.completion_target",
+      "source": "EventManager::push",
+      "candidate_target": null,
+      "relation": "COMPLETES_EVENT",
+      "source_vma": "0x7ef9ce",
+      "address_space": "ELF_VMA",
+      "status": "UNKNOWN",
+      "reason": "The nonzero incoming flag selects an indirect callback from [this + 0x04]; callback identity and ABI are unresolved.",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef9ce",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "MEDIUM"
+      }
+    },
+    {
+      "id": "event.consumer.model_camera",
+      "source": "EventID:0x11004003",
+      "candidate_target": "ModelCamera event consumer",
+      "relation": "CONSUMED_BY",
+      "source_vma": "0x7f0b74",
+      "address_space": "ELF_VMA",
+      "status": "UNKNOWN",
+      "reason": "The factory proves event creation and keys 7/8, but no event-ID compare and receiver function linking this ID to ModelCamera has been found in the bounded primary-ELF pass.",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f0b74",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "MEDIUM"
+      }
+    },
+    {
+      "id": "event.keys.model_camera",
+      "source": "EventID:0x11004003",
+      "candidate_target": "ModelCamera selector/action parser",
+      "relation": "PARSes_KEYS",
+      "source_vma": "0x7f0b44",
+      "address_space": "ELF_VMA",
+      "status": "UNKNOWN",
+      "reason": "Keys 7 and 8 are inserted by the factory; their receiver-side extraction and selector mapping are not proven.",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f0b44",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "MEDIUM"
+      }
+    },
+    {
+      "id": "request.selector_transform.semantic",
+      "source": "selector transform 0x12d780",
+      "candidate_target": null,
+      "relation": "TRANSFORMS_SELECTOR",
+      "source_vma": "0x12d780",
+      "address_space": "ELF_VMA",
+      "status": "UNKNOWN",
+      "reason": "Both request frontends establish the call and output register, but this pass does not claim the helper's semantic mapping.",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x12d780",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "LOW"
+      }
+    }
+  ],
+  "observations": {
+    "request_frontends": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "viewbase": {
+        "entry_vma": "0x12106e",
+        "r0": "ViewBase* receiver",
+        "r1": "model name pointer, converted by IdGenerator::Get",
+        "r2": "selector input, transformed by 0x12d780",
+        "r3": "ParamList* candidate forwarded as factory r3",
+        "factory_registers": {
+          "r0": "[this + 0x7c]",
+          "r1": "model identifier",
+          "r2": "selector transform result",
+          "r3": "original ParamList*"
+        },
+        "submit": "factory result is moved to r1 and tail-branched to View::requestApplicationExecute"
+      },
+      "view_manager_interface": {
+        "entry_vma": "0x1250c0",
+        "r0": "model name pointer",
+        "r1": "selector input",
+        "r2": "ParamList* candidate",
+        "factory_receiver": "loaded through global indirection; source identity UNKNOWN",
+        "submit": "tail branch to local helper 0x125084"
+      },
+      "selector_transform": {
+        "entry_vma": "0x12d780",
+        "semantics": "UNKNOWN",
+        "output_register": "r0"
+      }
+    },
+    "request_event_factory": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "event_id": "0x11004003",
+      "keys": [
+        7,
+        8
+      ],
+      "model_key_source": "factory r1/model identifier",
+      "selector_key_source": "factory r2/transformed selector",
+      "paramlist_r3": "optional ParamList* passed to Event::setParamList when non-null"
+    },
+    "submission": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "request_application": {
+        "event_parameter_key": 6,
+        "view_field_0x18": "source of the added application parameter",
+        "view_field_0x24": "opaque owner/manager candidate"
+      },
+      "submit_helper": {
+        "entry_vma": "0x7f25e0",
+        "input_field": "+0x10",
+        "event_manager_push_flag": 1
+      },
+      "push_event": {
+        "view_field_0x24": "opaque owner/manager candidate"
+      }
+    },
+    "event_manager": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "abi": {
+        "r0": "EventManager* receiver candidate",
+        "r1": "Event* candidate preserved in r5",
+        "r2": "bool candidate preserved in r6; exact truth convention is static only",
+        "return": "visible r0=0 on all observed exits"
+      },
+      "pre_dispatch": "calls local 0x7ef88c with Event* and branches on returned status == 1",
+      "success_path": {
+        "guard": "status == 1",
+        "indirect_dispatch": "loads [this] and invokes function pointer from [this+8] with [this+0] and Event*",
+        "helpers": [
+          "0x7f0aac",
+          "0x7f0aa0",
+          "0xbc8574",
+          "0xdcae4",
+          "0x7f1c7c"
+        ]
+      },
+      "non_success_path": {
+        "guard": "status == 0 reaches cleanup helper sequence; non-zero status exits",
+        "indirect_dispatch": "none observed before cleanup",
+        "helpers": [
+          "0x7f0aac",
+          "0x7ef902"
+        ]
+      },
+      "completion": "when incoming r2 is non-zero, invokes function pointer at [this+4] after common cleanup",
+      "semantic_limits": "helper meanings, queue/thread behavior, Event ownership and completion result remain UNKNOWN",
+      "runtime_verified": false,
+      "callable": false
+    },
+    "camera_action": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "selector_dispatch": {
+        "selector": "0xf01",
+        "payload_register": "r1",
+        "target": "0x4cf7a8"
+      },
+      "action_init": {
+        "param_query_helper": "0x42abcc",
+        "ee_neutral": "0x4b1a20",
+        "prep_check": "0x4b096c"
+      },
+      "ee_neutral": {
+        "sender": "0x443d14",
+        "pending_byte_store": "+0x26fc (via r3 = this + 0x2680, immediate +0x7c)",
+        "receiver": "UNKNOWN"
+      }
+    }
+  },
+  "chain_summary": {
+    "request_to_factory": "PRIMARY_ELF_VERIFIED",
+    "factory_to_event_submit": "PRIMARY_ELF_VERIFIED",
+    "event_manager_indirect_dispatch_target": "UNKNOWN",
+    "event_consumer_model_camera": "UNKNOWN",
+    "event_keys_7_8_to_model_camera": "UNKNOWN",
+    "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
+    "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
+    "ee_neutral_receiver_and_completion": "UNKNOWN"
+  },
+  "verification": {
+    "primary_elf_sha256_verified": true,
+    "runtime_verified": false,
+    "callable": false,
+    "safe_to_invoke": false,
+    "raw_firmware_bytes_emitted": false
+  },
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC",
+    "profile": "camera-request-chain",
+    "version": "12.1.3",
+    "language": "ARM:LE:32:v8",
+    "compiler_spec": "default",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "process_exit": 0,
+    "completion_marker": "COMPLETE_TARGET_EXPORT",
+    "target_count": 12,
+    "instruction_count": 324,
+    "basic_block_count": 26,
+    "cfg_edge_count": 97,
+    "auto_analysis_completed": false,
+    "raw_export_private": true,
+    "firmware_bytes_public": false
+  }
+}

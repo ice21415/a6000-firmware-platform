@@ -1513,3 +1513,27 @@ primary-ELF observation; it does not identify event `0x11004003`'s consumer or
 make a runtime-safe API claim. It also records the third gate at `0x7f2238`
 and its unresolved indirect callback. Use the private-only command documented
 in the root README.
+
+## Camera Core request/event/action chain
+
+`fwplatform.camera_core_chain` is the integrated bounded batch for the Camera
+request path. The sanitized contract is
+[`camera_core_3_21.json`](camera_core_3_21.json), and the descriptive C++
+observations are in [`camera_core_3_21.hpp`](camera_core_3_21.hpp). It ties the
+two request frontends to the request Event factory, View submission helper and
+`EventManager::push`, then separately records the static `0x0f01` action arm
+through `ModelCamera::pvt_ActionSetInit`, EE-neutral and `PrepChk`.
+
+Run only against the authorized private ELF:
+
+```powershell
+python -m fwplatform.cli sdk camera-core-chain --elf C:\private\libObj.so --json
+```
+
+The current private run has 16 primary-ELF static edges and five unresolved
+edges. EventManager indirect callback/completion targets, event
+`0x11004003`'s ModelCamera consumer, receiver-side keys 7/8 and selector
+transform semantics remain unknown. The contract is descriptive and keeps
+runtime verification, safe invocation and callable SDK status false. The
+`camera-request-chain` Ghidra profile is targeted `-noanalysis` metadata only;
+its raw output remains private.

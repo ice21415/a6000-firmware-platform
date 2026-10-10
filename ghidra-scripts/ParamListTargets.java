@@ -67,6 +67,16 @@ public class ParamListTargets extends GhidraScript {
       {0x7ee0e6,0x30},{0xf0fb0,0x20},{0x7edd08,0x2e}};
    } else if(args[1].equals("request-event-factory")) {
     targets=new long[][]{{0x7f0b0c,0x6c}};
+   } else if(args[1].equals("camera-request-chain")) {
+    // Bounded private cross-check for the Camera request -> EventManager
+    // submission path and the separately observed ModelCamera action arm.
+    // This is targeted export only (-noanalysis in the runner); it does not
+    // claim that the indirect EventManager callback is resolved.
+    targets=new long[][]{
+      {0x12106e,0x3a},{0x1250c0,0x44},{0x125084,0x34},
+      {0x7f0b0c,0x6c},{0x7f1b0c,0x2e},{0x7f1b68,0x0e},
+      {0x7f25e0,0x10},{0x7ef960,0x9c},
+      {0x4cfe8a,0x16},{0x4cf7a8,0x84},{0x4b1a20,0x60},{0x443d14,0x80}};
    } else if(args[1].equals("event-core")) {
     targets=new long[][]{{0x7f17f8,0x34},{0x7f182c,0x20},{0x7f184c,0x2a},{0x7f1876,0x22},{0xf0f84,0x0e},{0x10d098,0x0e}};
    } else if(args[1].equals("param-set")) {

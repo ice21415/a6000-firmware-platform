@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased -- Camera Core request/event/action chain
+
+- Added the SHA-pinned, read-only `fwplatform.camera_core_chain` batch probe
+  and `fw sdk camera-core-chain` command. It joins the two model request
+  frontends, request Event factory, View submission helper, EventManager push,
+  and the separately evidenced `0x0f01` ModelCamera action path.
+- Added sanitized `sdk/camera_core_3_21.json`, descriptive
+  `sdk/camera_core_3_21.hpp`, targeted `camera-request-chain` Ghidra profile,
+  six fail-closed tests, and `reports/CAMERA_END_TO_END_STATUS.md`.
+- The private ASCII-path Ghidra 12.1.3 targeted run exited 0 with
+  `COMPLETE_TARGET_EXPORT`: 12 targets, 324 instructions, 26 blocks and 97
+  CFG/flow edges; `auto_analysis_completed=false` remains explicit.
+- The probe records 16 `PRIMARY_ELF_VERIFIED` static edges and five explicit
+  unresolved edges. EventManager callback targets, the `0x11004003`
+  ModelCamera consumer, receiver-side keys 7/8 and runtime/callable status
+  remain UNKNOWN/false; no firmware bytes or device operations are included.
+
 ## Unreleased -- App/Event primary-ELF semaphore handoff
 
 - Added the SHA-pinned, read-only `fwplatform.app_event_primary_probe` and

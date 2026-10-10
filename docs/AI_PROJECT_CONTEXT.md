@@ -1026,3 +1026,28 @@ The registry-helper witness at `0x7f0916` additionally records the null
 argument return and the bounded opaque linked-state comparison/advance path
 through `0x111264`, `0x111234`, `0x7ea7ec` and `0x7ea7dc`. It remains a
 source-level `UNKNOWN` container and is not exposed as an SDK callback API.
+
+## Camera Core request/event/action batch
+
+`fwplatform/camera_core_chain.py` is the current reusable, SHA-authenticated
+bounded batch for the Camera Core path. It verifies the two request frontends
+(`0x12106e`, `0x1250c0`), factory `0x7f0b0c`, View submission helper,
+`EventManager::push`, event `0x11004003` with factory keys 7/8, and the
+separate selector `0x0f01` action arm through `0x4cf7a8`, `0x4b1a20` and
+`0x4b096c`. The public metadata contract is
+`sdk/camera_core_3_21.json`; descriptive C++ observations are in
+`sdk/camera_core_3_21.hpp`; current status is
+`reports/CAMERA_END_TO_END_STATUS.md`.
+
+Run the private-only probe with:
+
+```powershell
+python -m fwplatform.cli sdk camera-core-chain --elf C:\private\libObj.so --json
+```
+
+The current primary-ELF result is 16 verified static edges and 5 unresolved
+edges. EventManager indirect callbacks, event consumer identity, receiver-side
+key 7/8 extraction and selector-transform semantics remain UNKNOWN. Runtime
+verification, safe invocation and callable SDK counts remain false. The
+`camera-request-chain` Ghidra profile is targeted metadata export only and
+does not imply whole-program Auto Analysis.
