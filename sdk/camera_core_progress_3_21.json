@@ -11,12 +11,12 @@
   "abi_candidate_functions": 13,
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
-  "new_evidence_added": 19,
+  "new_evidence_added": 20,
   "primary_edges_added": 2,
   "inferred_edges_added": 0,
   "unresolved_edges_reduced": 0,
   "candidates_excluded": 0,
-  "blockers_narrowed": 3,
+  "blockers_narrowed": 4,
   "blockers_resolved": 0,
   "blockers_removed": 0,
   "blockers_removed_definition": "Deprecated aggregate; no blocker was fully removed in Phase 4.9. Use blockers_narrowed and blockers_resolved.",
@@ -50,5 +50,7 @@
     "primary_elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
     "runtime_verified": false,
     "safe_to_invoke": false
-  }
+  },
+  "evidence_enrichment": 1,
+  "latest_checkpoint": "Phase 4.11 provider getter BSS audit; no edge promotion"
 }

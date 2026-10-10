@@ -302,3 +302,22 @@ returned by provider vtable slot `+0x30` at initializer `0x7ef8b0` and stored
 at `EventManager +0x08`; the provider getter itself uses a runtime-initialized
 BSS function pointer, so no unique callback implementation can be claimed
 from this ELF alone. This is a narrowed UNKNOWN edge, not a ModelCamera edge.
+
+## Phase 4.11 provider getter / BSS audit
+
+The SHA-pinned primary ELF probe confirms the getter body at `0x7ef1e4`.
+Its `0x7ef234`/`0x7ef23a`/`0x7ef23c` instructions load a table offset and
+indirectly call the function pointer at table slot `0x1032238`; the slot has
+an `R_ARM_RELATIVE` relocation whose initial pointer value is the BSS cell
+`0x10a8930`. The getter's `+0x30` provider vtable result is therefore a
+runtime-initialized callback source, not a statically identified target.
+
+A bounded executable-literal scan found no direct writer for `0x10a8930`.
+This is explicitly a coverage-limited negative result: PC-relative stores,
+register-derived aliases and external DSO writers were not proven absent.
+The `.init_array` section is present (`0xfd25a4`, 1052 bytes), but no
+constructor-to-slot write is established. Main dispatch `0x7ef988` remains
+`UNKNOWN`; its static ABI remains `callback([state + 0x04], Event*)`.
+Runtime provider identity, AppConfigAC selection, and ModelCamera delivery
+remain unresolved. No edge was promoted and runtime/safe-callable counts stay
+zero.

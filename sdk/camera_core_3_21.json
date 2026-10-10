@@ -1742,12 +1742,46 @@
     "phase4_10_veneer_binding": {
       "elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
       "bindings": {
-        "0xe0cec": {"mode": "ARM", "got_vma": "0x102e808", "relocation": "R_ARM_JUMP_SLOT", "dynamic_symbol": "dlopen", "status": "PRIMARY_ELF_VERIFIED"},
-        "0xdfed0": {"mode": "ARM", "got_vma": "0x102e398", "relocation": "R_ARM_JUMP_SLOT", "dynamic_symbol": "dlsym", "status": "PRIMARY_ELF_VERIFIED"}
+        "0xe0cec": {
+          "mode": "ARM",
+          "got_vma": "0x102e808",
+          "relocation": "R_ARM_JUMP_SLOT",
+          "dynamic_symbol": "dlopen",
+          "status": "PRIMARY_ELF_VERIFIED"
+        },
+        "0xdfed0": {
+          "mode": "ARM",
+          "got_vma": "0x102e398",
+          "relocation": "R_ARM_JUMP_SLOT",
+          "dynamic_symbol": "dlsym",
+          "status": "PRIMARY_ELF_VERIFIED"
+        }
       },
       "pc_rule": "ARM state PC is instruction address + 8",
       "runtime_dso_identity": "UNKNOWN",
       "runtime_verified": false
     }
+  },
+  "phase4_11_provider_getter": {
+    "status": "PARTIAL_PRIMARY_STATIC",
+    "source": "fwplatform/event_manager_provider_probe.py",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "getter_entry_vma": "0x7ef1e4",
+    "table_slot_vma": "0x1032238",
+    "table_relocation": "R_ARM_RELATIVE",
+    "function_pointer_cell_vma": "0x10a8930",
+    "instruction_vmas": [
+      "0x7ef234",
+      "0x7ef23a",
+      "0x7ef23c"
+    ],
+    "provider_vtable_slot": "+0x30",
+    "main_dispatch_vma": "0x7ef988",
+    "writer_search": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN",
+    "writer_search_limit": "PC-relative, register-derived and external writers require separate analysis",
+    "provider_instance": "UNKNOWN",
+    "callback_target": "UNKNOWN",
+    "runtime_verified": false,
+    "safe_to_invoke": false
   }
 }

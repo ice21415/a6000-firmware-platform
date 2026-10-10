@@ -1662,3 +1662,14 @@ Verified on the private SHA-pinned `libObj.so` (`8e8a937aed23c2783e7bbee8a4afa2f
 - Loader post-factory path is statically verified: `0x7f120e` reads instance vtable `+0x28`, `0x7f1210` invokes it, and null results branch to cleanup `0x7f117a`.
 
 The validators now reject empty/fabricated fact dictionaries, wrong instruction operands, missing callback relocation evidence, and runtime/callable promotion. Phase 4.10 resolves the ARM veneers: `0xe0cec` computes GOT `0x102e808` (`R_ARM_JUMP_SLOT`, `dlopen`) and `0xdfed0` computes GOT `0x102e398` (`R_ARM_JUMP_SLOT`, `dlsym`). Core counts are now 41 PRIMARY, 5 inferred, 5 unresolved; runtime verified and safe-to-invoke APIs remain zero.
+
+## Phase 4.11 checkpoint
+
+`fwplatform/event_manager_provider_probe.py` records the SHA-pinned provider
+getter at `0x7ef1e4`: instructions `0x7ef234`, `0x7ef23a` and `0x7ef23c`
+load table slot `0x1032238` and call BSS function-pointer cell `0x10a8930`.
+The slot has `.rel.dyn` `R_ARM_RELATIVE` metadata. A bounded executable
+literal scan found no direct writer for that cell; this does not exclude
+PC-relative, register-derived or external writers. Provider identity and the
+main callback target at `0x7ef988` remain UNKNOWN. Counts stay 41 primary,
+5 inferred and 5 unresolved; runtime and safe-callable API counts remain 0.
