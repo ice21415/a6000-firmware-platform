@@ -1332,5 +1332,5 @@ python -m fwplatform.cli sdk event-manager-constructor --elf C:\private\libObj.s
 
 The primary contract now links the query contract and the descriptive header
 contains the query offsets/status constants. Runtime-verified and callable
-core API counts remain zero. Focused and full tests must be rerun after this
-checkpoint; the latest pre-checkpoint full suite was 434 tests.
+core API counts remain zero. The focused suites and complete local
+`python -m unittest discover -s tests -q` run now pass **450 tests**.

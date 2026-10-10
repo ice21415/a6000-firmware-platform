@@ -863,7 +863,8 @@ A private Ghidra 12.1.3 targeted profile cross-checks four bounded bodies
 (157 instruction rows, 20 blocks, 70 CFG edges) using ARM:LE:32:v8, image base
 `0x10000`, and `ram`; generated names/raw export remain private. Seven
 fail-closed synthetic tests accompany the probe. The validator set is seven
-tests and the complete local suite passes 434 tests.
+tests and the complete local suite passes 450 tests after the query and
+constructor contracts were added.
 
 ### ParamList query contract and EventManager constructor candidate (2026-10-10)
 

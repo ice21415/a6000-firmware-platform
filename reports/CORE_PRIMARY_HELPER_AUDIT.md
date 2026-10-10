@@ -1886,4 +1886,6 @@ imported program identity.
 The public additions are the two probes, the CLI commands
 `fw sdk paramlist-get` and `fw sdk event-manager-constructor`, the descriptive
 header constants in `sdk/paramlist_3_21_candidate.hpp`, and 16 fail-closed
-synthetic tests. Runtime-verified and callable core API counts remain **0**.
+synthetic tests. The complete local `python -m unittest discover -s tests -q`
+suite passes **450 tests**. Runtime-verified and callable core API counts
+remain **0**.
