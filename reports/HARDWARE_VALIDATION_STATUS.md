@@ -72,3 +72,17 @@ the PTP/MTP class tuple as a candidate only when a future descriptor contains
 lengths and standard container types, and provides descriptive standard
 operation/response names. It has no device transport and does not contain Sony
 vendor operation codes. No PTP packet was sent to the camera.
+
+## Phase 4.3 hardening
+
+Descriptor parsing is now fail-closed for zero configurations, duplicate
+interfaces/endpoints, endpoints before an interface, inconsistent configuration
+headers, short descriptors, and bounded transfer budgets. Alternate settings
+and endpoint ownership retain configuration/interface scope. PTP parsing keeps
+EVENT codes separate from RESPONSE codes, supports bounded offline streams and
+synthetic DeviceInfo datasets, and records non-escalating protocol evidence.
+
+See [`PTP_PROTOCOL_RESEARCH.md`](PTP_PROTOCOL_RESEARCH.md),
+[`USB_MODE_RESEARCH.md`](USB_MODE_RESEARCH.md), and
+[`USB_CAMERA_CORE_BOUNDARY.md`](USB_CAMERA_CORE_BOUNDARY.md). These changes do
+not add runtime or safe-to-invoke Camera Core evidence.

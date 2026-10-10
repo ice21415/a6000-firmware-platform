@@ -200,6 +200,11 @@ python -m fwplatform.cli hardware descriptors --execute-readonly --json
 
 ```powershell
 python -m fwplatform.cli hardware modes --json
+
+Phase 4.3 adds fail-closed USB descriptor validation and offline-only PTP
+parsing. The PTP parser separates operation, response and event namespaces,
+supports bounded streams and synthetic DeviceInfo datasets, and never sends a
+device command or promotes Camera Core runtime evidence.
 ```
 
 `fwplatform/ptp_protocol.py` 僅解析離線或合成的 PTP container，並提供標準

@@ -62,6 +62,8 @@ def compare_descriptor_results(before: DescriptorResult, after: DescriptorResult
             "endpoint_added": sorted(new_e - old_e), "endpoint_removed": sorted(old_e - new_e),
             "before_mode": classify_descriptor(before)["modes"],
             "after_mode": classify_descriptor(after)["modes"],
+            "missing_evidence": ["PTP/MTP protocol exchange", "firmware version over USB",
+                                 "Camera Core runtime/API correspondence"],
             "status": "OFFLINE_COMPARISON"}
 
 

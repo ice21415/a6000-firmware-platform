@@ -107,3 +107,38 @@ class USBDescriptorProbeTests(unittest.TestCase):
         self.assertEqual({item.alternate for item in interfaces}, {0, 1})
         self.assertEqual({item.alternate for item in endpoints}, {0, 1})
 
+    def test_zero_configurations_and_budget_fail_closed(self):
+        tr = MockTransport({(1, 0): device(configs=0)})
+        self.assertEqual(probe_descriptors(tr).status, "INCONCLUSIVE")
+        tr = MockTransport({(1, 0): device(configs=9)})
+        self.assertEqual(probe_descriptors(tr).status, "INCONCLUSIVE")
+
+    def test_configuration_header_mismatch_and_duplicate_endpoint_rejected(self):
+        raw = bytearray(config())
+        raw[4] = 2
+        with self.assertRaises(ValueError):
+            parse_configuration_descriptor(bytes(raw))
+        duplicate = bytes([9, 4, 0, 0, 2, 6, 1, 1, 0]) + bytes([7, 5, 0x81, 2, 0x40, 0, 0]) * 2
+        raw = bytes([9, 2, 23, 0, 1, 1, 0, 0x80, 50]) + duplicate
+        with self.assertRaises(ValueError):
+            parse_configuration_descriptor(raw)
+
+    def test_endpoint_before_interface_is_rejected(self):
+        ep = bytes([7, 5, 0x81, 2, 0x40, 0, 0])
+        raw = bytes([9, 2, 9 + len(ep), 0, 1, 1, 0, 0x80, 50]) + ep
+        with self.assertRaises(ValueError):
+            parse_configuration_descriptor(raw)
+
+    def test_probe_rejects_full_configuration_header_mismatch(self):
+        full = config()
+        bad = bytearray(full)
+        bad[4] = 2
+        tr = MockTransport({(1, 0): device(), (2, 0): full[:9], (2, 0, "full"): bytes(bad)})
+        original = tr.get_descriptor
+        def mismatching_get(dtype, index, length, timeout):
+            if dtype == 2 and length == len(full):
+                return bytes(bad)
+            return original(dtype, index, length, timeout)
+        tr.get_descriptor = mismatching_get
+        self.assertEqual(probe_descriptors(tr).status, "INCONCLUSIVE")
+

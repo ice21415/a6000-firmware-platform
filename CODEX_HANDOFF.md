@@ -1600,3 +1600,12 @@ classifier reports `USB_MASS_STORAGE`; PTP/MTP are not proven. `usb_modes.py`
 supports offline comparison of two observations. `ptp_protocol.py` parses only
 offline PTP containers and standard descriptive codes; no PTP transport exists.
 Camera Core runtime verification and safe callability remain zero.
+
+## Phase 4.3 checkpoint (2026-10-10)
+
+Descriptor parsing is fail-closed for zero configurations, bounded reads,
+header mismatches, duplicate interface/endpoint records, endpoint ordering and
+short descriptors. Offline PTP parsing now separates COMMAND/DATA/RESPONSE/EVENT,
+supports bounded streams and synthetic DeviceInfo datasets, and records
+evidence without promoting it to runtime verification. No PTP or storage
+operation was performed; the sanitized real observation remains Mass Storage.

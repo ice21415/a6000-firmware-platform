@@ -237,3 +237,9 @@ The removal path is now indexed, but invalid-index behavior, ownership transfer,
 alias invalidation, exception behavior and synchronization remain open. The
 next target is to connect this path to concrete ParamList replacement callers
 without promoting local helper names to source-level C++ APIs.
+## Phase 4.3 — USB/PTP parser hardening
+
+Implemented offline: descriptor consistency and transfer-budget checks,
+configuration/alternate/endpoint scoping, separated PTP code tables, bounded
+stream and DeviceInfo parsing, and non-escalating protocol evidence. Live PTP,
+mode switching and Camera Core runtime validation remain future work.
