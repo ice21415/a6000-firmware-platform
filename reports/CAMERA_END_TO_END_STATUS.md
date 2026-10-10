@@ -35,6 +35,18 @@ the provider vtable slot used to populate the later indirect dispatch state.
 They do not identify the callback target or prove that this owner is the
 ModelCamera event consumer.
 
+The latest bounded provider audit records a separate candidate path.  The
+anonymous initializer at `0x45f2fc` writes the vtable address point
+`0x1007528`, whose RTTI name bytes decode to `11AppConfigAC`.  Its `+0x30`
+slot at `0x1007558` resolves through an `R_ARM_RELATIVE` word to
+`0x45ee64`; that method loads another relocated word and returns the Thumb
+address `0x45ee5c`.  The `0x45ee5c` body is only a `push/add/pop` leaf and
+contains no event-consumer call.  The name helper has a separate external
+`getConfig` branch, and the owner input selecting either branch is not proven.
+Therefore this is a `PRIMARY_ELF_VERIFIED` candidate observation with
+`STATIC_INFERRED` scope, not an EventManager callback edge or a ModelCamera
+connection.
+
 The executable-PT_LOAD literal inventory found `0x11004003` at `0x463448`,
 `0x4637e4` and the factory literal at `0x7f0b74`.  This is an address inventory
 only: matching a 32-bit word does not identify a receiver or prove a dispatch

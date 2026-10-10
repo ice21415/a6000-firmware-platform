@@ -9,6 +9,7 @@ while firmware bytes and decompiler text remain private.
 from __future__ import annotations
 
 import hashlib
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -184,6 +185,40 @@ def _scan_executable_literal_vmas(fp: Any, elf: ELFFile, value: int) -> list[int
             locations.append(int(segment["p_vaddr"]) + hit)
             offset = hit + 1
     return sorted(set(locations))
+
+
+def _read_load_word(fp: Any, elf: ELFFile, address: int) -> int:
+    """Read one file-backed load word without treating it as executable code."""
+    offsets: list[int] = []
+    for segment in elf.iter_segments():
+        if segment["p_type"] != "PT_LOAD":
+            continue
+        base = int(segment["p_vaddr"])
+        count = int(segment["p_filesz"])
+        if base <= address and address + 4 <= base + count:
+            offsets.append(int(segment["p_offset"]) + address - base)
+    if len(offsets) != 1:
+        raise ValueError(f"ELF_VMA 0x{address:x} is not uniquely load-backed")
+    fp.seek(offsets[0])
+    data = fp.read(4)
+    if len(data) != 4:
+        raise ValueError("truncated load word")
+    return struct.unpack("<I", data)[0]
+
+
+def _relocation_type(elf: ELFFile, address: int) -> int | None:
+    """Return the unique relocation type for a data word, if present."""
+    found: list[int] = []
+    for section in elf.iter_sections():
+        if section["sh_type"] not in ("SHT_REL", "SHT_RELA"):
+            continue
+        for relocation in section.iter_relocations():
+            if int(relocation["r_offset"]) == address:
+                found.append(int(relocation["r_info_type"]))
+    values = sorted(set(found))
+    if len(values) > 1:
+        raise ValueError(f"ambiguous relocation at ELF_VMA 0x{address:x}")
+    return values[0] if values else None
 
 
 def _evidence(
@@ -476,6 +511,104 @@ def _observe_event_manager_owner(
     }
 
 
+def _observe_provider_callback_candidate(
+    fp: Any, elf: ELFFile, digest: str,
+) -> dict[str, Any]:
+    """Record a bounded provider/vtable candidate without selecting it.
+
+    The owner helper has two statically visible provider branches.  One local
+    branch lazily constructs an ``AppConfigAC``-RTTI object.  Its vtable
+    ``+0x30`` method returns a code address from a relocated data word, but
+    the owner input is not proven to select this branch.  This observation is
+    deliberately kept separate from the EventManager callback edge: it is a
+    candidate source and cannot establish a ModelCamera consumer.
+    """
+    constructor = _decode_at(fp, elf, 0x45F2FC, 0x24)
+    _require(constructor, 0x45F300, "ldr", operands="r4, [pc, #0x14]")
+    _require(constructor, 0x45F304, "bl", target=0x106C0C)
+    _require(constructor, 0x45F30E, "ldr", operands="r3, [r4, r3]")
+    _require(constructor, 0x45F310, "adds", immediate=8)
+    _require(constructor, 0x45F312, "str", operands="r3, [r5]")
+
+    constructor_got = 0x10345D8
+    vtable_base = _read_load_word(fp, elf, constructor_got)
+    if vtable_base != 0x1007520 or _relocation_type(elf, constructor_got) != 23:
+        raise ValueError("AppConfigAC candidate vtable relocation mismatch")
+    vtable_address_point = vtable_base + 8
+    slot_address = vtable_address_point + 0x30
+    slot_target_tagged = _read_load_word(fp, elf, slot_address)
+    if slot_target_tagged != 0x45EE65 or _relocation_type(elf, slot_address) != 23:
+        raise ValueError("provider candidate +0x30 slot mismatch")
+
+    slot_method = _decode_at(fp, elf, 0x45EE64, 0x10)
+    _require(slot_method, 0x45EE64, "ldr", operands="r3, [pc, #0xc]")
+    _require(slot_method, 0x45EE66, "ldr", operands="r2, [pc, #0x10]")
+    _require(slot_method, 0x45EE68, "add", operands="r3, pc")
+    _require(slot_method, 0x45EE6E, "ldr", operands="r0, [r3, r2]")
+
+    callback_got = 0x10312CC
+    callback_tagged = _read_load_word(fp, elf, callback_got)
+    if callback_tagged != 0x45EE5D or _relocation_type(elf, callback_got) != 23:
+        raise ValueError("provider candidate callback relocation mismatch")
+    callback = _decode_at(fp, elf, 0x45EE5C, 6)
+    _require(callback, 0x45EE5C, "push")
+    _require(callback, 0x45EE5E, "add", operands="r7, sp, #0")
+    _require(callback, 0x45EE60, "pop", operands="{r7, pc}")
+
+    # The local branch target is obtained from the name helper's relative
+    # relocation.  The other branch is the external getConfig import; the
+    # owner input that selects either branch is not present in this bounded
+    # evidence set.
+    helper_got_local = 0x1030BCC
+    local_accessor_tagged = _read_load_word(fp, elf, helper_got_local)
+    if local_accessor_tagged != 0x45F2ED or _relocation_type(elf, helper_got_local) != 23:
+        raise ValueError("provider helper local branch mismatch")
+    return {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "semantic_level": "STATIC_INFERRED",
+        "scope": "candidate vtable and provider branch only; not an EventManager callback proof",
+        "constructor_candidate": {
+            "entry_vma": hex(0x45F2FC),
+            "vtable_got_slot": hex(constructor_got),
+            "vtable_vma": hex(vtable_base),
+            "vtable_address_point": hex(vtable_address_point),
+            "vptr_write": "r3 + 8 stored at [r5]",
+            "rtti_identity": "11AppConfigAC",
+        },
+        "provider_slot": {
+            "slot_offset": "+0x30",
+            "slot_vma": hex(slot_address),
+            "target_vma": hex(slot_target_tagged & ~1),
+            "target_thumb_tag": hex(slot_target_tagged),
+            "target_relocation_type": 23,
+        },
+        "returned_callback_candidate": {
+            "method_vma": hex(0x45EE64),
+            "relocated_word_slot": hex(callback_got),
+            "returned_target_vma": hex(callback_tagged & ~1),
+            "returned_target_thumb_tag": hex(callback_tagged),
+            "leaf_shape": "push/add/pop only; no event consumer call observed",
+        },
+        "provider_selection": {
+            "local_accessor_vma": hex(0x45F2EC),
+            "local_accessor_relocation_target": hex(local_accessor_tagged & ~1),
+            "external_alternative": "getConfig via the other name-helper branch",
+            "selected_branch": "UNKNOWN",
+        },
+        "event_manager_link": "UNKNOWN; owner +0x14 is not proven to reference this candidate object",
+        "model_camera_consumer": "UNKNOWN; candidate leaf does not establish event delivery",
+        "evidence": _evidence(
+            digest,
+            "ELF_VMA:0x45f2fc,0x1007558,0x45ee64,0x10312cc",
+            method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE",
+            status="PRIMARY_ELF_VERIFIED",
+            confidence="MEDIUM",
+        ),
+        "runtime_verified": False,
+        "callable": False,
+    }
+
+
 def _unresolved(digest: str) -> list[dict[str, Any]]:
     return [
         {
@@ -568,6 +701,7 @@ def probe_camera_core_chain(
         submit_edges, submit_observation = _observe_submission(fp, elf, digest)
         action_edges, action_observation = _observe_action_path(fp, elf, digest)
         owner_edges, owner_observation = _observe_event_manager_owner(fp, elf, digest)
+        provider_observation = _observe_provider_callback_candidate(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
@@ -611,6 +745,7 @@ def probe_camera_core_chain(
             "submission": submit_observation,
             "event_manager": event_manager["observation"],
             "event_manager_owner_setup": owner_observation,
+            "event_manager_provider_candidate": provider_observation,
             "event_id_literal_scan": {
                 "status": "PRIMARY_ELF_VERIFIED",
                 "value": hex(EVENT_ID),

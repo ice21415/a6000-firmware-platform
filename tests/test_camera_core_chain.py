@@ -118,6 +118,19 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertIn("does not identify", scan["consumer_relation"])
         self.assertEqual(contract["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
 
+    def test_provider_vtable_candidate_stays_unresolved(self):
+        contract = json.loads(
+            Path("sdk/camera_core_3_21.json").read_text(encoding="utf-8")
+        )
+        candidate = contract["observations"]["event_manager_provider_candidate"]
+        self.assertEqual(candidate["status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(candidate["constructor_candidate"]["rtti_identity"], "11AppConfigAC")
+        self.assertEqual(candidate["provider_slot"]["target_vma"], "0x45ee64")
+        self.assertEqual(candidate["returned_callback_candidate"]["returned_target_vma"], "0x45ee5c")
+        self.assertEqual(candidate["provider_selection"]["selected_branch"], "UNKNOWN")
+        self.assertIn("not proven", candidate["event_manager_link"])
+        self.assertIn("does not establish", candidate["model_camera_consumer"])
+
 
 if __name__ == "__main__":
     unittest.main()

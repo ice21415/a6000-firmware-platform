@@ -689,6 +689,51 @@
       "runtime_verified": false,
       "callable": false
     },
+    "event_manager_provider_candidate": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "semantic_level": "STATIC_INFERRED",
+      "scope": "candidate vtable and provider branch only; not an EventManager callback proof",
+      "constructor_candidate": {
+        "entry_vma": "0x45f2fc",
+        "vtable_got_slot": "0x10345d8",
+        "vtable_vma": "0x1007520",
+        "vtable_address_point": "0x1007528",
+        "vptr_write": "r3 + 8 stored at [r5]",
+        "rtti_identity": "11AppConfigAC"
+      },
+      "provider_slot": {
+        "slot_offset": "+0x30",
+        "slot_vma": "0x1007558",
+        "target_vma": "0x45ee64",
+        "target_thumb_tag": "0x45ee65",
+        "target_relocation_type": 23
+      },
+      "returned_callback_candidate": {
+        "method_vma": "0x45ee64",
+        "relocated_word_slot": "0x10312cc",
+        "returned_target_vma": "0x45ee5c",
+        "returned_target_thumb_tag": "0x45ee5d",
+        "leaf_shape": "push/add/pop only; no event consumer call observed"
+      },
+      "provider_selection": {
+        "local_accessor_vma": "0x45f2ec",
+        "local_accessor_relocation_target": "0x45f2ec",
+        "external_alternative": "getConfig via the other name-helper branch",
+        "selected_branch": "UNKNOWN"
+      },
+      "event_manager_link": "UNKNOWN; owner +0x14 is not proven to reference this candidate object",
+      "model_camera_consumer": "UNKNOWN; candidate leaf does not establish event delivery",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x45f2fc,0x1007558,0x45ee64,0x10312cc",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "MEDIUM"
+      },
+      "runtime_verified": false,
+      "callable": false
+    },
     "event_id_literal_scan": {
       "status": "PRIMARY_ELF_VERIFIED",
       "value": "0x11004003",
