@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import io
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Iterable
 
 from capstone import CS_ARCH_ARM, CS_MODE_ARM, CS_MODE_THUMB, Cs
@@ -205,6 +205,15 @@ def _relative_path(path: Path, root: Path) -> str:
         return path.name
 
 
+def _is_absolute_source_path(value: str) -> bool:
+    """Reject both host-native and Windows absolute paths on every runner."""
+    return (
+        Path(value).is_absolute()
+        or PureWindowsPath(value).is_absolute()
+        or value.startswith(("//", "\\\\"))
+    )
+
+
 def _scan_one(
     path: Path,
     root: Path,
@@ -378,7 +387,12 @@ def validate_cross_elf_import_contract(report: dict[str, Any]) -> dict[str, Any]
         relative = source.get("relative_path")
         if not isinstance(digest, str) or not HEX_SHA.fullmatch(digest):
             errors.append(f"source_identity:{index}")
-        if not isinstance(relative, str) or not relative or Path(relative).is_absolute() or "\\" in relative:
+        if (
+            not isinstance(relative, str)
+            or not relative
+            or _is_absolute_source_path(relative)
+            or "\\" in relative
+        ):
             errors.append(f"source_path:{index}")
         if relative in seen_sources:
             errors.append(f"duplicate_source:{index}")
