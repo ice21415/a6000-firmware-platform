@@ -1469,3 +1469,65 @@ core API counts remain **0**. Eleven fail-closed synthetic validator tests cover
 identity, callsite chain, static/member-form, rebind, return-type and
 runtime/callable promotion guards; the complete local suite passes **392
 tests**.
+
+## InputService cross-ELF import boundary — 2026-10-10
+
+The generic `fwplatform.cross_elf_import_probe` scans an explicitly supplied
+private firmware root for one exact dynamic symbol. Against the official 3.21
+extracted root it scanned **511** `.so`/`.elf` files and found **9** distinct
+importers of `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_`:
+`cmn_view_processDataMgr.so`, `libInputServant.so`, `viewUnified2.so`,
+`viewUnified4.so`, `viewUnified6.so`, `viewUnified7.so`, `viewUnified8.so`,
+`waterProofHousing.so` and `wrapperSettingUtil.so`.
+
+Every importer has one exact undefined dynamic symbol and one
+`R_ARM_JUMP_SLOT` relocation. Each relocation maps to a unique ARM PLT stub
+and GOT slot. The provider `libObj.so` export was checked against the pinned
+SHA-256 `8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`
+and export value `0x114105` / size `356`.
+
+Import, relocation and export facts are `PRIMARY_ELF_VERIFIED`. The provider
+edge is only `STATIC_INFERRED`: importer DT_NEEDED lists do not name
+`libObj.so`, so runtime loader search order and binding remain unknown. A
+bounded ARM/Thumb direct-immediate BL/BLX scan found no direct callsite in the
+nine importer binaries. This is an `UNKNOWN` negative result because
+register-indirect, GOT-indirect, vtable and other dispatch forms are outside
+the scan; it does not establish that the function is unused.
+
+The sanitized result is `sdk/input_service_cross_elf_3_21.json`. The generic
+read-only command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf --root C:\private\firmware-root --provider-elf C:\private\libObj.so --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+Only hashes, relative paths, relocation/PLT addresses and scan limits are
+published. No firmware bytes or private absolute paths are included. Runtime-
+verified and callable API counts remain **0**.
+
+### Ghidra cross-check for one importer
+
+The private `viewUnified4.so` copy was independently verified against SHA-256
+`149282ac0f1e1a1cf1ef7302214c6ab843e889945ce613cc9e7ec15823fd26e1` and
+analysed with Ghidra **12.1.3** using `ARM:LE:32:v8`, compiler spec `default`,
+image base `0x10000` and address space `ram`. Auto-analysis completed with
+process exit **0**. A metadata-only post-script produced 37 records; the raw
+JSONL remains private.
+
+The exact mangled import lookup was `UNRESOLVED` because Ghidra represented the
+import under the demangled external namespace
+`<EXTERNAL>::InputService::getInputEventStatus`. A wildcard re-run found the
+imported external symbol and its PLT/GOT references: the ELF-VMA GOT reference
+is `0x1ae5c8`, the PLT entry is `0x3d434`, and Ghidra classified the PLT
+transfer as `COMPUTED_CALL`. These are static importer/PLT observations only;
+they do not prove a caller-to-PLT execution path or runtime loader binding.
+The sanitized metadata is stored under the `viewUnified4.so` observation in
+`sdk/input_service_cross_elf_3_21.json`, with `runtime_verified=false` and
+`callable=false`.
+
+The targeted cross-ELF regression file now has **9** synthetic checks for
+identity, relocation/PLT completeness, generic symbol handling, Ghidra
+cross-check identity and runtime/callable promotion rejection. The latest
+full local suite passes **401 tests**; this count measures evidence-gate
+behavior only and does not increase the runtime-verified or callable API
+counts.

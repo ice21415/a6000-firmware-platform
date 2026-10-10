@@ -493,3 +493,24 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
   runtime/callable semantics remain unknown.
 - Added a private Ghidra cross-check (6 targets, 210 instructions, 37 blocks,
   87 edges) without publishing firmware-derived bytes or exports.
+
+## Unreleased — InputService cross-ELF import evidence
+
+- Added the generic, symbol-parameterized `cross_elf_import_probe` and
+  `parameter-cross-elf` CLI. It records exact undefined dynamic symbols,
+  `R_ARM_JUMP_SLOT` relocations and ARM PLT/GOT bindings without publishing
+  firmware bytes or absolute private paths.
+- The private official 3.21 scan covered 511 ELF files and found nine
+  importers of `InputService::getInputEventStatus`; the pinned `libObj.so`
+  export was verified at `0x114105` with size 356.
+- Provider selection remains `STATIC_INFERRED`, because DT_NEEDED and runtime
+  loader binding are not established. The bounded direct BL/BLX scan found no
+  immediate caller and retains that result as UNKNOWN coverage.
+- Added the sanitized contract `sdk/input_service_cross_elf_3_21.json` and
+  nine fail-closed regression tests. Runtime-verified and callable API
+  counts remain zero.
+- Added a private Ghidra 12.1.3 cross-check for `viewUnified4.so` (exit 0,
+  ARM:LE:32:v8, image base `0x10000`) and recorded only sanitized importer,
+  GOT and PLT metadata. The exact mangled name remains Ghidra-UNRESOLVED;
+  the demangled external import is static evidence, not runtime or callable
+  API proof.

@@ -1228,3 +1228,35 @@ indexed. A private Ghidra 12.1.3 targeted cross-check exited 0 with four
 targets, 31 instructions, four blocks and two edges. Ownership, exception,
 locking, runtime binding and callable status remain unknown/false. The public
 regression suite now passes 312 tests.
+
+## InputService cross-ELF import evidence (2026-10-10)
+
+`fwplatform/cross_elf_import_probe.py` provides a generic, symbol-parameterized
+scan for exact dynamic imports. Against the private official 3.21 extracted
+root it found nine ELF importers of
+`_ZN12InputService19getInputEventStatusEP9ParamListPKS0_`. Each importer has
+one `R_ARM_JUMP_SLOT` relocation and a unique ARM PLT/GOT witness. The provider
+export in the pinned `libObj.so` is recorded in
+`sdk/input_service_cross_elf_3_21.json` with its SHA-256, VMA and size.
+
+Use it only with a local private root:
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf --root C:\private\firmware-root --provider-elf C:\private\libObj.so --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+The import, relocation and export rows are `PRIMARY_ELF_VERIFIED`; provider
+selection is `STATIC_INFERRED` because runtime loader binding is unavailable.
+The bounded direct-call scan found no immediate BL/BLX caller in the nine
+importers, which remains UNKNOWN coverage and does not establish that the
+function is unused. Register/GOT/vtable dispatch, C++ receiver/return types,
+ownership and runtime/callable safety remain unresolved.
+
+For the checked-in `viewUnified4.so` observation, the contract also records a
+private Ghidra 12.1.3 cross-check: auto-analysis exited 0 with
+`ARM:LE:32:v8`, image base `0x10000`, and `ram` address space. Ghidra did not
+match the exact mangled import name, but a wildcard lookup found the demangled
+external `InputService::getInputEventStatus` and the ELF-VMA GOT/PLT references
+(`0x1ae5c8` / `0x3d434`). The raw export is intentionally not published;
+these records are static evidence only and do not make the interface runtime
+verified or callable.

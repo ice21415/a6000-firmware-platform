@@ -448,6 +448,16 @@ def build_parser() -> argparse.ArgumentParser:
     sdk_param_owner_use.add_argument("--elf", type=Path, required=True)
     sdk_param_owner_use.add_argument("--expected-sha256", default=None)
     sdk_param_owner_use.add_argument("--json", action="store_true")
+    sdk_param_cross_elf = sdk_sub.add_parser("parameter-cross-elf")
+    sdk_param_cross_elf.add_argument("--root", type=Path, required=True)
+    sdk_param_cross_elf.add_argument("--provider-elf", type=Path)
+    sdk_param_cross_elf.add_argument("--provider-sha256", default=None)
+    sdk_param_cross_elf.add_argument(
+        "--symbol",
+        default="_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+    )
+    sdk_param_cross_elf.add_argument("--max-files", type=int, default=2000)
+    sdk_param_cross_elf.add_argument("--json", action="store_true")
     sdk_param_string = sdk_sub.add_parser("parameter-string")
     sdk_param_string.add_argument("--elf", type=Path, required=True)
     sdk_param_string.add_argument("--expected-sha256", default=None)
@@ -862,6 +872,17 @@ def main(argv: list[str] | None = None) -> int:
         result = probe_paramlist_owner_use(
             args.elf,
             expected_sha256=args.expected_sha256 or EXPECTED_LIBOBJ_SHA,
+        )
+        _json_or_text(result, args.json)
+        return 0
+    if args.command == "sdk" and args.sdk_command == "parameter-cross-elf":
+        from .cross_elf_import_probe import probe_cross_elf_imports
+        result = probe_cross_elf_imports(
+            args.root,
+            symbol_name=args.symbol,
+            provider_elf=args.provider_elf,
+            provider_sha256=args.provider_sha256,
+            max_files=args.max_files,
         )
         _json_or_text(result, args.json)
         return 0

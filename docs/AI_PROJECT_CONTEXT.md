@@ -716,3 +716,32 @@ interpretation is `STATIC_INFERRED`. The sanitized contract is
 `fw sdk parameter-owner-use --elf <private-libObj.so> --json`. The private
 Ghidra cross-check completed with 6 targets, 210 instructions, 37 blocks and
 87 edges. Runtime-verified and callable API counts remain zero.
+
+### InputService cross-ELF import checkpoint (2026-10-10)
+
+`fwplatform/cross_elf_import_probe.py` is a generic, symbol-parameterized
+private-root analyzer. It verifies exact `.dynsym` undefined imports,
+`R_ARM_JUMP_SLOT` relocations and ARM PLT/GOT stubs, then performs a bounded
+direct-immediate BL/BLX scan. It does not assume basename identity, DT_NEEDED
+presence or runtime loader binding.
+
+The authenticated official 3.21 root contained 511 ELF files and nine
+importers of `_ZN12InputService19getInputEventStatusEP9ParamListPKS0_`.
+The provider export in the SHA-pinned `libObj.so` is VMA `0x114105`, size 356.
+The sanitized public contract is
+`sdk/input_service_cross_elf_3_21.json`; the private scan found no direct
+immediate caller, which remains UNKNOWN coverage for register/GOT/vtable
+dispatch. Provider selection is `STATIC_INFERRED`; runtime and callable flags
+remain false.
+
+```powershell
+python -m fwplatform.cli sdk parameter-cross-elf --root <private-root> --provider-elf <private-libObj.so> --provider-sha256 8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a --json
+```
+
+The private `viewUnified4.so` Ghidra 12.1.3 cross-check completed with exit
+0 using `ARM:LE:32:v8`, image base `0x10000` and `ram` address space. Ghidra's
+exact mangled-name lookup is recorded as `UNRESOLVED`; a wildcard lookup found
+the demangled external `InputService::getInputEventStatus` and static GOT/PLT
+references at ELF VMA `0x1ae5c8` / `0x3d434`. Only sanitized metadata is in
+the checked-in contract; the raw JSONL and project stay private. This does
+not prove a runtime call path, loader binding or callable ABI.

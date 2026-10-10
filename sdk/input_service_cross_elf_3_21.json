@@ -1,0 +1,673 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+  "provider": {
+    "name": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "size_bytes": 17436172,
+    "export": {
+      "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+      "symbol_index": 1885,
+      "value_vma": "0x114105",
+      "size_bytes": 356,
+      "type": "STT_FUNC",
+      "binding": "STB_GLOBAL",
+      "section_index": "10"
+    },
+    "export_status": "PRIMARY_ELF_VERIFIED",
+    "address_space": "ELF_VMA",
+    "runtime_loader_binding": "UNKNOWN"
+  },
+  "observations": [
+    {
+      "source_binary": {
+        "name": "cmn_view_processDataMgr.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/cmn_view_processDataMgr.so",
+        "sha256": "e2968b2836edd55c3e033ff077c05a54413dda227ee70a791345c180a3eecaf0",
+        "size_bytes": 598400,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 110,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x91494",
+          "relocation_type": 22,
+          "symbol_index": 110,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x4e1d4",
+          "got_slot_vma": "0x91494",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libdl.so.2",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libpthread.so.0",
+        "librt.so.1",
+        "libstdc++.so.6"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "libInputServant.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libInputServant.so",
+        "sha256": "2c57f4854baf34fb647c1bdb45e9df6de3d62436603d43ea0eea910e28f43401",
+        "size_bytes": 16260,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 31,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0xb86c",
+          "relocation_type": 22,
+          "symbol_index": 31,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x1b4c",
+          "got_slot_vma": "0xb86c",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libdl.so.2",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libpthread.so.0",
+        "librt.so.1",
+        "libstdc++.so.6"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "viewUnified2.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified2.so",
+        "sha256": "7fbfa8539717ba3dca0cb5a82cf976b50a2b97443972fe321a064cbb09a75588",
+        "size_bytes": 4953524,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 778,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x49c394",
+          "relocation_type": 22,
+          "symbol_index": 778,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0xe949c",
+          "got_slot_vma": "0x49c394",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "CautionConfig.so",
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "viewUnified4.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified4.so",
+        "sha256": "149282ac0f1e1a1cf1ef7302214c6ab843e889945ce613cc9e7ec15823fd26e1",
+        "size_bytes": 1784836,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 788,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x1ae5c8",
+          "relocation_type": 22,
+          "symbol_index": 788,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x3d434",
+          "got_slot_vma": "0x1ae5c8",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      },
+      "ghidra_crosscheck": {
+        "status": "VERIFIED_STATIC",
+        "binary_sha256": "149282ac0f1e1a1cf1ef7302214c6ab843e889945ce613cc9e7ec15823fd26e1",
+        "process_exit": 0,
+        "ghidra_version": "12.1.3",
+        "language": "ARM:LE:32:v8",
+        "compiler_spec": "default",
+        "image_base": "0x10000",
+        "address_space": "ram",
+        "auto_analysis": "completed; Ghidra report says Analysis succeeded",
+        "exact_mangled_symbol_lookup": {
+          "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+          "status": "UNRESOLVED",
+          "reason": "Ghidra imported the symbol under a demangled namespace name; exact mangled lookup did not match"
+        },
+        "demangled_import_observation": {
+          "qualified_name": "<EXTERNAL>::InputService::getInputEventStatus",
+          "status": "PRIMARY_ELF_VERIFIED",
+          "target_address_ghidra": "0x1ccc44",
+          "target_address_elf_vma": "0x1bcc44",
+          "got_reference_address_ghidra": "0x1be5c8",
+          "got_reference_address_elf_vma": "0x1ae5c8",
+          "plt_entry_address_ghidra": "0x4d434",
+          "plt_entry_address_elf_vma": "0x3d434",
+          "plt_reference_type": "COMPUTED_CALL",
+          "plt_reference_status": "PRIMARY_ELF_VERIFIED",
+          "caller_function_entry_ghidra": "0x4d434",
+          "caller_function_entry_elf_vma": "0x3d434"
+        },
+        "export_record_count": 37,
+        "raw_export_private": true,
+        "runtime_verified": false,
+        "callable": false,
+        "semantic_limit": "Ghidra resolved the imported demangled namespace and PLT/GOT reference; it did not prove a caller-to-PLT execution path or runtime loader binding"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "viewUnified6.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified6.so",
+        "sha256": "13f18bf054f85c494f6237654d9acbe6d6f8cb470b43c1979682ded797ca9796",
+        "size_bytes": 394432,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 190,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x61a38",
+          "relocation_type": 22,
+          "symbol_index": 190,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0xf5ec",
+          "got_slot_vma": "0x61a38",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "viewUnified7.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified7.so",
+        "sha256": "ca581f5a23361d0a0467e4ae02415281dd61dfd39dfa7bd2bea47f93da8858b1",
+        "size_bytes": 366676,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 319,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x56ae4",
+          "relocation_type": 22,
+          "symbol_index": 319,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x106fc",
+          "got_slot_vma": "0x56ae4",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "viewUnified8.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/viewUnified8.so",
+        "sha256": "5dcd54082f3e3941fee14f905da0d5638da31e5fd8610a2b7f16c3ff6565f452",
+        "size_bytes": 240764,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 204,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x421d4",
+          "relocation_type": 22,
+          "symbol_index": 204,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0xc9ec",
+          "got_slot_vma": "0x421d4",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libgcc_s.so.1"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "waterProofHousing.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/waterProofHousing.so",
+        "sha256": "4d184ed19377b595100254492adbcc9c736e58a588e8f0fec259afc38da8150d",
+        "size_bytes": 7740,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 17,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0x98a8",
+          "relocation_type": 22,
+          "symbol_index": 17,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x1130",
+          "got_slot_vma": "0x98a8",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libdl.so.2",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libpthread.so.0",
+        "librt.so.1",
+        "libstdc++.so.6"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    },
+    {
+      "source_binary": {
+        "name": "wrapperSettingUtil.so",
+        "relative_path": "firmware.tar_unpacked/0700_part_image/dev/nflasha15_unpacked_unpacked/lib/wrapperSettingUtil.so",
+        "sha256": "17928d371c785145f4f1b731e6b8984265d24f0d9f8fea5fdd5468e720be2581",
+        "size_bytes": 20940,
+        "address_space": "ELF_VMA"
+      },
+      "import": {
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "undefined_symbols": [
+          {
+            "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+            "symbol_index": 28,
+            "value_vma": "0x0",
+            "size_bytes": 0,
+            "type": "STT_NOTYPE",
+            "binding": "STB_GLOBAL",
+            "section_index": "SHN_UNDEF"
+          }
+        ],
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "relocations": [
+        {
+          "section": ".rel.plt",
+          "offset_vma": "0xcc10",
+          "relocation_type": 22,
+          "symbol_index": 28,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "plt": [
+        {
+          "entry_vma": "0x2b90",
+          "got_slot_vma": "0xcc10",
+          "stub_mode": "ARM",
+          "status": "VERIFIED_STATIC",
+          "address_space": "ELF_VMA"
+        }
+      ],
+      "direct_calls": [],
+      "direct_call_scan": {
+        "status": "UNKNOWN",
+        "scope": "executable PT_LOAD segments decoded as ARM and Thumb; direct BL/BLX immediate targets only",
+        "unresolved_reason": "no direct immediate call to the recovered PLT entry in bounded scan; register/GOT/vtable dispatch remains unresolved"
+      },
+      "needed": [
+        "libc.so.6",
+        "libdl.so.2",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libpthread.so.0",
+        "librt.so.1",
+        "libstdc++.so.6"
+      ],
+      "provider_path_in_needed": false,
+      "runtime_loader_binding": "UNKNOWN",
+      "runtime_verified": false,
+      "callable": false,
+      "provider": {
+        "binary_name": "libObj.so",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "symbol": "_ZN12InputService19getInputEventStatusEP9ParamListPKS0_",
+        "status": "STATIC_INFERRED",
+        "reason": "provider exports the exact symbol; runtime loader/search-path binding is not proven"
+      }
+    }
+  ],
+  "scan": {
+    "root_scope": "explicit private root; only .so/.elf files",
+    "files_considered": 511,
+    "files_with_import": 9,
+    "failure_count": 0,
+    "failures": []
+  },
+  "raw_instruction_bytes_published": false,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "An undefined symbol and relocation prove an ELF import, not runtime execution",
+    "PLT/GOT resolution does not prove loader search order or provider selection",
+    "Direct-call scan excludes register-indirect, GOT-indirect, vtable and cross-process dispatch",
+    "No source-level C++ receiver, return type or ParamList ownership is inferred",
+    "No firmware code was executed and no device was accessed"
+  ]
+}

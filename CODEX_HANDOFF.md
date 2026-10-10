@@ -1055,3 +1055,40 @@ descriptive contract is `sdk/paramlist_owner_use_3_21.json`, the CLI is
 Ghidra profile completed with 6 targets, 210 instructions, 37 blocks and 87
 edges. Eleven fail-closed synthetic validator tests pass; the complete local
 suite passes 392 tests. Runtime-verified and callable API counts remain zero.
+
+## Latest continuation checkpoint — InputService cross-ELF imports (2026-10-10)
+
+The generic `fwplatform.cross_elf_import_probe` was run against the private
+official 3.21 extracted root. It scanned 511 `.so`/`.elf` files and found
+nine importers of the exact undefined symbol
+`_ZN12InputService19getInputEventStatusEP9ParamListPKS0_`:
+`cmn_view_processDataMgr.so`, `libInputServant.so`, `viewUnified2.so`,
+`viewUnified4.so`, `viewUnified6.so`, `viewUnified7.so`, `viewUnified8.so`,
+`waterProofHousing.so` and `wrapperSettingUtil.so`.
+
+Each has one `R_ARM_JUMP_SLOT` relocation and a unique ARM PLT/GOT witness.
+The provider export in the SHA-pinned `libObj.so` is `0x114105`, size 356.
+The import/relocation/export facts are `PRIMARY_ELF_VERIFIED`; provider
+selection is `STATIC_INFERRED` because DT_NEEDED does not list `libObj.so` and
+runtime loader search/binding is unknown.
+
+A bounded ARM/Thumb direct-immediate BL/BLX scan found no direct caller in
+these nine importers. This remains UNKNOWN coverage: register/GOT/vtable and
+other dispatch paths were not resolved, and the result is not an unused proof.
+The sanitized contract is `sdk/input_service_cross_elf_3_21.json` and the
+generic CLI is `fw sdk parameter-cross-elf --root <private-root> --provider-elf
+<private-libObj.so> --provider-sha256 <sha256> --json`. Runtime/callable counts
+remain zero. Next target: resolve one importer’s register/GOT callsite with a
+targeted Ghidra/Capstone body export, then extend the method to other ParamBase
+family imports.
+
+The targeted private Ghidra 12.1.3 run for `viewUnified4.so` then completed
+with exit 0 using `ARM:LE:32:v8`, image base `0x10000`, and the isolated ASCII
+path. Exact mangled lookup was unresolved in Ghidra, but a wildcard lookup
+resolved the demangled external `InputService::getInputEventStatus` and its
+PLT/GOT references (`ELF_VMA` GOT `0x1ae5c8`, PLT `0x3d434`). The export had
+37 metadata records. This confirms the importer/PLT mapping and the address
+space translation; it does not prove a source caller, loader binding, runtime
+execution, or callable ABI. The raw Ghidra JSONL and project remain private.
+The cross-ELF validator has nine synthetic checks, and the latest complete
+local suite passes 401 tests; these are evidence-gate results only.
