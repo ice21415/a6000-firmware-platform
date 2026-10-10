@@ -1889,3 +1889,56 @@ header constants in `sdk/paramlist_3_21_candidate.hpp`, and 16 fail-closed
 synthetic tests. The complete local `python -m unittest discover -s tests -q`
 suite passes **450 tests**. Runtime-verified and callable core API counts
 remain **0**.
+
+## ParamBase constructor/clone field-access audit (2026-10-10)
+
+The next pass did not repeat the already recovered `ParamList::get` control
+flow. `fwplatform.param_lifecycle_probe` performs a bounded, SHA-pinned
+Capstone audit over the ten direct ParamBase family records in the primary
+ELF. It follows only direct receiver aliases within each constructor and
+clone body, stops at the first observed return and never attributes accesses
+inside an opaque helper to the receiver.
+
+The private input is exactly
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+The public metadata is `sdk/param_lifecycle_3_21.json`; it contains hashes,
+addresses, normalized instruction facts and no firmware bytes or private
+paths. The reusable command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-lifecycle-audit --elf C:\private\libObj.so --json
+```
+
+The primary-ELF results are:
+
+* 10/10 constructors have no direct access to the ParamList key field
+  `+0x08` within the bounded body.
+* 10/10 clones have no direct access to `+0x08`. The separate setter at
+  `0x7eda84` remains the only verified key-assignment boundary in this
+  evidence set; that fact does not prove constructor or clone key copying.
+* 9/10 clones have direct payload-region access. `PrmPoint` reads `+0x0c` and
+  `+0x10`; `PrmSet`, `PrmNumberList` and `PrmCntInfoList` include direct
+  address-of/use observations at their payload region. `PrmObjMsg` reaches a
+  helper/getter path without a direct receiver payload load in the bounded
+  clone, so its payload semantics remain unresolved.
+* The `PrmCntInfoList` constructor uses a local initializer path rather than
+  the observed ParamBase PLT entry; this is not treated as proof that base
+  initialization is absent.
+
+An independent private Ghidra 12.1.3 targeted `-noanalysis` profile
+(`param-lifecycle-field-audit`) exited 0 and emitted `COMPLETE_TARGET_EXPORT`:
+20 target bodies, 312 instruction rows, 20 basic blocks and 52 CFG edges.
+The sanitized contract records ARM:LE:32:v8, the default compiler spec,
+image base `0x10000`, `ram` address space and matching binary/program SHA-256.
+`auto_analysis_completed=false` is intentional: this is a bounded metadata
+cross-check, not whole-program Ghidra coverage. Generated names, raw exports
+and the project remain private.
+
+These results confirm direct machine-code field-access facts at
+`PRIMARY_ELF_VERIFIED` level. They do not identify the complete C++ types,
+copy/clone ownership, allocator pairing, exception behavior, shared-counter
+semantics, invalid-element policy, locking, concurrent safety or runtime
+loader binding. The descriptive SDK remains `safe_to_call=false`,
+`runtime_verified=false` and `callable=false`; runtime-verified and callable
+core API counts remain **0**. The seven new fail-closed synthetic tests pass,
+and the complete local suite passes **457 tests**.

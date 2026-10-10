@@ -888,3 +888,26 @@ default compiler spec, image base `0x10000`, `ram` address space, 5 targets,
 260 instructions, 18 blocks and 65 CFG/call edges. This is not whole-program
 Auto Analysis; raw export/project files remain private, and the separate
 whole-program attempt remains a blocker.
+
+## ParamBase lifecycle field audit checkpoint (2026-10-10)
+
+The latest primary-ELF pass adds `fwplatform/param_lifecycle_probe.py` and
+the sanitized contract `sdk/param_lifecycle_3_21.json`. It checks all ten
+known direct ParamBase-derived families using the exact private ELF SHA-256
+`8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`.
+
+The bounded direct receiver-alias audit found no constructor or clone access
+to key field `+0x08` (10/10 each); `0x7eda84` remains the separate verified
+ParamList insertion setter. Nine clone bodies contain payload-region access;
+`PrmObjMsg` reaches a helper/getter without a direct receiver payload load in
+the bounded clone. `PrmCntInfoList` uses a local initializer path, which is
+kept distinct from the ParamBase PLT constructor witness.
+
+A private targeted Ghidra 12.1.3 `-noanalysis` profile cross-checks 20 target
+bodies, 312 instructions, 20 blocks and 52 CFG edges with matching binary and
+program identity. It is metadata-only and does not count as whole-program
+Auto Analysis. Complete C++ type identity, ownership, allocator/exception
+behavior, shared-counter semantics, locking, concurrency and runtime binding
+remain UNKNOWN. Runtime-verified and callable SDK counts remain 0. Use the
+CLI command `fw sdk parameter-lifecycle-audit --elf <private-libObj.so>
+--json` to repeat the private check.

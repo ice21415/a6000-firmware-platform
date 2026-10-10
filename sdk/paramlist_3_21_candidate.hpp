@@ -28,6 +28,21 @@ struct ParamBaseEvidenceConstants {
     static constexpr std::uint32_t key_setter_vma = 0x007eda84;
 };
 
+// ParamBase constructor/clone field-access audit metadata from the
+// SHA-pinned 3.21 primary ELF. These values describe evidence boundaries only;
+// they are not constructors, clone functions, host pointers or live-object
+// accessors. The audit found no direct +0x08 key access in the ten bounded
+// constructor bodies or ten bounded clone bodies.
+struct ParamBaseLifecycleEvidenceConstants {
+    static constexpr std::uint32_t family_count = 10;
+    static constexpr std::uint32_t key_offset = 0x08;
+    static constexpr std::uint32_t payload_offset = 0x0c;
+    static constexpr std::uint32_t key_assignment_setter_vma = 0x007eda84;
+    static constexpr std::uint32_t direct_key_accesses_in_constructors = 0;
+    static constexpr std::uint32_t direct_key_accesses_in_clones = 0;
+    static constexpr std::uint32_t clones_with_direct_payload_access = 9;
+};
+
 // ParamList::add mutation witnesses from the SHA-pinned 3.21 primary ELF.
 // These are evidence locators only.  The replacement body is unnamed in the
 // stripped image, and none of these values is a host pointer or callable API.

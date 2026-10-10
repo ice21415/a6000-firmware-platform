@@ -1394,3 +1394,28 @@ Ghidra 12.1.3 cross-check (exit 0, complete marker, 5 targets, 260
 instructions, 18 blocks and 65 CFG/call edges). This is a bounded
 `-noanalysis` export, not whole-program Auto Analysis; raw export/project
 files stay private.
+
+## ParamBase constructor/clone field audit
+
+`fwplatform.param_lifecycle_probe` provides a reusable, SHA-pinned check for
+the ten direct ParamBase-derived families. Its sanitized contract is
+`param_lifecycle_3_21.json` and the private-only command is:
+
+```powershell
+python -m fwplatform.cli sdk parameter-lifecycle-audit --elf C:\private\libObj.so --json
+```
+
+The primary ELF audit observes no direct key-field (`+0x08`) access in any
+bounded constructor or clone body (10/10 each). The separate insertion setter
+at `0x7eda84` remains the key-assignment witness. Nine clone bodies have
+direct payload-region accesses; `PrmObjMsg` reaches a helper/getter path
+without a direct receiver payload load in the bounded clone. These are
+`PRIMARY_ELF_VERIFIED` instruction facts only. They do not prove C++ type
+identity, ownership, allocator pairing, exception behavior, locking,
+concurrent validity or runtime loader binding.
+
+The private Ghidra 12.1.3 targeted `-noanalysis` cross-check completed with
+20 target bodies, 312 instructions, 20 blocks and 52 CFG edges. Raw exports
+and the project are not public. The SDK contract remains descriptive with
+`runtime_verified=false`, `callable=false` and no permission to invoke the
+firmware on hardware.

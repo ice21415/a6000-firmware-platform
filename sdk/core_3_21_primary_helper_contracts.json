@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "type_lifetime_contract": "sdk/parameter_types_lifetime_3_21.json",
+  "parambase_lifecycle_contract": "sdk/param_lifecycle_3_21.json",
   "query_evidence_contract": "sdk/paramlist_get_3_21.json",
   "event_manager_layout_candidate_contract": "sdk/event_manager_constructor_3_21.json",
   "firmware_version": "3.21",

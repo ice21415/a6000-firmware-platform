@@ -615,3 +615,18 @@ Ghidra profile without adding firmware bytes or private analysis artifacts.
   GOT and PLT metadata. The exact mangled name remains Ghidra-UNRESOLVED;
   the demangled external import is static evidence, not runtime or callable
   API proof.
+
+## Unreleased — ParamBase constructor/clone field-access audit
+
+- Added `fwplatform.param_lifecycle_probe` and the sanitized
+  `sdk/param_lifecycle_3_21.json` contract for all ten direct ParamBase
+  families in the SHA-pinned private ELF.
+- Confirmed no direct `+0x08` key access in bounded constructors or clones
+  (10/10 each); the separate ParamList insertion setter at `0x7eda84` remains
+  the key-assignment witness. Nine clones expose direct payload-region
+  access, while `PrmObjMsg` remains helper/getter-mediated in the bounded
+  body.
+- Added a private targeted Ghidra 12.1.3 metadata cross-check (20 targets,
+  312 instructions, 20 blocks, 52 CFG edges) and seven fail-closed tests.
+  C++ type identity, ownership, concurrency, runtime verification and
+  callable SDK status remain unknown/false.

@@ -1334,3 +1334,40 @@ The primary contract now links the query contract and the descriptive header
 contains the query offsets/status constants. Runtime-verified and callable
 core API counts remain zero. The focused suites and complete local
 `python -m unittest discover -s tests -q` run now pass **450 tests**.
+
+## Latest continuation checkpoint — ParamBase constructor/clone field audit (2026-10-10)
+
+The SHA-pinned private `libObj.so` was audited with the reusable
+`fwplatform.param_lifecycle_probe` rather than repeating the recovered
+`ParamList::get` body. The normalized public contract is
+`sdk/param_lifecycle_3_21.json`; private ELF bytes, raw Capstone streams and
+the Ghidra project remain outside the repository.
+
+The audit covers all ten direct ParamBase families. It found no direct
+`+0x08` key access in any bounded constructor or clone body (10/10 each).
+The key witness remains the separate ParamList insertion setter at
+`0x7eda84`. Nine clone bodies contain direct payload-region access; the
+`PrmObjMsg` clone calls a getter/helper and has no direct receiver payload
+load in the bounded body. `PrmCntInfoList` uses a local initializer path, so
+the absence of a ParamBase PLT call is not interpreted as absent base
+initialization.
+
+The private targeted Ghidra 12.1.3 profile `param-lifecycle-field-audit`
+completed with exit 0 and `COMPLETE_TARGET_EXPORT`: 20 target bodies, 312
+instructions, 20 blocks and 52 CFG edges. It records matching binary/program
+SHA-256, ARM:LE:32:v8, default compiler, image base `0x10000` and `ram`.
+This is a bounded `-noanalysis` cross-check; the full Auto Analysis blocker
+is unchanged and `auto_analysis_completed=false` is preserved.
+
+Run the repeatable private check with:
+
+```powershell
+python -m fwplatform.cli sdk parameter-lifecycle-audit --elf C:\private\libObj.so --json
+```
+
+The check proves direct receiver-field instructions only. Complete C++ type
+identity, clone ownership, allocator/exception behavior, shared-counter
+semantics, null/invalid-element behavior, locking, concurrent validity and
+runtime binding remain UNKNOWN. Runtime-verified and callable SDK counts are
+0. The seven focused tests and the complete local suite (**457 tests**) pass;
+the commit hash is recorded after this checkpoint is committed.
