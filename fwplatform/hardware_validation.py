@@ -30,6 +30,7 @@ class UsbDevice:
     vendor_id: str | None
     product_id: str | None
     description: str
+    class_name: str
     manufacturer: str
     status: str
 
@@ -71,6 +72,7 @@ def parse_pnputil(text: str) -> tuple[UsbDevice, ...]:
                     vendor_id=match.group(1).upper() if match else None,
                     product_id=match.group(2).upper() if match else None,
                     description=block.get("Device Description", ""),
+                    class_name=block.get("Class Name", ""),
                     manufacturer=block.get("Manufacturer Name", ""),
                     status=block.get("Status", ""),
                 ))
@@ -88,7 +90,7 @@ def enumerate_usb(*, runner: Callable[[list[str]], tuple[int, str, str]] | None 
     runner = runner or _run_pnputil
     if not synthetic_runner and platform.system().lower() != "windows":
         return HardwareValidation(STATUS_USB_NOT_ACCESSIBLE, platform.node(), platform.system(), "pnputil", "Windows pnputil unavailable", (), (), False)
-    command = ["pnputil", "/enum-devices", "/connected", "/class", "USB"]
+    command = ["pnputil", "/enum-devices", "/connected"]
     try:
         code, stdout, stderr = runner(command)
     except (OSError, subprocess.SubprocessError) as exc:

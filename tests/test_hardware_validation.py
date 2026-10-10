@@ -8,7 +8,7 @@ from fwplatform.hardware_validation import (
 )
 
 
-USB = """Microsoft PnP Utility\n\nInstance ID:                USB\\VID_054C&PID_0C02\\private-serial\nDevice Description:         Sony Camera\nManufacturer Name:          Sony Corporation\nStatus:                     Started\n\nInstance ID:                USB\\VID_214B&PID_7250\\hub\nDevice Description:         Generic USB Hub\nManufacturer Name:          Generic\nStatus:                     Started\n"""
+USB = """Microsoft PnP Utility\n\nInstance ID:                USB\\VID_054C&PID_0C02\\private-serial\nDevice Description:         Sony Camera\nClass Name:                 libusb-win32 devices\nManufacturer Name:          Sony Corporation\nStatus:                     Started\n\nInstance ID:                USB\\VID_214B&PID_7250\\hub\nDevice Description:         Generic USB Hub\nManufacturer Name:          Generic\nStatus:                     Started\n"""
 
 
 class HardwareValidationTests(unittest.TestCase):
@@ -16,6 +16,7 @@ class HardwareValidationTests(unittest.TestCase):
         devices = parse_pnputil(USB)
         self.assertEqual(len(devices), 2)
         self.assertEqual(devices[0].vendor_id, "054C")
+        self.assertEqual(devices[0].class_name, "libusb-win32 devices")
         self.assertNotIn("private-serial", repr(devices[0]))
 
     def test_missing_camera_is_not_runtime_verification(self):
