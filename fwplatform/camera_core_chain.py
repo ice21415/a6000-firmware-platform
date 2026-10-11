@@ -742,6 +742,10 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
     witnesses = (
         (0x7EB8FA, 0x48, ((0x7EB904, "add.w", "r4, r0, #0x88"), (0x7EB908, "mov", "r0, r4"), (0x7EB938, "ldr", "r0, [r0, #4]"))),
         (0x7EB944, 0x20, ((0x7EB94C, "mov", "r0, r1"), (0x7EB94E, "bl", "#0x7ea930"), (0x7EB952, "mov", "r1, r0"), (0x7EB954, "mov", "r0, r4"), (0x7EB956, "bl", "#0x7eb8fa"))),
+        (0x7EAC60, 0x60, ((0x7EAC62, "mov", "r4, r1"), (0x7EAC6E, "ldr", "r3, [r4, #8]"), (0x7EACB2, "mov", "r0, r4"), (0x7EACB4, "bl", "#0x7f11ca"))),
+        (0x7EAD8A, 0x08, ((0x7EAD8A, "mov", "r0, r4"), (0x7EAD8C, "bl", "#0x7f11ca"))),
+        (0x7EAF8C, 0x08, ((0x7EAF8C, "mov", "r0, r4"), (0x7EAF90, "bl", "#0x7f124a"))),
+
         (0x7F08A0, 0x74, ((0x7F08AE, "mov", "r5, r1"), (0x7F08B0, "bl", "#0x7f063c"), (0x7F08E0, "bl", "#0x7f03ec"), (0x7F08E6, "mov", "r1, r5"), (0x7F08E8, "mov", "r0, r7"), (0x7F08EA, "mov", "r2, r8"), (0x7F08EC, "mov", "r3, r6"), (0x7F08EE, "bl", "#0x7f0394"), (0x7F08F6, "bl", "#0x7f0888"))),
         (0x7F0394, 0x2C, ((0x7F03A4, "str", "r1, [r0, #4]"), (0x7F03B2, "str", "r0, [r4, #8]"), (0x7F03BA, "str", "r0, [r4, #0xc]"))),
 
@@ -849,6 +853,8 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
         _edge("registry.camera.idso_duplicate_guard", "IdSoTable::add key lookup", "existing-key insertion guard", "GUARDS_INSERTION", 0x7F08A0, digest, target_vma=0x7F063C, callsite_vma=0x7F08B0, method="ELF_THUMB_CFG_DATAFLOW", note="0x7f08b0 seeks preexisting key; 0x7f08e0 compares iterator to end, 0x7f08e4 cbz skips new node path when equal; 0x7f08ee constructor only runs on conditional missing-key path. Does not create a Camera instance."),
         _edge("registry.camera.idso_node_constructor", "IdSoTable::add missing-key path", "IdSoTable configuration node", "STORES_CONFIGURATION", 0x7F08A0, digest, target_vma=0x7F0394, callsite_vma=0x7F08EE, method="ELF_THUMB_NODE_FIELD_DATAFLOW", note="0x7f08e6-ec propagates key in r5->r1, library in r8->r2, factory in r6->r3. Node constructor stores integer key at +4 and copied name payloads at +8/+0xc; 0x7f08f6 inserts conditionally. This node is NOT a ModelManager record."),
         _edge("registry.modelmanager.descriptor_key_lookup", "ModelManager lookup descriptor +8", "ModelManager record-tree lookup key", "PASSES_DESCRIPTOR_KEY", 0x7EB944, digest, target_vma=0x7EB8FA, callsite_vma=0x7EB956, method="ELF_THUMB_REGISTER_DATAFLOW", note="0x7eb94c passes descriptor r1 to 0x7ea930, which reads +8; 0x7eb952 forwards result as lookup r1; 0x7eb954 passes original ModelManager owner as lookup r0. Identical descriptor or owner instances across callsites are not proven."),
+        _edge("registry.record.state_machine_loader", "state-machine record parameter r1", "record loader writing instance +0x1c", "PASSES_RECORD_TO_LOADER", 0x7EAC60, digest, target_vma=0x7F11CA, callsite_vma=0x7EACB4, method="ELF_THUMB_REGISTER_DATAFLOW", note="0x7eac62 copies record r1 to callee-saved r4; 0x7eac6e reads its state +8; conditional state/event branch passes r4 as loader r0 at 0x7eacb2-0x7eacb4 (also 0x7ead8a-0x7ead8c). Loader 0x7f11f4 writes factory result to same parameter record +0x1c, subject to dlopen/dlsym/factory success. 0x7eaf8c-0x7eaf90 conditionally forwards r4 to record forwarder. Cross-branch temporal equivalence and runtime ModelCamera identity remain unproven."),
+
 
         _edge("camera.factory.constructor", "ModelCameraToInstance", "Camera object initializer", "CALLS", 0x4C8C64, digest, target_vma=0x4C8AF4, callsite_vma=0x4C8C74),
         _edge("camera.constructor.vptr", "Camera object initializer", "CameraVtable:0x100a330", "INITIALIZES_VPTR", 0x4C8AF4, digest, callsite_vma=0x4C8B10, method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE"),
