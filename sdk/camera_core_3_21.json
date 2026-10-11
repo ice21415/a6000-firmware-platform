@@ -1338,6 +1338,26 @@
         "confidence": "HIGH"
       },
       "note": "State-machine r4 is passed to the forwarder; branch state and non-null instance remain preconditions."
+    },
+    {
+      "id": "registry.camera.model_id_parser",
+      "source": "compact model token @M00B",
+      "target": "Model ID:11",
+      "target_vma": null,
+      "source_vma": "0x12d71a",
+      "callsite_vma": "0x12d71a",
+      "relation": "PARSES_MODEL_ID",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x12d71a",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Parser reads token offsets +2,+3,+4 and applies hex digit conversion; @M00B yields 0x00b. This proves configuration parsing, not registry record identity."
     }
   ],
   "unresolved_edges": [
@@ -2010,8 +2030,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 66,
-    "primary_elf_verified_edges": 56
+    "tracked_core_edges": 67,
+    "primary_elf_verified_edges": 57
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3394,5 +3414,21 @@
     },
     "runtime_verified": false,
     "safe_to_invoke": false
+  },
+  "phase4_18_model_id_registry_breakthrough": {
+    "model_token": "@M00B",
+    "parser_region": "0x12d71a",
+    "numeric_model_id": 11,
+    "status": "PRIMARY_ELF_VERIFIED_STATIC_PARSER",
+    "registration_callsite": "0x4020a0",
+    "lookup_record_identity": "UNKNOWN",
+    "runtime_dso_identity": "UNKNOWN",
+    "instance_identity": "UNKNOWN",
+    "runtime_verified": false,
+    "safe_to_invoke": false,
+    "blockers_narrowed": [
+      "numeric model ID mapping is now proven",
+      "registration-to-lookup record pointer identity remains unresolved"
+    ]
   }
 }

@@ -4,6 +4,7 @@ from fwplatform.camera_receiver_registry_probe import (
     classify_receiver_field,
     classify_registry_record,
     classify_record_state,
+    parse_compact_model_id,
 )
 
 
@@ -36,4 +37,11 @@ class ReceiverRegistryProbeTests(unittest.TestCase):
         self.assertEqual(classify_record_state(0x70000), "STATE_DOMAIN")
         self.assertEqual(classify_record_state(11), "OUTSIDE_OBSERVED_DOMAIN")
         self.assertEqual(classify_record_state(None), "UNKNOWN")
+
+    def test_compact_model_token_parser(self):
+        self.assertEqual(parse_compact_model_id("@M00B"), 11)
+        self.assertEqual(parse_compact_model_id("@V0af"), 0x0AF)
+        for token in ("M00B", "@M0", "@M0XZ"):
+            with self.assertRaises(ValueError):
+                parse_compact_model_id(token)
 

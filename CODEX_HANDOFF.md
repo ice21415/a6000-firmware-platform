@@ -1782,3 +1782,15 @@ IdGenerator PLT for `@M00B`, and `0x4020a0` calls the IdSoTable add PLT with
 post-insertion record identity remain unproven. The graph checkpoint is
 56 primary, 5 inferred, 5 unresolved, 66 tracked. Runtime Verified and
 Safe-to-Invoke APIs remain zero.
+## Phase 4.18 Model ID parser breakthrough
+
+The pinned ELF parser at `0x12d71a` reads compact-token offsets `+2/+3/+4`
+as hexadecimal digits. The registered `@M00B` token therefore yields numeric
+Model ID `0x00b` (11), PRIMARY_ELF_VERIFIED at the parser level. This does
+not prove that the later registry lookup returns the same registration
+Record, nor that runtime `modelCamera.so` aliases this ELF.
+
+The lookup result remains proven to enter state machine `0x7eac60`, which
+preserves the Record pointer and updates `+8` on conditional state paths.
+Current graph checkpoint: 57 primary, 5 inferred, 5 unresolved, 67 tracked;
+runtime and safe-to-invoke APIs remain zero.

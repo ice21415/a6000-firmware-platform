@@ -47,6 +47,16 @@ def classify_record_state(value: int | None) -> str:
     return "OUTSIDE_OBSERVED_DOMAIN"
 
 
+def parse_compact_model_id(token: str) -> int:
+    """Decode the observed three-hex-digit compact model token."""
+    if not isinstance(token, str) or len(token) < 5 or not token.startswith("@"):
+        raise ValueError("compact model token must start with @ and contain three digits")
+    digits = token[2:5]
+    if len(digits) != 3 or any(ch not in "0123456789abcdefABCDEF" for ch in digits):
+        raise ValueError("compact model token contains a non-hex digit")
+    return int(digits, 16)
+
+
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -190,6 +200,17 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
         constructor = _decode(read, 0x4C8AF4, 0x30)
         _need(constructor, 0x4C8B10, "str", "r2, [r5]")
 
+        model_parser = _decode(read, 0x12D71A, 0x40)
+        _need(model_parser, 0x12D71A, "ldrb", "r4, [r5, #2]")
+        _need(model_parser, 0x12D720, "subs", "r4, #0x37")
+        _need(model_parser, 0x12D726, "ldrb", "r3, [r5, #3]")
+        _need(model_parser, 0x12D72E, "subs", "r3, #0x37")
+        _need(model_parser, 0x12D736, "ldrb", "r3, [r5, #4]")
+        _need(model_parser, 0x12D73C, "subs", "r3, #0x37")
+        _need(model_parser, 0x12D742, "adds", "r4, r2, r4")
+        if parse_compact_model_id("@M00B") != 0x0B:
+            raise ValueError("compact model parser model-id fixture mismatch")
+
         state_machine = _decode(read, 0x7EAC60, 0x50)
         _need(state_machine, 0x7EAC62, "mov", "r4, r1")
         _need(state_machine, 0x7EAC6E, "ldr", "r3, [r4, #8]")
@@ -315,7 +336,12 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
             "library": "modelCamera.so",
             "factory_symbol": "ModelCameraToInstance",
             "verification": "PRIMARY_ELF_VERIFIED_STATIC_REGISTRATION",
-            "returned_model_id": "STATIC_INFERRED; IdGenerator return value not independently decoded as 11",
+            "returned_model_id": 11,
+            "model_id_parser": {
+                "entry_region": "0x12d71a",
+                "bytes": "@M00B -> offsets +2,+3,+4 -> 0x00b",
+                "verification": "PRIMARY_ELF_VERIFIED_STATIC_PARSER",
+            },
             "record_identity_after_insert": "UNKNOWN",
         },
         "modelcamera_factory": {

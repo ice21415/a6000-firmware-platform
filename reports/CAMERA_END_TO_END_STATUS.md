@@ -465,3 +465,19 @@ proof.
 The graph is now 66 tracked edges: 56 PRIMARY_ELF_VERIFIED, 5
 STATIC_INFERRED, and 5 UNRESOLVED. Runtime-verified and safe-to-invoke APIs
 remain zero.
+
+## Phase 4.18 Model ID parser breakthrough
+
+The primary ELF contains a bounded hexadecimal parser at `0x12d71a` that
+reads compact-token bytes at offsets `+2`, `+3`, and `+4`, normalizes ASCII
+digits/letters, shifts the first two nibbles, and combines the result. For
+the registered token `@M00B`, this yields numeric Model ID `0x00b` (11).
+This is PRIMARY_ELF_VERIFIED configuration parsing and removes the prior
+uncertainty about the numeric token mapping.
+
+The parser result still enters an `IdSoTable::add` registration path whose
+post-insertion Record pointer is not statically identical to the later
+`0x7eb8fa` lookup return. Runtime `modelCamera.so` identity and selected
+factory instance remain UNKNOWN. The graph is now 67 tracked edges: 57
+PRIMARY_ELF_VERIFIED, 5 STATIC_INFERRED, and 5 UNRESOLVED; runtime and
+safe-to-invoke APIs remain zero.

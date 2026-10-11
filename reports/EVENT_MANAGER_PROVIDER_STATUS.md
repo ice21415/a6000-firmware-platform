@@ -180,3 +180,10 @@ The `@M00B` registration path is instruction-verified at `0x402090` and
 registration API. IdGenerator's numeric return, lookup record identity and
 runtime DSO alias remain unresolved. Runtime and safe-callable counts remain
 zero.
+## Phase 4.18 numeric model identity
+
+The bounded parser at `0x12d71a` converts compact token `@M00B` to numeric
+ID `0x00b` (11) by decoding offsets `+2/+3/+4` as hexadecimal digits. This
+is primary ELF evidence for the configuration token and does not prove that
+the later lookup returns the same registration record or that the runtime
+loader selected the local ModelCamera DSO.
