@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "phase4.19 blocker ledger and state/receiver evidence enrichment",
+  "latest_checkpoint": "Phase 4.20 manual blocker evidence consistency audit; no new ELF proof",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -291,5 +291,34 @@
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0,
     "count_source": "unique evidence graph IDs; observations are not graph edges"
+  },
+  "phase4_20_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "unresolved_edges_reduced": 0,
+    "changes": [
+      "Corrected 0x11130c conditional main-dispatch callback exclusion",
+      "Added fail-closed cross-file graph/ledger/progress audit with synthetic mutation tests",
+      "Made blocker ledger tests forward-compatible with future evidence-backed resolution"
+    ],
+    "public_metadata_audit": "python -m fwplatform.camera_core_blocker_audit",
+    "new_primary_elf_analysis": false,
+    "private_elf_available_in_current_session": false,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "public GitHub source-level and evidence metadata inspection only"
   }
 }
