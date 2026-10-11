@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 79,
-  "primary_elf_verified_edges": 69,
+  "tracked_core_edges": 82,
+  "primary_elf_verified_edges": 72,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.26 direct ELF follows bootstrap provider into ModelManager constructor and virtual-return table field",
+  "latest_checkpoint": "Phase 4.27 derives conditional ModelConfig vtable+0x1c -> ModelIdSoTable::getInstance and pins startup selector to BSS",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -484,6 +484,31 @@
     ],
     "new_static_proof": "0x7ef268 provider factory -> bootstrap+0x14 -> ctor r2/r5 -> provider vptr+0x1c -> manager+0x8",
     "still_unknown": "concrete provider vtable function and its equality with @M00B ModelIdSoTable singleton; descriptor model ID11; loader alias",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_27_delta": {
+    "baseline": {
+      "tracked_core_edges": 79,
+      "primary_elf_verified_edges": 69,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 82,
+      "primary_elf_verified_edges": 72,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.provider.bootstrap_selector_bss",
+      "registry.provider.modelconfig_vptr_construction",
+      "registry.provider.modelconfig_slot_to_modelidso_singleton"
+    ],
+    "conditional_proof": "non-AppConfig.so provider vptr 0x1007528 slot+0x1c -> Thumb 0x45ef28 -> 0xdbc58 PLT for ModelIdSoTable::getInstance",
+    "startup_selector": "UNKNOWN; source BSS 0x10df828, runtime bytes not supplied",
+    "nflasha16": "Android /system image: 485 filesystem entries, 53 symlinks, no modelCamera.so match; user's read-only scan",
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
