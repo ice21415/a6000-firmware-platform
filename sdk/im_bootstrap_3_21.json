@@ -1,0 +1,382 @@
+{
+  "schema_version": "1.0",
+  "firmware_version": "3.21",
+  "phase": "4.38",
+  "source_file": "im-vendor-original.elf",
+  "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+  "source_size_bytes": 23108,
+  "elf_class": "ELF32",
+  "elf_machine": "ARM",
+  "elf_type": "ET_EXEC",
+  "entry_point": "0x9119",
+  "related_registry": {
+    "source": "libIMDB.so",
+    "sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "report": "reports/PHASE4_36_IMDB_ELF_RECORD_QUERY_REVERSE.md"
+  },
+  "method": "PRIMARY_CROSS_ELF_STATIC_THUMB_AND_PLT_RELOCATION",
+  "verified_dynamic_imports": [
+    {
+      "name": "IMDB_find_entry",
+      "plt": "0x8f1c",
+      "got": "0x15194",
+      "callsites": [
+        "0xadb8",
+        "0xb542",
+        "0xb74c"
+      ]
+    },
+    {
+      "name": "IMDB_find_target_bit",
+      "plt": "0x8f74",
+      "got": "0x151b0",
+      "callsites": [
+        "0xacae"
+      ]
+    },
+    {
+      "name": "IMDB_get_entries",
+      "plt": "0x90f4",
+      "got": "0x1522c",
+      "callsites": [
+        "0xb66a",
+        "0xbb0a"
+      ]
+    },
+    {
+      "name": "dlopen",
+      "plt": "0x8f10",
+      "got": "0x15190",
+      "callsites": [
+        "0xb1ec",
+        "0xb278"
+      ]
+    },
+    {
+      "name": "dlsym",
+      "plt": "0x90e8",
+      "got": "0x15228",
+      "callsites": [
+        "0xac42",
+        "0xac5e",
+        "0xb20e",
+        "0xb29c"
+      ]
+    },
+    {
+      "name": "dlerror",
+      "plt": "0x9038",
+      "got": "0x151f0",
+      "callsites": [
+        "0xac38",
+        "0xac48",
+        "0xac64",
+        "0xb1f4",
+        "0xb206",
+        "0xb214"
+      ]
+    },
+    {
+      "name": "dlclose",
+      "plt": "0x8eec",
+      "got": "0x15184",
+      "callsites": [
+        "0xb23a",
+        "0xb2b4"
+      ]
+    }
+  ],
+  "verified_relations": [
+    {
+      "id": "im.dispatcher.imdb_calls",
+      "summary": "im.elf contains concrete PLT callsites to all three exported IMDB query methods",
+      "instruction_witnesses": [
+        [
+          "0xacae",
+          "blx",
+          "0x8f74"
+        ],
+        [
+          "0xadb8",
+          "blx",
+          "0x8f1c"
+        ],
+        [
+          "0xb542",
+          "blx",
+          "0x8f1c"
+        ],
+        [
+          "0xb66a",
+          "blx",
+          "0x90f4"
+        ]
+      ]
+    },
+    {
+      "id": "im.dispatcher.record_type_to_loader",
+      "summary": "0xb430 reads row type and dispatches type 0x20000004 to initializer loader at 0xb1a8",
+      "instruction_witnesses": [
+        [
+          "0xb438",
+          "mov",
+          "r4, r0"
+        ],
+        [
+          "0xb43a",
+          "ldr",
+          "r3, [r0]"
+        ],
+        [
+          "0xb470",
+          "ldr",
+          "r2, [pc, #0x9c]"
+        ],
+        [
+          "0xb472",
+          "cmp",
+          "r3, r2"
+        ],
+        [
+          "0xb476",
+          "bl",
+          "0xb1a8"
+        ]
+      ],
+      "literal_word": {
+        "address": "0xb510",
+        "value": "0x20000004"
+      }
+    },
+    {
+      "id": "im.dispatcher.module_handle_choice",
+      "summary": "Loader at 0xb1a8 checks row+0x0e upper half of packed ID; 0 => dlopen(row+0x10, global_flags), nonzero => dlopen(NULL, global_flags)",
+      "instruction_witnesses": [
+        [
+          "0xb1b4",
+          "ldr",
+          "r6, [r0, #0x10]"
+        ],
+        [
+          "0xb1e0",
+          "ldrh",
+          "r0, [r4, #0xe]"
+        ],
+        [
+          "0xb1e6",
+          "ite",
+          "eq"
+        ],
+        [
+          "0xb1e8",
+          "moveq",
+          "r0, r6"
+        ],
+        [
+          "0xb1ea",
+          "movne",
+          "r0, #0x0"
+        ],
+        [
+          "0xb1ec",
+          "blx",
+          "0x8f10"
+        ]
+      ],
+      "appfw_row_upper_half": "0x07fb",
+      "subapp_row_upper_half": "0x0000",
+      "appfw_dlopen_name_argument": "NULL",
+      "subapp_dlopen_name_argument": "subapp.so",
+      "note": "Static row-specific branch result. Runtime execution or success not verified."
+    },
+    {
+      "id": "im.dispatcher.init_symbol_resolution",
+      "summary": "After dlopen succeeds, dlsym uses descriptor row+0x14 name, stores function pointer in r8 and conditionally invokes it",
+      "instruction_witnesses": [
+        [
+          "0xb1fe",
+          "ldr",
+          "r0, [r4, #0x14]"
+        ],
+        [
+          "0xb20a",
+          "mov",
+          "r0, r6"
+        ],
+        [
+          "0xb20c",
+          "ldr",
+          "r1, [r4, #0x14]"
+        ],
+        [
+          "0xb20e",
+          "blx",
+          "0x90e8"
+        ],
+        [
+          "0xb212",
+          "mov",
+          "r8, r0"
+        ],
+        [
+          "0xb226",
+          "cmp.w",
+          "r8, #0x0"
+        ],
+        [
+          "0xb22a",
+          "beq",
+          "0xb22e"
+        ],
+        [
+          "0xb22c",
+          "blx",
+          "r8"
+        ]
+      ],
+      "note": "The descriptor row+0x14 is ASCII symbol name, not direct function pointer; dlsym lookup result may be null."
+    },
+    {
+      "id": "im.dispatcher.init_arg_config_flag",
+      "summary": "For initializer invocation, an internal global 0x4000 flag selects descriptor+0x24 if set, otherwise descriptor+0x28; result forwarded in r0 to BLX r8",
+      "instruction_witnesses": [
+        [
+          "0xb21a",
+          "bl",
+          "0xad78"
+        ],
+        [
+          "0xb21e",
+          "cbz",
+          "r0, 0xb224"
+        ],
+        [
+          "0xb220",
+          "ldr",
+          "r0, [r4, #0x24]"
+        ],
+        [
+          "0xb224",
+          "ldr",
+          "r0, [r4, #0x28]"
+        ],
+        [
+          "0xb22c",
+          "blx",
+          "r8"
+        ],
+        [
+          "0xad7e",
+          "ldr",
+          "r0, [r3, #0x1c]"
+        ],
+        [
+          "0xad80",
+          "and",
+          "r0, r0, #0x4000"
+        ]
+      ],
+      "global_flag_source_base": "0x15484",
+      "global_flag_field": "+0x1c",
+      "row99_if_flag_set": "AdjChkConfig.so",
+      "row99_if_flag_clear": "AppConfig.so",
+      "note": "Actual flag value / executed branch at boot unknown. Both row99 strings non-null."
+    },
+    {
+      "id": "im.dispatcher.record_scan_get_entries",
+      "summary": "im.elf calls IMDB_get_entries, advances row pointer by 0x2c, filters mask and group, and forwards target ID to loader",
+      "instruction_witnesses": [
+        [
+          "0xb66a",
+          "blx",
+          "0x90f4"
+        ],
+        [
+          "0xb66e",
+          "movs",
+          "r4, #0x2c"
+        ],
+        [
+          "0xb670",
+          "mla",
+          "r4, r4, r5, r0"
+        ],
+        [
+          "0xb67c",
+          "ldr",
+          "r2, [r6, #0x28]"
+        ],
+        [
+          "0xb67e",
+          "ldr",
+          "r3, [r4, #0x8]"
+        ],
+        [
+          "0xb680",
+          "tst",
+          "r2, r3"
+        ],
+        [
+          "0xb684",
+          "ldr",
+          "r3, [r4, #0x4]"
+        ],
+        [
+          "0xb686",
+          "tst.w",
+          "r9, r3"
+        ],
+        [
+          "0xb69c",
+          "ldrh",
+          "r0, [r4, #0xc]"
+        ],
+        [
+          "0xb69e",
+          "bl",
+          "0xb530"
+        ],
+        [
+          "0xb6b0",
+          "adds",
+          "r4, #0x2c"
+        ],
+        [
+          "0xb6b8",
+          "cmp",
+          "r3, #0x28"
+        ]
+      ]
+    }
+  ],
+  "static_conditional_appfw_trace": {
+    "row": {
+      "index": 99,
+      "vma": "0xd1ec",
+      "module_field": "+0x10 appFw.so",
+      "init_field": "+0x14 Application_System_Init",
+      "high_half_id": "0x07fb",
+      "config_if_flag_0x4000": "+0x24 AdjChkConfig.so",
+      "config_if_flag_zero": "+0x28 AppConfig.so"
+    },
+    "decision": "If the im.elf loader selects IMDB row99 and its dlopen(NULL) and dlsym(Application_System_Init) succeed, the indirect call receives the selected non-null string in r0.",
+    "not_proven": [
+      "row99 selected on actual A6000 boot",
+      "dlopen(NULL) returns a usable handle in actual environment",
+      "symbol resolves to libObj.so's exported Application_System_Init",
+      "real 0x4000 flag value",
+      "actual call execution",
+      "whether AppConfig or AdjChkConfig is boot path",
+      "ModelIdSoTable consumer and modelCamera.so module loader identity"
+    ]
+  },
+  "camera_core_graph": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "new_core_graph_edges": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}
