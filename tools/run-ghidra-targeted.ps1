@@ -3,7 +3,7 @@ param(
   [Parameter(Mandatory=$true)][string]$ProjectDir,
   [Parameter(Mandatory=$true)][string]$ProjectName,
   [Parameter(Mandatory=$true)][string]$Binary,
-  [Parameter(Mandatory=$true)][ValidateSet('camera-request-chain','camera-ee-neutral','app-event-primary','event-manager-init','event-manager-count','event-manager-destroy','event-manager-owner-init','event-manager-constructor','paramlist-lifetime','paramlist-owner-use','request-event-factory','event-core','param-set','param-set-exceptions','param-set-callers','param-pair','param-string','param-objmsg','param-struct','param-lifecycle-field-audit','param-destructor-field-audit','paramlist-virtual-dispatch-audit','param-cntinfolist')][string]$Profile,
+  [Parameter(Mandatory=$true)][ValidateSet('camera-main-dispatch','camera-request-chain','camera-ee-neutral','app-event-primary','event-manager-init','event-manager-count','event-manager-destroy','event-manager-owner-init','event-manager-constructor','paramlist-lifetime','paramlist-owner-use','request-event-factory','event-core','param-set','param-set-exceptions','param-set-callers','param-pair','param-string','param-objmsg','param-struct','param-lifecycle-field-audit','param-destructor-field-audit','paramlist-virtual-dispatch-audit','param-cntinfolist')][string]$Profile,
   [Parameter(Mandatory=$true)][string]$Output
 )
 

@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 51,
-  "primary_elf_verified_edges": 41,
+  "tracked_core_edges": 57,
+  "primary_elf_verified_edges": 47,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -12,7 +12,7 @@
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
   "new_evidence_added": 23,
-  "primary_edges_added": 2,
+  "primary_edges_added": 6,
   "inferred_edges_added": 0,
   "unresolved_edges_reduced": 0,
   "candidates_excluded": 0,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.13 corrected getter GOT arithmetic; conditional callback 0x11130c",
+  "latest_checkpoint": "Phase 4.14 pre-enqueue callback and queue transfer/router path",
   "phase4_13_delta": {
     "primary_edges_added": 0,
     "inferred_edges_added": 0,
@@ -74,5 +74,34 @@
       "confirmed_target_writers": 0,
       "proven_singleton_store": "0x106dbc -> 0x10a8a9c"
     }
+  },
+  "phase4_14_delta": {
+    "baseline": {
+      "tracked_core_edges": 51,
+      "primary_elf_verified_edges": 41,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 57,
+      "primary_elf_verified_edges": 47,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_tracked_edges": 6,
+    "primary_edges_added": 6,
+    "inferred_edges_added": 0,
+    "upgraded_edges": 0,
+    "unresolved_edges_reduced": 0,
+    "blockers_resolved": 0,
+    "blockers_narrowed": [
+      "callback semantics and ABI",
+      "queue-to-router transport"
+    ],
+    "confirmed_callback_function": "0x11130c conditionally selected",
+    "router_callsite_not_entry": "0x7eedf0",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "SHA-pinned probe + unique edge IDs; summarizes declared graph facts"
   }
 }

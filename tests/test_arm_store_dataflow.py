@@ -68,7 +68,52 @@ class StoreDataflowTests(unittest.TestCase):
 
     def test_conditional_store(self):
         raw = struct.pack("<III", 0xE3A03020, 0x05830000, 0xE12FFF1E)
-        self.assertTrue(self.analyze(raw, mode="ARM")["stores"][0]["conditional"])
+        store = self.analyze(raw, mode="ARM")["stores"][0]
+        self.assertTrue(store["conditional"])
+        self.assertEqual(store["classification"], "CONDITIONAL_WRITE")
+
+    def test_conditional_movt_keeps_both_paths(self):
+        # mov r3,#32; movtne r3,#1; str r0,[r3]; bx lr.
+        # MOVTNE must update the high half on the true path, not replace r3.
+        raw = struct.pack("<IIII", 0xE3A03020, 0x13403001, 0xE5830000, 0xE12FFF1E)
+        result = self.analyze(raw, mode="ARM")
+        self.assertEqual(result["stores"][0]["effective_address"]["values"], [32, 0x10020])
+        self.assertEqual(result["stores"][0]["classification"], "POSSIBLE_WRITE")
+
+    def test_load_writeback_changes_following_store_address(self):
+        # mov r3,#28; ldr r2,[r3,#4]!; str r0,[r3]; bx lr.
+        raw = struct.pack("<IIII", 0xE3A0301C, 0xE5B32004, 0xE5830000, 0xE12FFF1E)
+        self.assertEqual(self.analyze(raw, mode="ARM")["stores"][0]["effective_address"]["values"], [32])
+
+    def test_subtract_post_index_load(self):
+        raw = struct.pack("<IIII", 0xE3A03024, 0xE4132004, 0xE5830000, 0xE12FFF1E)
+        self.assertEqual(self.analyze(raw, mode="ARM")["stores"][0]["effective_address"]["values"], [32])
+
+    def test_signed_byte_load_is_sign_extended(self):
+        # ldrsb r2,[r3]; str r2,[r4]; bx lr.
+        raw = struct.pack("<III", 0xE1D320D0, 0xE5842000, 0xE12FFF1E)
+        result = self.analyze(raw, mode="ARM", initial={"r3": 0x2000, "r4": 32}, memory={0x2000: b"\xff"})
+        self.assertEqual(result["stores"][0]["written_value"]["values"], [0xFFFFFFFF])
+
+    def test_trap_does_not_invent_fallthrough(self):
+        result = self.analyze(bytes.fromhex("00be18607047"), initial={"r3": 32})
+        self.assertFalse(result["stores"])
+        self.assertEqual(result["unresolved"][0]["reason"], "TRAP_CONTROL_FLOW_UNRESOLVED")
+
+    def test_indirect_call_clobbers_alias_but_preserves_callee_saved(self):
+        # blx r2; str r0,[r3]; str r0,[r4]; bx lr.
+        result = self.analyze(bytes.fromhex("9047186020607047"), initial={"r3": 32, "r4": 36})
+        self.assertEqual(result["stores"][0]["effective_address"]["kind"], "UNKNOWN")
+        self.assertEqual(result["stores"][1]["effective_address"]["values"], [36])
+        self.assertEqual(result["calls"][0]["target_mode"], "UNKNOWN")
+
+    def test_numbered_register_aliases_and_conflicting_inputs(self):
+        # str r0,[ip]; bx lr.
+        raw = struct.pack("<II", 0xE58C0000, 0xE12FFF1E)
+        result = self.analyze(raw, mode="ARM", initial={"r12": 32})
+        self.assertEqual(result["stores"][0]["effective_address"]["values"], [32])
+        result = self.analyze(raw, mode="ARM", initial={"r12": 32, "ip": 36})
+        self.assertEqual(result["stores"][0]["classification"], "POSSIBLE_WRITE")
 
     def test_it_fail_closed(self):
         result = self.analyze(bytes.fromhex("08bf202318607047"))

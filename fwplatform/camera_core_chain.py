@@ -22,7 +22,7 @@ from .elf_plt import resolve_plt_binding
 from .event_manager_push_probe import probe_event_manager_push
 from .camera_loader_dataflow import analyze_loader_dataflow
 from .event_manager_callback_probe import probe_event_manager_callback
-from .event_manager_provider_probe import probe_event_manager_provider, inventory_init_array
+from .event_manager_provider_probe import probe_event_manager_provider, probe_callback_behavior, inventory_init_array
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -958,6 +958,31 @@ def _unresolved(digest: str) -> list[dict[str, Any]]:
     ]
 
 
+def summarize_core_graph(report: dict[str, Any]) -> dict[str, int]:
+    """Count declared graph statuses by unique relation ID, without promotion.
+
+    This is accounting, not independent evidence verification. Conflicting
+    duplicates are rejected rather than silently counted or selected.
+    """
+    unique: dict[str, dict[str, Any]] = {}
+    groups = [report.get("edges", report.get("verified_edges", [])),
+              report.get("observations", {}).get("camera_registry_dispatch", {}).get("conditional_relations", []),
+              report.get("unresolved_edges", [])]
+    for relations in groups:
+        for relation in relations:
+            ident = relation.get("id")
+            if not ident:
+                raise ValueError("relation identity missing")
+            if ident in unique and unique[ident] != relation:
+                raise ValueError(f"conflicting relation identity: {ident}")
+            unique[ident] = relation
+    statuses = [relation.get("verification_status", relation.get("status")) for relation in unique.values()]
+    return {"tracked_core_edges": len(unique),
+            "primary_elf_verified_edges": statuses.count("PRIMARY_ELF_VERIFIED"),
+            "static_inferred_edges": statuses.count("STATIC_INFERRED"),
+            "unresolved_edges": sum(status in {"UNKNOWN", "CANDIDATE", "INFERRED"} for status in statuses)}
+
+
 def probe_camera_core_chain(
     elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA,
 ) -> dict[str, Any]:
@@ -1000,6 +1025,7 @@ def probe_camera_core_chain(
         loader_dataflow = analyze_loader_dataflow(path, expected_sha256=expected_sha256)
         event_callback = probe_event_manager_callback(path, expected_sha256=expected_sha256)
         provider_bss = probe_event_manager_provider(path, expected_sha256=expected_sha256)
+        callback_behavior = probe_callback_behavior(path, expected_sha256=expected_sha256)
         init_inventory = inventory_init_array(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
     event_edge["target_value"] = hex(EVENT_ID)
@@ -1021,6 +1047,13 @@ def probe_camera_core_chain(
         key7_edge,
         key8_edge,
     ]
+    for relation in callback_behavior["queue_bridge_calls"]:
+        edges.append(_edge(relation["id"], f"ELF_VMA:{relation['source_vma']}",
+                           f"ELF_VMA:{relation['target_vma']}", "CALLS",
+                           int(relation["source_vma"], 16), digest,
+                           target_vma=int(relation["target_vma"], 16),
+                           callsite_vma=int(relation["callsite_vma"], 16),
+                           note="Direct instruction edge; queue scheduling and object identity are separate preconditions."))
     # These are intentionally nodes/observations rather than a fabricated
     # consumer edge.  A literal address is not a function target.
     nodes = [
@@ -1066,6 +1099,7 @@ def probe_camera_core_chain(
             "loader_dataflow": loader_dataflow,
             "event_manager_callback_provenance": event_callback,
             "event_manager_provider_provenance": provider_bss,
+            "event_manager_callback_behavior": callback_behavior,
             "event_manager_init_array": {
                 "status": init_inventory["status"],
                 "table_vma": init_inventory["table_vma"],

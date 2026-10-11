@@ -765,6 +765,48 @@
       "note": "State2 checker path compares normalized r8 to 0x0f01 and writes 25 through its action-output pointer."
     },
     {
+      "id": "loader.dlopen_helper",
+      "source": "ModelCamera loader",
+      "target": "dlopen",
+      "target_vma": "0xe0cec",
+      "source_vma": "0x7f11ca",
+      "callsite_vma": "0x7f11d8",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f11d8",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "ARM veneer 0xe0cec computes GOT 0x102e808 with R_ARM_JUMP_SLOT dlopen."
+    },
+    {
+      "id": "loader.dlsym_helper",
+      "source": "ModelCamera loader",
+      "target": "dlsym",
+      "target_vma": "0xdfed0",
+      "source_vma": "0x7f11ca",
+      "callsite_vma": "0x7f11e6",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f11e6",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "ARM veneer 0xdfed0 computes GOT 0x102e398 with R_ARM_JUMP_SLOT dlsym."
+    },
+    {
       "id": "factory.event_id",
       "source": "AbstractUtilityManager::createRequestModelExecuteEvent",
       "target": "EventID:0x11004003",
@@ -832,46 +874,130 @@
       "key_literal_vma": "0x7f0b5c"
     },
     {
-      "id": "loader.dlopen_helper",
-      "source": "ModelCamera loader",
-      "target": "internal loader helper",
-      "target_vma": "0xe0cec",
-      "source_vma": "0x7f11ca",
-      "callsite_vma": "0x7f11d8",
+      "id": "queue.push.append",
+      "source": "ELF_VMA:0x7ef960",
+      "target": "ELF_VMA:0x7f0aac",
+      "target_vma": "0x7f0aac",
+      "source_vma": "0x7ef960",
+      "callsite_vma": "0x7ef990",
       "relation": "CALLS",
       "address_space": "ELF_VMA",
-      "verification_status": "STATIC_INFERRED",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
       "confidence": "HIGH",
       "evidence": {
         "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
-        "source_locator": "ELF_VMA:0x7f11d8",
+        "source_locator": "ELF_VMA:0x7ef990",
         "address_space": "ELF_VMA",
         "evidence_method": "CAPSTONE_PRIMARY_ELF",
-        "verification_status": "STATIC_INFERRED",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
         "confidence": "HIGH"
       },
-      "note": "r0 is loaded from record +0x10; relation to imported dlopen PLT remains unresolved."
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
     },
     {
-      "id": "loader.dlsym_helper",
-      "source": "ModelCamera loader",
-      "target": "internal symbol resolver helper",
-      "target_vma": "0xdfed0",
-      "source_vma": "0x7f11ca",
-      "callsite_vma": "0x7f11e6",
+      "id": "queue.transfer.pop",
+      "source": "ELF_VMA:0x7ef910",
+      "target": "ELF_VMA:0x7f099c",
+      "target_vma": "0x7f099c",
+      "source_vma": "0x7ef910",
+      "callsite_vma": "0x7ef92a",
       "relation": "CALLS",
       "address_space": "ELF_VMA",
-      "verification_status": "STATIC_INFERRED",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
       "confidence": "HIGH",
       "evidence": {
         "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
-        "source_locator": "ELF_VMA:0x7f11e6",
+        "source_locator": "ELF_VMA:0x7ef92a",
         "address_space": "ELF_VMA",
         "evidence_method": "CAPSTONE_PRIMARY_ELF",
-        "verification_status": "STATIC_INFERRED",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
         "confidence": "HIGH"
       },
-      "note": "record +0x18 is the loader-handle candidate and +0x14 is the symbol-name candidate; imported dlsym relation remains unresolved."
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
+    },
+    {
+      "id": "queue.transfer.append",
+      "source": "ELF_VMA:0x7ef910",
+      "target": "ELF_VMA:0x7f0aac",
+      "target_vma": "0x7f0aac",
+      "source_vma": "0x7ef910",
+      "callsite_vma": "0x7ef932",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef932",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
+    },
+    {
+      "id": "queue.loop.pop",
+      "source": "ELF_VMA:0x7eeee8",
+      "target": "ELF_VMA:0x7ef940",
+      "target_vma": "0x7ef940",
+      "source_vma": "0x7eeee8",
+      "callsite_vma": "0x7eefda",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eefda",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
+    },
+    {
+      "id": "queue.loop.router",
+      "source": "ELF_VMA:0x7eeee8",
+      "target": "ELF_VMA:0x7eed0c",
+      "target_vma": "0x7eed0c",
+      "source_vma": "0x7eeee8",
+      "callsite_vma": "0x7eefe2",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eefe2",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
+    },
+    {
+      "id": "queue.loop.transfer",
+      "source": "ELF_VMA:0x7eeee8",
+      "target": "ELF_VMA:0x7ef910",
+      "target_vma": "0x7ef910",
+      "source_vma": "0x7eeee8",
+      "callsite_vma": "0x7ef03a",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef03a",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
     }
   ],
   "unresolved_edges": [
@@ -1763,7 +1889,7 @@
     }
   },
   "superseded_phase4_11_provider_getter": {
-    "status": "DISPROVEN_AS_GETTER_DEPENDENCY",
+    "status": "SUPERSEDED_DISPROVEN",
     "original_record": {
       "status": "PARTIAL_PRIMARY_STATIC",
       "source": "fwplatform/event_manager_provider_probe.py",
@@ -1842,5 +1968,297 @@
     ],
     "runtime_verified": false,
     "safe_to_invoke": false
+  },
+  "phase4_14_callback_behavior": {
+    "schema_version": 1,
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "address_space": "ELF_VMA",
+    "entry": "0x11130c",
+    "ehabi_slot": "0xf641c4",
+    "ehabi_next_entry": "0x11141c",
+    "code_end_exclusive": "0x111400",
+    "literal_pool": [
+      "0x111400",
+      "0x11141c"
+    ],
+    "abi": {
+      "r0": "list/sentinel context retained in r6",
+      "r1": "Event pointer retained in r5",
+      "return": "UNKNOWN; no stable status assignment",
+      "local_frame_bytes": 20
+    },
+    "descriptor_guard": {
+      "event_id": "0x11013008",
+      "parameter_key": 23,
+      "discriminator": 6,
+      "getter": "0x10fa04",
+      "compare": "0x10fa10",
+      "request_event": "0x11004003",
+      "request_descriptor_arm": "SKIPPED_UNLESS_EVENT_TRANSFORMED"
+    },
+    "optional_hook": {
+      "callsite": "0x111324",
+      "got_slot": "0x1034b90",
+      "cell": "0x10a8c6c",
+      "target": "UNKNOWN",
+      "precondition": "non-null cell contents"
+    },
+    "enable_gate": {
+      "got_slot": "0x1032cbc",
+      "cell": "0x10355bc",
+      "runtime_value": "UNKNOWN",
+      "branch": "0x11132e"
+    },
+    "behavior": "conditional descriptor matching; may add key 0x1b to incoming Event and clear peer Event destination",
+    "behavior_verification": "STATIC_INFERRED",
+    "bindings": {
+      "0xdbafc": {
+        "entry_vma": "0xdbafc",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102ce18",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZNK5Event5getIdEv",
+            "symbol_value": "0xfe9cd",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xe0190": {
+        "entry_vma": "0xe0190",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102e474",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5Event12getParameterEmm",
+            "symbol_value": "0x10d099",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdc100": {
+        "entry_vma": "0xdc100",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102cffc",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_Znwj",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdd194": {
+        "entry_vma": "0xdd194",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d54c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5Event12addParameterEmP9ParamBase",
+            "symbol_value": "0xf0f85",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xde708": {
+        "entry_vma": "0xde708",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102dc04",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5Event7setDestEh",
+            "symbol_value": "0x10f9f5",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "0xdcae4": {
+        "entry_vma": "0xdcae4",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d32c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "testmode_debugPrint",
+            "symbol_value": "0x7f0cb9",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    },
+    "router": {
+      "entry": "0x7eed0c",
+      "consumer_callsite": "0x7eedf0",
+      "direct_callback_call": false,
+      "optional_hook_connection": "UNKNOWN"
+    },
+    "queue_bridge_calls": [
+      {
+        "id": "queue.push.append",
+        "source_vma": "0x7ef960",
+        "callsite_vma": "0x7ef990",
+        "target_vma": "0x7f0aac",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "id": "queue.transfer.pop",
+        "source_vma": "0x7ef910",
+        "callsite_vma": "0x7ef92a",
+        "target_vma": "0x7f099c",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "id": "queue.transfer.append",
+        "source_vma": "0x7ef910",
+        "callsite_vma": "0x7ef932",
+        "target_vma": "0x7f0aac",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "id": "queue.loop.pop",
+        "source_vma": "0x7eeee8",
+        "callsite_vma": "0x7eefda",
+        "target_vma": "0x7ef940",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "id": "queue.loop.router",
+        "source_vma": "0x7eeee8",
+        "callsite_vma": "0x7eefe2",
+        "target_vma": "0x7eed0c",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "id": "queue.loop.transfer",
+        "source_vma": "0x7eeee8",
+        "callsite_vma": "0x7ef03a",
+        "target_vma": "0x7ef910",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      }
+    ],
+    "queue_bridge_conditions": [
+      "same owner EventManager at owner +0x10",
+      "Event class byte +9 selects queue arm",
+      "transfer loop guards and scheduling",
+      "Router destination bit 2 selects generic consumer"
+    ],
+    "runtime_verified": false,
+    "safe_to_invoke": false,
+    "cfg_summary": {
+      "instructions": 96,
+      "basic_blocks": 28,
+      "flow_edges": 105,
+      "converged": true,
+      "boundary": "EHABI interval excludes literal pool; direct/indirect calls retained privately",
+      "limitations": [
+        "bounded intraprocedural value sets; flags not evaluated",
+        "mutable memory must be unknown in reader",
+        "stack memory and indirect branch targets unresolved"
+      ]
+    },
+    "direct_calls": [
+      {
+        "callsite": "0x111332",
+        "target": "0x10fa04",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x111350",
+        "target": "0x11124c",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113e2",
+        "target": "0x11129e",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113ee",
+        "target": "0x1112fa",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x11135a",
+        "target": "0x111182",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x111360",
+        "target": "0x10fa04",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113d8",
+        "target": "0x111162",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113b4",
+        "target": "0x111182",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113bc",
+        "target": "0xde708",
+        "mode": "ARM"
+      },
+      {
+        "callsite": "0x11138a",
+        "target": "0xdc100",
+        "mode": "ARM"
+      },
+      {
+        "callsite": "0x111394",
+        "target": "0xe7260",
+        "mode": "THUMB"
+      },
+      {
+        "callsite": "0x1113ca",
+        "target": "0xdcae4",
+        "mode": "ARM"
+      },
+      {
+        "callsite": "0x11139e",
+        "target": "0xdd194",
+        "mode": "ARM"
+      },
+      {
+        "callsite": "0x1113ac",
+        "target": "0xdcae4",
+        "mode": "ARM"
+      }
+    ]
+  },
+  "phase4_14_provider_selection": {
+    "comparison": "strncmp(AppConfig.so, incoming name, 20) == 0",
+    "name_literal_vma": "0xd87f27",
+    "comparison_callsites": [
+      "0x7ef216",
+      "0x7ef22e"
+    ],
+    "branch_callsites": [
+      "0x7ef21a",
+      "0x7ef232"
+    ],
+    "alternative_initializer": "0x45f320",
+    "alternative_getter_slot": "0x1030bcc",
+    "incoming_name_runtime_value": "UNKNOWN"
   }
 }

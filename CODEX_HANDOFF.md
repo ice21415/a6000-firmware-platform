@@ -1,3 +1,16 @@
+## Phase 4.14 checkpoint
+
+Primary ELF verifies a pre-enqueue callback at 0x11130c (96 reachable
+instructions, 28 blocks). Its descriptor arm admits 0x11013008, not request
+0x11004003; optional hook cell 0x10a8c6c remains unknown. AppConfig name
+comparison and singleton/vtable selection are explicitly conditional.
+The queue-transfer/dequeue/application-loop path reaches Router entry
+0x7eed0c; 0x7eedf0 is its generic-consumer callsite. Six direct edges were
+added: primary 41 -> 47, inferred 5, unresolved 5; tracked 51 -> 57.
+Runtime/safe-callable APIs remain 0. See EVENT_MANAGER_PROVIDER_STATUS.md
+for addresses, prerequisites, corrected imports and the next investigation.
+No new Ghidra execution is claimed; profile is prepared.
+
 ## Phase 4.13 correction ? current evidence takes precedence
 
 The Phase 4.11/4.12 BSS-provider premise is disproven. Thumb ADD at

@@ -1,3 +1,56 @@
+## Phase 4.14 current result
+
+Callback `0x11130c` is a conditional pre-enqueue descriptor/destination
+adapter, not the direct Application Router. EHABI interval is
+`0x11130c..0x11141c`; executable body ends at `0x111400`, excluding its
+literal pool. Reachable CFG: 96 instructions, 28 blocks, 105 flow edges.
+Incoming r0 is the queue/list context retained in r6; r1 is Event* retained
+in r5. It allocates 20 local stack bytes and has no proven stable status
+return. EventManager ignores the callback result before inserting the Event.
+
+Its descriptor helper `0x10fa04` admits Event ID `0x11013008` and queries
+parameter key `0x17`, discriminator 6. It compares descriptors against
+`0x17005002` and matches their low-nibble tags. A conditional path adds key
+`0x1b` to the incoming Event and calls Event::setDest(0) on a peer Event.
+Request `0x11004003` does not enter this descriptor arm without a preceding
+transformation. Optional pre-hook `0x111324` reads actual BSS cell
+`0x10a8c6c` through GOT `0x1034b90`; its writer/target remains UNKNOWN.
+The mutable enable flag is at `0x10355bc` and is never assumed enabled.
+
+Provider selection is `strncmp("AppConfig.so", incoming_name, 20)==0`:
+compare calls `0x7ef216` and `0x7ef22e`, branches `0x7ef21a` and
+`0x7ef232`, name literal `0xd87f27`. The name's runtime value, symbol
+interposition and successful singleton initialization remain conditions.
+Vtable +0x30 at `0x7ef8b0` returns a pointer stored at EventManager +8 by
+`0x7ef8b2`; main callsite is `0x7ef988`. The conditional candidate remains
+`0x11130c`, not an unconditional runtime identity.
+
+The independent queue bridge is now instruction-verified:
+
+`push -> queue1 append (0x7ef990) -> transfer (0x7ef910) -> queue0 ->
+ dequeue (0x7ef940) -> application loop (0x7eeee8) -> router (0x7eed0c)
+ -> generic consumer (callsite 0x7eedf0 -> 0x7ed49c)`.
+
+Transfer pops at `0x7ef92a` and appends at `0x7ef932`. Application-loop
+calls are `0x7ef03a` (transfer), `0x7eefda` (dequeue), `0x7eefe2` (router).
+`0x7eedf0` is a CALLSITE, not a function entry. Event class byte +9,
+same-owner EventManager identity, transfer guards/scheduling and destination
+bit 2 remain explicit prerequisites. Enqueue is not proof of consumer execution.
+
+Six new direct-call edges are tracked: 41 -> 47 primary, inferred 5 -> 5,
+unresolved 5 -> 5; total 51 -> 57 because six real relations were added.
+No former unresolved relation was silently removed. Runtime-verified and
+safe-to-invoke APIs remain 0. ModelCamera loader identity remains UNKNOWN.
+The disproven `0x10a8930` dependency is retained only as SUPERSEDED_DISPROVEN.
+
+The ARM veneer resolver now handles Capstone's rotated-immediate form
+`#80,#20`; original ELF relocations confirm allocation, addParameter,
+setDest and logging imports. Full private instruction/CFG exports remain
+local. Ghidra camera-main-dispatch profile is prepared; no new headless run
+is claimed (launcher was not found in the inspected installation paths).
+Next priority: actual hook cell `0x10a8c6c` writer/target and Request Event
+class/destination flags at factory, followed by queue scheduling prerequisites.
+
 ## Phase 4.13 correction ? current evidence takes precedence
 
 The Phase 4.11/4.12 BSS-provider premise is disproven. Thumb ADD at

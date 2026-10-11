@@ -36,8 +36,17 @@ def _segment_for(elf: ELFFile, vma: int, size: int = 1) -> Any | None:
 
 
 def _imm(text: str) -> int | None:
-    match = re.search(r"#(0x[0-9a-fA-F]+|[0-9]+)", text)
-    return int(match.group(1), 0) if match else None
+    immediates = re.findall(r"#(-?0x[0-9a-fA-F]+|-?[0-9]+)", text)
+    if not immediates or len(immediates) > 2:
+        return None
+    value = int(immediates[0], 0)
+    if len(immediates) == 2:
+        # Capstone can retain ARM imm8,rotate instead of an expanded value.
+        rotation = int(immediates[1], 0)
+        if not 0 <= value <= 255 or rotation not in range(0, 32, 2):
+            return None
+        value = ((value >> rotation) | (value << ((32 - rotation) & 31))) & 0xffffffff
+    return value
 
 
 def _decode(code: bytes, entry: int) -> tuple[list[dict[str, str]], int] | tuple[None, str]:

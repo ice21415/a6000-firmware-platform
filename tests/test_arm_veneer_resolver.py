@@ -1,7 +1,8 @@
 import unittest
+import struct
 from unittest.mock import patch
 
-from fwplatform.arm_veneer_resolver import _decode
+from fwplatform.arm_veneer_resolver import _decode, _imm
 
 
 class _Row:
@@ -20,6 +21,18 @@ class _Decoder:
 
 
 class ArmVeneerResolverTests(unittest.TestCase):
+    def test_rotated_arm_immediate(self):
+        self.assertEqual(_imm("ip, ip, #80, #20"), 0x50000)
+        self.assertIsNone(_imm("ip, ip, #80, #33"))
+        self.assertIsNone(_imm("ip, ip, #256, #20"))
+
+    def test_synthetic_encoded_rotated_veneer(self):
+        # Self-authored ARM ADD ip,pc,0; ADD ip,ip,ROR(80,20); LDR pc,[ip,4]!.
+        raw = struct.pack("<III", 0xE28FC000, 0xE28CCA50, 0xE5BCF004)
+        instructions, slot = _decode(raw, 0x1000)
+        self.assertEqual(len(instructions), 3)
+        self.assertEqual(slot, 0x5100c)
+
     def test_arm_pc_pipeline_and_got_address(self):
         rows = [
             _Row(0x1000, "add", "ip, pc, #0xf00000"),

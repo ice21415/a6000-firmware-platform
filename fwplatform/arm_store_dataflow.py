@@ -96,7 +96,9 @@ def analyze_function(
             continue
         insn = decoded[0]
         instructions[address] = insn
-        name = insn.mnemonic.split(".")[0]
+        # The display mnemonic contains condition/flag suffixes (MOVTNE,
+        # ADDSEQ, ...). Dispatch on the decoded opcode, not its spelling.
+        name = decoder.insn_name(insn.id)
         next_address = address + insn.size
         successors: list[tuple[int, str]] = []
         conditional = insn.cc not in (ARM_CC_AL, ARM_CC_INVALID)
@@ -108,12 +110,10 @@ def analyze_function(
         if is_call:
             direct = insn.operands[0].imm if insn.operands and insn.operands[0].type == ARM_OP_IMM else None
             calls.append({"callsite": address, "target": direct, "kind": "DIRECT" if direct is not None else "INDIRECT",
-                          "target_mode": "ARM" if name == "blx" and direct is not None and mode == "THUMB" else mode})
+                          "target_mode": ("ARM" if mode == "THUMB" else "THUMB") if name == "blx" and direct is not None else mode if direct is not None else "UNKNOWN"})
             successors.append((next_address, "CALL_RETURN"))
-        elif name.startswith("b") or name in {"cbz", "cbnz"}:
-            if name in {"bic", "bics", "bfi", "bfc"}:
-                successors.append((next_address, "FALLTHROUGH"))
-            elif insn.operands and insn.operands[-1].type == ARM_OP_IMM:
+        elif name in {"b", "bx", "bxj", "cbz", "cbnz"}:
+            if insn.operands and insn.operands[-1].type == ARM_OP_IMM:
                 successors.append((insn.operands[-1].imm & ~1, "BRANCH"))
                 if conditional or name in {"cbz", "cbnz"}:
                     successors.append((next_address, "CONDITION_FALSE"))
@@ -121,6 +121,8 @@ def analyze_function(
                 unresolved.append({"address": address, "reason": "INDIRECT_BRANCH_OR_RETURN"})
                 if conditional:
                     successors.append((next_address, "CONDITION_FALSE"))
+        elif name in {"bkpt", "udf", "svc"}:
+            unresolved.append({"address": address, "reason": "TRAP_CONTROL_FLOW_UNRESOLVED"})
         else:
             _, writes = insn.regs_access()
             if any(insn.reg_name(reg) == "pc" for reg in writes):
@@ -178,34 +180,42 @@ def analyze_function(
         result = dict(state)
         stores: list[dict] = []
         ops = insn.operands
-        name = insn.mnemonic.split(".")[0]
+        name = decoder.insn_name(insn.id)
         _, written = insn.regs_access()
         for reg in written:
             result[insn.reg_name(reg)] = UNKNOWN
         destination = insn.reg_name(ops[0].reg) if ops and ops[0].type == ARM_OP_REG else None
-        if name.startswith("mov") and destination and len(ops) >= 2:
+        if name in {"mov", "movw", "movt"} and destination and len(ops) >= 2:
             value = operand(insn, ops[1], state)
             if name == "movt":
                 value = state.get(destination, UNKNOWN).combine(value, lambda a, b: (a & 0xFFFF) | (b << 16), insn.address)
             result[destination] = value
-        elif name.startswith(("add", "sub")) and destination and len(ops) >= 2:
+        elif name in {"add", "sub"} and destination and len(ops) >= 2:
             left = operand(insn, ops[1], state) if len(ops) >= 3 else state.get(destination, UNKNOWN)
             right = operand(insn, ops[2] if len(ops) >= 3 else ops[1], state)
             result[destination] = left.combine(right, (lambda a, b: a - b) if name.startswith("sub") else (lambda a, b: a + b), insn.address)
         elif name == "adr" and destination and len(ops) >= 2:
             result[destination] = Value.constant(((insn.address + 4) & ~3) if mode == "THUMB" else insn.address + 8, insn.address).combine(operand(insn, ops[1], state), lambda a, b: a + b, insn.address)
-        elif name.startswith("ldr") and destination and len(ops) >= 2 and ops[1].type == ARM_OP_MEM:
+        elif name in {"ldr", "ldrb", "ldrh", "ldrsb", "ldrsh"} and destination and len(ops) >= 2 and ops[1].type == ARM_OP_MEM:
             address = effective(insn, ops[1], state)
-            size = 1 if name.startswith("ldrb") else 2 if name.startswith("ldrh") else 4
+            size = 1 if name in {"ldrb", "ldrsb"} else 2 if name in {"ldrh", "ldrsh"} else 4
             values: Value | None = None
             if address.values is not None:
                 for location in address.values:
                     data = read_memory(location, size)
-                    loaded = Value.constant(int.from_bytes(data, "little"), insn.address) if data is not None and len(data) == size else UNKNOWN
+                    loaded = Value.constant(int.from_bytes(data, "little", signed=name in {"ldrsb", "ldrsh"}), insn.address) if data is not None and len(data) == size else UNKNOWN
                     loaded = Value(loaded.values, loaded.origins | address.origins)
                     values = loaded if values is None else values.join(loaded)
             result[destination] = values or UNKNOWN
-        elif name.startswith("str") and len(ops) >= 2 and ops[1].type == ARM_OP_MEM:
+            if insn.writeback:
+                base = insn.reg_name(ops[1].mem.base)
+                update = address
+                if len(ops) > 2:
+                    update = state.get(base, UNKNOWN).combine(operand(insn, ops[2], state), (lambda a, b: a - b) if ops[2].subtracted else (lambda a, b: a + b), insn.address)
+                # A load destination overlapping its writeback base is
+                # constrained/unpredictable on relevant ARM encodings.
+                result[base] = UNKNOWN if base == destination else update
+        elif name in {"str", "strb", "strh"} and len(ops) >= 2 and ops[1].type == ARM_OP_MEM:
             address = effective(insn, ops[1], state)
             stores.append({"instruction_vma": insn.address, "effective_address": address.as_dict(),
                            "written_value": operand(insn, ops[0], state).as_dict(),
@@ -214,7 +224,7 @@ def analyze_function(
                 base = insn.reg_name(ops[1].mem.base)
                 result[base] = address
                 if len(ops) > 2:  # post-index update, address is original base
-                    result[base] = state.get(base, UNKNOWN).combine(operand(insn, ops[2], state), lambda a, b: a + b, insn.address)
+                    result[base] = state.get(base, UNKNOWN).combine(operand(insn, ops[2], state), (lambda a, b: a - b) if ops[2].subtracted else (lambda a, b: a + b), insn.address)
         elif name.startswith("stm") and len(ops) > 1:
             base = operand(insn, ops[0], state)
             count = len(ops) - 1
@@ -234,7 +244,15 @@ def analyze_function(
             store["conditional"] = insn.cc not in (ARM_CC_AL, ARM_CC_INVALID)
         return result, stores
 
-    states: dict[int, dict[str, Value]] = {entry: {key: Value.constant(value) for key, value in (initial_registers or {}).items()}}
+    # Capstone spells AAPCS aliases ip/sp/lr/pc, while callers may supply
+    # numbered names. Conflicting aliases cannot create a unique proof.
+    aliases = {"r12": "ip", "r13": "sp", "r14": "lr", "r15": "pc"}
+    initial_state: dict[str, Value] = {}
+    for key, value in (initial_registers or {}).items():
+        key = aliases.get(key.lower(), key.lower())
+        candidate = Value.constant(value)
+        initial_state[key] = initial_state[key].join(candidate) if key in initial_state else candidate
+    states: dict[int, dict[str, Value]] = {entry: initial_state}
     work = deque([entry])
     iterations = 0
     while work and iterations < max_iterations:
@@ -261,10 +279,10 @@ def analyze_function(
             values = observation["effective_address"]["values"]
             observation.update({"function_vma": entry, "mode": mode,
                 "target_match": target is not None and target in values,
-                "classification": "STATICALLY_PROVEN_WRITE" if converged and len(values) == 1 else "POSSIBLE_WRITE" if values else "UNKNOWN_DESTINATION",
+                "classification": ("CONDITIONAL_WRITE" if observation["conditional"] else "STATICALLY_PROVEN_WRITE") if converged and len(values) == 1 else "POSSIBLE_WRITE" if values else "UNKNOWN_DESTINATION",
                 "cfg_predecessors": [source for source, rows in edges.items() if any(dest == address for dest, _ in rows)]})
             stores.append(observation)
-    return {"function_vma": entry, "mode": mode, "instruction_count": len(instructions), "iterations": iterations,
+    return {"function_vma": entry, "mode": mode, "instruction_count": len(instructions), "reachable_instruction_vmas": sorted(instructions), "iterations": iterations,
             "converged": converged, "stores": stores, "calls": calls,
             "cfg_edges": [{"source": source, "target": destination, "kind": kind} for source, rows in edges.items() for destination, kind in rows],
             "unresolved": unresolved, "runtime_verified": False, "safe_to_invoke": False,
