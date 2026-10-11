@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.47 original im.elf sync callback 0x95b0 has explicit ID cases excluding 0x940036/037; its only direct re-send uses same fixed dest 0x94016a, not runtime dynamic receive 0x946000..fff. Kernel ordinary sender uses low16 queue lookup. Forwarding path remains unproven.",
+  "latest_checkpoint": "Phase4.47: im sync cb 0x95b0 explicitly omits 0x940036/37 and its only send targets fixed 0x94016a, not dynamically allocated im receive 0x946xxx. Independently, libObj.so helper 0x19d418 sends caller-supplied message codes to fixed 0x94016a via osal_snd_msg PLT, without proven stage-ID producer or forwarder.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1096,6 +1096,18 @@
     "confirmed_direct_bridge_to_dynamic_receiver": false,
     "core_graph_edges_added": 0,
     "tracked_core_edges": 84,
-    "primary_static_core_edges": 74
+    "primary_static_core_edges": 74,
+    "libobj_uses_fixed_destination": {
+      "source_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "helper_entry": "0x0019d418",
+      "literal_vma": "0x0019d460",
+      "literal_word": "0x0094016a",
+      "send_callsite": "0x0019d446",
+      "send_plt": "0x000e2a28",
+      "got": "0x0102f144",
+      "import": "osal_snd_msg",
+      "message_id_source": "caller-supplied parameter",
+      "direct_stage_events_proven": false
+    }
   }
 }
