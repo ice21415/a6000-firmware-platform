@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.22",
+  "phase": "4.23",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -27,12 +27,14 @@
         "forwarder reads record +0x1c; runtime ModelCamera identity remains unknown",
         "IdSoTable add/lookup uses integer node key at +0x4 with comparison loop 0x7f066c-0x7f0670; ModelCamera factory writes context +0x20, not registry +0x1c",
         "SHA-matched primary ELF: @M00B passes reserved @MFFE guard, IdGenerator returns 11 and 0x40209c passes that r0 as IdSoTable::add r1; 0x401f80 targets ModelIdSoTable::getInstance",
-        "ModelManager registration 0x7ec8ba and lookup 0x7eb904 both derive owner-relative tree +0x88; descriptor +8 is passed as new record +0, but same runtime owner and descriptor identity remain UNKNOWN"
+        "ModelManager registration 0x7ec8ba and lookup 0x7eb904 both derive owner-relative tree +0x88; descriptor +8 is passed as new record +0, but same runtime owner and descriptor identity remain UNKNOWN",
+        "Direct ELF: IdSoTable::add performs existing-key query before creating a configuration node (+4 key, +8/+0xc copied name payloads). ModelManager uses a separate event-routing record with +8 state and +0x1c instance; they must not be conflated.",
+        "Direct ELF: ModelManager wrapper 0x7eb944 reads descriptor +8 via 0x7ea930 and passes resulting key into tree lookup 0x7eb8fa at 0x7eb956. Registration separately uses descriptor +8. Cross-call descriptor/owner identity remains UNKNOWN."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
       ],
-      "minimal_next_proof": "Trace ModelIdSoTable entry key 11 to a particular ModelManager descriptor (+8) and show registration and lookup share the same owner instance, tree key, and returned record pointer; then prove +0x1c instance provenance separately.",
+      "minimal_next_proof": "Trace how ModelIdSoTable key-11 configuration is used to instantiate or associate the ModelManager descriptor that carries key 11, then prove the same ModelManager +0x88 tree instance, record +0 identity and +0x1c factory instance.",
       "blocker_resolved": false
     },
     {
