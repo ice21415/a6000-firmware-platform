@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.33 libIMDB.so: 0xd1ec candidate 0x2c-byte descriptor with appFw.so/Application_System_Init and adjacent config strings; no actual call or alias proven",
+  "latest_checkpoint": "Phase 4.34: four consecutive libIMDB metadata rows at 0xd1c0..0xd244 have 0x2c stride; .rel.dyn raw pointer hits are relocation r_offset metadata not real code consumers",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -664,5 +664,57 @@
     "primary_elf_verified_edges": 74,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
+  },
+  "phase4_34_imdb_stride_and_relocation_audit": {
+    "source": "user read-only inspect_a6000_imdb_table.py output",
+    "row_starts": [
+      "0x0000d1c0",
+      "0x0000d1ec",
+      "0x0000d218",
+      "0x0000d244"
+    ],
+    "stride": "0x2c",
+    "first_words": [
+      "0x00000007",
+      "0x20000004",
+      "0x20000004",
+      "0x00000008"
+    ],
+    "typed_values_conjecture": "first field can encode descriptor type; not proven",
+    "appfw_row": {
+      "address": "0x0000d1ec",
+      "module_name": "appFw.so",
+      "init_symbol": "Application_System_Init",
+      "trailing_configs": [
+        "AdjChkConfig.so",
+        "AppConfig.so"
+      ]
+    },
+    "subapp_row": {
+      "address": "0x0000d218",
+      "module_name": "subapp.so",
+      "init_symbol": "subapp_init",
+      "exit_symbol": "subapp_exit",
+      "trailing_configs": [
+        "AdjChkConfig.so",
+        "AppConfig.so"
+      ]
+    },
+    "previous_raw_reference_correction": {
+      "addresses": [
+        "0x000019d4",
+        "0x000019dc",
+        "0x000019fc",
+        "0x00001a04"
+      ],
+      "actual_role": "SHT_REL .rel.dyn r_offset relocation targets, not consumers",
+      "valid_code_xrefs_observed": 0
+    },
+    "libobj_dt_soname": "libObj.so",
+    "actual_loader_or_descriptor_consumption": "UNKNOWN",
+    "real_init_parameter": "UNKNOWN",
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74
   }
 }
