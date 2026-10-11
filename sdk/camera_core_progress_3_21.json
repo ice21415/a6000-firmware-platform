@@ -1047,9 +1047,9 @@
     "report": "reports/PHASE4_46_UIPC_KERNEL_IDENTITY.md",
     "kernel_handlers": {
       "0x80000004": "__k_4u_snd_msg",
-      ".0x80000007": "__k_4u_rcv_msg_tmo",
-      ".0x80000008": "__k_4u_reg_msg_queue_cb",
-      ".0x8000000c": "__k_4u_dynamic_id"
+      "0x80000007": "__k_4u_rcv_msg_tmo",
+      "0x80000008": "__k_4u_reg_msg_queue_cb",
+      "0x8000000c": "__k_4u_dynamic_id"
     },
     "im_sender_destination": "0x0094016a",
     "im_receiver_allocation_args": [
