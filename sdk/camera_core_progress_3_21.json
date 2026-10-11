@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 67,
-  "primary_elf_verified_edges": 57,
+  "tracked_core_edges": 70,
+  "primary_elf_verified_edges": 60,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.21 targeted private-ELF Registry keyflow/argument-alias probe, awaiting authorized local replay",
+  "latest_checkpoint": "Phase 4.22 direct SHA-pinned private ELF return-to-add and ModelManager descriptor/tree provenance",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -344,5 +344,37 @@
     "safe_to_invoke_apis": 0,
     "public_metadata_audit": "python -m fwplatform.camera_core_blocker_audit",
     "source": "GitHub source and synthetic fixtures only; requires local private ELF for evidence"
+  },
+  "phase4_22_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 70,
+      "primary_elf_verified_edges": 60,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.return_key_to_add",
+      "registry.modelmanager.descriptor_key_to_record",
+      "registry.modelmanager.common_owner_tree_offset"
+    ],
+    "id_generator_static_return_for_M00B": 11,
+    "model_id11_to_modelmanager_runtime_record": "UNKNOWN",
+    "runtime_dso_identity": "UNKNOWN",
+    "new_verified_store_observations": 0,
+    "blockers_narrowed": [
+      "IdGenerator return passed to ModelIdSoTable::add",
+      "ModelManager descriptor +8 passed to record initializer +0",
+      "ModelManager registration and lookup share owner field offset +0x88"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "direct SHA-matched local ELF read-only LLVM Thumb disassembly and ELF relocations"
   }
 }
