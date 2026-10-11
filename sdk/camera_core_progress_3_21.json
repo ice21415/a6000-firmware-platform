@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.23 directly replayed IdSoTable duplicate guard, configuration node fields, descriptor-key lookup",
+  "latest_checkpoint": "Phase 4.24 SHA-pinned ARM glibc loader/libs transitive DT_NEEDED provider candidate audit",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -408,5 +408,32 @@
       "ModelManager descriptor+8 lookup key",
       "state-machine record passed as loader input before conditional instance+0x1c storage"
     ]
+  },
+  "phase4_24_delta": {
+    "baseline": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "finding": "libObj.so depends directly on libBizFw/libBizFw2/libMWF/libmpr, each directly depends on libdl.so.2, whose uploaded ELF exports dlopen/dlsym/dlclose@GLIBC_2.4",
+    "source_sha256": {
+      "libdl": "baabb47959f633f0a5e80ad8179b87c8d74ab6b52e731ef543a1141822d92d20",
+      "ld": "2d94f54d77ee3ac87fd73e145e1a4eb7f1663cc7492562479c16f01c279310a5"
+    },
+    "runtime_symbol_binding": "UNKNOWN",
+    "modelcamera_runtime_loader_alias": "UNKNOWN",
+    "report": "reports/PHASE4_24_GLIBC_LOADER_DEPENDENCY_AUDIT.md",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
   }
 }
