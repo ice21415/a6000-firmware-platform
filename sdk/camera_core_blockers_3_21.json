@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.39",
+  "phase": "4.41",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -48,12 +48,13 @@
         "Phase4.36 direct private uploaded ELF libIMDB.so SHA256 9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea: exports IMDB_find_entry 0x24b1, IMDB_get_entries 0x2501, IMDB_find_target_bit 0x2519 and imdb_raw 0xc064. Thumb IMDB_find_entry loops fixed stride 0x2c from imdb_raw+0x84=0xc0e8, compares row+0xc lower 16-bit ID and row+8 target mask, stops type 0x28 at index143 (0xd97c), proving 143 descriptor rows. appFw row99 (d1ec) and subapp row100 (d218) share ID0x83 but disjoint masks 0xffffff9f vs0x40. Target bit 0x40 is resub per header. libIMDB itself does not call initializer or dlopen/dlsym; external loader/query consumer and actual r0 remain UNKNOWN.",
         "Phase4.37 user-run scan of 649 ELF files: only bin/im.elf imports IMDB_find_entry, IMDB_find_target_bit, IMDB_get_entries and DT_NEEDED libIMDB.so; libIMDB.so exports the three functions and imdb_raw. This pins a concrete static linkage candidate for consumer/loader investigation, but the actual im.elf instructions, arguments, reachable calls, appFw.so→libObj.so mapping and initialization branch remain UNVERIFIED.",
         "Phase4.39 directly SHA-pinned im.elf: target-name pointer at global 0x153e4+0x10 is initially NULL, parser recognizes target= at 0xa7f0..0xa800; startup main 0x9b44..0x9b54 falls back to literal default at 0xc0af when still NULL. Independently libIMDB.so target-bit default=0x1, which matches appFw row99 mask 0xffffff9f for ID0x83 but not subapp row100 mask 0x40. Conditional branch only; actual boot target unknown.",
-        "Phase4.39 directly SHA-pinned im.elf: 0xa860 strncmp prefix cho, 0xa872 OR flag 0x4000, 0xa982 saves parser flags, 0x9b64..0x9b6c passes into setup, 0xaccc saves global state, 0xad80 getter checks same bit to select IMDB row+0x24 or +0x28 before indirect init call. Later option cipa clears 0xc000 flags, so real final flag unknown. Direct im.elf DT_NEEDED excludes libObj.so, and runtime dlsym visibility remains unproved."
+        "Phase4.39 directly SHA-pinned im.elf: 0xa860 strncmp prefix cho, 0xa872 OR flag 0x4000, 0xa982 saves parser flags, 0x9b64..0x9b6c passes into setup, 0xaccc saves global state, 0xad80 getter checks same bit to select IMDB row+0x24 or +0x28 before indirect init call. Later option cipa clears 0xc000 flags, so real final flag unknown. Direct im.elf DT_NEEDED excludes libObj.so, and runtime dlsym visibility remains unproved.",
+        "Phase4.41 direct original im.elf SHA-pinned Thumb: row type 0x20000001/02/03 dispatch b46a to b25c, which chooses hardcoded /usr/lib/libObj.so at b2c8->c395 when packed row+0x0e upper halfword nonzero, then calls dlopen@b278. im.elf default config+0x14 and loader state+0x20 both hold 0x101, passed by main 9b70->9b74, conventionally RTLD_LAZY|RTLD_GLOBAL. 31 IMDB rows with nonzero packed high half and default-mask compatibility precede appFw row99, offering possible earlier loading of libObj. appFw special type 0x20000004 separately calls dlopen(NULL)@b1ec and then dlsym(Application_System_Init), but no actual process load/namespace/binding proof yet."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
       ],
-      "minimal_next_proof": "Determine actual boot argv/target override and final 0x4000 flag by offline firmware launch configuration; establish the provider of Application_System_Init when im.elf uses dlopen(NULL), and independently resolve ModelManager descriptor key11/ModelCamera loader identity.",
+      "minimal_next_proof": "Prove which of the 31 earlier libObj-backed IMDB records is actually selected and loaded successfully in the same process before appFw row99, and that dlsym(dlopen(NULL),Application_System_Init) resolves to libObj. Separately resolve ModelManager descriptor ID11 and modelCamera.so loader identity.",
       "blocker_resolved": false
     },
     {
