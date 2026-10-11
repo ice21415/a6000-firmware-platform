@@ -378,5 +378,63 @@
     "new_core_graph_edges": 0
   },
   "runtime_verified_apis": 0,
-  "safe_to_invoke_apis": 0
+  "safe_to_invoke_apis": 0,
+  "phase4_39_target_and_flag_witness": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "initial_target_pointer": {
+      "base": "0x153e4",
+      "offset": "+0x10",
+      "address": "0x153f4",
+      "static_file_contents": "0x00000000"
+    },
+    "explicit_target_arg": {
+      "parser": "0xa7f0–0xa800",
+      "prefix": "target=",
+      "compare_len": 7,
+      "store": "0xa7fe -> base+0x10"
+    },
+    "default_target": {
+      "main": "0x9b44–0x9b54",
+      "fallback_literal": "0xc0af",
+      "value": "default",
+      "source_if_target_pointer_null": true
+    },
+    "default_imdb_mask": "0x00000001",
+    "target_id_0x83_candidates": [
+      {
+        "row": 99,
+        "module": "appFw.so",
+        "mask": "0xffffff9f",
+        "matches_default": true
+      },
+      {
+        "row": 100,
+        "module": "subapp.so",
+        "mask": "0x40",
+        "matches_default": false
+      }
+    ],
+    "config_flag_provenance": {
+      "option_prefix": "cho",
+      "prefix_length": 3,
+      "option_compare": "0xa860–0xa866",
+      "flag_or": "0xa872",
+      "parser_flags_store": "0xa982",
+      "main_forward": "0x9b64–0x9b6c",
+      "setup_store": "0xaccc",
+      "consumer_test": "0xad80",
+      "flag_bit": "0x4000",
+      "later_flag_clear_candidate": "0xa8f4–0xa90a"
+    },
+    "dynamic_loading_note": "im.elf DT_NEEDED does not list libObj.so; dlopen(NULL) static descriptor path does not prove runtime symbol availability",
+    "limits": [
+      "runtime argv/flags unknown",
+      "actual row traversal and successful lookup unknown",
+      "dlsym binding to libObj.so unknown",
+      "actual camera state unknown"
+    ],
+    "camera_core_graph_counts_unchanged": true,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  }
 }
