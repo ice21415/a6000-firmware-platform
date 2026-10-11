@@ -741,6 +741,10 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
     """
     witnesses = (
         (0x7EB8FA, 0x48, ((0x7EB904, "add.w", "r4, r0, #0x88"), (0x7EB908, "mov", "r0, r4"), (0x7EB938, "ldr", "r0, [r0, #4]"))),
+        (0x7EB944, 0x20, ((0x7EB94C, "mov", "r0, r1"), (0x7EB94E, "bl", "#0x7ea930"), (0x7EB952, "mov", "r1, r0"), (0x7EB954, "mov", "r0, r4"), (0x7EB956, "bl", "#0x7eb8fa"))),
+        (0x7F08A0, 0x74, ((0x7F08AE, "mov", "r5, r1"), (0x7F08B0, "bl", "#0x7f063c"), (0x7F08E0, "bl", "#0x7f03ec"), (0x7F08E6, "mov", "r1, r5"), (0x7F08E8, "mov", "r0, r7"), (0x7F08EA, "mov", "r2, r8"), (0x7F08EC, "mov", "r3, r6"), (0x7F08EE, "bl", "#0x7f0394"), (0x7F08F6, "bl", "#0x7f0888"))),
+        (0x7F0394, 0x2C, ((0x7F03A4, "str", "r1, [r0, #4]"), (0x7F03B2, "str", "r0, [r4, #8]"), (0x7F03BA, "str", "r0, [r4, #0xc]"))),
+
         (0x7EC8A4, 0xBE, ((0x7EC8B6, "bl", "#0x7ea930"), (0x7EC8BA, "add.w", "r5, r4, #0x88"), (0x7EC8BE, "str", "r0, [r7, #0x20]"), (0x7EC90E, "ldr", "r1, [r7, #0x20]"), (0x7EC91C, "bl", "#0x7f1156"), (0x7EC94E, "mov", "r1, r5"), (0x7EC954, "bl", "#0x7ec6cc"))),
         (0x7F1156, 0x24, ((0x7F1160, "stm.w", "r0, {r1, r2}"), (0x7F116C, "str", "r3, [r0, #0x14]"), (0x7F1174, "str", "r2, [r0, #0x1c]"))),
         (0x7F11CA, 0x80, ((0x7F11D8, "blx", "#0xe0cec"), (0x7F11E6, "blx", "#0xdfed0"), (0x7F11F2, "blx", "r3"), (0x7F11F4, "str", "r0, [r4, #0x1c]"))),
@@ -775,6 +779,13 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
             raise ValueError(f"Camera keyflow PLT binding mismatch: {entry:#x}")
     if not _symbol_matches(elf, "_ZN11IdGenerator3GetEPKc", 0x12D670, 272):
         raise ValueError("IdGenerator::Get ELF symbol identity mismatch")
+    # IdSoTable lookup results gate duplicate insertion; 0x7f08e4
+    # branches around the constructor.  The new node uses its own
+    # layout (+4 key, +8/+0xc copied string payloads) distinct from
+    # ModelManager's record layout (+8 state, +0x1c instance).
+    idso_add = _decode_at(fp, elf, 0x7F08A0, 0x74)
+    _require(idso_add, 0x7F08E4, "cbz", target=0x7F090C)
+
     special = (_read_load_word(fp, elf, 0x12D77C) + 0x12D716) & 0xFFFFFFFF
     special_bytes = b"".join(
         _read_load_word(fp, elf, special + offset).to_bytes(4, "little")
@@ -835,6 +846,10 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
         _edge("registry.camera.return_key_to_add", "IdGenerator::Get(@M00B) = 11 on compact branch", "ModelIdSoTable::add integer key argument", "PASSES_RETURN_AS_KEY", 0x401F78, digest, target_vma=0x7F08A0, callsite_vma=0x4020A0, method="ELF_THUMB_CFG+PLT_RELOCATION", note="0x401f80 ModelIdSoTable::getInstance -> r4; 0x402090 IdGenerator::Get @M00B -> r0; 0x40209c moves r0 to r1; 0x40209e passes r4 as this; 0x4020a0 calls IdSoTable::add. Guarded parser checks reserved @MFFE and returns 11 for @M00B. Does not prove later ModelManager record identity."),
         _edge("registry.modelmanager.descriptor_key_to_record", "ModelManager descriptor +0x8 numeric key", "record initializer key field +0x0", "PASSES_DESCRIPTOR_ID", 0x7EC8A4, digest, target_vma=0x7F1156, callsite_vma=0x7EC91C, method="ELF_THUMB_REGISTER_DATAFLOW", note="0x7ec8b6 loads descriptor+8 via 0x7ea930; 0x7ec8be stores to stack; 0x7ec90e passes same stack word as initializer r1; 0x7f1160 stores r1 to new record+0. Value 11 requires descriptor identity, not proven."),
         _edge("registry.modelmanager.common_owner_tree_offset", "ModelManager record-registration owner +0x88", "ModelManager lookup owner +0x88", "USES_COMMON_FIELD_OFFSET", 0x7EC8A4, digest, target_vma=0x7EB8FA, callsite_vma=0x7EB904, method="ELF_THUMB_OBJECT_RELATIVE", note="0x7ec8ba derives registration tree r5 from owner+0x88; 0x7ec94e supplies r5 to insertion call; 0x7eb904 derives lookup tree r4 from its owner+0x88. This verifies identical field structure, NOT same runtime owner or record pointer."),
+        _edge("registry.camera.idso_duplicate_guard", "IdSoTable::add key lookup", "existing-key insertion guard", "GUARDS_INSERTION", 0x7F08A0, digest, target_vma=0x7F063C, callsite_vma=0x7F08B0, method="ELF_THUMB_CFG_DATAFLOW", note="0x7f08b0 seeks preexisting key; 0x7f08e0 compares iterator to end, 0x7f08e4 cbz skips new node path when equal; 0x7f08ee constructor only runs on conditional missing-key path. Does not create a Camera instance."),
+        _edge("registry.camera.idso_node_constructor", "IdSoTable::add missing-key path", "IdSoTable configuration node", "STORES_CONFIGURATION", 0x7F08A0, digest, target_vma=0x7F0394, callsite_vma=0x7F08EE, method="ELF_THUMB_NODE_FIELD_DATAFLOW", note="0x7f08e6-ec propagates key in r5->r1, library in r8->r2, factory in r6->r3. Node constructor stores integer key at +4 and copied name payloads at +8/+0xc; 0x7f08f6 inserts conditionally. This node is NOT a ModelManager record."),
+        _edge("registry.modelmanager.descriptor_key_lookup", "ModelManager lookup descriptor +8", "ModelManager record-tree lookup key", "PASSES_DESCRIPTOR_KEY", 0x7EB944, digest, target_vma=0x7EB8FA, callsite_vma=0x7EB956, method="ELF_THUMB_REGISTER_DATAFLOW", note="0x7eb94c passes descriptor r1 to 0x7ea930, which reads +8; 0x7eb952 forwards result as lookup r1; 0x7eb954 passes original ModelManager owner as lookup r0. Identical descriptor or owner instances across callsites are not proven."),
+
         _edge("camera.factory.constructor", "ModelCameraToInstance", "Camera object initializer", "CALLS", 0x4C8C64, digest, target_vma=0x4C8AF4, callsite_vma=0x4C8C74),
         _edge("camera.constructor.vptr", "Camera object initializer", "CameraVtable:0x100a330", "INITIALIZES_VPTR", 0x4C8AF4, digest, callsite_vma=0x4C8B10, method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE"),
         _edge("camera.vtable.final_slot", "CameraVtable:0x100a330", "Camera completion candidate", "VTABLE_SLOT", address_point, digest, target_vma=0x132624, callsite_vma=0x100A348, method="ELF_DATA+R_ARM_RELATIVE", note="Slot +0x18 only; callsite 0x7efce0 selects it only if the receiver has this vptr."),
