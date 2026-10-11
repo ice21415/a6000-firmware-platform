@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.20 manual blocker evidence consistency audit; no new ELF proof",
+  "latest_checkpoint": "Phase 4.21 targeted private-ELF Registry keyflow/argument-alias probe, awaiting authorized local replay",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -320,5 +320,29 @@
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0,
     "source": "public GitHub source-level and evidence metadata inspection only"
+  },
+  "phase4_21_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "unresolved_edges_reduced": 0,
+    "new_analysis_capability": "fwplatform.camera_registry_keyflow_probe; targeted SHA-pinned readonly local ELF CFG/register provenance",
+    "local_private_elf_replay": "NOT_RUN_ELF_NOT_ACCESSIBLE_IN_ASSISTANT_ENVIRONMENT",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "public_metadata_audit": "python -m fwplatform.camera_core_blocker_audit",
+    "source": "GitHub source and synthetic fixtures only; requires local private ELF for evidence"
   }
 }
