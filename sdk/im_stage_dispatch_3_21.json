@@ -221,5 +221,13 @@
     "tracked": 84,
     "promoted": 0
   },
-  "runtime_verified_apis": 0
+  "runtime_verified_apis": 0,
+  "external_event_producer_search": {
+    "scope": "available uploaded ELF subset, not the whole firmware",
+    "finding": "libmpr.so contains the exact word 0x00940036 at ELF .text literal pool VMA 0x75c994; it is used as r1 argument at 0x75c886/0x75c8d8 to call local formatter 0x75c1f4 together with r2 format strings (e.g., Can't ensure memory!!), not a verified event-sending API",
+    "source_sha256": "9a74a3bb42836559888509b6113d281b85ae53b03eb9cdf4a965eafb545e4c30",
+    "evidence_level": "LOCAL_LOGGING_LITERAL_ONLY",
+    "verified_event_producers": 0,
+    "note": "Shared 0x940036 integer is not enough to assert that libmpr.so posts the IMDB-stage message. im.elf handler itself also embeds that numeric value."
+  }
 }
