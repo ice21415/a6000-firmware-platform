@@ -1604,6 +1604,69 @@
         "confidence": "HIGH"
       },
       "note": "0x7ec3b4 supplies provider this in r0; 0x7ec3b6 loads provider vptr; 0x7ec3be loads virtual target vptr+0x1c; 0x7ec3c0 blx r3 and 0x7ec3c4 stores return r0 to manager+0x8. Target function and identity of ModelIdSoTable::getInstance's singleton still UNKNOWN."
+    },
+    {
+      "id": "registry.provider.bootstrap_selector_bss",
+      "source": "application startup runtime BSS string pointer at 0x10df828",
+      "target": "configuration provider selector r1",
+      "relation": "PASSES_RUNTIME_SELECTOR",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7ed984",
+      "target_vma": "0x7ef254",
+      "callsite_vma": "0x7ed996",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed996",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_PCREL_BSS_REFERENCE",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ed98e/0x7ed994 load PC-relative pointer to BSS 0x10df828. Its runtime string content is not stored in this ELF and is UNKNOWN. It selects among AppConfig/ModelConfig branches."
+    },
+    {
+      "id": "registry.provider.modelconfig_vptr_construction",
+      "source": "conditional initializeModelConfig at 0x45f320",
+      "target": "ModelConfig vptr at 0x1007528",
+      "relation": "INITIALIZES_PROVIDER_VPTR",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x45f320",
+      "target_vma": "0x45f2fc",
+      "callsite_vma": "0x45f32c",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x45f32c",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_PCREL_GOT_VPTR_RELATIVE_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ef222 selects ModelConfig when startup string differs from AppConfig.so; 0x45f32c ctor stores GOT 0x10345d8 dereference 0x1007520 plus 8 = 0x1007528 as concrete ModelConfig vptr. Startup branch UNKNOWN."
+    },
+    {
+      "id": "registry.provider.modelconfig_slot_to_modelidso_singleton",
+      "source": "ModelConfig vptr+0x1c => 0x45ef29 Thumb",
+      "target": "ModelIdSoTable::getInstance exported getter",
+      "relation": "CALLS_SINGLETON_GETTER",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x45ef28",
+      "target_vma": "0x7ee360",
+      "callsite_vma": "0x45ef30",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x45ef30",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_VPTR_SLOT_AND_ARM_PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "ModelConfig vptr=0x1007528 has slot+0x1c address 0x1007544 with R_ARM_RELATIVE function pointer 0x45ef29; target 0x45ef28 calls PLT 0xdbc58 (GOT 0x102ce88; R_ARM_JUMP_SLOT ModelIdSoTable::getInstance 0x7ee361). Therefore ModelConfig branch returns same getter result as @M00B registration. Does not prove runtime selection or descriptor key 11."
     }
   ],
   "unresolved_edges": [
@@ -2276,8 +2339,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 79,
-    "primary_elf_verified_edges": 69
+    "tracked_core_edges": 82,
+    "primary_elf_verified_edges": 72
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3862,6 +3925,57 @@
     "graph": {
       "tracked": 79,
       "primary": 69,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "resolved_blockers": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_27_provider_variant": {
+    "status": "CONDITIONAL_MODEL_CONFIG_GETTER_RESOLVED_STATICALLY",
+    "new_primary": [
+      "registry.provider.bootstrap_selector_bss",
+      "registry.provider.modelconfig_vptr_construction",
+      "registry.provider.modelconfig_slot_to_modelidso_singleton"
+    ],
+    "startup_source": {
+      "caller_vma": "0x7ed984",
+      "callsite": "0x7ed996",
+      "selector_bss": "0x10df828",
+      "selector_runtime_value": "UNKNOWN"
+    },
+    "branches": {
+      "AppConfig.so": "initializeConfig/getConfig; vptr+0x1c => 0x1068c6 nested virtual call, not a proven ModelIdSoTable getter",
+      "non-AppConfig.so": "initializeModelConfig/getModelConfig; vptr+0x1c => 0x45ef28 => PLT ModelIdSoTable::getInstance"
+    },
+    "modelconfig": {
+      "vtable_base": "0x1007520",
+      "vptr": "0x1007528",
+      "slot_1c": "0x1007544",
+      "thumb_pointer": "0x45ef29",
+      "getinstance_plt": "0xdbc58",
+      "getinstance_got": "0x102ce88"
+    },
+    "reported_fs": {
+      "nflasha16_mountpoint": "/android/system",
+      "lzpt_entries": 1708,
+      "packed_bytes": 59013103,
+      "decoded_bytes": 111935488,
+      "filesystem_entries": 485,
+      "symlinks": 53,
+      "modelcamera_file_or_symlink_found": false,
+      "scope": "user reported selective scan; not exhaustive all mount namespaces"
+    },
+    "unknown": [
+      "startup BSS selector runtime bytes",
+      "record descriptor key=11 concrete instance",
+      "successful modelCamera.so resolution by dlopen",
+      "ModelCamera consumer and runtime Record +0x1c identity"
+    ],
+    "counts": {
+      "tracked": 82,
+      "primary": 72,
       "inferred": 5,
       "unresolved": 5
     },
