@@ -20,10 +20,10 @@ class IMCallbackBridgeEvidenceTests(unittest.TestCase):
     def test_registered_stage_handler_flows_through_same_field(self):
         a = self.bridge["main_register_stage_handler"]
         recv = self.bridge["main_receive_and_indirect_dispatch"]
-        self.assertEqual(a["callback_literal_word"], a["stage_handler_thumb_entry"])
+        self.assertEqual(int(a["callback_literal_word"], 16), int(a["stage_handler_thumb_entry"], 16))
         self.assertEqual(a["callback_field_address"], "0x000153ec")
-        self.assertIn("+0x8", a["store_callback_instruction"])
-        self.assertIn("+0x8", a["getter_instruction"])
+        self.assertIn("#0x8", a["store_callback_instruction"])
+        self.assertIn("#0x8", a["getter_instruction"])
         self.assertEqual(recv["callback_getter_call"], "0x9e9a: bl 0xac18")
         self.assertEqual(recv["indirect_handler_call"], "0x9eb2: blx r5")
         self.assertIn("osal_rcv_msg_tmo", recv["receive_import"])
