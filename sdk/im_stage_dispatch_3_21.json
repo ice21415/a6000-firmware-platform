@@ -103,46 +103,48 @@
       {
         "event_id": "0x00940031",
         "literal_vma": "0xa308",
-        "first_stage": 1,
-        "second_stage": 2
+        "scan_to_marker": 1,
+        "execute_range": "none",
+        "note": "single b6e4 gate=1 call stops at first marker"
       },
       {
         "event_id": "0x00940032",
         "literal_vma": "0xa30c",
-        "first_stage": 2,
-        "second_stage": 3
+        "skip_to_marker": 1,
+        "process_until_marker": 2
       },
       {
         "event_id": "0x00940033",
         "literal_vma": "0xa310",
-        "first_stage": 3,
-        "second_stage": 4
+        "skip_to_marker": 2,
+        "process_until_marker": 3
       },
       {
         "event_id": "0x00940034",
         "literal_vma": "0xa314",
-        "first_stage": 4,
-        "second_stage": 5
+        "skip_to_marker": 3,
+        "process_until_marker": 4
       },
       {
         "event_id": "0x00940035",
         "literal_vma": "0xa318",
-        "first_stage": 5,
-        "second_stage": 7
+        "skip_to_marker": 4,
+        "process_until_marker": 5
       },
       {
         "event_id": "0x00940036",
         "literal_vma": "0xa31c",
-        "first_stage": 7,
-        "second_stage": 8
+        "skip_to_marker": 5,
+        "process_until_marker": 7
       },
       {
         "event_id": "0x00940037",
         "literal_vma": "0xa320",
-        "event_not_classified_as_stage_7_to_8": true
+        "skip_to_marker": 7,
+        "process_until_marker": 8
       }
     ],
-    "caveat": "Control-flow analysis shows a0f4 compare 0x940036 -> b6e4(5,r2=0) then b6e4(7,r2=1); a10c compare 0x940037 -> b6e4(7,r2=0) then b6e4(8,r2=1). Event values 0x940035 and earlier require recheck exact pairing; see disassembly."
+    "caveat": "All comparisons are direct event message values. For events 0x940032..37, first b6e4 gate=0 skips to marker and second gate=1 processes until next marker; event 0x940031 invokes only stage=1, which terminates at the first marker."
   },
   "fallback_candidates": {
     "total": 31,
@@ -199,9 +201,11 @@
       "vma": "0xd1ec",
       "stage": "7→8",
       "target_id": "0x83",
-      "default_target_matches": true
+      "default_target_matches": true,
+      "stage7_to8_event_id": "0x00940037"
     },
-    "conclusion": "Earlier table position does not imply earlier runtime dlopen. A row99 lookup can be reachable on an event path without proof that a preceding libObj-backed record was loaded."
+    "conclusion": "Earlier table position does not imply earlier runtime dlopen. A row99 lookup can be reachable on an event path without proof that a preceding libObj-backed record was loaded.",
+    "stage5_to7_event_id": "0x00940036"
   },
   "unresolved": [
     "event arrival and stage timing on device",
