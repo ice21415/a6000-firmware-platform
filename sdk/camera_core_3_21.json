@@ -1418,6 +1418,66 @@
         "confidence": "HIGH"
       },
       "note": "Registration uses r4+0x88 at 0x7ec8ba and forwards r5 to insertion at 0x7ec94e; lookup 0x7eb904 obtains r0+0x88. Same owner-relative tree offset is verified; same runtime owner, key and returned record remain UNKNOWN."
+    },
+    {
+      "id": "registry.camera.idso_duplicate_guard",
+      "source": "IdSoTable::add key lookup",
+      "target": "existing-key insertion guard",
+      "target_vma": "0x7f063c",
+      "source_vma": "0x7f08a0",
+      "callsite_vma": "0x7f08b0",
+      "relation": "GUARDS_INSERTION",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f08b0",
+        "evidence_method": "ELF_THUMB_CFG_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7f08b0 checks for key; 0x7f08e0 compares returned iterator against end; 0x7f08e4 cbz skips constructor when key already exists; nonduplicate path proceeds to node construction. No model runtime instance creation."
+    },
+    {
+      "id": "registry.camera.idso_node_constructor",
+      "source": "IdSoTable::add missing-key path",
+      "target": "IdSoTable configuration node",
+      "target_vma": "0x7f0394",
+      "source_vma": "0x7f08a0",
+      "callsite_vma": "0x7f08ee",
+      "relation": "STORES_CONFIGURATION",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f08ee",
+        "evidence_method": "ELF_THUMB_NODE_FIELD_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Key passed r5->r1; configured library r8->r2; factory r6->r3 at 0x7f08e6-ec. Node ctor 0x7f03a4 stores key +4; 0x7f03b2 and 0x7f03ba store copied name payload pointers +8 and +0xc; 0x7f08f6 inserts conditionally. This node is distinct from ModelManager event-routing Record."
+    },
+    {
+      "id": "registry.modelmanager.descriptor_key_lookup",
+      "source": "ModelManager lookup descriptor +8",
+      "target": "ModelManager record-tree lookup key",
+      "target_vma": "0x7eb8fa",
+      "source_vma": "0x7eb944",
+      "callsite_vma": "0x7eb956",
+      "relation": "PASSES_DESCRIPTOR_KEY",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eb956",
+        "evidence_method": "ELF_THUMB_REGISTER_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Wrapper r1 descriptor is passed to 0x7ea930 at 0x7eb94e and key+8 returned to r1 at 0x7eb952; r0 holds ModelManager owner from r4; lookup called at 0x7eb956. Does not prove cross-call instance identity."
     }
   ],
   "unresolved_edges": [
@@ -2090,8 +2150,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 70,
-    "primary_elf_verified_edges": 60
+    "tracked_core_edges": 73,
+    "primary_elf_verified_edges": 63
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3571,6 +3631,34 @@
     "graph_after": {
       "tracked": 70,
       "primary": 60,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_23_idso_record_separation": {
+    "status": "DIRECT_SHA_PINNED_ELF_CFG_AND_DATAFLOW",
+    "idso": {
+      "key_probe": "0x7f08b0 -> 0x7f063c",
+      "duplicate_branch": "0x7f08e4 -> 0x7f090c",
+      "new_node_ctor": "0x7f08ee -> 0x7f0394",
+      "node_key_offset": "+0x4",
+      "library_payload_offset": "+0x8",
+      "factory_payload_offset": "+0xc",
+      "insert_call": "0x7f08f6 -> 0x7f0888",
+      "relation_to_modelmanager_record": "UNKNOWN"
+    },
+    "modelmanager": {
+      "descriptor_getter": "0x7ea930 reads descriptor +8",
+      "lookup_wrapper": "0x7eb944 -> 0x7eb94e -> 0x7eb956",
+      "tree_lookup": "0x7eb8fa uses manager +0x88",
+      "cross_call_owner_instance": "UNKNOWN"
+    },
+    "counts": {
+      "tracked": 73,
+      "primary": 63,
       "inferred": 5,
       "unresolved": 5
     },
