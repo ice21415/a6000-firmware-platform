@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.41 direct im.elf load-path proof: type 0x20000001..03 with nonzero packed upper half dlopen /usr/lib/libObj.so, while appFw type 0x20000004 uses dlopen(NULL); default 0x101 loader flags are copied into loader state.",
+  "latest_checkpoint": "Phase 4.42 direct SHA-pinned im.elf event handler and libIMDB rows prove marker-delimited stage traversal: event 0x940036 processes stage5→7 with 30 conditional libObj candidates, event 0x940037 processes stage7→8 containing appFw row99; no event timing/success proof.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -891,6 +891,45 @@
     "runtime_load_success": "UNKNOWN",
     "runtime_symbol_binding": "UNKNOWN",
     "camera_core_new_edges": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_42_staged_eligible_loader_correction": {
+    "report": "reports/PHASE4_42_IM_STAGE_EVENT_GATES.md",
+    "evidence": "sdk/im_stage_dispatch_3_21.json",
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "imdb_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "stage_markers": [
+      0,
+      9,
+      19,
+      31,
+      33,
+      94,
+      98,
+      101
+    ],
+    "event_for_30_candidate_rows": "0x940036",
+    "event_for_appfw_row99": "0x940037",
+    "prior_31_loader_candidates_by_stage": [
+      {
+        "stage_interval": "3->4",
+        "count": 1
+      },
+      {
+        "stage_interval": "5->7",
+        "count": 30
+      }
+    ],
+    "startup_option_mask_initial": "0x00000003",
+    "main_phase_gates": [
+      "0x20000",
+      "0x40000",
+      "0x80000",
+      "0x100000"
+    ],
+    "key_limit": "Physical ordering in IMDB does not prove successful earlier dlopen or event ordering.",
+    "new_camera_core_edges": 0,
     "primary_static_core_edges": 74,
     "tracked_core_edges": 84
   }
