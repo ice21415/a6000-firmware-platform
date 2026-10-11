@@ -1794,3 +1794,22 @@ The lookup result remains proven to enter state machine `0x7eac60`, which
 preserves the Record pointer and updates `+8` on conditional state paths.
 Current graph checkpoint: 57 primary, 5 inferred, 5 unresolved, 67 tracked;
 runtime and safe-to-invoke APIs remain zero.
+
+## Phase 4.19 blocker sprint
+
+State/receiver cross-checks were reproduced from the pinned ELF. The lookup
+Record remains in `r4` through `0x7eac60`; `0x7eaf4a` and `0x7eafce` are
+guarded writes of `0x40000` and `0x70000`, while `0x7eb016` has four proven
+predecessor values (`0x20000`, `0x30000`, `0x50000`, `0x60000`). The apparent
+`0x7ec874` store is a container-growth write and is excluded. Router owner
+`+4` is passed to the consumer at `0x7eedec–0x7eedf0`, but setter caller
+objects are not proven identical to it.
+
+The IdSoTable helper uses an integer key at node `+0x4` (comparison loop
+`0x7f066c–0x7f0670`), and the ModelCamera factory writes its context at
+`+0x20`; neither proves registration Record identity or a `+0x1c` instance.
+The parser-level `@M00B -> 11` result is now separated from the unverified
+IdGenerator runtime return. Selector `@M/@V` and aligned arithmetic paths are
+bounded static enrichment only. The machine-readable blocker ledger is
+`sdk/camera_core_blockers_3_21.json`; all five blocker flags remain unresolved
+and runtime/safe-to-invoke counts remain zero.

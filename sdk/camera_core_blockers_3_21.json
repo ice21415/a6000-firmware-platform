@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "phase": "4.19",
+  "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
+  "blockers": [
+    {
+      "id": "event.consumer.model_camera",
+      "current_status": "UNRESOLVED",
+      "verified_segments": [
+        "model token parser",
+        "factory export and constructor",
+        "conditional registry/forwarder path"
+      ],
+      "missing_evidence": [
+        "IdSoTable insertion-to-lookup record identity",
+        "successful runtime loader identity",
+        "record +0x1c identity",
+        "exact registration callsite proving IdGenerator return is passed as add key",
+        "record +0x1c store/load identity"
+      ],
+      "assigned_agent": "p419_registry",
+      "new_findings": [
+        "lookup return and state-machine record pointer are preserved into forwarder",
+        "forwarder reads record +0x1c; runtime ModelCamera identity remains unknown",
+        "IdSoTable add/lookup uses integer node key at +0x4 with comparison loop 0x7f066c-0x7f0670; ModelCamera factory writes context +0x20, not registry +0x1c"
+      ],
+      "candidate_exclusions": [
+        "state/forwarder pointer flow does not prove @M00B registration record identity"
+      ],
+      "minimal_next_proof": "Reproduce the registration key, tree node record pointer, lookup return pointer, and factory result storage as one identity chain.",
+      "blocker_resolved": false
+    },
+    {
+      "id": "event.keys.model_camera",
+      "current_status": "UNRESOLVED",
+      "verified_segments": [
+        "request key extraction",
+        "compact @M00B parser",
+        "selector/action conditional path"
+      ],
+      "missing_evidence": [
+        "complete key-to-instance semantic mapping",
+        "event filter and state preconditions"
+      ],
+      "assigned_agent": "p419_selector",
+      "new_findings": [
+        "request factory 0x7f0b0c adds model ID key 7 and transformed selector key 8 at 0x7f0b44/0x7f0b5c",
+        "compact @M path 0x12d780 and 0x120168 yields 0x1200bf01 for ID 11/0x0f01",
+        "selector helper invokes IdGenerator::Get at 0x12d824 and uses returned model id in transform; runtime return still unverified"
+      ],
+      "candidate_exclusions": [],
+      "minimal_next_proof": "Verify the bounded selector branch and its receiver/instance preconditions without promoting runtime identity.",
+      "blocker_resolved": false
+    },
+    {
+      "id": "event_manager.dispatch_target",
+      "current_status": "UNRESOLVED",
+      "verified_segments": [
+        "indirect call at 0x7ef988",
+        "provider slot candidate"
+      ],
+      "missing_evidence": [
+        "unique provider instance and callback writer"
+      ],
+      "assigned_agent": "main",
+      "new_findings": [
+        "provider probe confirms getConfig import and conditional 0x11130c candidate only",
+        "0x7ef988 blx r3 uses r0=[state+0x04], r1=Event*; provider +0x30 remains conditional and no unique writer"
+      ],
+      "candidate_exclusions": [
+        "0x11130c is pre-enqueue adapter, not main dispatch"
+      ],
+      "minimal_next_proof": "Prove producer-to-storage-to-consumer for EventManager +0x08 and provider selection predicate.",
+      "blocker_resolved": false
+    },
+    {
+      "id": "event_manager.completion_target",
+      "current_status": "UNRESOLVED",
+      "verified_segments": [
+        "completion callsite and flag branch"
+      ],
+      "missing_evidence": [
+        "callback producer, ABI, and completion implementation identity"
+      ],
+      "assigned_agent": "main",
+      "new_findings": [
+        "main probe remains conditional; no completion identity yet",
+        "0x7ef9ce is gated by nonzero incoming flag; relocation 0x1031894 -> Thumb 0x7eeb24 error/termination candidate"
+      ],
+      "candidate_exclusions": [
+        "0x7eeb24 excluded as ModelCamera consumer"
+      ],
+      "minimal_next_proof": "Reproduce the +0x04 callback pointer source and verify its guarded ABI.",
+      "blocker_resolved": false
+    },
+    {
+      "id": "request.selector_transform.semantic",
+      "current_status": "UNRESOLVED",
+      "verified_segments": [
+        "compact @M path"
+      ],
+      "missing_evidence": [
+        "noncompact/@V branches and malformed-input semantics"
+      ],
+      "assigned_agent": "p419_selector",
+      "new_findings": [
+        "@M and @V base selection at 0x12d824-0x12d840",
+        "aligned selector transform and direct-return non-aligned branch at 0x120168",
+        "noncompact vtable helper and malformed/error paths remain incomplete"
+      ],
+      "candidate_exclusions": [],
+      "minimal_next_proof": "Bounded CFG proof for each remaining selector branch and explicit failure behavior.",
+      "blocker_resolved": false
+    }
+  ]
+}

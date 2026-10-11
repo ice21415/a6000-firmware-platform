@@ -3430,5 +3430,58 @@
       "numeric model ID mapping is now proven",
       "registration-to-lookup record pointer identity remains unresolved"
     ]
+  },
+  "phase4_19_blocker_resolution": {
+    "status": "EVIDENCE_ENRICHMENT_NO_BLOCKER_RESOLVED",
+    "blocker_ledger": "sdk/camera_core_blockers_3_21.json",
+    "registry_tree_key": {
+      "add_vma": "0x7f08a0",
+      "lookup_vma": "0x7f063c",
+      "node_key_offset": "+0x4",
+      "comparison_vmas": [
+        "0x7f066c",
+        "0x7f066e",
+        "0x7f0670"
+      ],
+      "verification": "PRIMARY_ELF_VERIFIED_INTEGER_KEY_TREE",
+      "record_identity": "UNKNOWN"
+    },
+    "state_machine": {
+      "record_stores": [
+        "0x7eaf4a",
+        "0x7eafce",
+        "0x7eb016"
+      ],
+      "shared_store_predecessors": [
+        "0x7ead34=0x30000",
+        "0x7eae40=0x20000",
+        "0x7eaf9a=0x60000",
+        "0x7eb012=0x50000"
+      ],
+      "excluded_store": "0x7ec874",
+      "verification": "PRIMARY_ELF_VERIFIED_POINTER_DATAFLOW"
+    },
+    "receiver": {
+      "router_owner_field": "+4",
+      "consumer_callsite": "0x7eedf0",
+      "setter_store": "0x7eb12a",
+      "identity": "CONDITIONAL"
+    },
+    "selector": {
+      "special_path": "0x12d780",
+      "transform": "0x120168",
+      "status": "CONDITIONAL_STATIC_ENRICHMENT"
+    },
+    "callback_review": {
+      "main_dispatch": "0x7ef988",
+      "completion": "0x7ef9ce",
+      "runtime_verified": false
+    },
+    "graph_counts": {
+      "tracked": 67,
+      "primary": 57,
+      "inferred": 5,
+      "unresolved": 5
+    }
   }
 }

@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.18 Model ID parser and registry/state provenance",
+  "latest_checkpoint": "phase4.19 blocker ledger and state/receiver evidence enrichment",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -245,5 +245,51 @@
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
+  },
+  "phase4_19_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "primary_edges_added": [],
+    "inferred_edges_added": [],
+    "unresolved_edges_reduced": 0,
+    "verified_store_observations": [
+      "0x7eaf4a",
+      "0x7eafce",
+      "0x7eb016 with four predecessor values"
+    ],
+    "evidence_enrichment": [
+      "record +8 writer CFG and lookup-record provenance",
+      "0x7ec874 excluded as container store",
+      "router owner +4 remains conditional receiver identity",
+      "IdSoTable integer-key tree comparison and node key +0x4",
+      "selector @M/@V bounded paths and request key 7/8 register flow",
+      "main dispatch/completion callback separation and 0x7eeb24 exclusion"
+    ],
+    "candidates_excluded": [
+      "0x7ec874 is not lookup-record state store",
+      "setter caller objects not proven identical to router owner +4",
+      "0x7eeb24 is completion error/termination candidate, not ModelCamera consumer",
+      "0x11130c is pre-enqueue callback, not 0x7ef988 target"
+    ],
+    "blockers_narrowed": [
+      "event.consumer.model_camera record identity remains missing",
+      "event_manager dispatch/completion callback identity remains missing",
+      "completion callback producer/ABI remains unresolved",
+      "selector noncompact and malformed branches"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "unique evidence graph IDs; observations are not graph edges"
   }
 }

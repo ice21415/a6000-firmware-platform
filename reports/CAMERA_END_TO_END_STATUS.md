@@ -450,7 +450,8 @@ The request consumer's key-7 lookup result reaches the record state machine:
 `0x7ed71e` calls `0x7eb8fa`, `0x7ed722` moves its returned record pointer to
 `r1`, and `0x7ed72e` calls `0x7eac60`. The state machine copies `r1` to `r4`,
 reads `record +8`, and conditionally stores `0x40000` at `0x7eaf4a`,
-`0x70000` at `0x7eafce`, or path-dependent `0x60000/0x50000` at `0x7eb016`.
+`0x70000` at `0x7eafce`, or path-dependent `0x20000/0x30000/0x60000/0x50000`
+at `0x7eb016`.
 These stores prove record-relative state transitions, not Model ID 11
 semantics.
 
@@ -480,4 +481,27 @@ post-insertion Record pointer is not statically identical to the later
 `0x7eb8fa` lookup return. Runtime `modelCamera.so` identity and selected
 factory instance remain UNKNOWN. The graph is now 67 tracked edges: 57
 PRIMARY_ELF_VERIFIED, 5 STATIC_INFERRED, and 5 UNRESOLVED; runtime and
+safe-to-invoke APIs remain zero.
+
+## Phase 4.19 blocker resolution sprint
+
+The SHA-pinned state-machine review confirms that `0x7eac60` keeps the lookup
+returned Record in `r4`. Stores at `0x7eaf4a` and `0x7eafce` write `0x40000`
+and `0x70000` under their guarded event/state paths. The shared store at
+`0x7eb016` has four proven predecessor values (`0x20000`, `0x30000`,
+`0x50000`, `0x60000`); the container-growth store at `0x7ec874` is excluded
+because its base is not the lookup Record. This enriches existing state and
+pointer-flow evidence without adding a new graph edge.
+
+The Router still supplies its owner `+4` to the Generic Consumer at
+`0x7eedec–0x7eedf0`; the five state-setter callers are not proven to operate
+on that same object, so Receiver identity remains conditional. The request
+factory statically adds model ID and transformed selector under keys 7 and 8.
+The bounded `@M`/`@V` selector paths and `0x120168` arithmetic are verified,
+but noncompact and malformed-input semantics, registry Record identity,
+runtime DSO identity, and callback targets remain unresolved.
+
+Phase 4.19 records these findings in the machine-readable blocker ledger
+`sdk/camera_core_blockers_3_21.json`. Graph counts remain 67 tracked,
+57 PRIMARY_ELF_VERIFIED, 5 STATIC_INFERRED, and 5 UNRESOLVED; runtime and
 safe-to-invoke APIs remain zero.
