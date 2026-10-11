@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.34: four consecutive libIMDB metadata rows at 0xd1c0..0xd244 have 0x2c stride; .rel.dyn raw pointer hits are relocation r_offset metadata not real code consumers",
+  "latest_checkpoint": "Phase 4.35 IMDB metadata: seven .rel.dyn entries are relocation target offsets (not consumer xrefs), and direct loaded 32-bit pointer matches to selected rows/names = 0. Need actual libIMDB Thumb disassembly.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -713,6 +713,52 @@
     "libobj_dt_soname": "libObj.so",
     "actual_loader_or_descriptor_consumption": "UNKNOWN",
     "real_init_parameter": "UNKNOWN",
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74
+  },
+  "phase4_35_imdb_reloc_boundary": {
+    "source": "user-provided inspect_a6000_imdb_xrefs.py output",
+    "row_stride": "0x2c",
+    "four_rows": [
+      "0xd1c0",
+      "0xd1ec",
+      "0xd218",
+      "0xd244"
+    ],
+    "named_descriptors": [
+      {
+        "row": "0xd1ec",
+        "module": "appFw.so",
+        "init": "Application_System_Init",
+        "additional": [
+          "AdjChkConfig.so",
+          "AppConfig.so"
+        ]
+      },
+      {
+        "row": "0xd218",
+        "module": "subapp.so",
+        "init": "subapp_init",
+        "exit": "subapp_exit",
+        "additional": [
+          "AdjChkConfig.so",
+          "AppConfig.so"
+        ]
+      }
+    ],
+    "relocation_metadata_entries": 7,
+    "relocation_type": "R_ARM_RELATIVE",
+    "loaded_progbits_raw_pointer_matches": 0,
+    "interpretation": "No direct 32-bit pointer to selected record/name location; cannot exclude PC-relative/GOT/arithmetic references or references to table base.",
+    "libobj_appfw_literal": {
+      "elf_vma": "0x00cbc829",
+      "context": "near initialize, @M001, modelRoot.so, ModelRootToInstance; proximity only",
+      "loader_alias": "UNKNOWN"
+    },
+    "consumer_code_xref": "UNKNOWN",
+    "runtime_init_argument": "UNKNOWN",
+    "runtime_provider_choice": "UNKNOWN",
     "graph_edges_added": 0,
     "tracked_core_edges": 84,
     "primary_elf_verified_edges": 74
