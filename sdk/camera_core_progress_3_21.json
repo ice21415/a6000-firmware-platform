@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.32 user libIMDB.so: allocated .rodata string Application_System_Init@0x3672, one .data.rel.ro word @0xd200 points to it; no calling convention or dispatch proven.",
+  "latest_checkpoint": "Phase 4.33 libIMDB.so: 0xd1ec candidate 0x2c-byte descriptor with appFw.so/Application_System_Init and adjacent config strings; no actual call or alias proven",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -615,6 +615,51 @@
     "proven_invocation": false,
     "runtime_branch_proven": false,
     "model_camera_alias_proven": false,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_33_imdb_candidate_record": {
+    "source": "user-reported inspect_a6000_imdb_record.py output",
+    "record_start": "0x0000d1ec",
+    "record_stride_hypothesis": "0x2c",
+    "next_record_marker": "0x0000d218",
+    "same_marker_value": "0x20000004",
+    "module_name": {
+      "field": "+0x10",
+      "address": "0x0000d1fc",
+      "string": "appFw.so"
+    },
+    "initializer_name": {
+      "field": "+0x14",
+      "address": "0x0000d200",
+      "string": "Application_System_Init",
+      "relocation": "R_ARM_RELATIVE"
+    },
+    "additional_fields": [
+      {
+        "field": "+0x24",
+        "string": "AdjChkConfig.so"
+      },
+      {
+        "field": "+0x28",
+        "string": "AppConfig.so"
+      }
+    ],
+    "next_record_names": [
+      "subapp.so",
+      "subapp_init",
+      "subapp_exit"
+    ],
+    "unproven": [
+      "full 44-byte row structure",
+      "consumer of .data.rel.ro descriptor table",
+      "runtime caller and r0 argument to Application_System_Init",
+      "alias of appFw.so to libObj.so",
+      "ModelConfig/AppConfig startup branch"
+    ],
+    "graph_edges_added": 0,
     "tracked_core_edges": 84,
     "primary_elf_verified_edges": 74,
     "runtime_verified_apis": 0,
