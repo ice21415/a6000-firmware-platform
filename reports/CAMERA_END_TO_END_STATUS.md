@@ -505,3 +505,29 @@ Phase 4.19 records these findings in the machine-readable blocker ledger
 `sdk/camera_core_blockers_3_21.json`. Graph counts remain 67 tracked,
 57 PRIMARY_ELF_VERIFIED, 5 STATIC_INFERRED, and 5 UNRESOLVED; runtime and
 safe-to-invoke APIs remain zero.
+
+## Phase 4.20 direct manual evidence-integrity checkpoint
+
+A direct review of the public PR (without Codex) corrected the Phase 4.19
+blocker ledger's overbroad exclusion of callback 0x11130c. It is a conditional
+pre-enqueue callback candidate for the indirect EventManager callsite 0x7ef988;
+it is **not** the Application Router at 0x7eed0c. Local AppConfig provider
+selection, slot initialization and runtime object identity are still required.
+This correction does not resolve the indirect dispatch target.
+
+The new `fwplatform.camera_core_blocker_audit` validates the public SDK
+primary edges, five inferred relations, unresolved relation IDs, canonical
+blocker ledger, progress counters, SHA-256 identity and forbidden runtime API
+promotions. It also rejects the incorrect callback exclusion and allows
+future blocker resolution only when backed by a referenced primary graph edge.
+Run `python -m fwplatform.camera_core_blocker_audit` for a JSON result.
+This is a **metadata consistency audit**, not a substitute for independent
+private-ELF re-disassembly. Synthetic mutation tests cover mismatched counts,
+IDs, provenance, false completion and future proof references.
+
+The private firmware ELF was not accessible in this manual session; therefore
+no new firmware instruction, pointer provenance, registry identity or runtime
+API is claimed. Counts remain **57 PRIMARY_ELF_VERIFIED / 5 STATIC_INFERRED /
+5 UNRESOLVED (67 tracked)**. Runtime-verified and safe-to-invoke APIs remain
+zero. Next primary-ELF research should target IdSoTable registration key to
+lookup-return identity and independent state-store CFG witnesses.
