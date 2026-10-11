@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.43 uploaded original im.elf: main conditionally sends stage event 0x940031..37 via osal_snd_msg(0x94016a,..) with ascending code order; boot= CLI selects phases, bootall enables 0x7f0000, but runtime queue reception/dispatch/load success unverified.",
+  "latest_checkpoint": "Phase 4.44 direct original im.elf proves callback slot 0x153ec set to Thumb a06d, read at ac18 and indirect BLX r5 after successful osal_rcv_msg_tmo; distinct sync callback 95b1 and receive handle paths remain unconnected by OSAL implementation.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -969,5 +969,28 @@
     "original_core_graph_edges_promoted": 0,
     "primary_static_core_edges": 74,
     "tracked_core_edges": 84
+  },
+  "phase4_44_direct_im_callback_receiver": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_44_IM_OSAL_CALLBACK_BRIDGE.md",
+    "evidence": "sdk/im_callback_bridge_3_21.json",
+    "original_stage_handler": "0xa06c",
+    "pointer": "0xa06d",
+    "store_state_and_callback": "0x9ae2 -> 0xac08 -> global+0x8",
+    "getter": "0xac18",
+    "receive": "0x9eaa osal_rcv_msg_tmo",
+    "success_gate": "0x9eae cbnz r0 (skip handler on nonzero status)",
+    "indirect_stage_callback_callsite": "0x9eb2 blx r5",
+    "other_callback_state": "0x9e4e sets state5 handler 0x9339",
+    "registered_sync_callback": "0x95b1",
+    "registered_sync_handle_global": "0x1540c",
+    "receive_loop_handle_global": "0x15410",
+    "actual_message_delivery_to_stage_handler": "UNKNOWN",
+    "osal_queue_routing": "UNKNOWN (libosal_uipc.so not yet analyzed)",
+    "core_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_static_core_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
   }
 }
