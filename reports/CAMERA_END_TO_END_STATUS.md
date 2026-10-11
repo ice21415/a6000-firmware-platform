@@ -436,3 +436,32 @@ The record initializer `0x7f1156` starts `+8` at `0x10000` and `+0x1c` at
 zero. Model ID 11 to a specific record, factory instance, and runtime
 `modelCamera.so` identity remain UNKNOWN. Counts are 52 primary, 5 inferred,
 5 unresolved, 62 tracked; runtime and safe-to-invoke APIs remain zero.
+
+## Phase 4.17 receiver identity and registry state breakthrough
+
+The pinned ELF proves the router-to-consumer receiver pointer flow:
+`0x7eedec` loads `[router_owner + 4]` into `r0`, and `0x7eedf0` calls
+`0x7ed49c`. The consumer preserves that pointer in `r4` and passes it to the
+`+0xa4` getter. This is a PRIMARY_ELF_VERIFIED pointer flow; runtime owner
+identity and equality with state-machine setter objects remain conditional.
+Request `0x11004003` bypasses the setter branches.
+
+The request consumer's key-7 lookup result reaches the record state machine:
+`0x7ed71e` calls `0x7eb8fa`, `0x7ed722` moves its returned record pointer to
+`r1`, and `0x7ed72e` calls `0x7eac60`. The state machine copies `r1` to `r4`,
+reads `record +8`, and conditionally stores `0x40000` at `0x7eaf4a`,
+`0x70000` at `0x7eafce`, or path-dependent `0x60000/0x50000` at `0x7eb016`.
+These stores prove record-relative state transitions, not Model ID 11
+semantics.
+
+The `@M00B` configuration path is independently verified at `0x402090`
+(`IdGenerator::Get` PLT) and `0x4020a0` (`IdSoTable::add` PLT), with
+`modelCamera.so` and `ModelCameraToInstance` registration arguments. The
+numeric return value 11, post-insertion record identity, runtime DSO alias,
+and factory selection remain STATIC_INFERRED or UNKNOWN. Factory shape is
+verified (`0x4c8c74 -> 0x4c8af4`, vptr store `0x4c8b10`) without runtime DSO
+proof.
+
+The graph is now 66 tracked edges: 56 PRIMARY_ELF_VERIFIED, 5
+STATIC_INFERRED, and 5 UNRESOLVED. Runtime-verified and safe-to-invoke APIs
+remain zero.

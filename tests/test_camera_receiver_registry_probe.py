@@ -3,6 +3,7 @@ import unittest
 from fwplatform.camera_receiver_registry_probe import (
     classify_receiver_field,
     classify_registry_record,
+    classify_record_state,
 )
 
 
@@ -28,4 +29,11 @@ class ReceiverRegistryProbeTests(unittest.TestCase):
     def test_unknown_record_field_remains_unknown(self):
         self.assertEqual(classify_registry_record(None), "UNKNOWN_RECORD_FIELD")
         self.assertEqual(classify_registry_record(True), "UNKNOWN_RECORD_FIELD")
+
+    def test_record_state_domain_is_not_model_id(self):
+        self.assertEqual(classify_record_state(0x10000), "INITIAL_SENTINEL")
+        self.assertEqual(classify_record_state(0x40000), "STATE_DOMAIN")
+        self.assertEqual(classify_record_state(0x70000), "STATE_DOMAIN")
+        self.assertEqual(classify_record_state(11), "OUTSIDE_OBSERVED_DOMAIN")
+        self.assertEqual(classify_record_state(None), "UNKNOWN")
 

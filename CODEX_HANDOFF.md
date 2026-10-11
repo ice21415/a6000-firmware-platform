@@ -1761,3 +1761,24 @@ The public graph is 62 tracked / 52 primary / 5 inferred / 5 unresolved.
 Receiver object identity, runtime field value, Model ID 11 record identity,
 factory instance provenance and `modelCamera.so` runtime alias remain
 conditional or unknown; runtime and safe-callable API counts remain zero.
+## Phase 4.17 checkpoint
+
+New SHA-pinned evidence proves `0x7eedec` loads the Application Router
+owner's `+4` pointer into `r0` before the `0x7eedf0 -> 0x7ed49c` consumer call.
+The consumer retains that pointer in `r4` for the `+0xa4` gate. Request event
+`0x11004003` still bypasses the observed state-setter branches, so equality
+with a setter-initialized object is conditional.
+
+The key-7 registry lookup return now has direct pointer provenance into the
+record state machine: `0x7ed71e -> 0x7eb8fa`, `0x7ed722: mov r1,r0`, and
+`0x7ed72e -> 0x7eac60`; `0x7eac60` preserves the record in `r4` and reads
+`+8`. Conditional record-state stores are proven at `0x7eaf4a` (`0x40000`),
+`0x7eafce` (`0x70000`), and path-dependent `0x60000/0x50000` at `0x7eb016`,
+while the initial sentinel remains `0x10000` at `0x7f1168`.
+
+The configuration path is independently pinned: `0x402090` calls the
+IdGenerator PLT for `@M00B`, and `0x4020a0` calls the IdSoTable add PLT with
+`modelCamera.so` / `ModelCameraToInstance`; the numeric return 11 and
+post-insertion record identity remain unproven. The graph checkpoint is
+56 primary, 5 inferred, 5 unresolved, 66 tracked. Runtime Verified and
+Safe-to-Invoke APIs remain zero.

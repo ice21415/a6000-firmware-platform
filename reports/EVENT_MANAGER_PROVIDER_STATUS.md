@@ -161,3 +161,22 @@ requires unsigned `record[+8]` in `0x10001..0x6ffff` before `0x7f124a`.
 The record initializer starts this field at `0x10000` and instance `+0x1c` at
 zero. This is a validity gate, not a Model ID 11 proof; record identity,
 runtime loader alias and instance selection remain UNKNOWN.
+## Phase 4.17 state and provenance additions
+
+The router's owner `+4` pointer is loaded at `0x7eedec` and passed to the
+generic consumer at `0x7eedf0`; the consumer retains it in `r4` for the
+`+0xa4` getter. Request `0x11004003` does not execute the observed setter
+branches, so setter-to-request object identity remains conditional.
+
+The lookup result now has direct provenance into state machine `0x7eac60`:
+`0x7ed71e` calls lookup, `0x7ed722` moves its return to `r1`, and `0x7ed72e`
+calls the state machine. The state machine preserves that record in `r4`,
+reads `+8`, and conditionally writes `0x40000` at `0x7eaf4a` or `0x70000`
+at `0x7eafce`. Forwarder calls use the same state-machine record pointer;
+instance non-null and state branch conditions remain required.
+
+The `@M00B` registration path is instruction-verified at `0x402090` and
+`0x4020a0`; it supplies `modelCamera.so` and `ModelCameraToInstance` to the
+registration API. IdGenerator's numeric return, lookup record identity and
+runtime DSO alias remain unresolved. Runtime and safe-callable counts remain
+zero.

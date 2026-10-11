@@ -1229,7 +1229,14 @@
       "address_space": "ELF_VMA",
       "verification_status": "PRIMARY_ELF_VERIFIED",
       "confidence": "HIGH",
-      "evidence": {"source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "source_locator": "ELF_VMA:0x7ed4b2", "address_space": "ELF_VMA", "evidence_method": "CAPSTONE_PRIMARY_ELF", "verification_status": "PRIMARY_ELF_VERIFIED", "confidence": "HIGH"},
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed4b2",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
       "note": "Consumer r4 is passed as getter r0; zero return branches to 0x7ed8d8. Receiver identity remains conditional."
     },
     {
@@ -1242,8 +1249,95 @@
       "address_space": "ELF_VMA",
       "verification_status": "PRIMARY_ELF_VERIFIED",
       "confidence": "HIGH",
-      "evidence": {"source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "source_locator": "ELF_VMA:0x7ed606", "address_space": "ELF_VMA", "evidence_method": "CAPSTONE_PRIMARY_ELF", "verification_status": "PRIMARY_ELF_VERIFIED", "confidence": "HIGH"},
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed606",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
       "note": "Null record exits; unsigned record[+8] must be 0x10001..0x6ffff before forwarder 0x7f124a."
+    },
+    {
+      "id": "registry.camera.id_generator",
+      "source": "Camera model compact name @M00B",
+      "target": "IdGenerator::Get",
+      "target_vma": "0xdffb8",
+      "source_vma": "0x401f78",
+      "callsite_vma": "0x402090",
+      "relation": "RESOLVES_MODEL_KEY",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x402090",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "PC-relative @M00B is passed to the IdGenerator PLT; return value is not independently decoded as numeric 11."
+    },
+    {
+      "id": "consumer.router_owner_receiver_flow",
+      "source": "application router owner +4",
+      "target": "request consumer r0",
+      "target_vma": "0x7ed49c",
+      "source_vma": "0x7eed0c",
+      "callsite_vma": "0x7eedf0",
+      "relation": "FORWARDS_RECEIVER_POINTER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eedf0",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7eedec loads [owner +4] to r0 before the generic consumer call; runtime object identity remains unknown."
+    },
+    {
+      "id": "consumer.lookup_record_state_machine",
+      "source": "request consumer registry result",
+      "target": "registry record state machine",
+      "target_vma": "0x7eac60",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed72e",
+      "relation": "FORWARDS_RECORD_POINTER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ed72e",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Lookup r0 is moved to r1 at 0x7ed722 and passed to 0x7eac60, which preserves it in r4."
+    },
+    {
+      "id": "registry.state_machine.forwarder",
+      "source": "registry record state machine",
+      "target": "record instance forwarder",
+      "target_vma": "0x7f124a",
+      "source_vma": "0x7eac60",
+      "callsite_vma": "0x7eaf8e",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eaf8e",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "State-machine r4 is passed to the forwarder; branch state and non-null instance remain preconditions."
     }
   ],
   "unresolved_edges": [
@@ -1915,7 +2009,9 @@
     "event_keys_7_8_to_model_camera": "UNKNOWN",
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
-    "ee_neutral_receiver_and_completion": "UNKNOWN"
+    "ee_neutral_receiver_and_completion": "UNKNOWN",
+    "tracked_core_edges": 66,
+    "primary_elf_verified_edges": 56
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3180,7 +3276,13 @@
       "store": "0x7eb12a",
       "effective_address": "r0 + 0xa4",
       "written_value": "r1",
-      "callers": ["0x7ec9b6", "0x7ed038", "0x7ed1d2", "0x7ed250", "0x7ed47c"],
+      "callers": [
+        "0x7ec9b6",
+        "0x7ed038",
+        "0x7ed1d2",
+        "0x7ed250",
+        "0x7ed47c"
+      ],
       "object_identity": "CONDITIONAL",
       "status": "PRIMARY_ELF_VERIFIED_STATIC_STORE"
     },
@@ -3200,6 +3302,94 @@
       "initial_plus_1c": "0",
       "model_id_11_record": "UNKNOWN",
       "model_camera_instance": "UNKNOWN",
+      "runtime_dso_identity": "UNKNOWN"
+    },
+    "runtime_verified": false,
+    "safe_to_invoke": false
+  },
+  "phase4_17_receiver_registry_breakthrough": {
+    "baseline": {
+      "tracked_core_edges": 62,
+      "primary_elf_verified_edges": 52,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 66,
+      "primary_elf_verified_edges": 56,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.id_generator",
+      "consumer.router_owner_receiver_flow",
+      "consumer.lookup_record_state_machine",
+      "registry.state_machine.forwarder"
+    ],
+    "new_verified_store_edges": 2,
+    "new_verified_pointer_flow_edges": 2,
+    "model_id_11_numeric_mapping": "STATIC_INFERRED; IdGenerator return not decoded as 11",
+    "record_identity": "PRIMARY_ELF_VERIFIED from lookup return to 0x7eac60 state machine; identity with @M00B registration remains UNKNOWN",
+    "runtime_dso_identity": "UNKNOWN",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "blockers_narrowed": [
+      "registry lookup result to state-machine record identity",
+      "record +8 state transition domain",
+      "@M00B registration callsite"
+    ],
+    "blockers_resolved": 0
+  },
+  "phase4_17_receiver_registry_provenance": {
+    "receiver_router_pointer_flow": {
+      "router_entry": "0x7eed0c",
+      "load_vma": "0x7eedec",
+      "source": "router owner +4",
+      "consumer_callsite": "0x7eedf0",
+      "consumer": "0x7ed49c",
+      "status": "PRIMARY_ELF_VERIFIED",
+      "runtime_object_identity": "UNKNOWN"
+    },
+    "request_setter_identity": "CONDITIONAL; request 0x11004003 branch bypasses observed setter branches",
+    "lookup_state_machine": {
+      "lookup": "0x7eb8fa",
+      "lookup_callsite": "0x7ed71e",
+      "move_return": "0x7ed722",
+      "state_machine": "0x7eac60",
+      "callsite": "0x7ed72e",
+      "record_register": "r1 -> r4",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "state_writes": [
+      {
+        "vma": "0x7eaf4a",
+        "value": "0x40000",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "precondition": "state branch and notification path"
+      },
+      {
+        "vma": "0x7eafce",
+        "value": "0x70000",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "precondition": "event/state comparison"
+      }
+    ],
+    "model_registration": {
+      "compact_name": "@M00B",
+      "id_generator_callsite": "0x402090",
+      "add_callsite": "0x4020a0",
+      "library": "modelCamera.so",
+      "factory": "ModelCameraToInstance",
+      "status": "PRIMARY_ELF_VERIFIED_STATIC_REGISTRATION",
+      "numeric_id": "STATIC_INFERRED; not independently decoded as 11",
+      "record_identity": "UNKNOWN"
+    },
+    "factory_shape": {
+      "factory": "0x4c8c64",
+      "constructor_callsite": "0x4c8c74",
+      "constructor": "0x4c8af4",
+      "vptr_store": "0x4c8b10",
+      "status": "PRIMARY_ELF_VERIFIED",
       "runtime_dso_identity": "UNKNOWN"
     },
     "runtime_verified": false,

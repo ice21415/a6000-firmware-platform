@@ -35,6 +35,18 @@ def classify_registry_record(record_field_8: int | None, *, record_present: bool
     return "FORWARD" if 0x10001 <= value <= 0x6FFFF else "REJECT"
 
 
+def classify_record_state(value: int | None) -> str:
+    """Describe the observed state-machine domain without naming its type."""
+    if value is None or not isinstance(value, int) or isinstance(value, bool):
+        return "UNKNOWN"
+    value &= 0xFFFFFFFF
+    if value == 0x10000:
+        return "INITIAL_SENTINEL"
+    if value in {0x20000, 0x30000, 0x40000, 0x50000, 0x60000, 0x70000}:
+        return "STATE_DOMAIN"
+    return "OUTSIDE_OBSERVED_DOMAIN"
+
+
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -108,6 +120,11 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
         _need(consumer, 0x7ED4B6, "cmp", "r0, #0")
         _need(consumer, 0x7ED4B8, "beq.w", target=0x7ED8D8)
 
+        router = _decode(read, 0x7EEDDC, 0x20)
+        _need(router, 0x7EEDEC, "ldr", "r0, [r4, #4]")
+        _need(router, 0x7EEDEE, "mov", "r1, r5")
+        _need(router, 0x7EEDF0, "bl", target=0x7ED49C)
+
         setter = _decode(read, 0x7EB118, 0xA0)
         _need(setter, 0x7EB118, "ldr.w", "r3, [r0, #0xa4]")
         _need(setter, 0x7EB11E, "cmp", "r1, r3")
@@ -147,6 +164,42 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
         _need(lookup, 0x7EB904, "add.w", "r4, r0, #0x88")
         _need(lookup, 0x7EB938, "ldr", "r0, [r0, #4]")
 
+        # These are deliberately recorded as negative/conditional evidence.
+        # They are stores to a word at offset +8, but the surrounding code
+        # proves different base objects from the lookup result.  A matching
+        # field offset alone must not promote either store to a registry-record
+        # state transition.
+        state_a = _decode(read, 0x7EAFF0, 0x40)
+        _need(state_a, 0x7EB016, "str", "r3, [r4, #8]")
+        state_b = _decode(read, 0x7EC844, 0x40)
+        _need(state_b, 0x7EC874, "str", "r1, [r4, #8]")
+
+        # Configuration registration is separately checked from the registry
+        # lookup.  It proves the descriptor strings and IdGenerator callsite,
+        # but not the runtime value returned by IdGenerator::Get nor record
+        # identity after tree insertion.
+        registration = _decode(read, 0x402088, 0x24)
+        _need(registration, 0x40208E, "add", "r0, pc")
+        _need(registration, 0x402090, "blx", target=0xDFFB8)
+        _need(registration, 0x40209A, "add", "r3, pc")
+        _need(registration, 0x4020A0, "blx", target=0xDF58C)
+
+        factory = _decode(read, 0x4C8C64, 0x30)
+        _need(factory, 0x4C8C74, "bl", target=0x4C8AF4)
+        _need(factory, 0x4C8C78, "str", "r5, [r4, #0x20]")
+        constructor = _decode(read, 0x4C8AF4, 0x30)
+        _need(constructor, 0x4C8B10, "str", "r2, [r5]")
+
+        state_machine = _decode(read, 0x7EAC60, 0x50)
+        _need(state_machine, 0x7EAC62, "mov", "r4, r1")
+        _need(state_machine, 0x7EAC6E, "ldr", "r3, [r4, #8]")
+        _need(state_machine, 0x7EAC86, "cmp.w", "r3, #0x10000")
+        _need(state_machine, 0x7EACA0, "cmp.w", "r3, #0x50000")
+        consumer_model = _decode(read, 0x7ED710, 0x24)
+        _need(consumer_model, 0x7ED71E, "bl", target=0x7EB8FA)
+        _need(consumer_model, 0x7ED722, "mov", "r1, r0")
+        _need(consumer_model, 0x7ED72E, "bl", target=0x7EAC60)
+
     return {
         "schema_version": 1,
         "analyzer_version": ANALYZER_VERSION,
@@ -160,6 +213,17 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
             "branch": {"callsite": "0x7ed4b2", "zero_target": "0x7ed8d8",
                        "predicate": "RECEIVER_FIELD_A4 == 0"},
             "verification": "PRIMARY_ELF_VERIFIED",
+        },
+        "router_receiver_provenance": {
+            "router_entry": "0x7eed0c",
+            "owner_register": "r4",
+            "receiver_load_vma": "0x7eedec",
+            "receiver_source": "[r4 + 0x4]",
+            "event_register_move_vma": "0x7eedee",
+            "consumer_callsite": "0x7eedf0",
+            "consumer_target": "0x7ed49c",
+            "verification": "PRIMARY_ELF_VERIFIED_POINTER_FLOW",
+            "runtime_object_identity": "UNKNOWN",
         },
         "receiver_writers": {
             "setter_vma": "0x7eb118", "store_vma": "0x7eb12a",
@@ -186,6 +250,82 @@ def probe_receiver_registry(path: Path, *, expected_sha256: str = EXPECTED_SHA25
             "lookup_tree_receiver_offset": "0x88",
             "lookup_return": "tree node value at +4",
             "model_id_11_record_identity": "UNKNOWN",
+            "runtime_dso_identity": "UNKNOWN",
+        },
+        "state_transition_candidates": [
+            {
+                "function_vma": "0x7eac60",
+                "store_vma": "0x7eb016",
+                "base_register": "r4 (record parameter r1)",
+                "written_value": "r3 = 0x60000 or 0x50000, path dependent",
+                "classification": "CONDITIONAL_RECORD_STATE_WRITE",
+                "object_identity": "PRIMARY_ELF_VERIFIED; r4 is the record passed by state-machine caller",
+                "verification": "PRIMARY_ELF_VERIFIED_POINTER_DATAFLOW",
+                "precondition": "state-machine branch reaches forwarder failure/success state path",
+            },
+            {
+                "function_vma": "0x7ec844",
+                "store_vma": "0x7ec874",
+                "base_register": "r4",
+                "written_value": "r1 = end/capacity-derived value",
+                "classification": "CANDIDATE_OFFSET8_STORE",
+                "object_identity": "UNKNOWN; r4 is the registry/container receiver candidate, not the returned record",
+                "verification": "PRIMARY_ELF_VERIFIED_INSTRUCTION_ONLY",
+                "exclusion_reason": "store is in container growth path and lacks record +8 provenance",
+            },
+            {
+                "function_vma": "0x7eac60",
+                "store_vma": "0x7eaf4a",
+                "base_register": "r4 (record parameter r1)",
+                "written_value": "0x40000",
+                "classification": "CONDITIONAL_RECORD_STATE_WRITE",
+                "object_identity": "PRIMARY_ELF_VERIFIED; r4 is the record passed by state-machine caller",
+                "verification": "PRIMARY_ELF_VERIFIED_POINTER_DATAFLOW",
+                "precondition": "state branch reaches 0x7eaf32 and its notification path succeeds",
+            },
+            {
+                "function_vma": "0x7eac60",
+                "store_vma": "0x7eafce",
+                "base_register": "r4 (record parameter r1)",
+                "written_value": "0x70000",
+                "classification": "CONDITIONAL_RECORD_STATE_WRITE",
+                "object_identity": "PRIMARY_ELF_VERIFIED; r4 is the record passed by state-machine caller",
+                "verification": "PRIMARY_ELF_VERIFIED_POINTER_DATAFLOW",
+                "precondition": "state + event comparison selects 0x7eafd4 path",
+            },
+        ],
+        "record_state_machine": {
+            "entry_vma": "0x7eac60",
+            "record_argument": "r1 -> r4 at 0x7eac62",
+            "state_load_vma": "0x7eac6e",
+            "state_field": "+0x8",
+            "recognized_values": ["0x10000", "0x20000", "0x30000", "0x40000", "0x50000", "0x60000", "0x70000"],
+            "consumer_callsite": "0x7ed72e",
+            "lookup_return_to_record_argument": "0x7ed71e -> r0; 0x7ed722 -> r1",
+            "verification": "PRIMARY_ELF_VERIFIED_POINTER_FLOW",
+            "forwarder_identity": "same record pointer is used on state-machine forwarder calls; runtime model identity remains UNKNOWN",
+        },
+        "model_registration": {
+            "compact_name": "@M00B",
+            "compact_name_literal_vma": "0xcbc97e",
+            "id_generator_callsite": "0x402090",
+            "id_generator_target": "0xdffb8",
+            "add_callsite": "0x4020a0",
+            "add_target": "0x7f08a0",
+            "library": "modelCamera.so",
+            "factory_symbol": "ModelCameraToInstance",
+            "verification": "PRIMARY_ELF_VERIFIED_STATIC_REGISTRATION",
+            "returned_model_id": "STATIC_INFERRED; IdGenerator return value not independently decoded as 11",
+            "record_identity_after_insert": "UNKNOWN",
+        },
+        "modelcamera_factory": {
+            "factory_vma": "0x4c8c64",
+            "constructor_callsite": "0x4c8c74",
+            "constructor_vma": "0x4c8af4",
+            "context_store_vma": "0x4c8c78",
+            "vptr_store_vma": "0x4c8b10",
+            "instance_record_field": "+0x1c",
+            "verification": "PRIMARY_ELF_VERIFIED_FACTORY_SHAPE",
             "runtime_dso_identity": "UNKNOWN",
         },
         "runtime_verified": False,

@@ -107,6 +107,21 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
         self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
 
+    def test_phase4_17_pointer_and_record_edges_are_present(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        for edge_id in (
+            "consumer.router_owner_receiver_flow",
+            "consumer.lookup_record_state_machine",
+            "registry.state_machine.forwarder",
+            "registry.camera.id_generator",
+        ):
+            self.assertIn(edge_id, edges)
+            self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
+            self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
+        self.assertEqual(edges["consumer.lookup_record_state_machine"]["callsite_vma"], "0x7ed72e")
+        self.assertEqual(edges["registry.state_machine.forwarder"]["target_vma"], "0x7f124a")
+
     def test_owner_setup_target_tampering_is_rejected(self):
         report = _report()
         for edge in report["edges"]:
