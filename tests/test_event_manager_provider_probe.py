@@ -1,64 +1,22 @@
-import copy
+"""Synthetic report validation; never primary ELF certification."""
 import unittest
+from fwplatform.event_manager_provider_probe import EXPECTED_SHA256, validate_event_manager_provider
 
-from fwplatform.event_manager_provider_probe import (
-    FUNCTION_POINTER_CELL,
-    FUNCTION_POINTER_TABLE_SLOT,
-    GETTER_ENTRY,
-    validate_event_manager_provider,
-    inventory_init_array,
-)
-from fwplatform.private_thumb_research import EXPECTED_LIBOBJ_SHA
+def report():
+    return {"schema_version":2,"elf_sha256":EXPECTED_SHA256,"address_space":"ELF_VMA","function_pointer_table_slot":"0x1031c38","indirection_level":1,"import_symbol":"getConfig","runtime_verified":False,"function_pointer_table_relocations":[{"type":21,"symbol":"getConfig"}]}
 
-
-def _report():
-    return {
-        "status": "PRIMARY_ELF_PROVIDER_GETTER_EVIDENCE",
-        "elf_sha256": EXPECTED_LIBOBJ_SHA,
-        "address_space": "ELF_VMA",
-        "getter_entry_vma": hex(GETTER_ENTRY),
-        "getter_instructions": [
-            {"instruction_vma": "0x7ef234", "mnemonic": "ldr", "operands": "r3, [pc, #0x14]", "verification": "PRIMARY_ELF_VERIFIED"},
-            {"instruction_vma": "0x7ef23a", "mnemonic": "ldr", "operands": "r3, [r4, r3]", "verification": "PRIMARY_ELF_VERIFIED"},
-            {"instruction_vma": "0x7ef23c", "mnemonic": "blx", "operands": "r3", "verification": "PRIMARY_ELF_VERIFIED"},
-        ],
-        "function_pointer_table_slot": hex(FUNCTION_POINTER_TABLE_SLOT),
-        "function_pointer_cell": hex(FUNCTION_POINTER_CELL),
-        "indirection_level": 2,
-        "bss_cell": {"vma": hex(FUNCTION_POINTER_CELL), "file_backed": False},
-        "provider_vtable_slot": "+0x30",
-        "runtime_verified": False,
-        "writer_search": {"status": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN", "literal_references": [], "store_dataflow_candidates": [], "store_dataflow_scan": {"mode": "THUMB", "instruction_count": 1}},
-        "function_pointer_table_relocations": [{"section": ".rel.dyn", "type": 23, "symbol_index": 0}],
-    }
-
-
-class EventManagerProviderProbeTests(unittest.TestCase):
-    def test_structured_static_evidence_is_accepted(self):
-        self.assertEqual(validate_event_manager_provider(_report()), [])
-
-    def test_empty_instruction_fact_is_rejected(self):
-        report = _report()
-        report["getter_instructions"][1] = {}
-        self.assertIn("instruction_0x7ef23a", validate_event_manager_provider(report))
-
-    def test_wrong_slot_or_hash_is_rejected(self):
-        report = _report()
-        report["function_pointer_cell"] = "0x10df828"
-        report["elf_sha256"] = "0" * 64
-        errors = validate_event_manager_provider(report)
-        self.assertIn("binary_identity", errors)
-        self.assertIn("function_cell", errors)
-
-    def test_static_probe_cannot_promote_runtime(self):
-        report = _report()
-        report["runtime_verified"] = True
-        self.assertIn("runtime_promotion", validate_event_manager_provider(report))
-
-    def test_init_inventory_hash_is_pinned(self):
-        with self.assertRaises(ValueError):
-            inventory_init_array(__file__, expected_sha256="0" * 64)
-
-
-if __name__ == "__main__":
-    unittest.main()
+class ProviderTests(unittest.TestCase):
+    def test_structure(self):
+        self.assertEqual(validate_event_manager_provider(report()), [])
+    def test_old_bss_model_rejected(self):
+        r=report(); r.update(function_pointer_table_slot="0x1032238",indirection_level=2)
+        self.assertIn("function_pointer_table_slot",validate_event_manager_provider(r))
+    def test_wrong_relocation(self):
+        r=report();r["function_pointer_table_relocations"]=[{"type":23,"symbol":""}]
+        self.assertIn("table_relocation",validate_event_manager_provider(r))
+    def test_runtime_rejected(self):
+        r=report();r["runtime_verified"]=True
+        self.assertIn("runtime_verified",validate_event_manager_provider(r))
+    def test_hash_rejected(self):
+        r=report();r["elf_sha256"]="0"*64
+        self.assertIn("elf_sha256",validate_event_manager_provider(r))

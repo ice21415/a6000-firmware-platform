@@ -1065,7 +1065,7 @@ def probe_camera_core_chain(
             "camera_action": action_observation,
             "loader_dataflow": loader_dataflow,
             "event_manager_callback_provenance": event_callback,
-            "event_manager_provider_bss": provider_bss,
+            "event_manager_provider_provenance": provider_bss,
             "event_manager_init_array": {
                 "status": init_inventory["status"],
                 "table_vma": init_inventory["table_vma"],

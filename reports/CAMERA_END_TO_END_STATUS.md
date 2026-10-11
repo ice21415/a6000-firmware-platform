@@ -1,3 +1,24 @@
+## Phase 4.13 correction ? current evidence takes precedence
+
+The Phase 4.11/4.12 BSS-provider premise is disproven. Thumb ADD at
+0x7ef1f6 uses PC 0x7ef1fa; literal 0x83d9d6 gives base 0x102cbd0.
+Adding 0x5068 gives 0x1031c38, not 0x1032238. Its unique R_ARM_GLOB_DAT
+relocation names getConfig. The load/call has one indirection and does not
+read 0x10a8930. Historical records below are retained as superseded evidence.
+
+Primary ELF re-read verifies getConfig -> singleton 0x10a8a9c;
+initializeConfig store 0x106dbc; constructor vptr store 0x106c98 ->
+0xfe9b70; slot +0x30 at 0xfe9ba0 -> 0x106900; GOT 0x1030f6c with
+R_ARM_RELATIVE pointer 0x11130d -> callback entry 0x11130c.
+This is a conditional static chain: AppConfig.so branch, successful
+initialization, local symbol binding and unchanged object identity are
+required. Main dispatch is not unconditionally resolved, and the route from
+0x11130c to Application Router 0x7eedf0 remains unknown.
+
+The requested 0x10a8930 writer has not been established, but it no longer
+blocks this provider path. No runtime or safe-to-invoke API was added.
+Tracked graph remains 41 primary / 5 inferred / 5 unresolved, total 51.
+
 # Camera Core Request → Event → ModelCamera 狀態
 
 本文件是目前 Camera Core 端到端研究狀態的單一摘要。資料來自

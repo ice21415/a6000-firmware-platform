@@ -52,5 +52,27 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.12 BSS mapping and 263-entry init_array inventory; no writer confirmed"
+  "latest_checkpoint": "Phase 4.13 corrected getter GOT arithmetic; conditional callback 0x11130c",
+  "phase4_13_delta": {
+    "primary_edges_added": 0,
+    "inferred_edges_added": 0,
+    "unresolved_edges_reduced": 0,
+    "confirmed_target_bss_writers": 0,
+    "disproven_hypotheses": [
+      "provider getter depends on 0x10a8930"
+    ],
+    "conditional_callback_target": "0x11130c",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "cfg_coverage": {
+      "init_entries": 263,
+      "functions": 266,
+      "instructions": 3631,
+      "stores": 287,
+      "bounded_without_symbol_size": 264,
+      "writer_target": "0x10a8930",
+      "confirmed_target_writers": 0,
+      "proven_singleton_store": "0x106dbc -> 0x10a8a9c"
+    }
+  }
 }

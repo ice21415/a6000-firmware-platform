@@ -1762,52 +1762,85 @@
       "runtime_verified": false
     }
   },
-  "phase4_11_provider_getter": {
-    "status": "PARTIAL_PRIMARY_STATIC",
-    "source": "fwplatform/event_manager_provider_probe.py",
-    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
-    "getter_entry_vma": "0x7ef1e4",
-    "table_slot_vma": "0x1032238",
-    "table_relocation": "R_ARM_RELATIVE",
-    "function_pointer_cell_vma": "0x10a8930",
-    "instruction_vmas": [
-      "0x7ef234",
-      "0x7ef23a",
-      "0x7ef23c"
-    ],
-    "provider_vtable_slot": "+0x30",
-    "main_dispatch_vma": "0x7ef988",
-    "writer_search": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN",
-    "writer_search_limit": "PC-relative, register-derived and external writers require separate analysis",
-    "provider_instance": "UNKNOWN",
-    "callback_target": "UNKNOWN",
-    "runtime_verified": false,
-    "safe_to_invoke": false,
-    "phase4_12_indirection": {
+  "superseded_phase4_11_provider_getter": {
+    "status": "DISPROVEN_AS_GETTER_DEPENDENCY",
+    "original_record": {
+      "status": "PARTIAL_PRIMARY_STATIC",
+      "source": "fwplatform/event_manager_provider_probe.py",
+      "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "getter_entry_vma": "0x7ef1e4",
       "table_slot_vma": "0x1032238",
-      "table_slot_relocation": "R_ARM_RELATIVE",
-      "table_slot_initial_value": "0x10a8930",
-      "bss_cell_vma": "0x10a8930",
-      "bss_file_backed": false,
-      "bss_runtime_value": "UNKNOWN",
-      "indirection_level": 2
+      "table_relocation": "R_ARM_RELATIVE",
+      "function_pointer_cell_vma": "0x10a8930",
+      "instruction_vmas": [
+        "0x7ef234",
+        "0x7ef23a",
+        "0x7ef23c"
+      ],
+      "provider_vtable_slot": "+0x30",
+      "main_dispatch_vma": "0x7ef988",
+      "writer_search": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN",
+      "writer_search_limit": "PC-relative, register-derived and external writers require separate analysis",
+      "provider_instance": "UNKNOWN",
+      "callback_target": "UNKNOWN",
+      "runtime_verified": false,
+      "safe_to_invoke": false,
+      "phase4_12_indirection": {
+        "table_slot_vma": "0x1032238",
+        "table_slot_relocation": "R_ARM_RELATIVE",
+        "table_slot_initial_value": "0x10a8930",
+        "bss_cell_vma": "0x10a8930",
+        "bss_file_backed": false,
+        "bss_runtime_value": "UNKNOWN",
+        "indirection_level": 2
+      },
+      "init_array": {
+        "vma": "0xfd25a4",
+        "size": 1052,
+        "entry_count": 263,
+        "unique_entries": 263,
+        "relocation": "R_ARM_RELATIVE",
+        "confirmed_constructor_writers": [],
+        "initializeConfig_excluded_writer": "stores 0x10a8a90, not 0x10a8930",
+        "bounded_store_destinations_examined": 780,
+        "analysis": "entry plus 100-byte Capstone pass; no complete CFG"
+      },
+      "store_dataflow_scan": {
+        "mode": "THUMB",
+        "decoded_instruction_count": 160,
+        "explicit_target_store_candidates": [],
+        "coverage": "bounded; register-derived aliases and external writers unresolved"
+      }
     },
-    "init_array": {
-      "vma": "0xfd25a4",
-      "size": 1052,
-      "entry_count": 263,
-      "unique_entries": 263,
-      "relocation": "R_ARM_RELATIVE",
-      "confirmed_constructor_writers": [],
-      "initializeConfig_excluded_writer": "stores 0x10a8a90, not 0x10a8930",
-      "bounded_store_destinations_examined": 780,
-      "analysis": "entry plus 100-byte Capstone pass; no complete CFG"
-    },
-    "store_dataflow_scan": {
-      "mode": "THUMB",
-      "decoded_instruction_count": 160,
-      "explicit_target_store_candidates": [],
-      "coverage": "bounded; register-derived aliases and external writers unresolved"
-    }
+    "correction": "PC base 0x102cbd0 plus 0x5068 equals 0x1031c38, GLOB_DAT getConfig; no BSS dereference"
+  },
+  "phase4_13_provider_provenance": {
+    "verification": "STATIC_INFERRED_CONDITIONAL_CHAIN",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "address_space": "ELF_VMA",
+    "getter": "0x7ef1e4",
+    "getter_callsite": "0x7ef23c",
+    "got_slot": "0x1031c38",
+    "relocation": "R_ARM_GLOB_DAT",
+    "symbol": "getConfig",
+    "singleton_cell": "0x10a8a9c",
+    "singleton_writer": "0x106dbc",
+    "constructor": "0x106c7c",
+    "vptr_store": "0x106c98",
+    "vptr": "0xfe9b70",
+    "provider_slot": "0xfe9ba0",
+    "provider_method": "0x106900",
+    "callback_got": "0x1030f6c",
+    "callback_pointer": "0x11130d",
+    "callback_entry": "0x11130c",
+    "main_dispatch": "0x7ef988",
+    "preconditions": [
+      "matching AppConfig.so branch",
+      "successful singleton initialization",
+      "local symbol binding/no interposition",
+      "unchanged provider object identity"
+    ],
+    "runtime_verified": false,
+    "safe_to_invoke": false
   }
 }
