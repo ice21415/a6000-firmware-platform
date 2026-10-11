@@ -1277,7 +1277,7 @@
         "verification_status": "PRIMARY_ELF_VERIFIED",
         "confidence": "HIGH"
       },
-      "note": "PC-relative @M00B is passed to the IdGenerator PLT; return value is not independently decoded as numeric 11."
+      "note": "@M00B is passed to the IdGenerator PLT, resolved to locally exported IdGenerator::Get at 0x12d670; reserved-token check and compact parser return 11, which 0x40209c passes to IdSoTable::add. Does not prove ModelManager record identity."
     },
     {
       "id": "consumer.router_owner_receiver_flow",
@@ -1358,6 +1358,66 @@
         "confidence": "HIGH"
       },
       "note": "Parser reads token offsets +2,+3,+4 and applies hex digit conversion; @M00B yields 0x00b. This proves configuration parsing, not registry record identity."
+    },
+    {
+      "id": "registry.camera.return_key_to_add",
+      "source": "IdGenerator::Get(@M00B) = 11 on compact branch",
+      "target": "ModelIdSoTable::add integer key argument",
+      "target_vma": "0x7f08a0",
+      "source_vma": "0x401f78",
+      "callsite_vma": "0x4020a0",
+      "relation": "PASSES_RETURN_AS_KEY",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x4020a0",
+        "evidence_method": "ELF_THUMB_DIRECT_REPLAY+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x401f80 gets ModelIdSoTable singleton into r4; 0x402090 calls IdGenerator::Get; 0x40209c moves return r0 to add argument r1; 0x40209e supplies r4 as this; 0x4020a0 invokes add. IdGenerator 0x12d670 checks reserved @MFFE then computes 11 for @M00B. No ModelManager instance identity proven."
+    },
+    {
+      "id": "registry.modelmanager.descriptor_key_to_record",
+      "source": "ModelManager descriptor +0x8 numeric key",
+      "target": "record initializer key field +0x0",
+      "target_vma": "0x7f1156",
+      "source_vma": "0x7ec8a4",
+      "callsite_vma": "0x7ec91c",
+      "relation": "PASSES_DESCRIPTOR_ID",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ec91c",
+        "evidence_method": "ELF_THUMB_DIRECT_REPLAY+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ec8b6 gets descriptor+8 from 0x7ea930; value saved on stack at 0x7ec8be and passed as initializer r1 at 0x7ec90e. 0x7f1160 stores r1 into newly initialized record+0. Descriptor's identity as Model ID 11 is not proven."
+    },
+    {
+      "id": "registry.modelmanager.common_owner_tree_offset",
+      "source": "ModelManager registration owner +0x88",
+      "target": "ModelManager lookup owner +0x88",
+      "target_vma": "0x7eb8fa",
+      "source_vma": "0x7ec8a4",
+      "callsite_vma": "0x7eb904",
+      "relation": "USES_COMMON_FIELD_OFFSET",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eb904",
+        "evidence_method": "ELF_THUMB_DIRECT_REPLAY+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Registration uses r4+0x88 at 0x7ec8ba and forwards r5 to insertion at 0x7ec94e; lookup 0x7eb904 obtains r0+0x88. Same owner-relative tree offset is verified; same runtime owner, key and returned record remain UNKNOWN."
     }
   ],
   "unresolved_edges": [
@@ -2030,8 +2090,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 67,
-    "primary_elf_verified_edges": 57
+    "tracked_core_edges": 70,
+    "primary_elf_verified_edges": 60
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3483,5 +3543,39 @@
       "inferred": 5,
       "unresolved": 5
     }
+  },
+  "phase4_22_direct_elf_breakthrough": {
+    "status": "DIRECT_SHA_PINNED_ELF_INSTRUCTION_REPLAY",
+    "source": "user supplied local private libObj.so; SHA-256 independently verified",
+    "id_generator": {
+      "input": "@M00B",
+      "resolved_get_vma": "0x12d670",
+      "reserved_guard": "@MFFE via strncmp at 0x12d714",
+      "return_for_input": 11,
+      "model_table_singleton": "ModelIdSoTable::getInstance 0x7ee360",
+      "return_to_add": "0x402090 return r0 -> 0x40209c r1 -> 0x4020a0 IdSoTable::add"
+    },
+    "modelmanager": {
+      "descriptor_key_load": "0x7ec8b6 -> 0x7ea930 = [r0+8]",
+      "record_init_key": "0x7ec90e r1 -> 0x7f1160 record+0",
+      "registration_owner_tree": "0x7ec8ba +0x88",
+      "lookup_owner_tree": "0x7eb904 +0x88",
+      "runtime_owner_key_record_identity": "UNKNOWN"
+    },
+    "graph_baseline": {
+      "tracked": 67,
+      "primary": 57,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "graph_after": {
+      "tracked": 70,
+      "primary": 60,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
   }
 }
