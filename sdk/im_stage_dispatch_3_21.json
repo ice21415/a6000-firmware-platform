@@ -1,0 +1,221 @@
+{
+  "phase": "4.42",
+  "firmware": "Sony A6000 3.21",
+  "scope": "offline Thumb/static only",
+  "sources": {
+    "im_elf_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "libimdb_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "libobj_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
+  },
+  "dispatcher": {
+    "iterator_entry": "0xb63c",
+    "facade": "0xb6e4",
+    "record_stride": 44,
+    "stop_condition": "row.type == requested_stage_marker or 0x28",
+    "gate": "r2 != 0",
+    "row_target_filter": "global 0x15484+0x28 & row+0x08",
+    "group_filter": "r3 (0xff in b6e4 facade) & row+0x04",
+    "dispatch_call": "0xb69e -> 0xb530 (IMDB_find_entry and descriptor loader)"
+  },
+  "markers": [
+    {
+      "type": 1,
+      "index": 0,
+      "vma": "0xc0e8"
+    },
+    {
+      "type": 2,
+      "index": 9,
+      "vma": "0xc274"
+    },
+    {
+      "type": 3,
+      "index": 19,
+      "vma": "0xc42c"
+    },
+    {
+      "type": 4,
+      "index": 31,
+      "vma": "0xc63c"
+    },
+    {
+      "type": 5,
+      "index": 33,
+      "vma": "0xc694"
+    },
+    {
+      "type": 6,
+      "index": 94,
+      "vma": "0xd110"
+    },
+    {
+      "type": 7,
+      "index": 98,
+      "vma": "0xd1c0"
+    },
+    {
+      "type": 8,
+      "index": 101,
+      "vma": "0xd244"
+    }
+  ],
+  "main": {
+    "first_stage_marker_1_call": "0x9b7e",
+    "stage_2": "0x9b8e",
+    "stage_3": "0x9bfe",
+    "stage_4": "0x9c0e",
+    "stage_5": "0x9c1e",
+    "stage_2_gate": {
+      "callsite": "0x9b84",
+      "getter": "0xab60",
+      "flag": "0x20000"
+    },
+    "stage_3_gate": {
+      "callsite": "0x9bec",
+      "getter": "0xab74",
+      "flag": "0x40000"
+    },
+    "stage_4_gate": {
+      "callsite": "0x9c04",
+      "getter": "0xab88",
+      "flag": "0x80000"
+    },
+    "stage_5_gate": {
+      "callsite": "0x9c14",
+      "getter": "0xab9c",
+      "flag": "0x100000"
+    },
+    "static_global_option_word": {
+      "vma": "0x153f0",
+      "value": "0x00000003"
+    },
+    "no_options_conditional": "gates bits 0x20000..0x100000 are zero initially; parsed options may alter the flags"
+  },
+  "event_dispatch": {
+    "handler_entry": "0xa06c",
+    "register_handler_literal_sites": [
+      "0x9b2c",
+      "0x9f30",
+      "0xa4a4"
+    ],
+    "event_comparison_literal_table": "0xa308..0xa320",
+    "events": [
+      {
+        "event_id": "0x00940031",
+        "literal_vma": "0xa308",
+        "first_stage": 1,
+        "second_stage": 2
+      },
+      {
+        "event_id": "0x00940032",
+        "literal_vma": "0xa30c",
+        "first_stage": 2,
+        "second_stage": 3
+      },
+      {
+        "event_id": "0x00940033",
+        "literal_vma": "0xa310",
+        "first_stage": 3,
+        "second_stage": 4
+      },
+      {
+        "event_id": "0x00940034",
+        "literal_vma": "0xa314",
+        "first_stage": 4,
+        "second_stage": 5
+      },
+      {
+        "event_id": "0x00940035",
+        "literal_vma": "0xa318",
+        "first_stage": 5,
+        "second_stage": 7
+      },
+      {
+        "event_id": "0x00940036",
+        "literal_vma": "0xa31c",
+        "first_stage": 7,
+        "second_stage": 8
+      },
+      {
+        "event_id": "0x00940037",
+        "literal_vma": "0xa320",
+        "event_not_classified_as_stage_7_to_8": true
+      }
+    ],
+    "caveat": "Control-flow analysis shows a0f4 compare 0x940036 -> b6e4(5,r2=0) then b6e4(7,r2=1); a10c compare 0x940037 -> b6e4(7,r2=0) then b6e4(8,r2=1). Event values 0x940035 and earlier require recheck exact pairing; see disassembly."
+  },
+  "fallback_candidates": {
+    "total": 31,
+    "candidate_indices_prior_to_row99": 31,
+    "stage_marker_intervals": [
+      {
+        "markers": "3→4",
+        "indices": "19..30",
+        "count": 1
+      },
+      {
+        "markers": "5→7",
+        "indices": "33..97",
+        "count": 30
+      }
+    ],
+    "stage_3_to_4_candidate_indices": [
+      29
+    ],
+    "stage_5_to_7_candidate_indices": [
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      42,
+      43,
+      44,
+      45,
+      49,
+      50,
+      51,
+      52,
+      55,
+      62,
+      63,
+      64,
+      68,
+      71,
+      74,
+      77,
+      78,
+      82,
+      87,
+      88,
+      89,
+      95,
+      96
+    ],
+    "appfw_row": {
+      "index": 99,
+      "vma": "0xd1ec",
+      "stage": "7→8",
+      "target_id": "0x83",
+      "default_target_matches": true
+    },
+    "conclusion": "Earlier table position does not imply earlier runtime dlopen. A row99 lookup can be reachable on an event path without proof that a preceding libObj-backed record was loaded."
+  },
+  "unresolved": [
+    "event arrival and stage timing on device",
+    "actual parsed options and flag changes",
+    "success of earlier dlopen('/usr/lib/libObj.so',0x101)",
+    "visibility and successful dlsym(Application_System_Init)",
+    "Model ID 11 runtime record and ModelCamera module identity"
+  ],
+  "core_graph": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "promoted": 0
+  },
+  "runtime_verified_apis": 0
+}
