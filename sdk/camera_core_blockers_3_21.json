@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.19",
+  "phase": "4.20",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -67,13 +67,13 @@
       ],
       "assigned_agent": "main",
       "new_findings": [
-        "provider probe confirms getConfig import and conditional 0x11130c candidate only",
-        "0x7ef988 blx r3 uses r0=[state+0x04], r1=Event*; provider +0x30 remains conditional and no unique writer"
+        "0x7ef988 blx r3 uses r0=[state+0x04], r1=Event*; provider +0x30 remains conditional and no unique writer",
+        "0x11130c remains a conditional candidate implementation at indirect callsite 0x7ef988, subject to AppConfig provider selection, initialization and slot identity; it is not the Application Router"
       ],
       "candidate_exclusions": [
         "0x11130c is pre-enqueue adapter, not main dispatch"
       ],
-      "minimal_next_proof": "Prove producer-to-storage-to-consumer for EventManager +0x08 and provider selection predicate.",
+      "minimal_next_proof": "Prove the provider +0x30 selected callback pointer flows into EventManager +0x08, under explicit AppConfig selection and owner identity conditions; retain 0x11130c as conditional candidate.",
       "blocker_resolved": false
     },
     {
