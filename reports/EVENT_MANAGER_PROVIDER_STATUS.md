@@ -146,3 +146,18 @@ function 0x106da8, register origins 0x106db8/0x106dba prove destination
 264 entries lacked symbol sizes and used bounded 512-byte windows; these
 are partial CFGs, not full function boundaries. Indirect callees, stack
 aliases and external writers remain unresolved.
+
+## Phase 4.16 receiver/registry boundary
+
+The current consumer evidence is independent of the superseded provider-cell
+hypothesis. `0x7eaa14` reads a four-byte receiver-relative field at `+0xa4`
+and normalizes it to zero/nonzero; `0x7ed4b2` passes the router owner's
+receiver candidate. Setter `0x7eb118` stores caller `r1` at `r0+0xa4` at
+`0x7eb12a`, but the five observed state-machine callers have not been proven
+to be that router object.
+
+After `0x7ed5fc` returns a registry record, `0x7ed606` rejects null and
+requires unsigned `record[+8]` in `0x10001..0x6ffff` before `0x7f124a`.
+The record initializer starts this field at `0x10000` and instance `+0x1c` at
+zero. This is a validity gate, not a Model ID 11 proof; record identity,
+runtime loader alias and instance selection remain UNKNOWN.

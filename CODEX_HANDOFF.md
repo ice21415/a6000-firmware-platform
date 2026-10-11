@@ -1747,3 +1747,17 @@ function 0x106da8, register origins 0x106db8/0x106dba prove destination
 264 entries lacked symbol sizes and used bounded 512-byte windows; these
 are partial CFGs, not full function boundaries. Indirect callees, stack
 aliases and external writers remain unresolved.
+
+## Phase 4.16 checkpoint
+
+`fwplatform.camera_receiver_registry_probe` now re-reads the pinned ELF and
+verifies the receiver gate (`0x7eaa14`, `[r0+0xa4]`, callsite `0x7ed4b2`),
+its generic setter (`0x7eb118` / store `0x7eb12a`) and five state-machine
+setter callers. It also verifies the post-lookup record gate at `0x7ed606`:
+record `+8` must be in unsigned range `0x10001..0x6ffff` before the
+`0x7f124a` forwarder. This field is not identified as Model ID 11.
+
+The public graph is 62 tracked / 52 primary / 5 inferred / 5 unresolved.
+Receiver object identity, runtime field value, Model ID 11 record identity,
+factory instance provenance and `modelCamera.so` runtime alias remain
+conditional or unknown; runtime and safe-callable API counts remain zero.

@@ -23,6 +23,7 @@ from .event_manager_push_probe import probe_event_manager_push
 from .camera_loader_dataflow import analyze_loader_dataflow
 from .event_manager_callback_probe import probe_event_manager_callback
 from .event_manager_provider_probe import probe_event_manager_provider, probe_callback_behavior, inventory_init_array
+from .camera_receiver_registry_probe import probe_receiver_registry
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -1026,6 +1027,7 @@ def probe_camera_core_chain(
         loader_dataflow = analyze_loader_dataflow(path, expected_sha256=expected_sha256)
         event_callback = probe_event_manager_callback(path, expected_sha256=expected_sha256)
         provider_bss = probe_event_manager_provider(path, expected_sha256=expected_sha256)
+        receiver_registry = probe_receiver_registry(path, expected_sha256=expected_sha256)
         callback_behavior = probe_callback_behavior(path, expected_sha256=expected_sha256)
         init_inventory = inventory_init_array(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
@@ -1047,6 +1049,8 @@ def probe_camera_core_chain(
         event_edge,
         key7_edge,
         key8_edge,
+        _edge("consumer.receiver_field_gate", "request consumer candidate", "receiver field +0xa4 gate", "CALLS", 0x7ED49C, digest, target_vma=0x7EAA14, callsite_vma=0x7ED4B2, method="CAPSTONE_PRIMARY_ELF", note="r0 is copied from consumer r4; zero return branches to 0x7ed8d8."),
+        _edge("consumer.registry_record_gate", "request consumer candidate", "registry record +0x8 range gate", "GUARDS", 0x7ED49C, digest, callsite_vma=0x7ED606, method="CAPSTONE_PRIMARY_ELF", note="lookup result is null-checked, then record[+8] must be in 0x10001..0x6ffff before forwarder."),
     ]
     for relation in callback_behavior["queue_bridge_calls"]:
         edges.append(_edge(relation["id"], f"ELF_VMA:{relation['source_vma']}",
@@ -1116,6 +1120,7 @@ def probe_camera_core_chain(
             "loader_dataflow": loader_dataflow,
             "event_manager_callback_provenance": event_callback,
             "event_manager_provider_provenance": provider_bss,
+            "receiver_registry_provenance": receiver_registry,
             "event_manager_callback_behavior": callback_behavior,
             "request_event_eligibility": request_eligibility,
             "event_manager_init_array": {

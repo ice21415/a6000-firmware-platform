@@ -1217,6 +1217,33 @@
           "verification": "PRIMARY_ELF_VERIFIED"
         }
       ]
+    },
+    {
+      "id": "consumer.receiver_field_gate",
+      "source": "request consumer candidate",
+      "target": "receiver field +0xa4 getter",
+      "target_vma": "0x7eaa14",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed4b2",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {"source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "source_locator": "ELF_VMA:0x7ed4b2", "address_space": "ELF_VMA", "evidence_method": "CAPSTONE_PRIMARY_ELF", "verification_status": "PRIMARY_ELF_VERIFIED", "confidence": "HIGH"},
+      "note": "Consumer r4 is passed as getter r0; zero return branches to 0x7ed8d8. Receiver identity remains conditional."
+    },
+    {
+      "id": "consumer.registry_record_gate",
+      "source": "request consumer candidate",
+      "target": "registry record +0x8 validity gate",
+      "source_vma": "0x7ed49c",
+      "callsite_vma": "0x7ed606",
+      "relation": "GUARDS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {"source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a", "source_locator": "ELF_VMA:0x7ed606", "address_space": "ELF_VMA", "evidence_method": "CAPSTONE_PRIMARY_ELF", "verification_status": "PRIMARY_ELF_VERIFIED", "confidence": "HIGH"},
+      "note": "Null record exits; unsigned record[+8] must be 0x10001..0x6ffff before forwarder 0x7f124a."
     }
   ],
   "unresolved_edges": [
@@ -3134,5 +3161,48 @@
     "consumer_callsite": "0x7eedf0",
     "consumer_receiver_gate": "word +0xa4 != 0",
     "bss_provider_hypothesis": "SUPERSEDED_DISPROVEN"
+  },
+  "phase4_16_receiver_registry_provenance": {
+    "analyzer": "fwplatform.camera_receiver_registry_probe",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "address_space": "ELF_VMA",
+    "receiver_gate": {
+      "getter": "0x7eaa14",
+      "consumer_callsite": "0x7ed4b2",
+      "field_offset": "0xa4",
+      "field_width": 4,
+      "predicate": "receiver_word_at_plus_0xa4 != 0",
+      "zero_branch": "0x7ed4b8 -> 0x7ed8d8",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "receiver_writer": {
+      "setter": "0x7eb118",
+      "store": "0x7eb12a",
+      "effective_address": "r0 + 0xa4",
+      "written_value": "r1",
+      "callers": ["0x7ec9b6", "0x7ed038", "0x7ed1d2", "0x7ed250", "0x7ed47c"],
+      "object_identity": "CONDITIONAL",
+      "status": "PRIMARY_ELF_VERIFIED_STATIC_STORE"
+    },
+    "registry_gate": {
+      "lookup": "0x7eb8fa",
+      "lookup_callsite": "0x7ed5fc",
+      "record_field_offset": "0x8",
+      "null_branch": "0x7ed604 -> 0x7ed66a",
+      "predicate": "0x10001 <= unsigned(record_plus_8) <= 0x6ffff",
+      "forwarder_callsite": "0x7ed650",
+      "forwarder": "0x7f124a",
+      "status": "PRIMARY_ELF_VERIFIED"
+    },
+    "record_identity": {
+      "initializer": "0x7f1156",
+      "initial_plus_8": "0x10000",
+      "initial_plus_1c": "0",
+      "model_id_11_record": "UNKNOWN",
+      "model_camera_instance": "UNKNOWN",
+      "runtime_dso_identity": "UNKNOWN"
+    },
+    "runtime_verified": false,
+    "safe_to_invoke": false
   }
 }

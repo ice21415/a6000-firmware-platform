@@ -412,3 +412,27 @@ constructor-to-slot write is established. Main dispatch `0x7ef988` remains
 Runtime provider identity, AppConfigAC selection, and ModelCamera delivery
 remain unresolved. No edge was promoted and runtime/safe-callable counts stay
 zero.
+
+## Phase 4.16 receiver and registry checkpoint
+
+The pinned ELF re-read verifies `0x7eaa14` as a four-byte object-relative
+getter: it loads `[r0+0xa4]`, compares the word with zero, and returns a
+normalized 0/1 value. Consumer callsite `0x7ed4b2` passes its `r4` receiver;
+zero branches to `0x7ed8d8`. The field's source-level meaning and the runtime
+identity of that receiver remain UNKNOWN.
+
+The same ELF proves a generic state setter at `0x7eb118`, with store
+`0x7eb12a` writing caller `r1` to caller `r0+0xa4`. Five bounded callers pass
+`0x40000`, `0x30000`, `0x70000`, `0x50000`, and `0x40000`. These are
+receiver-relative static stores; no caller has been proven to be the router's
+owner `+4` object, so the runtime field value is CONDITIONAL.
+
+After lookup `0x7ed5fc`, the consumer null-checks the returned record and
+`0x7ed606` checks record `+8` as an unsigned range: `0x10001..0x6ffff`.
+The observed literal is `0x5fffe` at `0x7ed768`, and the success path calls
+forwarder `0x7f124a` at `0x7ed650`; the failure path reaches `0x7ed66a`.
+This is a record-validity gate, not evidence that record `+8` is Model ID 11.
+The record initializer `0x7f1156` starts `+8` at `0x10000` and `+0x1c` at
+zero. Model ID 11 to a specific record, factory instance, and runtime
+`modelCamera.so` identity remain UNKNOWN. Counts are 52 primary, 5 inferred,
+5 unresolved, 62 tracked; runtime and safe-to-invoke APIs remain zero.
