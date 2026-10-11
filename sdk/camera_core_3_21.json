@@ -1499,6 +1499,69 @@
         "confidence": "HIGH"
       },
       "note": "State-machine 0x7eac62 copies record r1->r4; guarded 0x7eacb2 (and 0x7ead8a) copies r4->r0 before 0x7f11ca; loader 0x7f11f4 stores factory result [r4+0x1c] under loader success predicates; 0x7eaf8c passes r4 to 0x7f124a under separate guarded path. These paths do not prove successful runtime instance or modelCamera.so alias."
+    },
+    {
+      "id": "registry.modelmanager.idso_library_to_record",
+      "source": "ModelManager owner+8 IdSoTable and descriptor+8 key",
+      "target": "ModelManager record+0x10 library name",
+      "relation": "TRANSFERS_TABLE_LIBRARY",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7ec8a4",
+      "target_vma": "0x7f05d2",
+      "callsite_vma": "0x7ec8e8",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ec8e8",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_KEYED_TABLE_LOOKUP_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ec8e4 passes descriptor key to r1, 0x7eaae8 dereferences ModelManager owner+8 table pointer and tailcalls 0x7f05d2. Table search 0x7f04c0 returns IdSoTable node+8. Caller stores result r8 -> record ctor r3 at 0x7ec912 -> 0x7f115a stores [record+0x10]. Singleton identity to @M00B registration remains UNKNOWN."
+    },
+    {
+      "id": "registry.modelmanager.idso_factory_to_record",
+      "source": "ModelManager owner+8 IdSoTable and descriptor+8 key",
+      "target": "ModelManager record+0x14 factory name",
+      "relation": "TRANSFERS_TABLE_FACTORY",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7ec8a4",
+      "target_vma": "0x7f05a2",
+      "callsite_vma": "0x7ec8f2",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ec8f2",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_KEYED_TABLE_LOOKUP_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ec8ec passes descriptor key to r1; 0x7eaaf6 loads owner+8 table, tailcalls 0x7f05a2, whose search 0x7f04c0 returns IdSoTable node+0xc. Caller saves r10 and uses conditional fallback when null, passes r10 on constructor stack to 0x7f115e/0x7f116c record+0x14. Does not establish Factory name resolves at runtime."
+    },
+    {
+      "id": "registry.record.config_strings_to_loader",
+      "source": "ModelManager record+0x10/+0x14 configuration names",
+      "target": "dlopen/dlsym callsite arguments",
+      "relation": "PASSES_RECORD_STRINGS_TO_LOADER",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7f11ca",
+      "target_vma": "0xe0cec",
+      "callsite_vma": "0x7f11d8",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7f11d8",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_RECORD_FIELD_DATAFLOW+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7f11d6 loads [record+0x10] into dlopen r0; if nonzero, 0x7f11e2 loads [record+0x14] into dlsym r1 at 0x7f11e6. Neither successful resolution nor module alias is proven."
     }
   ],
   "unresolved_edges": [
@@ -2171,8 +2234,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 74,
-    "primary_elf_verified_edges": 64
+    "tracked_core_edges": 77,
+    "primary_elf_verified_edges": 67
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3697,5 +3760,42 @@
       "conditions": "STATE_EVENT_BRANCHES_AND_LOADER_SUCCESS_REQUIRED",
       "runtime_instance_identity": "UNKNOWN"
     }
+  },
+  "phase4_25_idso_record_bridge": {
+    "status": "DIRECT_SHA_PINNED_ELF_KEYED_TABLE_TO_RECORD_TO_LOADER",
+    "new_primary": [
+      "registry.modelmanager.idso_library_to_record",
+      "registry.modelmanager.idso_factory_to_record",
+      "registry.record.config_strings_to_loader"
+    ],
+    "modelmanager_owner_idso_pointer": "+0x8",
+    "descriptor_key": "+0x8",
+    "library": "IdSoTable node+8 via 0x7f05d2 -> record+0x10 -> dlopen",
+    "factory": "IdSoTable node+0xc via 0x7f05a2 (conditional fallback) -> record+0x14 -> dlsym",
+    "unproven": [
+      "ModelManager owner's table+8 equals ModelIdSoTable singleton registered for @M00B",
+      "A particular ModelManager descriptor has key 11",
+      "Runtime filesystem resolution of modelCamera.so",
+      "Successful factory and same record event-consumer identity"
+    ],
+    "filesystem_inventory": {
+      "kind": "user-reported read-only LZPT+CramFS scan",
+      "scanned": [
+        "nflasha15 /usr",
+        "nflasha3 /system",
+        "nflasha7 /rootfs"
+      ],
+      "modelcamera_filename_found": false,
+      "modelcamera_symlink_found": false,
+      "remaining_filesystems": "NOT EXHAUSTIVELY SCANNED"
+    },
+    "counts": {
+      "tracked": 77,
+      "primary": 67,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
   }
 }
