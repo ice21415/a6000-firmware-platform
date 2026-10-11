@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "phase": "4.41",
+  "firmware_version": "3.21",
+  "source_fingerprints": {
+    "im_elf": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "imdb": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "obj": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
+  },
+  "verification": "SHA_PINNED_OFFLINE_ELF_INSTRUCTION_AND_IMDB_DATA",
+  "conditional_fallback_loader": {
+    "dispatcher_start": "0xb430",
+    "accepted_types": [
+      "0x20000001",
+      "0x20000002",
+      "0x20000003"
+    ],
+    "dispatcher_branch_vma": "0xb46a",
+    "loader_function": "0xb25c",
+    "name_from_row_plus_0x10_vma": "0xb262",
+    "high_halfword_at_row_plus_0x0e_vma": "0xb266",
+    "fallback_literal_pointer_load_vma": "0xb26a",
+    "fallback_literal_pointer_slot": "0xb2c8",
+    "fallback_literal_elf_vma": "0xc395",
+    "fallback_literal_text": "/usr/lib/libObj.so",
+    "predicate_vma": "0xb26c",
+    "choose_row_name_if_zero": "0xb270",
+    "choose_fallback_if_nonzero": "0xb272",
+    "dlopen_plt_vma": "0x8f10",
+    "dlopen_callsite": "0xb278",
+    "record_rule": "If type in {0x20000001,02,03} and high_half(row+0x0c) != 0, dlopen uses /usr/lib/libObj.so, else descriptor+0x10."
+  },
+  "conditional_appfw_loader": {
+    "record_index": 99,
+    "type": "0x20000004",
+    "record_vma": "0xd1ec",
+    "record_name": "appFw.so",
+    "init_symbol_name": "Application_System_Init",
+    "target_id16": "0x83",
+    "record_high_half": "0x07fb",
+    "dispatcher_call": "0xb476",
+    "loader": "0xb1a8",
+    "choose_null_vma": "0xb1ea",
+    "dlopen_callsite": "0xb1ec",
+    "dlsym_callsite": "0xb20e",
+    "conditional_initializer_blx": "0xb22c",
+    "argument_if_0x4000_clear": "AppConfig.so",
+    "argument_if_0x4000_set": "AdjChkConfig.so"
+  },
+  "startup_default_dlopen_flags": {
+    "parser_config_base": "0x153e4",
+    "source_field": "+0x14",
+    "source_address": "0x153f8",
+    "source_default_word": "0x00000101",
+    "get_source_vma": "0xa610",
+    "main_get_call_vma": "0x9b70",
+    "main_set_call_vma": "0x9b74",
+    "state_setter_vma": "0xad2c",
+    "state_base": "0x15484",
+    "state_dest_offset": "+0x20",
+    "state_dest_address": "0x154a4",
+    "state_default_word": "0x00000101",
+    "glibc_interpretation": "RTLD_LAZY (0x1) | RTLD_GLOBAL (0x100), conditional on Linux/glibc dynamic loading behavior",
+    "flag_register_at_fallback_dl": "r1 loaded from state+0x20 at 0xb276",
+    "flag_register_at_appfw_dl": "r1 loaded from state+0x20 at 0xb1e2"
+  },
+  "imdb_default_target_fallback_candidates": {
+    "eligible_type_set": [
+      "0x20000001",
+      "0x20000002",
+      "0x20000003"
+    ],
+    "total_rows_with_nonzero_high_halfword": 31,
+    "target_default_bitmask": "0x1",
+    "nonzero_high_halfword_rows_matching_default": 31,
+    "indices_before_appfw_record99": 31,
+    "distribution_by_record_type": {
+      "0x20000001": 7,
+      "0x20000002": 22,
+      "0x20000003": 2
+    },
+    "distribution_by_row_group": {
+      "0x1": 13,
+      "0x2": 9,
+      "0x4": 9
+    },
+    "earliest_sample": {
+      "index": 29,
+      "vma": "0xc5e4",
+      "record_type": "0x20000001",
+      "group": "0x1",
+      "mask": "0xffffffbf",
+      "packed_id": "0x07fb007a",
+      "logical_name": "libInfraInput.so",
+      "init_symbol": "infra_input_init"
+    },
+    "latest_sample": {
+      "index": 96,
+      "vma": "0xd168",
+      "record_type": "0x20000003",
+      "group": "0x4",
+      "mask": "0xffffffdf",
+      "packed_id": "0x07fb0102",
+      "logical_name": "libInfraCameraBackground.so",
+      "init_symbol": "CameraBackground_init"
+    },
+    "interpretation": "Candidate prior dlopen(/usr/lib/libObj.so, global flags) sites by table order, not proven executed or successful."
+  },
+  "unresolved": [
+    "Whether any of the earlier 31 eligible rows is actually executed before row99 in boot",
+    "Whether dlopen(/usr/lib/libObj.so) succeeds and maps the expected private libObj ELF",
+    "Whether glibc runtime symbol scope permits dlsym(dlopen(NULL),Application_System_Init) to resolve to that ELF",
+    "Which actual init config branch and target argv run on hardware",
+    "Whether ModelManager descriptor key11 is linked to ModelCamera registry record and resolved module"
+  ],
+  "camera_core_original_graph_counts": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "changed": false
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}
