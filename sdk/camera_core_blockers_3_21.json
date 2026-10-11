@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.24",
+  "phase": "4.25",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -16,7 +16,7 @@
       ],
       "missing_evidence": [
         "link ModelIdSoTable key 11 to ModelManager descriptor +8 and the same runtime owner+0x88 registry record",
-        "IdSoTable insertion-to-lookup record identity",
+        "identity of ModelManager owner+8 table pointer with ModelIdSoTable singleton that received @M00B registration",
         "successful runtime loader identity",
         "record +0x1c identity",
         "record +0x1c store/load identity",
@@ -32,12 +32,14 @@
         "Direct ELF: IdSoTable::add performs existing-key query before creating a configuration node (+4 key, +8/+0xc copied name payloads). ModelManager uses a separate event-routing record with +8 state and +0x1c instance; they must not be conflated.",
         "Direct ELF: ModelManager wrapper 0x7eb944 reads descriptor +8 via 0x7ea930 and passes resulting key into tree lookup 0x7eb8fa at 0x7eb956. Registration separately uses descriptor +8. Cross-call descriptor/owner identity remains UNKNOWN.",
         "Direct ELF: 0x7eac60 receives a Registry record in r1 and saves it as r4; guarded state paths 0x7eacb4 and 0x7ead8c pass the same record to loader 0x7f11ca; loader stores successful factory return at record+0x1c (0x7f11f4), while 0x7eaf90 conditionally forwards r4. The state paths require successful transitions; no runtime ModelCamera identity is proven.",
-        "Phase4.24 cross-ELF SHA-pinned audit: libObj.so has R_ARM_JUMP_SLOT imports dlopen@0x102e808/dlsym@0x102e398/dlclose@0x102e13c; four direct NEEDED modules (libBizFw, libBizFw2, libMWF, libmpr) each NEEDED libdl.so.2, and uploaded libdl-2.11.2.so exports all three GLIBC_2.4 functions. Explains a static transitive symbol-provider candidate, NOT resolved runtime binding or modelCamera.so alias."
+        "Phase4.24 cross-ELF SHA-pinned audit: libObj.so has R_ARM_JUMP_SLOT imports dlopen@0x102e808/dlsym@0x102e398/dlclose@0x102e13c; four direct NEEDED modules (libBizFw, libBizFw2, libMWF, libmpr) each NEEDED libdl.so.2, and uploaded libdl-2.11.2.so exports all three GLIBC_2.4 functions. Explains a static transitive symbol-provider candidate, NOT resolved runtime binding or modelCamera.so alias.",
+        "Phase 4.25 SHA-matched direct Thumb: ModelManager registration 0x7ec8e4-0x7ec8f2 uses descriptor+8 numeric key twice with table pointer [manager+8]. Library accessor 0x7eaae8->0x7f05d2 returns IdSoTable node+8; factory accessor 0x7eaaf6->0x7f05a2 returns node+0xc or fallback if null. Registry initializer 0x7f115a/0x7f116c saves these values to record+0x10/+0x14, and loader 0x7f11d6/0x7f11e2 reads them into dlopen/dlsym arguments. This IS a static table-to-record field bridge; model ID 11's table singleton and runtime DSO resolution remain UNKNOWN.",
+        "User read-only LZPT filesystem inventory: 31 symlinks (/usr), 0 (/system), 87 (/rootfs); /usr/lib/libObj.so present but modelCamera.so filename and direct symlink absent in these scanned images. Remaining partitions, runtime mounts and generated aliases not ruled out."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
       ],
-      "minimal_next_proof": "Trace how ModelIdSoTable key-11 configuration is used to instantiate or associate the ModelManager descriptor that carries key 11, then prove the same ModelManager +0x88 tree instance, record +0 identity and +0x1c factory instance.",
+      "minimal_next_proof": "Prove ModelManager [owner+8] table is ModelIdSoTable::getInstance (the same instance registered with @M00B ID 11), and a concrete ModelManager descriptor has ID 11. Then establish matching +0x88 routing-record key/owner identity and runtime dlopen/dlsym/Factory success; never infer modelCamera.so→libObj.so from library-name strings alone.",
       "blocker_resolved": false
     },
     {
