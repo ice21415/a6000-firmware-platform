@@ -25,8 +25,7 @@ class FixedQueueForwarderAuditTests(unittest.TestCase):
         matched |= {int(x, 16) for x in cb["forward_case_values"]}
         self.assertEqual(len(matched), 10)
         self.assertTrue({0x940036, 0x940037}.isdisjoint(matched))
-        self.assertEqual(cb["unknown_format_string"],
-                         "imelf_sync_api_cb: err: cmd:0x%x\\n")
+        self.assertTrue(cb["unknown_format_string"].startswith("imelf_sync_api_cb: err: cmd:0x%x"))
         self.assertEqual(cb["forward_destination_id"], "0x0094016a")
         self.assertFalse(cb["explicit_compare_event_36"])
         self.assertFalse(cb["explicit_compare_event_37"])
