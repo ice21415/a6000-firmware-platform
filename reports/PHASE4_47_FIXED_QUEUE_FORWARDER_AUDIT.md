@@ -41,3 +41,18 @@ The kernel *may* invoke registered callbacks for the fixed queue, but this does 
 The remaining investigative target must change from re-reading UIPC allocation arithmetic to identifying the **independent producer or forwarding subsystem**, if present, that sends stage event IDs to the dynamic queue. Candidate avenues are the full offline firmware's other ELFs that import `osal_snd_msg` and contain stage event message literals, or relevant boot-launch setup. Mere raw occurrence of 0x940036 is a **candidate only** (Phase 4.42 found an unrelated log-literal collision in `libmpr.so`).
 
 **No runtime verified APIs; five unresolved end-to-end blockers.** Original Camera Core count remains **74 primary static + 5 inferred + 5 unknown = 84**. Stage delivery and libObj load/dlsym binding remain unproven. Original ELF data are not committed; evidence metadata lives in `sdk/im_ipc_forwarder_boundary_3_21.json`.
+
+
+## 4. Independently confirmed cross-ELF sender helper in libObj.so
+
+The separate original `libObj.so` (SHA256 `8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a`) contains numerous exact `0x0094016a` loaded-word literals. Importantly, this is **not just a raw string search**:
+
+- In Thumb helper at **0x0019d418**, `0x0019d422` loads r0 from a PC-relative literal at **0x0019d460**, exactly **0x0094016a**.
+- **0x0019d42a** calls PLT `0x000e13d8` (`osal_valloc_msg_wait`), then the helper populates the allocated message with a **caller-supplied message code** retained in r5 (at `0x0019d41e`, stored via `0x0019d442`).
+- **0x0019d446** calls PLT `0x000e2a28`, whose ARM PLT instruction sequence loads GOT **`0x0102f144`**, the original ELF's `R_ARM_JUMP_SLOT` relocation for **`osal_snd_msg`**.
+
+This supplies concrete cross-ELF confirmation that `libObj.so` has an executable **sender helper to the same fixed 0x94016a UIPC destination**. However, its event code is supplied by its own caller rather than a statically demonstrated `0x940036/037` constant. It does **not** establish an executed stage event, kernel delivery or a bridge to im.elf's separately allocated 0x946xxx receiver.
+
+An offline word/import scanner covering the *currently uploaded* 14 ELF files classified im.elf as having both 0x940036 and 0x940037 literals plus `osal_snd_msg` import, libObj.so as having the fixed 0x94016a literal plus send import, and libmpr.so as having just a 0x940036 literal plus send import (previously identified in a formatting/logging context). The entire local 649-ELF firmware tree has **not** been scanned for this exact pattern in the current runtime, and raw literals cannot be promoted to instructions without disassembly.
+
+A pure-Python stdlib-only scanner `scan_a6000_stage_event_producers.py` is available to run against the user's already-unpacked tree, reporting section-relative literal addresses and relevant undefined `osal_*` imports with priority labels. Results are candidate discovery **only**.
