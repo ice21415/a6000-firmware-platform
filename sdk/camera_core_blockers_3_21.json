@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.23",
+  "phase": "4.24",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -19,7 +19,8 @@
         "IdSoTable insertion-to-lookup record identity",
         "successful runtime loader identity",
         "record +0x1c identity",
-        "record +0x1c store/load identity"
+        "record +0x1c store/load identity",
+        "actual runtime ELF loader resolution of modelCamera.so to a concrete module (alias/namespace/path)"
       ],
       "assigned_agent": "p419_registry",
       "new_findings": [
@@ -30,7 +31,8 @@
         "ModelManager registration 0x7ec8ba and lookup 0x7eb904 both derive owner-relative tree +0x88; descriptor +8 is passed as new record +0, but same runtime owner and descriptor identity remain UNKNOWN",
         "Direct ELF: IdSoTable::add performs existing-key query before creating a configuration node (+4 key, +8/+0xc copied name payloads). ModelManager uses a separate event-routing record with +8 state and +0x1c instance; they must not be conflated.",
         "Direct ELF: ModelManager wrapper 0x7eb944 reads descriptor +8 via 0x7ea930 and passes resulting key into tree lookup 0x7eb8fa at 0x7eb956. Registration separately uses descriptor +8. Cross-call descriptor/owner identity remains UNKNOWN.",
-        "Direct ELF: 0x7eac60 receives a Registry record in r1 and saves it as r4; guarded state paths 0x7eacb4 and 0x7ead8c pass the same record to loader 0x7f11ca; loader stores successful factory return at record+0x1c (0x7f11f4), while 0x7eaf90 conditionally forwards r4. The state paths require successful transitions; no runtime ModelCamera identity is proven."
+        "Direct ELF: 0x7eac60 receives a Registry record in r1 and saves it as r4; guarded state paths 0x7eacb4 and 0x7ead8c pass the same record to loader 0x7f11ca; loader stores successful factory return at record+0x1c (0x7f11f4), while 0x7eaf90 conditionally forwards r4. The state paths require successful transitions; no runtime ModelCamera identity is proven.",
+        "Phase4.24 cross-ELF SHA-pinned audit: libObj.so has R_ARM_JUMP_SLOT imports dlopen@0x102e808/dlsym@0x102e398/dlclose@0x102e13c; four direct NEEDED modules (libBizFw, libBizFw2, libMWF, libmpr) each NEEDED libdl.so.2, and uploaded libdl-2.11.2.so exports all three GLIBC_2.4 functions. Explains a static transitive symbol-provider candidate, NOT resolved runtime binding or modelCamera.so alias."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
