@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.44 direct original im.elf proves callback slot 0x153ec set to Thumb a06d, read at ac18 and indirect BLX r5 after successful osal_rcv_msg_tmo; distinct sync callback 95b1 and receive handle paths remain unconnected by OSAL implementation.",
+  "latest_checkpoint": "Phase 4.45 private SHA-pinned libosal_uipc.so proves bit0x8000 remote UIPC dispatch for im sender 0x94016a, ioctl requests 0x80000004/07/08/0c through /dev/uipc, and remote-allocated im dynamic receive ID; kernel endpoint mapping still unknown.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -990,6 +990,53 @@
     "core_edges_added": 0,
     "tracked_core_edges": 84,
     "primary_static_core_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_45_osal_uipc": {
+    "source_file": "libosal_uipc_fw321.so",
+    "source_sha256": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef",
+    "new_evidence": "sdk/osal_uipc_routing_3_21.json",
+    "report": "reports/PHASE4_45_OSAL_UIPC_KERNEL_ROUTING.md",
+    "device": "/dev/uipc",
+    "os_interface": "ioctl",
+    "send": {
+      "fn": "osal_snd_msg",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_snd_msg",
+      "request": "0x80000004"
+    },
+    "receive": {
+      "fn": "osal_rcv_msg_tmo",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_rcv_msg_tmo",
+      "request": "0x80000007"
+    },
+    "register_sync": {
+      "fn": "osal_reg_sync_msg_queue_cb",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_reg_sync_msg_queue_cb",
+      "request": "0x80000008"
+    },
+    "dynamic_id": {
+      "im_request_r0": "0x2a",
+      "remote_if": "r0 & 0x2 != 0",
+      "request": "0x8000000c",
+      "returned_id": "RUNTIME_ALLOCATED_UNKNOWN"
+    },
+    "im_sender_destination": "0x0094016a",
+    "sender_id_bit0x8000": false,
+    "proven": "Userspace sender, sync registration and dynamic receiver use UIPC kernel-driver abstraction",
+    "not_proven": [
+      "kernel ID map from 0x94016a to generated receiver ID",
+      "actual event delivery",
+      "actual callback state on arrival",
+      "driver queue ordering",
+      "successful runtime load and symbol binding"
+    ],
+    "original_core_edges_added": 0,
+    "primary_core_edges": 74,
+    "tracked_core_edges": 84,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
   }
