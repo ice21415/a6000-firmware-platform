@@ -146,5 +146,52 @@
     "tracked": 84
   },
   "runtime_verified": 0,
-  "safe_to_invoke": 0
+  "safe_to_invoke": 0,
+  "boot_option_parser": {
+    "prefix": "boot=",
+    "prefix_literal_vma": "0xc2a9",
+    "prefix_length": 5,
+    "compare_vma": "0xa640",
+    "dispatch_char": "argv[5]",
+    "case_insensitive_single_char": true,
+    "options": [
+      {
+        "selector": "s",
+        "flag": "0x10000",
+        "or_vma": "0xa6b2"
+      },
+      {
+        "selector": "u",
+        "flag": "0x80000",
+        "or_vma": "0xa724"
+      },
+      {
+        "selector": "l",
+        "flag": "0x100000",
+        "or_vma": "0xa742"
+      },
+      {
+        "selector": "i",
+        "flag": "0x200000",
+        "or_vma": "0xa760"
+      },
+      {
+        "selector": "a",
+        "flag": "0x400000",
+        "or_vma": "0xa77e"
+      }
+    ],
+    "special_all": {
+      "selector": "bootall",
+      "literal_vma": "0xc2b9",
+      "comparison_length": 7,
+      "or_vma": "0xa794",
+      "flag_mask": "0x7f0000"
+    },
+    "other_selector_notes": "g,d,r and uppercase variants are accepted by this char dispatch but do not set stage bits in this part of the parser; do not infer 0x20000/0x40000 mapping.",
+    "limitations": [
+      "Argument parser syntax is a static code result, not proof of actual camera startup argv.",
+      "Delivery to the stage handler still unverified."
+    ]
+  }
 }
