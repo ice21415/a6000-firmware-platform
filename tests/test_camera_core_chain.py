@@ -107,6 +107,25 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
         self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
 
+    def test_phase4_27_conditional_modelconfig_vtable_target(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        expected = {
+            "registry.provider.bootstrap_selector_bss": ("0x7ed996", "0x7ef254"),
+            "registry.provider.modelconfig_vptr_construction": ("0x45f32c", "0x45f2fc"),
+            "registry.provider.modelconfig_slot_to_modelidso_singleton": ("0x45ef30", "0x7ee360"),
+        }
+        for edge_id, (callsite, target) in expected.items():
+            self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
+            self.assertEqual(edges[edge_id]["target_vma"], target)
+            self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
+            self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 82)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 72)
+        self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
+        self.assertFalse(report["verification"]["runtime_verified"])
+        self.assertFalse(report["verification"]["safe_to_invoke"])
+
     def test_phase4_26_provider_virtual_getter_has_unknown_target(self):
         report = _report()
         edges = {row["id"]: row for row in report["edges"]}
@@ -118,8 +137,8 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertIsNone(slot["target_vma"])
         self.assertEqual(slot["verification_status"], "PRIMARY_ELF_VERIFIED")
         self.assertEqual(slot["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 82)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 72)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
@@ -138,8 +157,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["target_vma"], target)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
             self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 82)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 72)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
@@ -158,8 +177,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["target_vma"], target)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 82)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 72)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
 
@@ -177,8 +196,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
             self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 82)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 72)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
