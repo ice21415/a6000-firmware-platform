@@ -114,14 +114,15 @@ class CameraCoreChainTests(unittest.TestCase):
             "registry.camera.idso_duplicate_guard": ("0x7f08b0", "0x7f063c"),
             "registry.camera.idso_node_constructor": ("0x7f08ee", "0x7f0394"),
             "registry.modelmanager.descriptor_key_lookup": ("0x7eb956", "0x7eb8fa"),
+            "registry.record.state_machine_loader": ("0x7eacb4", "0x7f11ca"),
         }
         for edge_id, (callsite, target) in expected.items():
             self.assertIn(edge_id, edges)
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["target_vma"], target)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 73)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 63)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 74)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 64)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
 
@@ -139,8 +140,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
             self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 73)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 63)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 74)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 64)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
