@@ -17,7 +17,7 @@ from capstone import CS_ARCH_ARM, CS_MODE_THUMB, Cs
 from capstone.arm import ARM_OP_IMM
 from elftools.elf.elffile import ELFFile
 
-from .camera_request_event_probe import probe_request_event_factory
+from .camera_request_event_probe import probe_request_event_factory, probe_request_event_eligibility
 from .elf_plt import resolve_plt_binding
 from .event_manager_push_probe import probe_event_manager_push
 from .camera_loader_dataflow import analyze_loader_dataflow
@@ -1021,6 +1021,7 @@ def probe_camera_core_chain(
         registry_edges, registry_observation = _observe_camera_registry_dispatch(fp, elf, digest)
         compact_edges, compact_observation = _observe_compact_selector_path(fp, elf, digest)
         factory = probe_request_event_factory(path, expected_sha256=expected_sha256)
+        request_eligibility = probe_request_event_eligibility(path, expected_sha256=expected_sha256)
         event_manager = probe_event_manager_push(path, expected_sha256=expected_sha256)
         loader_dataflow = analyze_loader_dataflow(path, expected_sha256=expected_sha256)
         event_callback = probe_event_manager_callback(path, expected_sha256=expected_sha256)
@@ -1054,6 +1055,22 @@ def probe_camera_core_chain(
                            target_vma=int(relation["target_vma"], 16),
                            callsite_vma=int(relation["callsite_vma"], 16),
                            note="Direct instruction edge; queue scheduling and object identity are separate preconditions."))
+    eligibility_edges = [
+        _edge("request.queue0.append", "EventManager::push class0 branch", "queue append helper", "CALLS",
+              0x7ef960, digest, target_vma=0x7f0aac, callsite_vma=0x7ef9e0,
+              note="Observed Request byte +9=0 selects queue0; same instance and append success remain conditions."),
+        _edge("queue.transfer.event_pointer", "queue1 pop result", "queue0 append argument", "FORWARDS_EVENT_POINTER",
+              0x7ef910, digest, target_vma=0x7f0aac, callsite_vma=0x7ef932,
+              note="0x7ef92a returns r0; 0x7ef92e copies r0 to r1; 0x7ef930 changes only r0. Same pointer word, not runtime delivery."),
+        _edge("queue.loop.event_pointer", "EventManager dequeue result", "Application Router Event argument", "FORWARDS_EVENT_POINTER",
+              0x7eeee8, digest, target_vma=0x7eed0c, callsite_vma=0x7eefe2,
+              note="0x7eefda returns r0; 0x7eefde moves r0 to r1; 0x7eefe0 changes only r0. Scheduling and validity remain conditions."),
+    ]
+    for edge in eligibility_edges:
+        edge["preconditions"] = ["ELF local binding", "valid same-owner objects", "observed branch taken"]
+        edge["instruction_evidence"] = [row for row in request_eligibility["evidence"]
+                                        if row["function_vma"] == edge["source_vma"]]
+    edges.extend(eligibility_edges)
     # These are intentionally nodes/observations rather than a fabricated
     # consumer edge.  A literal address is not a function target.
     nodes = [
@@ -1100,6 +1117,7 @@ def probe_camera_core_chain(
             "event_manager_callback_provenance": event_callback,
             "event_manager_provider_provenance": provider_bss,
             "event_manager_callback_behavior": callback_behavior,
+            "request_event_eligibility": request_eligibility,
             "event_manager_init_array": {
                 "status": init_inventory["status"],
                 "table_vma": init_inventory["table_vma"],
@@ -1157,6 +1175,19 @@ def validate_camera_core_chain(report: dict[str, Any], *, expected_sha256: str =
     consumer = report.get("observations", {}).get("request_consumer")
     registry = report.get("observations", {}).get("camera_registry_dispatch")
     compact = report.get("observations", {}).get("compact_model_selector")
+    eligibility = report.get("observations", {}).get("request_event_eligibility")
+    if eligibility is not None:
+        event = eligibility.get("request_event", {})
+        queue = eligibility.get("queue_eligibility", {})
+        router = eligibility.get("router_eligibility", {})
+        if event.get("event_id") != "0x11004003" or event.get("class_field", {}).get("value") != 0 or event.get("destination_field", {}).get("value") != 2:
+            errors.append("request_initial_fields")
+        if queue.get("queue_selected") != "QUEUE0" or queue.get("queue1_transfer_required") is not False or queue.get("main_callback_required") is not False:
+            errors.append("request_queue_eligibility")
+        if (router.get("mask"), router.get("bit_index"), router.get("entry"), router.get("consumer_callsite")) != (2, 1, "0x7eed0c", "0x7eedf0"):
+            errors.append("request_router_predicate")
+        if eligibility.get("runtime_verified") is not False or eligibility.get("safe_to_invoke") is not False:
+            errors.append("request_runtime_promotion")
     if registry is not None:
         if registry.get("configuration") != {"compact_model_name": "@M00B", "library": "modelCamera.so", "factory": "ModelCameraToInstance"}:
             errors.append("registry_camera_configuration")

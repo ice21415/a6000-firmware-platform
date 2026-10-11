@@ -24,6 +24,20 @@ def _report() -> dict:
 
 
 class CameraCoreChainTests(unittest.TestCase):
+    def test_stale_request_queue_and_bit_index_are_rejected(self):
+        contract = json.loads(Path("sdk/camera_core_3_21.json").read_text(encoding="utf-8"))
+        report = _report()
+        eligibility = contract["phase4_15_request_event_eligibility"]
+        report["observations"]["request_event_eligibility"] = eligibility
+        self.assertTrue(validate_camera_core_chain(report)["valid"])
+        eligibility["queue_eligibility"]["queue1_transfer_required"] = True
+        eligibility["router_eligibility"]["mask"] = 4
+        eligibility["runtime_verified"] = True
+        errors = validate_camera_core_chain(report)["errors"]
+        self.assertIn("request_queue_eligibility", errors)
+        self.assertIn("request_router_predicate", errors)
+        self.assertIn("request_runtime_promotion", errors)
+
     def test_sanitized_static_chain_is_valid(self):
         result = validate_camera_core_chain(_report())
         self.assertTrue(result["valid"], result["errors"])

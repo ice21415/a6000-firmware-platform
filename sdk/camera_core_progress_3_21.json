@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 57,
-  "primary_elf_verified_edges": 47,
+  "tracked_core_edges": 60,
+  "primary_elf_verified_edges": 50,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -12,7 +12,7 @@
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
   "new_evidence_added": 23,
-  "primary_edges_added": 6,
+  "primary_edges_added": 3,
   "inferred_edges_added": 0,
   "unresolved_edges_reduced": 0,
   "candidates_excluded": 0,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.14 pre-enqueue callback and queue transfer/router path",
+  "latest_checkpoint": "Phase 4.15 initial Request Queue0 and destination eligibility; two pointer-flow proofs",
   "phase4_13_delta": {
     "primary_edges_added": 0,
     "inferred_edges_added": 0,
@@ -103,5 +103,40 @@
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0,
     "source": "SHA-pinned probe + unique edge IDs; summarizes declared graph facts"
-  }
+  },
+  "phase4_15_delta": {
+    "baseline": {
+      "tracked_core_edges": 57,
+      "primary_elf_verified_edges": 47,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 60,
+      "primary_elf_verified_edges": 50,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_direct_call_edges": 1,
+    "new_pointer_flow_edges": 2,
+    "upgraded_edges": 0,
+    "conditional_edges_added": 0,
+    "unresolved_edges_reduced": 0,
+    "evidence_enrichment": [
+      "Event +8/+9 initialization",
+      "receiver +0xa4 gate",
+      "destination mask snapshot",
+      "transfer single-step and append refusal guards"
+    ],
+    "request_event_eligibility": "CONDITIONAL_STATIC_REQUEST_PATH_QUEUE0",
+    "blockers_narrowed": [
+      "initial request queue selection",
+      "destination and consumer eligibility"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "summarize_core_graph; unique relation IDs; synthetic tests excluded"
+  },
+  "legacy_statistics_note": "new_evidence_added, evidence_enrichment and blockers_removed are historical preserved counters; current graph accounting uses unique IDs and phase4_15_delta."
 }

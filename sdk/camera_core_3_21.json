@@ -998,6 +998,225 @@
         "confidence": "HIGH"
       },
       "note": "Direct instruction edge; queue scheduling and object identity are separate preconditions."
+    },
+    {
+      "id": "request.queue0.append",
+      "source": "EventManager::push class0 branch",
+      "target": "queue append helper",
+      "target_vma": "0x7f0aac",
+      "source_vma": "0x7ef960",
+      "callsite_vma": "0x7ef9e0",
+      "relation": "CALLS",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef9e0",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "Observed Request byte +9=0 selects queue0; same instance and append success remain conditions.",
+      "preconditions": [
+        "ELF local binding",
+        "valid same-owner objects",
+        "observed branch taken"
+      ],
+      "instruction_evidence": [
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef974",
+          "mnemonic": "cmp",
+          "operands": "r0, #1",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef978",
+          "mnemonic": "bne",
+          "operands": "#0x7ef9d2",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef9d2",
+          "mnemonic": "cbnz",
+          "operands": "r0, #0x7ef9ea",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef9dc",
+          "mnemonic": "mov",
+          "operands": "r1, r5",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef9de",
+          "mnemonic": "ldr",
+          "operands": "r0, [r3]",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef960",
+          "instruction_vma": "0x7ef9e0",
+          "mnemonic": "bl",
+          "operands": "#0x7f0aac",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "queue.transfer.event_pointer",
+      "source": "queue1 pop result",
+      "target": "queue0 append argument",
+      "target_vma": "0x7f0aac",
+      "source_vma": "0x7ef910",
+      "callsite_vma": "0x7ef932",
+      "relation": "FORWARDS_EVENT_POINTER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef932",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ef92a returns r0; 0x7ef92e copies r0 to r1; 0x7ef930 changes only r0. Same pointer word, not runtime delivery.",
+      "preconditions": [
+        "ELF local binding",
+        "valid same-owner objects",
+        "observed branch taken"
+      ],
+      "instruction_evidence": [
+        {
+          "function_vma": "0x7ef910",
+          "instruction_vma": "0x7ef922",
+          "mnemonic": "cbz",
+          "operands": "r0, #0x7ef936",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef910",
+          "instruction_vma": "0x7ef92a",
+          "mnemonic": "bl",
+          "operands": "#0x7f099c",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef910",
+          "instruction_vma": "0x7ef92e",
+          "mnemonic": "mov",
+          "operands": "r1, r0",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef910",
+          "instruction_vma": "0x7ef930",
+          "mnemonic": "mov",
+          "operands": "r0, r5",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7ef910",
+          "instruction_vma": "0x7ef932",
+          "mnemonic": "bl",
+          "operands": "#0x7f0aac",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        }
+      ]
+    },
+    {
+      "id": "queue.loop.event_pointer",
+      "source": "EventManager dequeue result",
+      "target": "Application Router Event argument",
+      "target_vma": "0x7eed0c",
+      "source_vma": "0x7eeee8",
+      "callsite_vma": "0x7eefe2",
+      "relation": "FORWARDS_EVENT_POINTER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eefe2",
+        "address_space": "ELF_VMA",
+        "evidence_method": "CAPSTONE_PRIMARY_ELF",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7eefda returns r0; 0x7eefde moves r0 to r1; 0x7eefe0 changes only r0. Scheduling and validity remain conditions.",
+      "preconditions": [
+        "ELF local binding",
+        "valid same-owner objects",
+        "observed branch taken"
+      ],
+      "instruction_evidence": [
+        {
+          "function_vma": "0x7eeee8",
+          "instruction_vma": "0x7eefda",
+          "mnemonic": "bl",
+          "operands": "#0x7ef940",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7eeee8",
+          "instruction_vma": "0x7eefde",
+          "mnemonic": "mov",
+          "operands": "r1, r0",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7eeee8",
+          "instruction_vma": "0x7eefe0",
+          "mnemonic": "mov",
+          "operands": "r0, r4",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        },
+        {
+          "function_vma": "0x7eeee8",
+          "instruction_vma": "0x7eefe2",
+          "mnemonic": "bl",
+          "operands": "#0x7eed0c",
+          "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+          "address_space": "ELF_VMA",
+          "verification": "PRIMARY_ELF_VERIFIED"
+        }
+      ]
     }
   ],
   "unresolved_edges": [
@@ -2156,8 +2375,8 @@
     "queue_bridge_conditions": [
       "same owner EventManager at owner +0x10",
       "Event class byte +9 selects queue arm",
-      "transfer loop guards and scheduling",
-      "Router destination bit 2 selects generic consumer"
+      "transfer guards and scheduling; at most one event per invocation",
+      "Router destination mask 0x02 (bit index 1) selects generic consumer"
     ],
     "runtime_verified": false,
     "safe_to_invoke": false,
@@ -2260,5 +2479,660 @@
     "alternative_initializer": "0x45f320",
     "alternative_getter_slot": "0x1030bcc",
     "incoming_name_runtime_value": "UNKNOWN"
+  },
+  "phase4_15_request_event_eligibility": {
+    "schema_version": 1,
+    "analyzer_version": "request-event-eligibility-1",
+    "status": "LOCAL_PRIMARY_ELF_REQUEST_ELIGIBILITY",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "address_space": "ELF_VMA",
+    "request_event": {
+      "event_id": "0x11004003",
+      "factory": "0x7f0b0c",
+      "constructor": "0x7f17f8",
+      "allocation_bytes": 16,
+      "id_field": {
+        "offset": 4,
+        "width": 4
+      },
+      "class_field": {
+        "offset": 9,
+        "width": 1,
+        "value": 0,
+        "meaning": "observed queue-selection byte; source-level subtype UNKNOWN"
+      },
+      "destination_field": {
+        "offset": 8,
+        "width": 1,
+        "value": 2
+      },
+      "parameter_keys": [
+        7,
+        8
+      ]
+    },
+    "queue_eligibility": {
+      "queue_selected": "QUEUE0",
+      "predicate": "Event[9] == 0",
+      "append_callsite": "0x7ef9e0",
+      "queue1_transfer_required": false,
+      "main_callback_required": false,
+      "conditions": [
+        "same object and unchanged class byte",
+        "local symbol binding",
+        "append succeeds"
+      ]
+    },
+    "queue_transfer": {
+      "entry": "0x7ef910",
+      "source_queue": "[manager.state + 4]",
+      "destination_queue": "[manager.state + 0]",
+      "pointer_flow": [
+        "0x7ef92a:r0",
+        "0x7ef92e:r1=r0",
+        "0x7ef932:append argument r1"
+      ],
+      "guard": "queue1 count nonzero",
+      "events_per_invocation_max": 1,
+      "ownership": "list node removed; Event pointer retained, no Event release observed",
+      "required_for_default_request": false
+    },
+    "application_loop": {
+      "entry": "0x7eeee8",
+      "event_manager_source": "owner +0x10",
+      "pointer_flow": [
+        "0x7eefda:return r0",
+        "0x7eefde:r1=r0",
+        "0x7eefe2:router argument r1"
+      ],
+      "guard": "count(0) nonzero on observed drain loop",
+      "scheduling": "UNKNOWN"
+    },
+    "router_eligibility": {
+      "entry": "0x7eed0c",
+      "consumer_callsite": "0x7eedf0",
+      "consumer": "0x7ed49c",
+      "destination_predicate": "snapshot_destination & 0x02 != 0",
+      "mask": 2,
+      "bit_index": 1,
+      "request_passes_initial_mask": true,
+      "consumer_receiver_source": "owner +4",
+      "consumer_state_predicate": "receiver word +0xa4 != 0",
+      "request_id_predicate": "Event.id == 0x11004003"
+    },
+    "end_to_end": {
+      "status": "CONDITIONAL_STATIC_REQUEST_PATH",
+      "queue1_request_hypothesis": "SUPERSEDED_DISPROVEN_FOR_INITIAL_REQUEST",
+      "unresolved": [
+        "runtime scheduling and owner identity",
+        "callback/helper interposition and later aliases",
+        "append guards/allocation exceptions",
+        "receiver enabled state",
+        "model registry instance and runtime DSO identity"
+      ],
+      "event_lifetime": "borrowed through consumer; Router later destructs/deletes Event",
+      "verified_static_segments": [
+        "factory arguments and Event field stores",
+        "class0 Queue0 append branch",
+        "same-word pointer handoffs",
+        "destination mask test",
+        "generic consumer request ID comparison"
+      ],
+      "conditional_segments": [
+        "same owner and EventManager identity",
+        "unchanged header/local symbol binding",
+        "append success and scheduling",
+        "consumer receiver +0xa4 enabled",
+        "registry instance and runtime DSO identity"
+      ]
+    },
+    "model_assessment": {
+      "queue_selected": "QUEUE0",
+      "requires_queue1_transfer": false,
+      "requires_pre_enqueue_callback": false,
+      "destination_mask": 2,
+      "destination_bit_index": 1,
+      "destination_pass": true,
+      "consumer_event_id_pass": true,
+      "status": "CONDITIONAL_STATIC_ELIGIBILITY",
+      "unresolved_conditions": [
+        "receiver_enabled",
+        "append_accepts",
+        "pointer_preserved",
+        "scheduling"
+      ],
+      "evidence_level": "OFFLINE_MODEL_ONLY",
+      "runtime_verified": false,
+      "safe_to_invoke": false
+    },
+    "dataflow": {
+      "constructor_arguments": {
+        "r0": {
+          "kind": "UNKNOWN",
+          "values": [],
+          "instruction_origins": [
+            8325914
+          ]
+        },
+        "r1": {
+          "kind": "CONSTANT",
+          "values": [
+            285229059
+          ],
+          "instruction_origins": [
+            8325918
+          ]
+        },
+        "r2": {
+          "kind": "CONSTANT",
+          "values": [
+            2
+          ],
+          "instruction_origins": [
+            8325920
+          ]
+        },
+        "r3": {
+          "kind": "CONSTANT",
+          "values": [
+            0
+          ],
+          "instruction_origins": [
+            8325922
+          ]
+        }
+      },
+      "factory_reachable_instructions": 36,
+      "pointer_flows": [
+        {
+          "function_vma": "0x7ef910",
+          "producer_callsite": "0x7ef92a",
+          "consumer_callsite": "0x7ef932",
+          "argument_register": "r1",
+          "value": "UNKNOWN_POINTER_WORD",
+          "provenance": {
+            "kind": "UNKNOWN",
+            "values": [],
+            "instruction_origins": [
+              8321322,
+              8321326
+            ]
+          },
+          "analysis_scope": "function"
+        },
+        {
+          "function_vma": "0x7eeee8",
+          "producer_callsite": "0x7eefda",
+          "consumer_callsite": "0x7eefe2",
+          "argument_register": "r1",
+          "value": "UNKNOWN_POINTER_WORD",
+          "provenance": {
+            "kind": "UNKNOWN",
+            "values": [],
+            "instruction_origins": [
+              8318938,
+              8318942
+            ]
+          },
+          "analysis_scope": "forwarding basic block within application loop"
+        }
+      ],
+      "transfer_reachable_instructions": 18,
+      "forwarding_block_reachable_instructions": 6
+    },
+    "evidence": [
+      {
+        "function_vma": "0x7f17f8",
+        "instruction_vma": "0x7f17fc",
+        "mnemonic": "strb",
+        "operands": "r2, [r0, #8]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7f17f8",
+        "instruction_vma": "0x7f1800",
+        "mnemonic": "strb",
+        "operands": "r3, [r0, #9]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7f17f8",
+        "instruction_vma": "0x7f1802",
+        "mnemonic": "str",
+        "operands": "r1, [r0, #4]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x10f9f4",
+        "instruction_vma": "0x10f9f8",
+        "mnemonic": "strb",
+        "operands": "r1, [r0, #8]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eebf8",
+        "instruction_vma": "0x7eebfc",
+        "mnemonic": "ldrb",
+        "operands": "r0, [r0, #8]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef88c",
+        "instruction_vma": "0x7ef890",
+        "mnemonic": "ldrb",
+        "operands": "r0, [r0, #9]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef974",
+        "mnemonic": "cmp",
+        "operands": "r0, #1",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef978",
+        "mnemonic": "bne",
+        "operands": "#0x7ef9d2",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef9d2",
+        "mnemonic": "cbnz",
+        "operands": "r0, #0x7ef9ea",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef9dc",
+        "mnemonic": "mov",
+        "operands": "r1, r5",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef9de",
+        "mnemonic": "ldr",
+        "operands": "r0, [r3]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef960",
+        "instruction_vma": "0x7ef9e0",
+        "mnemonic": "bl",
+        "operands": "#0x7f0aac",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef910",
+        "instruction_vma": "0x7ef922",
+        "mnemonic": "cbz",
+        "operands": "r0, #0x7ef936",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef910",
+        "instruction_vma": "0x7ef92a",
+        "mnemonic": "bl",
+        "operands": "#0x7f099c",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef910",
+        "instruction_vma": "0x7ef92e",
+        "mnemonic": "mov",
+        "operands": "r1, r0",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef910",
+        "instruction_vma": "0x7ef930",
+        "mnemonic": "mov",
+        "operands": "r0, r5",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef910",
+        "instruction_vma": "0x7ef932",
+        "mnemonic": "bl",
+        "operands": "#0x7f0aac",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef940",
+        "instruction_vma": "0x7ef952",
+        "mnemonic": "mov",
+        "operands": "r5, r0",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ef940",
+        "instruction_vma": "0x7ef95a",
+        "mnemonic": "mov",
+        "operands": "r0, r5",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eeee8",
+        "instruction_vma": "0x7eefda",
+        "mnemonic": "bl",
+        "operands": "#0x7ef940",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eeee8",
+        "instruction_vma": "0x7eefde",
+        "mnemonic": "mov",
+        "operands": "r1, r0",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eeee8",
+        "instruction_vma": "0x7eefe0",
+        "mnemonic": "mov",
+        "operands": "r0, r4",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eeee8",
+        "instruction_vma": "0x7eefe2",
+        "mnemonic": "bl",
+        "operands": "#0x7eed0c",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eed14",
+        "mnemonic": "mov",
+        "operands": "r5, r1",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eed86",
+        "mnemonic": "mov",
+        "operands": "r6, r0",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eedda",
+        "mnemonic": "and",
+        "operands": "r3, r6, #2",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eede0",
+        "mnemonic": "cbz",
+        "operands": "r3, #0x7eedf4",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eedec",
+        "mnemonic": "ldr",
+        "operands": "r0, [r4, #4]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eedee",
+        "mnemonic": "mov",
+        "operands": "r1, r5",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eed0c",
+        "instruction_vma": "0x7eedf0",
+        "mnemonic": "bl",
+        "operands": "#0x7ed49c",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4a8",
+        "mnemonic": "mov",
+        "operands": "r5, r1",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4b2",
+        "mnemonic": "bl",
+        "operands": "#0x7eaa14",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4b8",
+        "mnemonic": "beq.w",
+        "operands": "#0x7ed8d8",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7eaa14",
+        "instruction_vma": "0x7eaa14",
+        "mnemonic": "ldr.w",
+        "operands": "r0, [r0, #0xa4]",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4f4",
+        "mnemonic": "subs",
+        "operands": "r3, #3",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4fc",
+        "mnemonic": "adds",
+        "operands": "r3, #1",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed4fe",
+        "mnemonic": "cmp",
+        "operands": "r6, r3",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed500",
+        "mnemonic": "bne",
+        "operands": "#0x7ed552",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed502",
+        "mnemonic": "b",
+        "operands": "#0x7ed5c8",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed5d4",
+        "mnemonic": "bl",
+        "operands": "#0x7ea918",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed5ea",
+        "mnemonic": "bl",
+        "operands": "#0x7ea918",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      },
+      {
+        "function_vma": "0x7ed49c",
+        "instruction_vma": "0x7ed5fc",
+        "mnemonic": "bl",
+        "operands": "#0x7eb8fa",
+        "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "address_space": "ELF_VMA",
+        "verification": "PRIMARY_ELF_VERIFIED"
+      }
+    ],
+    "bindings": {
+      "event_constructor": {
+        "entry_vma": "0xdb66c",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102ccac",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5EventC1Emhh",
+            "symbol_value": "0x7f17f9",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "get_destination": {
+        "entry_vma": "0xdcecc",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d468",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5Event7getDestEv",
+            "symbol_value": "0x7eebf9",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "get_id": {
+        "entry_vma": "0xdbafc",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102ce18",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZNK5Event5getIdEv",
+            "symbol_value": "0xfe9cd",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "set_destination": {
+        "entry_vma": "0xde708",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102dc04",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZN5Event7setDestEh",
+            "symbol_value": "0x10f9f5",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    },
+    "runtime_verified": false,
+    "safe_to_invoke": false
+  },
+  "phase4_15_corrections": {
+    "request_queue1_hypothesis": "SUPERSEDED_DISPROVEN_FOR_INITIAL_REQUEST",
+    "transfer_drain_loop_hypothesis": "SUPERSEDED_DISPROVEN",
+    "numeric_destination_mask": 2,
+    "destination_bit_index": 1,
+    "router_entry": "0x7eed0c",
+    "consumer_callsite": "0x7eedf0",
+    "consumer_receiver_gate": "word +0xa4 != 0",
+    "bss_provider_hypothesis": "SUPERSEDED_DISPROVEN"
   }
 }

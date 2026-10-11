@@ -1,3 +1,12 @@
+## Phase 4.15 Request scope correction
+
+The initial Camera Core Request is class0 / destination2 and takes Queue0
+at0x7ef9e0. Its normal local route bypasses0x7ef988 and0x11130c. Provider
+selection and optional hook remain relevant to class1 events, not mandatory
+prerequisites for this initial Request. Transfer0x7ef910 moves at most one
+Event per invocation. Router mask0x02 and Consumer receiver+0xa4 gate are
+explicit conditions; details are in CAMERA_END_TO_END_STATUS.md.
+
 ## Phase 4.14 current result
 
 Callback `0x11130c` is a conditional pre-enqueue descriptor/destination

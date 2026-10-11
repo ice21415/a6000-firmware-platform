@@ -57,6 +57,21 @@ class StoreDataflowTests(unittest.TestCase):
         result = self.analyze(raw, mode="ARM")
         self.assertEqual(result["stores"][0]["effective_address"]["kind"], "UNKNOWN")
 
+    def test_pop_unknown_return_origin_forwarded_to_append_argument(self):
+        # Self-authored MOV r5,32; BL; MOV r1,r0; MOV r0,r5; BL; BX LR.
+        result = self.analyze(bytes.fromhex("202500f000f80146284600f000f87047"))
+        args = result["calls"][1]["argument_registers"]
+        self.assertEqual(args["r0"]["values"], [32])
+        self.assertEqual(args["r1"]["kind"], "UNKNOWN")
+        self.assertIn(0x1002, args["r1"]["instruction_origins"])
+        self.assertIn(0x1006, args["r1"]["instruction_origins"])
+
+    def test_pointer_overwrite_does_not_retain_return_origin(self):
+        result = self.analyze(bytes.fromhex("202500f000f801462021284600f000f87047"))
+        argument = result["calls"][1]["argument_registers"]["r1"]
+        self.assertEqual(argument["values"], [32])
+        self.assertNotIn(0x1002, argument["instruction_origins"])
+
     def test_unknown_memory(self):
         raw = struct.pack("<IIII", 0xE3A03020, 0xE5933000, 0xE5830000, 0xE12FFF1E)
         result = self.analyze(raw, mode="ARM")

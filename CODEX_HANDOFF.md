@@ -1,3 +1,15 @@
+## Phase 4.15 checkpoint
+
+Request0x11004003 initializes Event+8=2 and +9=0, so the local default
+path goes directly to Queue0; Queue1 transfer and0x11130c are not required.
+Router destination mask0x02 passes initially. Consumer additionally tests
+receiver word+0xa4 !=0; runtime value and full semantic role remain unknown.
+Two new producer/copy/argument pointer flows were reproduced by the bounded
+register engine. Transfer is single-step, not a drain loop. See
+reports/CAMERA_END_TO_END_STATUS.md and sdk.phase4_15_request_event_eligibility.
+Counts: tracked60, primary50, inferred5, unresolved5; runtime/safe APIs0.
+Next: +0xa4 writer/state and Registry record0x7ed606 / ModelCamera identity.
+
 ## Phase 4.14 checkpoint
 
 Primary ELF verifies a pre-enqueue callback at 0x11130c (96 reachable

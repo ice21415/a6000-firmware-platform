@@ -16,6 +16,8 @@ from typing import Callable, Iterable
 from capstone import CS_ARCH_ARM, CS_MODE_ARM, CS_MODE_THUMB, Cs
 from capstone.arm import ARM_OP_IMM, ARM_OP_MEM, ARM_OP_REG, ARM_CC_AL, ARM_CC_INVALID, ARM_INS_BL, ARM_INS_BLX
 
+ANALYZER_VERSION = "arm-store-dataflow-2"
+
 
 @dataclass(frozen=True)
 class Value:
@@ -189,7 +191,7 @@ def analyze_function(
             value = operand(insn, ops[1], state)
             if name == "movt":
                 value = state.get(destination, UNKNOWN).combine(value, lambda a, b: (a & 0xFFFF) | (b << 16), insn.address)
-            result[destination] = value
+            result[destination] = Value(value.values, value.origins | {insn.address})
         elif name in {"add", "sub"} and destination and len(ops) >= 2:
             left = operand(insn, ops[1], state) if len(ops) >= 3 else state.get(destination, UNKNOWN)
             right = operand(insn, ops[2] if len(ops) >= 3 else ops[1], state)
@@ -236,7 +238,8 @@ def analyze_function(
                 result[destination] = base.combine(Value.constant(-4 * count if "d" in name[3:] else 4 * count), lambda a, b: a + b, insn.address)
         if insn.id in {ARM_INS_BL, ARM_INS_BLX}:
             for reg in ("r0", "r1", "r2", "r3", "ip", "lr"):
-                result[reg] = UNKNOWN
+                # The call establishes a clobber/return origin, never a value.
+                result[reg] = Value(None, frozenset({insn.address}))
         if insn.cc not in (ARM_CC_AL, ARM_CC_INVALID):
             for key in set(result) | set(state):
                 result[key] = result.get(key, UNKNOWN).join(state.get(key, UNKNOWN))
@@ -282,7 +285,10 @@ def analyze_function(
                 "classification": ("CONDITIONAL_WRITE" if observation["conditional"] else "STATICALLY_PROVEN_WRITE") if converged and len(values) == 1 else "POSSIBLE_WRITE" if values else "UNKNOWN_DESTINATION",
                 "cfg_predecessors": [source for source, rows in edges.items() if any(dest == address for dest, _ in rows)]})
             stores.append(observation)
-    return {"function_vma": entry, "mode": mode, "instruction_count": len(instructions), "reachable_instruction_vmas": sorted(instructions), "iterations": iterations,
+    for call in calls:
+        state = states.get(call["callsite"], {})
+        call["argument_registers"] = {reg: state.get(reg, UNKNOWN).as_dict() for reg in ("r0", "r1", "r2", "r3")}
+    return {"analyzer_version": ANALYZER_VERSION, "function_vma": entry, "mode": mode, "instruction_count": len(instructions), "reachable_instruction_vmas": sorted(instructions), "iterations": iterations,
             "converged": converged, "stores": stores, "calls": calls,
             "cfg_edges": [{"source": source, "target": destination, "kind": kind} for source, rows in edges.items() for destination, kind in rows],
             "unresolved": unresolved, "runtime_verified": False, "safe_to_invoke": False,
@@ -359,7 +365,7 @@ def recover_provider_writes(path: Path, expected_sha256: str, *, target: int = 0
                 if store['target_match']:
                     hits.append({**store, "binary_sha256": digest, "address_space": "ELF_VMA",
                                  "boundary_confidence": boundary})
-        return {"schema_version": 1, "analyzer_version": "arm-store-dataflow-1", "binary_sha256": digest,
+        return {"schema_version": 1, "analyzer_version": ANALYZER_VERSION, "binary_sha256": digest,
                 "address_space": "ELF_VMA", "target": target, "init_array_entry_count": len(entries),
                 "functions_analyzed": len(results), "instruction_count": sum(row['instructions'] for row in results),
                 "store_count": sum(row['stores'] for row in results), "writer_observations": hits,

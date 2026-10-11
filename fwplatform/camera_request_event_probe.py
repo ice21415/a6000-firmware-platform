@@ -18,6 +18,7 @@ from elftools.elf.elffile import ELFFile
 
 from .elf_plt import resolve_plt_binding
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
+from .arm_store_dataflow import analyze_function
 
 
 TARGET = {
@@ -237,3 +238,155 @@ def validate_request_event_factory(report: dict[str, Any]) -> dict[str, Any]:
         if observation.get("bindings", {}).get(key, {}).get("status") != "VERIFIED_STATIC":
             errors.append(f"binding:{key}")
     return {"valid": not errors, "errors": sorted(set(errors))}
+
+
+def assess_request_event_eligibility(
+    event_id: int, queue_class: int | None, destination: int | None, *,
+    receiver_enabled: bool | None = None, append_accepts: bool | None = None,
+    pointer_preserved: bool | None = None, scheduled: bool | None = None,
+) -> dict[str, Any]:
+    """Evaluate hypothetical conditions offline; never certify runtime delivery.
+
+    Class and destination are observed bytes, not a guessed Event subtype.
+    Boolean conditions are caller-supplied model inputs, not trusted evidence.
+    """
+    if type(event_id) is not int or not 0 <= event_id <= 0xffffffff:
+        raise ValueError("event ID must be an ARM32 word")
+    for value in (queue_class, destination):
+        if value is not None and (type(value) is not int or not 0 <= value <= 255):
+            raise ValueError("Event fields must be bytes or unknown")
+    for value in (receiver_enabled, append_accepts, pointer_preserved, scheduled):
+        if value is not None and type(value) is not bool:
+            raise ValueError("model conditions must be booleans or unknown")
+    queue = "UNKNOWN" if queue_class is None else "QUEUE0" if queue_class == 0 else "QUEUE1" if queue_class == 1 else "NO_QUEUE_ON_OBSERVED_BRANCH"
+    mask_pass = None if destination is None else bool(destination & 0x02)
+    blocked = event_id != EVENT_ID_LITERAL["value"] or queue == "NO_QUEUE_ON_OBSERVED_BRANCH" or mask_pass is False or False in (receiver_enabled, append_accepts, pointer_preserved, scheduled)
+    unknowns = [name for name, value in {"queue_class": queue_class, "destination": destination, "receiver_enabled": receiver_enabled, "append_accepts": append_accepts, "pointer_preserved": pointer_preserved, "scheduling": scheduled}.items() if value is None]
+    if queue == "QUEUE1":
+        unknowns.extend(["pre_enqueue_callback_effect", "queue1_transfer_trigger"])
+    return {"queue_selected": queue, "requires_queue1_transfer": queue == "QUEUE1",
+            "requires_pre_enqueue_callback": queue == "QUEUE1", "destination_mask": 2,
+            "destination_bit_index": 1, "destination_pass": mask_pass,
+            "consumer_event_id_pass": event_id == EVENT_ID_LITERAL["value"],
+            "status": "INELIGIBLE_UNDER_MODEL_INPUTS" if blocked else "CONDITIONAL_STATIC_ELIGIBILITY",
+            "unresolved_conditions": unknowns, "evidence_level": "OFFLINE_MODEL_ONLY",
+            "runtime_verified": False, "safe_to_invoke": False}
+
+
+def probe_request_event_eligibility(
+    elf_path: Path, *, expected_sha256: str = EXPECTED_LIBOBJ_SHA,
+) -> dict[str, Any]:
+    """Recover Request header and same-register pointer handoffs from primary ELF."""
+    factory = probe_request_event_factory(elf_path, expected_sha256=expected_sha256)
+    path = Path(elf_path)
+    with path.open("rb") as fp:
+        elf = ELFFile(fp)
+        decoder = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
+        decoder.detail = True
+        def require(address: int, mnemonic: str, operands: str) -> dict[str, Any]:
+            row = next(decoder.disasm(_read_vma(fp, elf, address, 4, executable=True), address, count=1), None)
+            if row is None or (row.mnemonic, row.op_str) != (mnemonic, operands):
+                raise ValueError(f"eligibility instruction mismatch at {address:#x}")
+            owners = [(0x7f17f8, 0x7f182c), (0x10f9f4, 0x10f9fc), (0x7eebf8, 0x7eec00),
+                      (0x7ef88c, 0x7ef894), (0x7ef960, 0x7ef9fc), (0x7ef910, 0x7ef940),
+                      (0x7ef940, 0x7ef960), (0x7eeee8, 0x7ef1e4), (0x7eed0c, 0x7eeec8),
+                      (0x7ed49c, 0x7ed8e0), (0x7eaa14, 0x7eaa24)]
+            owner = next((start for start, end in owners if start <= address < end), None)
+            if owner is None:
+                raise ValueError("instruction outside bounded target bodies")
+            return {"function_vma": hex(owner), "instruction_vma": hex(address), "mnemonic": mnemonic, "operands": operands,
+                    "binary_sha256": factory["binary_file_sha256"],
+                    "address_space": "ELF_VMA", "verification": "PRIMARY_ELF_VERIFIED"}
+        checks = {
+            0x7f17fc: ("strb", "r2, [r0, #8]"), 0x7f1800: ("strb", "r3, [r0, #9]"),
+            0x7f1802: ("str", "r1, [r0, #4]"), 0x10f9f8: ("strb", "r1, [r0, #8]"),
+            0x7eebfc: ("ldrb", "r0, [r0, #8]"), 0x7ef890: ("ldrb", "r0, [r0, #9]"),
+            0x7ef974: ("cmp", "r0, #1"), 0x7ef978: ("bne", "#0x7ef9d2"),
+            0x7ef9d2: ("cbnz", "r0, #0x7ef9ea"), 0x7ef9dc: ("mov", "r1, r5"),
+            0x7ef9de: ("ldr", "r0, [r3]"), 0x7ef9e0: ("bl", "#0x7f0aac"),
+            0x7ef922: ("cbz", "r0, #0x7ef936"), 0x7ef92a: ("bl", "#0x7f099c"),
+            0x7ef92e: ("mov", "r1, r0"), 0x7ef930: ("mov", "r0, r5"),
+            0x7ef932: ("bl", "#0x7f0aac"), 0x7ef952: ("mov", "r5, r0"),
+            0x7ef95a: ("mov", "r0, r5"), 0x7eefda: ("bl", "#0x7ef940"),
+            0x7eefde: ("mov", "r1, r0"), 0x7eefe0: ("mov", "r0, r4"),
+            0x7eefe2: ("bl", "#0x7eed0c"), 0x7eed14: ("mov", "r5, r1"),
+            0x7eed86: ("mov", "r6, r0"),
+            0x7eedda: ("and", "r3, r6, #2"), 0x7eede0: ("cbz", "r3, #0x7eedf4"),
+            0x7eedec: ("ldr", "r0, [r4, #4]"), 0x7eedee: ("mov", "r1, r5"),
+            0x7eedf0: ("bl", "#0x7ed49c"), 0x7ed4a8: ("mov", "r5, r1"),
+            0x7ed4b2: ("bl", "#0x7eaa14"), 0x7ed4b8: ("beq.w", "#0x7ed8d8"),
+            0x7eaa14: ("ldr.w", "r0, [r0, #0xa4]"),
+            0x7ed4f4: ("subs", "r3, #3"), 0x7ed4fc: ("adds", "r3, #1"),
+            0x7ed4fe: ("cmp", "r6, r3"), 0x7ed500: ("bne", "#0x7ed552"),
+            0x7ed502: ("b", "#0x7ed5c8"),
+            0x7ed5d4: ("bl", "#0x7ea918"), 0x7ed5ea: ("bl", "#0x7ea918"),
+            0x7ed5fc: ("bl", "#0x7eb8fa"),
+        }
+        evidence = [require(address, *expected) for address, expected in checks.items()]
+        literal = struct.unpack("<I", _read_vma(fp, elf, 0x7ed750, 4))[0]
+        if literal - 3 + 1 != EVENT_ID_LITERAL["value"]:
+            raise ValueError("consumer request ID calculation mismatch")
+        bindings = {name: _binding(fp, elf, entry) for name, entry in {
+            "event_constructor": 0xdb66c, "get_destination": 0xdcecc,
+            "get_id": 0xdbafc, "set_destination": 0xde708}.items()}
+        required_symbols = {"event_constructor": "_ZN5EventC1Emhh", "get_destination": "_ZN5Event7getDestEv", "get_id": "_ZNK5Event5getIdEv", "set_destination": "_ZN5Event7setDestEh"}
+        for name, symbol in required_symbols.items():
+            if bindings[name]["candidates"][0]["symbol"] != symbol:
+                raise ValueError(f"unexpected binding: {name}")
+        def memory(address: int, size: int) -> bytes | None:
+            for segment in elf.iter_segments():
+                if segment["p_type"] == "PT_LOAD" and int(segment["p_vaddr"]) <= address and address + size <= int(segment["p_vaddr"]) + int(segment["p_filesz"]):
+                    if int(segment["p_flags"]) & 2:
+                        return None
+                    return _read_vma(fp, elf, address, size)
+            return None
+        factory_cfg = analyze_function(memory, TARGET["entry"], [(TARGET["entry"], TARGET["entry"] + TARGET["size"])])
+        constructor_call = next(call for call in factory_cfg["calls"] if call["callsite"] == 0x7f0b26)
+        for register, value in {"r1": 0x11004003, "r2": 2, "r3": 0}.items():
+            if constructor_call["argument_registers"][register]["values"] != [value]:
+                raise ValueError(f"constructor argument dataflow mismatch: {register}")
+        transfer_cfg = analyze_function(memory, 0x7ef910, [(0x7ef910, 0x7ef940)])
+        # Analyze the forwarding basic block, not an invented function entry.
+        forwarding_cfg = analyze_function(memory, 0x7eefd6, [(0x7eefd6, 0x7eefe6)])
+        pointer_flows = []
+        for cfg, producer, consumer, owner in [(transfer_cfg, 0x7ef92a, 0x7ef932, 0x7ef910),
+                                                (forwarding_cfg, 0x7eefda, 0x7eefe2, 0x7eeee8)]:
+            call = next(call for call in cfg["calls"] if call["callsite"] == consumer)
+            argument = call["argument_registers"]["r1"]
+            if not cfg["converged"] or producer not in argument["instruction_origins"]:
+                raise ValueError("pop/dequeue return provenance not preserved")
+            pointer_flows.append({"function_vma": hex(owner), "producer_callsite": hex(producer),
+                                  "consumer_callsite": hex(consumer), "argument_register": "r1",
+                                  "value": "UNKNOWN_POINTER_WORD", "provenance": argument,
+                                  "analysis_scope": "function" if owner == 0x7ef910 else "forwarding basic block within application loop"})
+    return {
+        "schema_version": 1, "analyzer_version": "request-event-eligibility-1", "status": "LOCAL_PRIMARY_ELF_REQUEST_ELIGIBILITY",
+        "binary_sha256": factory["binary_file_sha256"], "address_space": "ELF_VMA",
+        "request_event": {"event_id": "0x11004003", "factory": "0x7f0b0c", "constructor": "0x7f17f8",
+                          "allocation_bytes": 16, "id_field": {"offset": 4, "width": 4},
+                          "class_field": {"offset": 9, "width": 1, "value": 0, "meaning": "observed queue-selection byte; source-level subtype UNKNOWN"},
+                          "destination_field": {"offset": 8, "width": 1, "value": 2}, "parameter_keys": [7, 8]},
+        "queue_eligibility": {"queue_selected": "QUEUE0", "predicate": "Event[9] == 0", "append_callsite": "0x7ef9e0",
+                              "queue1_transfer_required": False, "main_callback_required": False,
+                              "conditions": ["same object and unchanged class byte", "local symbol binding", "append succeeds"]},
+        "queue_transfer": {"entry": "0x7ef910", "source_queue": "[manager.state + 4]", "destination_queue": "[manager.state + 0]",
+                           "pointer_flow": ["0x7ef92a:r0", "0x7ef92e:r1=r0", "0x7ef932:append argument r1"],
+                           "guard": "queue1 count nonzero", "events_per_invocation_max": 1,
+                           "ownership": "list node removed; Event pointer retained, no Event release observed",
+                           "required_for_default_request": False},
+        "application_loop": {"entry": "0x7eeee8", "event_manager_source": "owner +0x10",
+                             "pointer_flow": ["0x7eefda:return r0", "0x7eefde:r1=r0", "0x7eefe2:router argument r1"],
+                             "guard": "count(0) nonzero on observed drain loop", "scheduling": "UNKNOWN"},
+        "router_eligibility": {"entry": "0x7eed0c", "consumer_callsite": "0x7eedf0", "consumer": "0x7ed49c",
+                              "destination_predicate": "snapshot_destination & 0x02 != 0", "mask": 2, "bit_index": 1,
+                              "request_passes_initial_mask": True, "consumer_receiver_source": "owner +4",
+                              "consumer_state_predicate": "receiver word +0xa4 != 0", "request_id_predicate": "Event.id == 0x11004003"},
+        "end_to_end": {"status": "CONDITIONAL_STATIC_REQUEST_PATH", "queue1_request_hypothesis": "SUPERSEDED_DISPROVEN_FOR_INITIAL_REQUEST",
+                       "unresolved": ["runtime scheduling and owner identity", "callback/helper interposition and later aliases", "append guards/allocation exceptions", "receiver enabled state", "model registry instance and runtime DSO identity"],
+                       "event_lifetime": "borrowed through consumer; Router later destructs/deletes Event"},
+        "model_assessment": assess_request_event_eligibility(0x11004003, 0, 2),
+        "dataflow": {"constructor_arguments": constructor_call["argument_registers"], "factory_reachable_instructions": factory_cfg["instruction_count"],
+                     "pointer_flows": pointer_flows, "transfer_reachable_instructions": transfer_cfg["instruction_count"],
+                     "forwarding_block_reachable_instructions": forwarding_cfg["instruction_count"]},
+        "evidence": evidence, "bindings": bindings, "runtime_verified": False, "safe_to_invoke": False,
+    }

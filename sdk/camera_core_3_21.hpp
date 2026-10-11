@@ -48,12 +48,14 @@ struct RequestModelExecuteHostObservation {
 };
 
 // The factory creates an Event with id 0x11004003 and adds keys 7 and 8.  The
-// values are positional observations; their receiver-side interpretation is
-// UNKNOWN.
+// Header initialization chooses queue0 and destination mask 0x02. Receiver
+// identity and scheduling remain conditions; this is not a delivery guarantee.
 struct RequestEventEnvelopeObservation {
   static constexpr std::uint32_t event_id = 0x11004003;
   static constexpr std::uint32_t model_key = 7;
   static constexpr std::uint32_t selector_key = 8;
+  static constexpr std::uint8_t initial_destination = 0x02;
+  static constexpr std::uint8_t initial_queue_selection_byte = 0;
   Arm32Word model_identifier;
   Arm32Word transformed_selector;
   Arm32Word optional_param_list_arm32;
