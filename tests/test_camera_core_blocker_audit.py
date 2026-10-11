@@ -33,8 +33,8 @@ class CameraCoreBlockerAuditTests(unittest.TestCase):
         result = audit_blocker_contracts(*self.data())
         self.assertTrue(result["valid"], result["errors"])
         self.assertEqual(result["scope"], "PUBLIC_METADATA_CONSISTENCY_ONLY")
-        self.assertEqual(result["counts"]["tracked_core_edges"], 67)
-        self.assertEqual(result["counts"]["primary_elf_verified_edges"], 57)
+        self.assertEqual(result["counts"]["tracked_core_edges"], 70)
+        self.assertEqual(result["counts"]["primary_elf_verified_edges"], 60)
         self.assertEqual(result["counts"]["unresolved_edges"], 5)
 
     def test_duplicate_edge_does_not_inflate_progress(self):
