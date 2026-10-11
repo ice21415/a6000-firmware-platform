@@ -740,11 +740,14 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
     a particular runtime lookup selected that dynamic type.
     """
     witnesses = (
-        (0x7EB8FA, 0x48, ((0x7EB904, "add.w", "r4, r0, #0x88"), (0x7EB938, "ldr", "r0, [r0, #4]"))),
-        (0x7EC8A4, 0xBE, ((0x7EC8BA, "add.w", "r5, r4, #0x88"), (0x7EC91C, "bl", "#0x7f1156"), (0x7EC954, "bl", "#0x7ec6cc"))),
+        (0x7EB8FA, 0x48, ((0x7EB904, "add.w", "r4, r0, #0x88"), (0x7EB908, "mov", "r0, r4"), (0x7EB938, "ldr", "r0, [r0, #4]"))),
+        (0x7EC8A4, 0xBE, ((0x7EC8B6, "bl", "#0x7ea930"), (0x7EC8BA, "add.w", "r5, r4, #0x88"), (0x7EC8BE, "str", "r0, [r7, #0x20]"), (0x7EC90E, "ldr", "r1, [r7, #0x20]"), (0x7EC91C, "bl", "#0x7f1156"), (0x7EC94E, "mov", "r1, r5"), (0x7EC954, "bl", "#0x7ec6cc"))),
         (0x7F1156, 0x24, ((0x7F1160, "stm.w", "r0, {r1, r2}"), (0x7F116C, "str", "r3, [r0, #0x14]"), (0x7F1174, "str", "r2, [r0, #0x1c]"))),
         (0x7F11CA, 0x80, ((0x7F11D8, "blx", "#0xe0cec"), (0x7F11E6, "blx", "#0xdfed0"), (0x7F11F2, "blx", "r3"), (0x7F11F4, "str", "r0, [r4, #0x1c]"))),
-        (0x40208C, 0x18, ((0x402090, "blx", "#0xdffb8"), (0x4020A0, "blx", "#0xdf58c"))),
+        (0x401F80, 0x14, ((0x401F80, "blx", "#0xdbc58"), (0x401F8E, "mov", "r4, r0"))),
+        (0x40208C, 0x18, ((0x402090, "blx", "#0xdffb8"), (0x40209C, "mov", "r1, r0"), (0x40209E, "mov", "r0, r4"), (0x4020A0, "blx", "#0xdf58c"))),
+        (0x12D670, 0xE6, ((0x12D678, "ldrb", "r3, [r0]"), (0x12D67A, "cmp", "r3, #0x40"), (0x12D714, "blx", "#0xdfbb8"), (0x12D718, "cbz", "r0, #0x12d748"), (0x12D71A, "ldrb", "r4, [r5, #2]"), (0x12D726, "ldrb", "r3, [r5, #3]"), (0x12D736, "ldrb", "r3, [r5, #4]"), (0x12D742, "adds", "r4, r2, r4"), (0x12D744, "adds", "r4, r4, r3"), (0x12D74C, "mov", "r0, r4"))),
+        (0x7EA930, 0x08, ((0x7EA934, "ldr", "r0, [r0, #8]"),)),
         (0x4C8C64, 0x1A, ((0x4C8C66, "movw", "r0, #0x27d4"), (0x4C8C74, "bl", "#0x4c8af4"), (0x4C8C78, "str", "r5, [r4, #0x20]"))),
         (0x4C8AF4, 0x20, ((0x4C8B08, "ldr", "r3, [r4, r3]"), (0x4C8B0A, "add.w", "r2, r3, #8"), (0x4C8B10, "str", "r2, [r5]"))),
         (0x7EFBFE, 0x12, ((0x7EFC02, "ldr", "r3, [r0, #8]"), (0x7EFC06, "subs", "r3, #1"), (0x7EFC0C, "tbb", "[pc, r3]"))),
@@ -763,6 +766,26 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
         raise ValueError("Camera factory symbol mismatch")
     if _binding(fp, elf, 0xDF58C)["candidates"][0]["symbol"] != "_ZN9IdSoTable3addEiPKcS1_":
         raise ValueError("Camera factory configuration binding mismatch")
+    for entry, symbol in (
+        (0xDBC58, "_ZN14ModelIdSoTable11getInstanceEv"),
+        (0xDFFB8, "_ZN11IdGenerator3GetEPKc"),
+        (0xDFBB8, "strncmp"),
+    ):
+        if _binding(fp, elf, entry)["candidates"][0]["symbol"] != symbol:
+            raise ValueError(f"Camera keyflow PLT binding mismatch: {entry:#x}")
+    if not _symbol_matches(elf, "_ZN11IdGenerator3GetEPKc", 0x12D670, 272):
+        raise ValueError("IdGenerator::Get ELF symbol identity mismatch")
+    special = (_read_load_word(fp, elf, 0x12D77C) + 0x12D716) & 0xFFFFFFFF
+    special_bytes = b"".join(
+        _read_load_word(fp, elf, special + offset).to_bytes(4, "little")
+        for offset in (0, 4)
+    )
+    if not special_bytes.startswith(b"@MFFE\0"):
+        raise ValueError("IdGenerator reserved-token guard mismatch")
+    # @M00B != @MFFE: the guarded compact branch computes 0x00B and
+    # returns it in r0. At 0x40209C, the unchanged return is copied
+    # directly into r1 for IdSoTable::add at 0x4020A0.
+
     # PIC strings are computed from their literal and architectural Thumb PC.
     strings: dict[str, str] = {}
     for name, literal, pc, expected in (
@@ -809,6 +832,9 @@ def _observe_camera_registry_dispatch(fp: Any, elf: ELFFile, digest: str) -> tup
         _edge("registry.camera.config", "Camera model configuration", "IdSoTable::add", "REGISTERS_FACTORY", 0x401F78, digest, target_vma=0x7F08A0, callsite_vma=0x4020A0, method="CAPSTONE_PRIMARY_ELF+PLT_RELOCATION", note="@M00B / modelCamera.so / ModelCameraToInstance; not runtime loader resolution."),
         _edge("registry.camera.id_generator", "Camera model compact name @M00B", "IdGenerator::Get", "RESOLVES_MODEL_KEY", 0x401F78, digest, target_vma=0xDFFB8, callsite_vma=0x402090, method="CAPSTONE_PRIMARY_ELF+PLT_RELOCATION", note="PC-relative literal @M00B is passed to the relocation-bound IdGenerator PLT; parser-derived numeric ID 11 is independently proven at 0x12d71a."),
         _edge("registry.camera.model_id_parser", "compact model token @M00B", "Model ID:11", "PARSES_MODEL_ID", 0x12D71A, digest, callsite_vma=0x12D71A, method="CAPSTONE_PRIMARY_ELF_DATAFLOW", note="Parser reads token offsets +2,+3,+4 and applies hexadecimal digit conversion; @M00B yields 0x00b. This proves configuration parsing, not registry record identity."),
+        _edge("registry.camera.return_key_to_add", "IdGenerator::Get(@M00B) = 11 on compact branch", "ModelIdSoTable::add integer key argument", "PASSES_RETURN_AS_KEY", 0x401F78, digest, target_vma=0x7F08A0, callsite_vma=0x4020A0, method="ELF_THUMB_CFG+PLT_RELOCATION", note="0x401f80 ModelIdSoTable::getInstance -> r4; 0x402090 IdGenerator::Get @M00B -> r0; 0x40209c moves r0 to r1; 0x40209e passes r4 as this; 0x4020a0 calls IdSoTable::add. Guarded parser checks reserved @MFFE and returns 11 for @M00B. Does not prove later ModelManager record identity."),
+        _edge("registry.modelmanager.descriptor_key_to_record", "ModelManager descriptor +0x8 numeric key", "record initializer key field +0x0", "PASSES_DESCRIPTOR_ID", 0x7EC8A4, digest, target_vma=0x7F1156, callsite_vma=0x7EC91C, method="ELF_THUMB_REGISTER_DATAFLOW", note="0x7ec8b6 loads descriptor+8 via 0x7ea930; 0x7ec8be stores to stack; 0x7ec90e passes same stack word as initializer r1; 0x7f1160 stores r1 to new record+0. Value 11 requires descriptor identity, not proven."),
+        _edge("registry.modelmanager.common_owner_tree_offset", "ModelManager record-registration owner +0x88", "ModelManager lookup owner +0x88", "USES_COMMON_FIELD_OFFSET", 0x7EC8A4, digest, target_vma=0x7EB8FA, callsite_vma=0x7EB904, method="ELF_THUMB_OBJECT_RELATIVE", note="0x7ec8ba derives registration tree r5 from owner+0x88; 0x7ec94e supplies r5 to insertion call; 0x7eb904 derives lookup tree r4 from its owner+0x88. This verifies identical field structure, NOT same runtime owner or record pointer."),
         _edge("camera.factory.constructor", "ModelCameraToInstance", "Camera object initializer", "CALLS", 0x4C8C64, digest, target_vma=0x4C8AF4, callsite_vma=0x4C8C74),
         _edge("camera.constructor.vptr", "Camera object initializer", "CameraVtable:0x100a330", "INITIALIZES_VPTR", 0x4C8AF4, digest, callsite_vma=0x4C8B10, method="CAPSTONE_PRIMARY_ELF+R_ARM_RELATIVE"),
         _edge("camera.vtable.final_slot", "CameraVtable:0x100a330", "Camera completion candidate", "VTABLE_SLOT", address_point, digest, target_vma=0x132624, callsite_vma=0x100A348, method="ELF_DATA+R_ARM_RELATIVE", note="Slot +0x18 only; callsite 0x7efce0 selects it only if the receiver has this vptr."),
