@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.45 private SHA-pinned libosal_uipc.so proves bit0x8000 remote UIPC dispatch for im sender 0x94016a, ioctl requests 0x80000004/07/08/0c through /dev/uipc, and remote-allocated im dynamic receive ID; kernel endpoint mapping still unknown.",
+  "latest_checkpoint": "Phase4.46 original osal_uipc.ko confirms four ioctl dispatch destinations; successful im dynamic ID (0x2a, 0x94) is in 0x946000..0x946fff and provably not fixed sender destination 0x94016a. Forwarding/OSAL delivery remains unverified.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1039,5 +1039,33 @@
     "tracked_core_edges": 84,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
+  },
+  "phase4_46_kernel_uipc_queue_identity": {
+    "source_sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "elf": "ET_REL ARM kernel module; offsets section-relative",
+    "evidence": "sdk/uipc_kernel_dispatch_3_21.json",
+    "report": "reports/PHASE4_46_UIPC_KERNEL_IDENTITY.md",
+    "kernel_handlers": {
+      "0x80000004": "__k_4u_snd_msg",
+      ".0x80000007": "__k_4u_rcv_msg_tmo",
+      ".0x80000008": "__k_4u_reg_msg_queue_cb",
+      ".0x8000000c": "__k_4u_dynamic_id"
+    },
+    "im_sender_destination": "0x0094016a",
+    "im_receiver_allocation_args": [
+      "0x2a",
+      "0x94"
+    ],
+    "im_receiver_possible_success_range": [
+      "0x00946000",
+      "0x00946fff"
+    ],
+    "static_identity_result": "FIXED_SENDER_ID_DIFFERENT_FROM_DYNAMIC_RECEIVER_ID",
+    "requires_forwarder_or_alternative_sender": true,
+    "actual_callback_delivery": "UNKNOWN",
+    "core_graph_edges_added": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84,
+    "runtime_verified_apis": 0
   }
 }
