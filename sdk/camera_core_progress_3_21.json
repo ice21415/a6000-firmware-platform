@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.36 direct uploaded ELF: libIMDB.so SHA256 9ceb2109... has concrete exported IMDB_find_entry 44-byte row iterator, 143 valid entries plus 0x28 sentinel; appFw/subapp rows id=0x83 select disjoint target bits; actual loader caller unknown",
+  "latest_checkpoint": "Phase 4.37 user 649-ELF sweep: bin/im.elf uniquely imports IMDB_find_entry, IMDB_find_target_bit, IMDB_get_entries and DT_NEEDED libIMDB.so; im.elf raw code pending. No execution, loader or branch proven.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -812,6 +812,39 @@
       "runtime ModelCamera factory DSO"
     ],
     "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_37_im_elf_linkage": {
+    "source": "user-run scan_a6000_imdb_consumers.py, private extracted A6000 3.21 tree",
+    "scan_count_elf": 649,
+    "skipped_oversize": 0,
+    "matching_modules": 2,
+    "importer": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/im.elf",
+    "imports": [
+      "IMDB_find_entry",
+      "IMDB_find_target_bit",
+      "IMDB_get_entries"
+    ],
+    "needed": [
+      "libIMDB.so"
+    ],
+    "exporter": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libIMDB.so",
+    "exported_names": [
+      "IMDB_find_entry",
+      "IMDB_find_target_bit",
+      "IMDB_get_entries",
+      "imdb_raw"
+    ],
+    "importer_sha256": "UNKNOWN - binary not uploaded",
+    "caller_plt_and_register_dataflow": "UNKNOWN - raw im.elf required",
+    "init_row_consumer": "UNKNOWN",
+    "appfw_to_libobj_alias": "UNKNOWN",
+    "runtime_Application_System_Init_argument": "UNKNOWN",
+    "verification_level": "USER_ELF_DYNAMIC_SYMBOL_SCAN_NOT_DIRECT_CALL",
+    "new_camera_core_graph_edges": 0,
     "tracked_core_edges": 84,
     "primary_elf_verified_edges": 74,
     "runtime_verified_apis": 0,
