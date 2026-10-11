@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -56,7 +55,11 @@ def audit_blocker_contracts(
     ):
         errors.append("cross_graph_duplicate_id")
 
-    if set(blocker_ids) != set(unresolved_ids):
+    active_blocker_ids = {
+        row.get("id") for row in blockers
+        if isinstance(row, dict) and row.get("blocker_resolved") is False
+    }
+    if active_blocker_ids != set(unresolved_ids):
         errors.append("ledger_unresolved_id_mismatch")
     if set(blocker_ids) != BASELINE_BLOCKERS:
         errors.append("baseline_blocker_ids_changed")
@@ -95,10 +98,19 @@ def audit_blocker_contracts(
         entry = by_id.get(blocker_id)
         if not isinstance(entry, dict):
             continue
-        if entry.get("current_status") != "UNRESOLVED" or entry.get("blocker_resolved") is not False:
+        if entry.get("blocker_resolved") is True:
+            proof_ids = entry.get("resolution_evidence_ids")
+            if (entry.get("current_status") != "RESOLVED"
+                or not isinstance(proof_ids, list) or not proof_ids
+                or any(proof_id not in primary_ids for proof_id in proof_ids)):
+                errors.append(f"unsupported_blocker_resolution:{blocker_id}")
+        elif entry.get("blocker_resolved") is False:
+            if entry.get("current_status") != "UNRESOLVED":
+                errors.append(f"unsupported_blocker_resolution:{blocker_id}")
+            if not isinstance(entry.get("missing_evidence"), list) or not entry["missing_evidence"]:
+                errors.append(f"missing_blocker_proof_requirements:{blocker_id}")
+        else:
             errors.append(f"unsupported_blocker_resolution:{blocker_id}")
-        if not isinstance(entry.get("missing_evidence"), list) or not entry["missing_evidence"]:
-            errors.append(f"missing_blocker_proof_requirements:{blocker_id}")
         for field in ("verified_segments", "new_findings", "candidate_exclusions"):
             if not isinstance(entry.get(field), list):
                 errors.append(f"invalid_blocker_field:{blocker_id}:{field}")
