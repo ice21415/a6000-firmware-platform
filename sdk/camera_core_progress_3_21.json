@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 73,
-  "primary_elf_verified_edges": 63,
+  "tracked_core_edges": 74,
+  "primary_elf_verified_edges": 64,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -385,22 +385,28 @@
       "unresolved_edges": 5
     },
     "after": {
-      "tracked_core_edges": 73,
-      "primary_elf_verified_edges": 63,
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
       "static_inferred_edges": 5,
       "unresolved_edges": 5
     },
     "new_primary_edges": [
       "registry.camera.idso_duplicate_guard",
       "registry.camera.idso_node_constructor",
-      "registry.modelmanager.descriptor_key_lookup"
+      "registry.modelmanager.descriptor_key_lookup",
+      "registry.record.state_machine_loader"
     ],
     "new_verified_store_observations": 3,
-    "significant_finding": "IdSoTable configuration nodes use +4 integer ID +8/+0xc copied name payload, distinct from ModelManager event record +8 state and +0x1c runtime instance",
+    "significant_finding": "IdSoTable configuration nodes use +4 integer ID +8/+0xc copied name payload, distinct from ModelManager event record +8 state and +0x1c runtime instance; state-machine record r1 preserved as r4 and conditionally passed into loader 0x7f11ca which stores factory instance to same record +0x1c on success",
     "modelidso_to_modelmanager_link": "UNKNOWN",
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0,
-    "source": "original local Sony A6000 FW3.21 SHA pinned read-only LLVM Thumb disassembly and symbol structure"
+    "source": "original local Sony A6000 FW3.21 SHA pinned read-only LLVM Thumb disassembly and symbol structure",
+    "blockers_narrowed": [
+      "IdSoTable configuration node identity and duplicate guard",
+      "ModelManager descriptor+8 lookup key",
+      "state-machine record passed as loader input before conditional instance+0x1c storage"
+    ]
   }
 }
