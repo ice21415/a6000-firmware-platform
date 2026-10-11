@@ -1667,6 +1667,48 @@
         "confidence": "HIGH"
       },
       "note": "ModelConfig vptr=0x1007528 has slot+0x1c address 0x1007544 with R_ARM_RELATIVE function pointer 0x45ef29; target 0x45ef28 calls PLT 0xdbc58 (GOT 0x102ce88; R_ARM_JUMP_SLOT ModelIdSoTable::getInstance 0x7ee361). Therefore ModelConfig branch returns same getter result as @M00B registration. Does not prove runtime selection or descriptor key 11."
+    },
+    {
+      "id": "startup.application_init_default_appconfig",
+      "source": "Application_System_Init null arg branch",
+      "target": "BSS 0x010df828 default AppConfig.so",
+      "relation": "INITIALIZES_DEFAULT_SELECTOR",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7ed9f4",
+      "target_vma": "0xdce00",
+      "callsite_vma": "0x7eda36",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eda36",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_CONDITIONAL_STRING_COPY+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ed9fa saves r0 as r5, 0x7eda22 cbz switches to default; 0x7eda2e/0x7eda32 compute exact AppConfig.so string at 0x00d87f27 as r1. 0x7eda2c/0x7eda30 compute BSS destination 0x010df828 as r0. At 0x7eda34 r2=0xff; 0x7eda36 BLX 0xdce00 resolves by ARM PLT GOT 0x0102d428 R_ARM_JUMP_SLOT strncpy@GLIBC_2.4. Does not prove runtime caller passes null."
+    },
+    {
+      "id": "startup.application_init_explicit_selector",
+      "source": "Application_System_Init non-null arg branch",
+      "target": "BSS 0x010df828 caller-provided selector",
+      "relation": "COPIES_CALLER_SELECTOR",
+      "address_space": "ELF_VMA",
+      "source_vma": "0x7ed9f4",
+      "target_vma": "0xdce00",
+      "callsite_vma": "0x7eda36",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eda36",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_CONDITIONAL_STRING_COPY+PLT_RELOCATION",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ed9fa saves external argument r0 as r5; non-null branch 0x7eda24/0x7eda28 computes same BSS destination 0x010df828 and 0x7eda26 passes input r5 as r1 to same strncpy PLT call with r2=0xff. Actual external caller and input string UNKNOWN; no runtime branch choice proven."
     }
   ],
   "unresolved_edges": [
@@ -2339,8 +2381,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 82,
-    "primary_elf_verified_edges": 72
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3980,6 +4022,32 @@
       "unresolved": 5
     },
     "resolved_blockers": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_30_application_init_selector_provenance": {
+    "status": "ELF_STATIC_BSS_SELECTOR_WRITERS_VERIFIED_CONDITIONAL",
+    "new_primary": [
+      "startup.application_init_default_appconfig",
+      "startup.application_init_explicit_selector"
+    ],
+    "init_export": "Application_System_Init (0x7ed9f5 Thumb)",
+    "parameter": "r0; captured in r5 at 0x7ed9fa",
+    "destination_bss": "0x010df828",
+    "default_string": "AppConfig.so (0x00d87f27)",
+    "default_condition": "r0 == NULL at 0x7eda22",
+    "non_null_source": "r0 caller argument",
+    "copy": "strncpy@GLIBC_2.4 via 0xdce00 PLT GOT 0x0102d428; count 0xff",
+    "reader": "0x7ed994 -> bootstrap 0x7ef254",
+    "external_caller_identity": "UNKNOWN",
+    "runtime_branch_choice": "UNKNOWN",
+    "previous_wbi_bias_0x40000000": "FAILED code fingerprint 0/1 mapped, 3/4 unmapped; not a valid identity proof",
+    "counts": {
+      "tracked": 84,
+      "primary": 74,
+      "inferred": 5,
+      "unresolved": 5
+    },
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
   }
