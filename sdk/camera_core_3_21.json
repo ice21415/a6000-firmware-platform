@@ -1478,6 +1478,27 @@
         "confidence": "HIGH"
       },
       "note": "Wrapper r1 descriptor is passed to 0x7ea930 at 0x7eb94e and key+8 returned to r1 at 0x7eb952; r0 holds ModelManager owner from r4; lookup called at 0x7eb956. Does not prove cross-call instance identity."
+    },
+    {
+      "id": "registry.record.state_machine_loader",
+      "source": "state-machine record parameter r1",
+      "target": "record loader writing instance +0x1c",
+      "target_vma": "0x7f11ca",
+      "source_vma": "0x7eac60",
+      "callsite_vma": "0x7eacb4",
+      "relation": "PASSES_RECORD_TO_LOADER",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7eacb4",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_REGISTER_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "State-machine 0x7eac62 copies record r1->r4; guarded 0x7eacb2 (and 0x7ead8a) copies r4->r0 before 0x7f11ca; loader 0x7f11f4 stores factory result [r4+0x1c] under loader success predicates; 0x7eaf8c passes r4 to 0x7f124a under separate guarded path. These paths do not prove successful runtime instance or modelCamera.so alias."
     }
   ],
   "unresolved_edges": [
@@ -2150,8 +2171,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 73,
-    "primary_elf_verified_edges": 63
+    "tracked_core_edges": 74,
+    "primary_elf_verified_edges": 64
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3657,13 +3678,24 @@
       "cross_call_owner_instance": "UNKNOWN"
     },
     "counts": {
-      "tracked": 73,
-      "primary": 63,
+      "tracked": 74,
+      "primary": 64,
       "inferred": 5,
       "unresolved": 5
     },
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
-    "safe_to_invoke_apis": 0
+    "safe_to_invoke_apis": 0,
+    "state_machine_loader": {
+      "state_machine": "0x7eac60",
+      "record_parameter": "r1 preserved as r4 at 0x7eac62",
+      "loader_callsite": "0x7eacb4",
+      "alternate_loader_callsite": "0x7ead8c",
+      "callee": "0x7f11ca",
+      "loader_instance_write": "0x7f11f4 record+0x1c",
+      "forwarder_callsite": "0x7eaf90",
+      "conditions": "STATE_EVENT_BRANCHES_AND_LOADER_SUCCESS_REQUIRED",
+      "runtime_instance_identity": "UNKNOWN"
+    }
   }
 }
