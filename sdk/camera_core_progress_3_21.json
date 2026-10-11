@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.30 directly verifies exported Application_System_Init copies default AppConfig.so or supplied selector into bootstrap BSS; WBI +0x40000000 hypothesis disproven by 0/1 code matches",
+  "latest_checkpoint": "Phase 4.31 user read-only 649 ELF import sweep: libObj dynamic export, libIMDB literal only; no direct dynamic imports; initializer runtime caller UNKNOWN",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -564,6 +564,32 @@
     ],
     "proven": "Application_System_Init(null) selects static AppConfig.so string and strncpy to BSS 0x010df828; Application_System_Init(nonnull) copies external r0 selector to same BSS; later bootstrap reads same BSS",
     "unknown": "external caller and actual runtime argument; ModelConfig branch selection, descriptor key11 and runtime modelCamera.so alias",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_31_reference_sweep": {
+    "user_reported": true,
+    "scanned_elfs": 649,
+    "large_files_skipped": 0,
+    "occurrences": 2,
+    "defined_export": [
+      "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libObj.so"
+    ],
+    "literal_only": [
+      "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libIMDB.so"
+    ],
+    "undefined_dynamic_imports": 0,
+    "limitations": [
+      "indirect function pointers/dlsym without matching literal",
+      "alternative executable loaders outside scanned ELF set",
+      "section-header-limited ELF32 dynamic symbol parsing"
+    ],
+    "libimdb_literal_section": "PENDING targeted local scanner",
+    "initializer_runtime_caller": "UNKNOWN",
+    "provider_runtime_selector": "UNKNOWN",
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
