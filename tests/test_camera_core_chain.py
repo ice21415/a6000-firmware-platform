@@ -107,6 +107,26 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
         self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
 
+    def test_phase4_22_direct_elf_keyflow_keeps_runtime_identity_unknown(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        expected = {
+            "registry.camera.return_key_to_add": ("PASSES_RETURN_AS_KEY", "0x4020a0"),
+            "registry.modelmanager.descriptor_key_to_record": ("PASSES_DESCRIPTOR_ID", "0x7ec91c"),
+            "registry.modelmanager.common_owner_tree_offset": ("USES_COMMON_FIELD_OFFSET", "0x7eb904"),
+        }
+        for edge_id, (relation, callsite) in expected.items():
+            self.assertIn(edge_id, edges)
+            self.assertEqual(edges[edge_id]["relation"], relation)
+            self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
+            self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
+            self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 70)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 60)
+        self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
+        self.assertFalse(report["verification"]["runtime_verified"])
+        self.assertFalse(report["verification"]["safe_to_invoke"])
+
     def test_phase4_17_pointer_and_record_edges_are_present(self):
         report = _report()
         edges = {row["id"]: row for row in report["edges"]}
