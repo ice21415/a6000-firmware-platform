@@ -1,0 +1,130 @@
+{
+  "phase": "4.46",
+  "firmware_version": "Sony A6000 3.21",
+  "verification": "PRIMARY_ORIGINAL_KERNEL_MODULE_ELF_STATIC",
+  "kernel_module": {
+    "filename": "osal_uipc_fw321.ko",
+    "sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "size_bytes": 37264,
+    "elf": "ELF32 little-endian ARM EABI5 ET_REL, unstripped",
+    "build_id": "572a8cb878ae35897b51056397bd98caa67e5435",
+    "section_vma_note": "Module section-relative addresses before Linux module loader relocation; not runtime kernel addresses"
+  },
+  "related_sources": {
+    "userspace_osal_sha256": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef",
+    "im_elf_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a"
+  },
+  "ioctl_kernel_dispatch": {
+    "function": "__k_uipc_cdev_ioctl",
+    "text_offset": "0x05a0",
+    "request_mask_instruction": "0x060c bic r6,r6,#0x80000000",
+    "range_check": "0x0610 cmp r6,#16",
+    "indirect_invoke_instruction": "0x067c blx r3",
+    "instruction_table": "0x0664..0x067c; .rodata relocation-backed handlers at base+0x28+4*request_index",
+    "mapping": [
+      {
+        "userspace_request": "0x80000004",
+        "masked_index": 4,
+        "rodata_table_offset": "0x38",
+        "handler": "__k_4u_snd_msg",
+        "handler_text_offset": "0x1b58",
+        "kernel_delegation_callsite": "0x1b90",
+        "kernel_delegation_symbol": "osal_snd_msg"
+      },
+      {
+        "userspace_request": "0x80000007",
+        "masked_index": 7,
+        "rodata_table_offset": "0x44",
+        "handler": "__k_4u_rcv_msg_tmo",
+        "handler_text_offset": "0x19fc",
+        "kernel_delegation_callsite": "0x1a6c",
+        "kernel_delegation_symbol": "osal_rcv_msg_tmo"
+      },
+      {
+        "userspace_request": "0x80000008",
+        "masked_index": 8,
+        "rodata_table_offset": "0x48",
+        "handler": "__k_4u_reg_msg_queue_cb",
+        "handler_text_offset": "0x077c",
+        "kernel_delegation_callsite": "0x0874",
+        "kernel_delegation_symbol": "reg_sync_msg_queue_cb",
+        "notes": "Only when sync-registration field in copied input is nonzero; otherwise invokes reg_msg_queue_cb at 0x0880."
+      },
+      {
+        "userspace_request": "0x8000000c",
+        "masked_index": 12,
+        "rodata_table_offset": "0x58",
+        "handler": "__k_4u_dynamic_id",
+        "handler_text_offset": "0x069c",
+        "kernel_delegation_callsites": [
+          "0x0710",
+          "0x0724"
+        ],
+        "kernel_delegation_symbol": "osal_dynamic_id"
+      }
+    ]
+  },
+  "send_lookup": {
+    "kernel_function": "osal_snd_msg",
+    "text_offset": "0x3bd4",
+    "test_remote_form": "0x3be4 tst r0,#0x8000; branch when set rejects this internal path",
+    "low16_extract": "0x3bf4 uxth r8,r0",
+    "queue_lookup_a": "0x3c08",
+    "queue_lookup_b": "0x3c18",
+    "source_process_verification": "0x3c28..0x3c64",
+    "queue_link_insert": "0x3cb0..0x3d24",
+    "notification": "0x3d38..0x3d4c",
+    "limit": "No proof a fixed destination ID belongs to the receiver's allocated ID."
+  },
+  "dynamic_id": {
+    "im_elf_arguments": {
+      "wrapper_vma": "0x92bc",
+      "r0_options": "0x2a",
+      "r1_namespace": "0x94",
+      "r2_output_pointer": true,
+      "plt_call": "0x92c6",
+      "callsite": "0x9e34"
+    },
+    "kernel_function": "osal_dynamic_id",
+    "text_offset": "0x4454",
+    "if_flag_0x2_set_no_0x8000": "0x4464..0x4480",
+    "select_by_option_0x10": "0x4490; option 0x2a & 0x10 =0",
+    "select_by_option_0x4": "0x449c..0x44a8; option 0x2a & 0x4 =0 => .data+0x17c+0x10 = 0x18c",
+    "pool_base_field": ".data+0x190",
+    "pool_base": "0x6000",
+    "pool_size_field": ".data+0x194",
+    "pool_size": "0x1000",
+    "namespace_or_instruction": "0x4584..0x45a8: OR namespace r1<<16 with selected base+index and optional bit 0x8000",
+    "allocation_algorithm": "first zero bit in pool bitmap, then marks allocated; actual chosen index is runtime-dependent",
+    "result_if_success_low16_range": "0x6000..0x6fff",
+    "result_if_success_full_range": "0x00946000..0x00946fff",
+    "fixed_im_send_destination": "0x0094016a",
+    "fixed_send_low16": "0x016a",
+    "identity_test": "PROVEN_STATIC_NON_EQUAL: a successful osal_dynamic_id(0x2a,0x94,...) cannot produce 0x0094016a",
+    "nuance": "A common driver does not imply direct send-to-receiver ID equality, or rule out a separate forwarding path. Successful allocation/receive unknown."
+  },
+  "sync_registration": {
+    "kernel_handler": "__k_4u_reg_msg_queue_cb at 0x77c",
+    "callback_object_allocator": "0x07ec alloc_cb",
+    "callback_user_payload": "0x0800..0x081c",
+    "sync_flag_branch": "0x0864..0x0880",
+    "user_callback_bridge": "__k_user_msg_cb at 0x1d5c",
+    "limit": "im.elf 0x95b1 callback registered to 0x94016a is distinct from dynamically dispatched stage handler 0xa06d. No verified event-forwarding path for IDs 0x940036 and 0x940037 to the dynamic receive queue."
+  },
+  "unresolved": [
+    "actual startup option flags and whether event 0x940036/037 sent",
+    "registration of fixed destination 0x94016a at runtime, message success",
+    "exact forwarding mechanism from fixed ID 0x94016a to dynamic 0x946000..0x946fff, if any",
+    "callback state and received event message on actual camera",
+    "successful libObj load/global scope binding and selected provider",
+    "Model ID 11 to ModelCamera runtime DSO"
+  ],
+  "core_graph_unchanged": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}
