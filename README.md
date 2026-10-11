@@ -4,6 +4,12 @@
 可用 `python -m fwplatform.cli sdk primary-contracts --json` 查詢描述性契約；
 這些介面尚未通過實機驗證，不能當作可直接呼叫的相機 SDK。
 
+Phase 4.21 新增目標式 Registry Key/Record 靜態資料流工具：
+`python -m fwplatform.camera_registry_keyflow_probe --elf /private/path/to/libObj.so`。
+它只讀取本機合法持有的 Firmware 3.21 ELF，並回報 CFG、暫存器來源與物件偏移候選；
+不連接相機、不執行韌體，也不把候選當作已驗證 Runtime SDK。
+詳見 [Registry Keyflow 研究狀態](reports/REGISTRY_KEYFLOW_RECON_STATUS.md)。
+
 這是一個獨立的 Sony ILCE-6000（A6000）韌體逆向工程研究平台，目標是把
 inventory、靜態 ELF 分析、Ghidra CFG、跨模組 linkage、證據管理和描述性 SDK
 集中到可重複執行的本機資料庫中。
