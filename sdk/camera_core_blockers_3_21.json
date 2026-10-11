@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.26",
+  "phase": "4.27",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -35,12 +35,14 @@
         "Phase4.24 cross-ELF SHA-pinned audit: libObj.so has R_ARM_JUMP_SLOT imports dlopen@0x102e808/dlsym@0x102e398/dlclose@0x102e13c; four direct NEEDED modules (libBizFw, libBizFw2, libMWF, libmpr) each NEEDED libdl.so.2, and uploaded libdl-2.11.2.so exports all three GLIBC_2.4 functions. Explains a static transitive symbol-provider candidate, NOT resolved runtime binding or modelCamera.so alias.",
         "Phase 4.25 SHA-matched direct Thumb: ModelManager registration 0x7ec8e4-0x7ec8f2 uses descriptor+8 numeric key twice with table pointer [manager+8]. Library accessor 0x7eaae8->0x7f05d2 returns IdSoTable node+8; factory accessor 0x7eaaf6->0x7f05a2 returns node+0xc or fallback if null. Registry initializer 0x7f115a/0x7f116c saves these values to record+0x10/+0x14, and loader 0x7f11d6/0x7f11e2 reads them into dlopen/dlsym arguments. This IS a static table-to-record field bridge; model ID 11's table singleton and runtime DSO resolution remain UNKNOWN.",
         "User read-only LZPT filesystem inventory: 31 symlinks (/usr), 0 (/system), 87 (/rootfs); /usr/lib/libObj.so present but modelCamera.so filename and direct symlink absent in these scanned images. Remaining partitions, runtime mounts and generated aliases not ruled out.",
-        "Phase4.26 primary ELF: bootstrap 0x7ef268 creates provider, 0x7ef270 caches it in bootstrap+0x14, 0x7ef2fe passes same pointer as ModelManager constructor arg r2 at 0x7ef302; constructor 0x7ec398 saves provider in r5, 0x7ec3be loads provider vptr+0x1c, and 0x7ec3c4 stores virtual return into ModelManager+8 IdSoTable pointer. Specific vtable slot target and equality to @M00B registered singleton remain unresolved."
+        "Phase4.26 primary ELF: bootstrap 0x7ef268 creates provider, 0x7ef270 caches it in bootstrap+0x14, 0x7ef2fe passes same pointer as ModelManager constructor arg r2 at 0x7ef302; constructor 0x7ec398 saves provider in r5, 0x7ec3be loads provider vptr+0x1c, and 0x7ec3c4 stores virtual return into ModelManager+8 IdSoTable pointer. Specific vtable slot target and equality to @M00B registered singleton remain unresolved.",
+        "Phase4.27 direct ELF: the non-AppConfig.so bootstrap provider from 0x7ef1e4/0x45f320 (ModelConfig) uses vptr 0x1007528 (GOT 0x10345d8); virtual slot+0x1c at 0x1007544 is Thumb target 0x45ef28, which calls PLT 0xdbc58 for ModelIdSoTable::getInstance, matching @M00B singleton accessor. The concrete startup selector is a pointer to BSS 0x10df828 passed by 0x7ed996; runtime string remains UNKNOWN, so branch selection and descriptor key11 remain unproved.",
+        "User-reported original nflasha16 (/android/system) read-only LZPT scan: 1708 TOC blocks, 485 filesystem entries, 53 symlinks, 10 camera name matches but no modelCamera.so file or symlink. The four primary filesystem images /usr, /system, /rootfs, /android/system lack that name in user scan; /wbi and runtime-generated aliases remain unchecked."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
       ],
-      "minimal_next_proof": "Resolve provider concrete vtable used by constructor 0x7ec384, then prove slot+0x1c at 0x7ec3be returns the same ModelIdSoTable singleton that receives @M00B (11). Independently identify descriptor 11 and concrete routing record, then loader alias/runtime conditions.",
+      "minimal_next_proof": "Determine bytes of startup selector at BSS 0x10df828 after initialization to establish whether runtime uses ModelConfig branch. Independently prove ModelManager descriptor key 11 and record identity; runtime modelCamera.so dlopen mapping and +0x1c instance remain UNKNOWN.",
       "blocker_resolved": false
     },
     {
