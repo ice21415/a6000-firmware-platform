@@ -3,7 +3,7 @@
   "firmware_version": "3.21",
   "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
   "address_space": "ELF_VMA",
-  "phase": "4.27",
+  "phase": "4.30",
   "policy": "A blocker is resolved only when its missing identity or semantic precondition is independently reproduced from the pinned ELF.",
   "blockers": [
     {
@@ -37,12 +37,14 @@
         "User read-only LZPT filesystem inventory: 31 symlinks (/usr), 0 (/system), 87 (/rootfs); /usr/lib/libObj.so present but modelCamera.so filename and direct symlink absent in these scanned images. Remaining partitions, runtime mounts and generated aliases not ruled out.",
         "Phase4.26 primary ELF: bootstrap 0x7ef268 creates provider, 0x7ef270 caches it in bootstrap+0x14, 0x7ef2fe passes same pointer as ModelManager constructor arg r2 at 0x7ef302; constructor 0x7ec398 saves provider in r5, 0x7ec3be loads provider vptr+0x1c, and 0x7ec3c4 stores virtual return into ModelManager+8 IdSoTable pointer. Specific vtable slot target and equality to @M00B registered singleton remain unresolved.",
         "Phase4.27 direct ELF: the non-AppConfig.so bootstrap provider from 0x7ef1e4/0x45f320 (ModelConfig) uses vptr 0x1007528 (GOT 0x10345d8); virtual slot+0x1c at 0x1007544 is Thumb target 0x45ef28, which calls PLT 0xdbc58 for ModelIdSoTable::getInstance, matching @M00B singleton accessor. The concrete startup selector is a pointer to BSS 0x10df828 passed by 0x7ed996; runtime string remains UNKNOWN, so branch selection and descriptor key11 remain unproved.",
-        "User-reported original nflasha16 (/android/system) read-only LZPT scan: 1708 TOC blocks, 485 filesystem entries, 53 symlinks, 10 camera name matches but no modelCamera.so file or symlink. The four primary filesystem images /usr, /system, /rootfs, /android/system lack that name in user scan; /wbi and runtime-generated aliases remain unchecked."
+        "User-reported original nflasha16 (/android/system) read-only LZPT scan: 1708 TOC blocks, 485 filesystem entries, 53 symlinks, 10 camera name matches but no modelCamera.so file or symlink. The four primary filesystem images /usr, /system, /rootfs, /android/system lack that name in user scan; /wbi and runtime-generated aliases remain unchecked.",
+        "User Phase4.29 WBI1 code fingerprint: 4 ELF code probes at hypothesized bias +0x40000000 yielded 3 UNMAPPED and 1 MISMATCH, total 0/1 verified. 0x410df828 classified EMPTY_OR_NUL but was never proven to map libObj.so BSS; this bias must not establish provider branch or record identity.",
+        "Phase4.30 primary ELF: exported Application_System_Init at 0x7ed9f4 receives caller r0 in r5. On null r0, 0x7eda2e/0x7eda32 resolve literal AppConfig.so at 0x00d87f27; nonnull r0 passes caller string. Both use strncpy@GLIBC_2.4 via 0xdce00 (R_ARM_JUMP_SLOT 0x0102d428) to write BSS selector 0x010df828, which 0x7ed994 later passes to bootstrap. External callsite and runtime parameter unknown."
       ],
       "candidate_exclusions": [
         "state/forwarder pointer flow does not prove @M00B registration record identity"
       ],
-      "minimal_next_proof": "Determine bytes of startup selector at BSS 0x10df828 after initialization to establish whether runtime uses ModelConfig branch. Independently prove ModelManager descriptor key 11 and record identity; runtime modelCamera.so dlopen mapping and +0x1c instance remain UNKNOWN.",
+      "minimal_next_proof": "Identify external caller and actual runtime r0 argument to exported Application_System_Init; conditional fallback is AppConfig.so only if null. Separately prove a concrete ModelManager descriptor key 11 and record identity; runtime dlopen mapping to modelCamera.so remains UNKNOWN.",
       "blocker_resolved": false
     },
     {
