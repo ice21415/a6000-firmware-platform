@@ -107,6 +107,23 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
         self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
 
+    def test_phase4_26_provider_virtual_getter_has_unknown_target(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        handoff = edges["registry.modelmanager.provider_constructor_handoff"]
+        self.assertEqual(handoff["callsite_vma"], "0x7ef302")
+        self.assertEqual(handoff["target_vma"], "0x7ec384")
+        slot = edges["registry.modelmanager.provider_vtable_to_idso_field"]
+        self.assertEqual(slot["callsite_vma"], "0x7ec3c4")
+        self.assertIsNone(slot["target_vma"])
+        self.assertEqual(slot["verification_status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(slot["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
+        self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
+        self.assertFalse(report["verification"]["runtime_verified"])
+        self.assertFalse(report["verification"]["safe_to_invoke"])
+
     def test_phase4_25_idso_keyed_lookups_bridge_record_and_loader(self):
         report = _report()
         edges = {row["id"]: row for row in report["edges"]}
@@ -121,8 +138,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["target_vma"], target)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
             self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 77)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 67)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
@@ -141,8 +158,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["target_vma"], target)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 77)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 67)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
 
@@ -160,8 +177,8 @@ class CameraCoreChainTests(unittest.TestCase):
             self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
             self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
             self.assertEqual(edges[edge_id]["evidence"]["source_binary_sha256"], report["binary_file_sha256"])
-        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 77)
-        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 67)
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 79)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 69)
         self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
         self.assertFalse(report["verification"]["runtime_verified"])
         self.assertFalse(report["verification"]["safe_to_invoke"])
