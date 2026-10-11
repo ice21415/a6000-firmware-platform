@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.35 IMDB metadata: seven .rel.dyn entries are relocation target offsets (not consumer xrefs), and direct loaded 32-bit pointer matches to selected rows/names = 0. Need actual libIMDB Thumb disassembly.",
+  "latest_checkpoint": "Phase 4.36 direct uploaded ELF: libIMDB.so SHA256 9ceb2109... has concrete exported IMDB_find_entry 44-byte row iterator, 143 valid entries plus 0x28 sentinel; appFw/subapp rows id=0x83 select disjoint target bits; actual loader caller unknown",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -762,5 +762,59 @@
     "graph_edges_added": 0,
     "tracked_core_edges": 84,
     "primary_elf_verified_edges": 74
+  },
+  "phase4_36_imdb_direct_elf": {
+    "source_binary_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "evidence_export": "sdk/imdb_registry_3_21.json",
+    "report": "reports/PHASE4_36_IMDB_ELF_RECORD_QUERY_REVERSE.md",
+    "static_exports": {
+      "IMDB_find_entry": "0x24b1",
+      "IMDB_get_entries": "0x2501",
+      "IMDB_find_target_bit": "0x2519",
+      "imdb_raw": "0xc064"
+    },
+    "descriptor_array": "0xc0e8",
+    "record_stride": "0x2c",
+    "record_count": 143,
+    "sentinel_vma": "0xd97c",
+    "sentinel_type": "0x28",
+    "appfw_row": {
+      "index": 99,
+      "address": "0xd1ec",
+      "name": "appFw.so",
+      "init_name": "Application_System_Init",
+      "id_low16": "0x83",
+      "target_mask": "0xffffff9f"
+    },
+    "subapp_row": {
+      "index": 100,
+      "address": "0xd218",
+      "name": "subapp.so",
+      "init_name": "subapp_init",
+      "id_low16": "0x83",
+      "target_mask": "0x40"
+    },
+    "target_names": [
+      "default",
+      "qemu",
+      "sim",
+      "nfs",
+      "set",
+      "usbj",
+      "resub"
+    ],
+    "confirmed": "IMDB_find_entry compares row+0x0c uint16 ID, row+0x08 mask, iterates 0x2c to sentinel and returns row ptr; IMDB_get_entries returns imdb_raw+0x84",
+    "remaining_unknown": [
+      "dynamic consumer of IMDB query API",
+      "loader mapping for appFw.so vs libObj.so",
+      "actual Application_System_Init r0 argument",
+      "runtime ModelConfig vs AppConfig choice",
+      "runtime ModelCamera factory DSO"
+    ],
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
   }
 }
