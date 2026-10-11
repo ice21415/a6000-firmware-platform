@@ -436,5 +436,43 @@
     "camera_core_graph_counts_unchanged": true,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
+  },
+  "phase4_40_cross_elf_conditional_bridge": {
+    "report": "reports/PHASE4_40_CONDITIONAL_BOOT_PROVIDER_BRIDGE.md",
+    "sha256_sources": {
+      "im": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+      "imdb": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+      "obj": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a"
+    },
+    "when_target_default": {
+      "mask": "0x1",
+      "appfw_row99_mask": "0xffffff9f",
+      "subapp_row100_mask": "0x40",
+      "appfw_mask_matches": true,
+      "subapp_mask_matches": false
+    },
+    "row99_if_selected": {
+      "high_half_id": "0x07fb",
+      "module_name_argument": "NULL",
+      "symbol_name": "Application_System_Init",
+      "if_config_flag_0x4000": "AdjChkConfig.so",
+      "if_no_config_flag": "AppConfig.so"
+    },
+    "provider_if_actual_init_called": {
+      "input_equals_AppConfig": "AppConfig provider selected by bootstrap compare",
+      "input_equals_AdjChkConfig": "non-AppConfig branch, ModelConfig initialized",
+      "modelconfig_vtable_slot": "+0x1c",
+      "resolved_getter": "ModelIdSoTable::getInstance"
+    },
+    "unresolved_preconditions": [
+      "actual startup argv and final config flag",
+      "row99 branch executed",
+      "dlopen and dlsym bind and succeed",
+      "startup BSS is read as written",
+      "ModelManager descriptor ID11 and modelCamera.so runtime mapping"
+    ],
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "camera_core_graph_edges_added": 0
   }
 }
