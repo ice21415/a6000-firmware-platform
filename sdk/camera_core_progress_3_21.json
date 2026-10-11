@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.31 user read-only 649 ELF import sweep: libObj dynamic export, libIMDB literal only; no direct dynamic imports; initializer runtime caller UNKNOWN",
+  "latest_checkpoint": "Phase 4.32 user libIMDB.so: allocated .rodata string Application_System_Init@0x3672, one .data.rel.ro word @0xd200 points to it; no calling convention or dispatch proven.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -591,6 +591,32 @@
     "tracked_core_edges": 84,
     "primary_elf_verified_edges": 74,
     "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_32_imdb_name_pointer": {
+    "source": "user read-only ELF local scanner output",
+    "elf": "libIMDB.so",
+    "token": "Application_System_Init",
+    "token_file_offset": "0x3672",
+    "token_vma": "0x00003672",
+    "token_section": ".rodata",
+    "pointer_vma": "0x0000d200",
+    "pointer_section": ".data.rel.ro",
+    "pointer_value": "0x00003672",
+    "pointer_role": "STRING_NAME_POINTER_CANDIDATE",
+    "symbol_imports_of_interest": "none in targeted scanner",
+    "pending": [
+      "neighboring .data.rel.ro words near 0xd200",
+      "relocation entries for name pointer and neighbors",
+      "consumer or generic dispatcher xref to record",
+      "actual init caller argument"
+    ],
+    "proven_invocation": false,
+    "runtime_branch_proven": false,
+    "model_camera_alias_proven": false,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
   }
