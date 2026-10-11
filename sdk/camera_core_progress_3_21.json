@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 74,
-  "primary_elf_verified_edges": 64,
+  "tracked_core_edges": 77,
+  "primary_elf_verified_edges": 67,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.24 SHA-pinned ARM glibc loader/libs transitive DT_NEEDED provider candidate audit",
+  "latest_checkpoint": "Phase 4.25 direct ELF confirms ModelManager keyed IdSoTable configuration -> Registry Record -> loader parameter bridge",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -433,6 +433,35 @@
     "runtime_symbol_binding": "UNKNOWN",
     "modelcamera_runtime_loader_alias": "UNKNOWN",
     "report": "reports/PHASE4_24_GLIBC_LOADER_DEPENDENCY_AUDIT.md",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_25_delta": {
+    "baseline": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 77,
+      "primary_elf_verified_edges": 67,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.modelmanager.idso_library_to_record",
+      "registry.modelmanager.idso_factory_to_record",
+      "registry.record.config_strings_to_loader"
+    ],
+    "key_provenance": "ModelManager descriptor +8 integer key is reused in IdSoTable lookup; owner+8 stores table pointer",
+    "library_provenance": "IdSoTable node +8 -> Registry record +0x10 -> loader dlopen",
+    "factory_provenance": "IdSoTable node +0xc or conditional fallback -> Registry record +0x14 -> loader dlsym",
+    "modelidso_singleton_to_modelmanager_owner_table": "UNKNOWN",
+    "modelmanager_descriptor_key11_identity": "UNKNOWN",
+    "runtime_module_alias": "UNKNOWN",
+    "user_reported_fs_scan": "No modelCamera.so filename or symlink in /usr,/system,/rootfs LZPT images; not complete mounted namespace inventory",
+    "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
   }
