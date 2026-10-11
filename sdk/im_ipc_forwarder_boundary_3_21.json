@@ -99,5 +99,22 @@
     "graph_count_delta": 0
   },
   "runtime_verified_apis": 0,
-  "safe_to_invoke_apis": 0
+  "safe_to_invoke_apis": 0,
+  "cross_elf_libobj_finding": {
+    "source": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "word": "0x0094016a",
+    "literal_in_allocated_text": "0x0019d460",
+    "literal_loads": [
+      "0x0019d422 ldr r0,[pc,#0x3c]",
+      "0x0019d43c ldr r0,[pc,#0x20]"
+    ],
+    "allocator": "0x0019d42a blx 0x000e13d8 (osal_valloc_msg_wait PLT)",
+    "send": "0x0019d446 blx 0x000e2a28",
+    "send_plt_got": "0x0102f144",
+    "send_symbol": "osal_snd_msg (R_ARM_JUMP_SLOT)",
+    "message_code_source": "0x0019d41e mov r5,r0; 0x0019d442 str r5,[r1]",
+    "meaning": "Actual libObj executable helper uses the fixed queue ID 0x94016a and calls osal_snd_msg with caller-supplied message code; this neither establishes 0x940036/0x940037 sent from libObj nor any forwarding to dynamic im receiver.",
+    "scanner_preliminary_result": "Uploaded subset: im.elf includes stage_036 and stage_037 word literals; libmpr includes stage_036 only (previously identified format/log constant); libObj includes fixed_dest words and osal_snd_msg dynamic import but no aligned stage_036 or stage_037 words in allocated PROGBITS."
+  }
 }
