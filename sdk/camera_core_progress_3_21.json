@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 82,
-  "primary_elf_verified_edges": 72,
+  "tracked_core_edges": 84,
+  "primary_elf_verified_edges": 74,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.27 derives conditional ModelConfig vtable+0x1c -> ModelIdSoTable::getInstance and pins startup selector to BSS",
+  "latest_checkpoint": "Phase 4.30 directly verifies exported Application_System_Init copies default AppConfig.so or supplied selector into bootstrap BSS; WBI +0x40000000 hypothesis disproven by 0/1 code matches",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -509,6 +509,61 @@
     "conditional_proof": "non-AppConfig.so provider vptr 0x1007528 slot+0x1c -> Thumb 0x45ef28 -> 0xdbc58 PLT for ModelIdSoTable::getInstance",
     "startup_selector": "UNKNOWN; source BSS 0x10df828, runtime bytes not supplied",
     "nflasha16": "Android /system image: 485 filesystem entries, 53 symlinks, no modelCamera.so match; user's read-only scan",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_29_wbi_fingerprint_observation": {
+    "user_run": true,
+    "original_wbi": "nflasha5 WBI1 warmboot (42,293,120 bytes, 1164 sections)",
+    "elf_sha256_confirmed": true,
+    "hypothesized_bias": "0x40000000",
+    "code_probes": [
+      {
+        "vma": "0x007ec384",
+        "result": "UNMAPPED"
+      },
+      {
+        "vma": "0x007ef254",
+        "result": "UNMAPPED"
+      },
+      {
+        "vma": "0x0045ef28",
+        "result": "MISMATCH",
+        "section": 8
+      },
+      {
+        "vma": "0x007eaae8",
+        "result": "UNMAPPED"
+      }
+    ],
+    "exact_matches": 0,
+    "mapped_checked": 1,
+    "selector_at_hypothesized_address": "EMPTY_OR_NUL",
+    "actual_runtime_elf_address": "UNKNOWN",
+    "bias_identity_supported": false,
+    "modelconfig_vs_appconfig_selected": "UNKNOWN",
+    "impact_on_static_edge_counts": 0
+  },
+  "phase4_30_delta": {
+    "baseline": {
+      "tracked_core_edges": 82,
+      "primary_elf_verified_edges": 72,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 84,
+      "primary_elf_verified_edges": 74,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "startup.application_init_default_appconfig",
+      "startup.application_init_explicit_selector"
+    ],
+    "proven": "Application_System_Init(null) selects static AppConfig.so string and strncpy to BSS 0x010df828; Application_System_Init(nonnull) copies external r0 selector to same BSS; later bootstrap reads same BSS",
+    "unknown": "external caller and actual runtime argument; ModelConfig branch selection, descriptor key11 and runtime modelCamera.so alias",
     "blockers_resolved": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
