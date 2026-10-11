@@ -1673,3 +1673,22 @@ literal scan found no direct writer for that cell; this does not exclude
 PC-relative, register-derived or external writers. Provider identity and the
 main callback target at `0x7ef988` remain UNKNOWN. Counts stay 41 primary,
 5 inferred and 5 unresolved; runtime and safe-callable API counts remain 0.
+
+## Phase 4.12 checkpoint
+
+The provider probe now distinguishes the two-level indirection
+`0x1032238 -> 0x10a8930`: the former is a file-backed relocated table slot,
+while the latter is a BSS cell inside the second PT_LOAD memory range and has
+no file-backed contents. The report preserves `literal_references` separately
+from actual store writers; no store-dataflow writer is promoted.
+
+`inventory_init_array()` inventories all 263 entries at `0xfd25a4` with
+pointer mode, relocation and symbol-boundary metadata. It is an entry
+inventory only; no constructor-to-BSS relation has been proven. Main dispatch
+`0x7ef988`, provider identity and callback target remain UNKNOWN, and runtime
+and safe-callable API counts remain zero.
+
+The bounded Thumb store scan decoded 160 instructions and found no
+explicit-target store candidate for `0x10a8930`. This is limited coverage;
+mixed ARM/Thumb boundaries, computed aliases and external writers remain
+UNKNOWN.

@@ -28,3 +28,29 @@ allocates and stores that singleton, and vtable slot `0x1007558` contains the
 Thumb target `0x45ee64`. These are configuration facts, but no static writer
 or selection condition connects this singleton to provider cell `0x10a8930`;
 the candidate is therefore not promoted to the main dispatch callback.
+
+Phase 4.12 adds a reproducible `.init_array` inventory. The table at
+`0xfd25a4` contains 263 ARM/Thumb pointer entries. Each entry is retained as
+an address-only record with relocation and symbol-match metadata; constructor
+bodies and indirect callees are deliberately not promoted without a bounded
+dataflow proof. No constructor-to-`0x10a8930` writer is confirmed in this
+inventory.
+
+The reproducible entry-plus-100-byte pass examined 780 store instructions
+across the 263 entry bodies and found no direct-target store candidate. This
+bounded count is an analysis-coverage metric, not a claim that all constructor
+control flow was recovered.
+
+The bounded Thumb store scan decoded 160 instructions before the available
+code/data boundary and found zero explicit-target store candidates. This is
+not whole-image coverage: ARM-mode regions, mixed-mode boundaries, computed
+aliases and external writers remain unresolved. It is a bounded negative
+observation, not proof that no writer exists.
+
+The complete inventory contains 263 unique entries, each backed by an
+`R_ARM_RELATIVE` relocation. The target cell has no relocation of its own and
+is outside the file-backed portion of its PT_LOAD (`p_memsz` contains it,
+`p_filesz` does not). A bounded constructor pass found no direct literal,
+MOVW/MOVT or store proof for the cell. The `initializeConfig` init path writes
+`0x10a8a90`, not `0x10a8930`, so it is explicitly excluded as this cell's
+writer.

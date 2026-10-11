@@ -11,7 +11,7 @@
   "abi_candidate_functions": 13,
   "runtime_verified_apis": 0,
   "safe_to_invoke_apis": 0,
-  "new_evidence_added": 20,
+  "new_evidence_added": 23,
   "primary_edges_added": 2,
   "inferred_edges_added": 0,
   "unresolved_edges_reduced": 0,
@@ -51,6 +51,6 @@
     "runtime_verified": false,
     "safe_to_invoke": false
   },
-  "evidence_enrichment": 1,
-  "latest_checkpoint": "Phase 4.11 provider getter BSS audit; no edge promotion"
+  "evidence_enrichment": 4,
+  "latest_checkpoint": "Phase 4.12 BSS mapping and 263-entry init_array inventory; no writer confirmed"
 }

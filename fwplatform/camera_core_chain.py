@@ -22,7 +22,7 @@ from .elf_plt import resolve_plt_binding
 from .event_manager_push_probe import probe_event_manager_push
 from .camera_loader_dataflow import analyze_loader_dataflow
 from .event_manager_callback_probe import probe_event_manager_callback
-from .event_manager_provider_probe import probe_event_manager_provider
+from .event_manager_provider_probe import probe_event_manager_provider, inventory_init_array
 from .private_thumb_research import EXPECTED_LIBOBJ_SHA, HEX_SHA
 
 
@@ -1000,6 +1000,7 @@ def probe_camera_core_chain(
         loader_dataflow = analyze_loader_dataflow(path, expected_sha256=expected_sha256)
         event_callback = probe_event_manager_callback(path, expected_sha256=expected_sha256)
         provider_bss = probe_event_manager_provider(path, expected_sha256=expected_sha256)
+        init_inventory = inventory_init_array(path, expected_sha256=expected_sha256)
     event_edge = _edge("factory.event_id", "AbstractUtilityManager::createRequestModelExecuteEvent", f"EventID:{hex(EVENT_ID)}", "CREATES_EVENT", 0x7F0B0C, digest, callsite_vma=0x7F0B1E, method="CAPSTONE_PRIMARY_ELF", note="The target is an event value, not a code address or VMA.")
     event_edge["target_value"] = hex(EVENT_ID)
     event_edge["literal_vma"] = hex(0x7F0B74)
@@ -1065,6 +1066,14 @@ def probe_camera_core_chain(
             "loader_dataflow": loader_dataflow,
             "event_manager_callback_provenance": event_callback,
             "event_manager_provider_bss": provider_bss,
+            "event_manager_init_array": {
+                "status": init_inventory["status"],
+                "table_vma": init_inventory["table_vma"],
+                "size": init_inventory["size"],
+                "entry_count": init_inventory["entry_count"],
+                "confirmed_constructor_writers": init_inventory["confirmed_constructor_writers"],
+                "analysis_scope": "entry inventory only; no constructor body promoted",
+            },
         },
         "nodes": nodes,
         "edges": edges,

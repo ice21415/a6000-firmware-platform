@@ -6,6 +6,7 @@ from fwplatform.event_manager_provider_probe import (
     FUNCTION_POINTER_TABLE_SLOT,
     GETTER_ENTRY,
     validate_event_manager_provider,
+    inventory_init_array,
 )
 from fwplatform.private_thumb_research import EXPECTED_LIBOBJ_SHA
 
@@ -23,9 +24,11 @@ def _report():
         ],
         "function_pointer_table_slot": hex(FUNCTION_POINTER_TABLE_SLOT),
         "function_pointer_cell": hex(FUNCTION_POINTER_CELL),
+        "indirection_level": 2,
+        "bss_cell": {"vma": hex(FUNCTION_POINTER_CELL), "file_backed": False},
         "provider_vtable_slot": "+0x30",
         "runtime_verified": False,
-        "writer_search": {"status": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN"},
+        "writer_search": {"status": "NO_LOCAL_WRITER_FOUND_WITHIN_LITERAL_SCAN", "literal_references": [], "store_dataflow_candidates": [], "store_dataflow_scan": {"mode": "THUMB", "instruction_count": 1}},
         "function_pointer_table_relocations": [{"section": ".rel.dyn", "type": 23, "symbol_index": 0}],
     }
 
@@ -51,6 +54,10 @@ class EventManagerProviderProbeTests(unittest.TestCase):
         report = _report()
         report["runtime_verified"] = True
         self.assertIn("runtime_promotion", validate_event_manager_provider(report))
+
+    def test_init_inventory_hash_is_pinned(self):
+        with self.assertRaises(ValueError):
+            inventory_init_array(__file__, expected_sha256="0" * 64)
 
 
 if __name__ == "__main__":

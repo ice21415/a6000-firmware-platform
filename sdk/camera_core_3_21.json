@@ -1782,6 +1782,32 @@
     "provider_instance": "UNKNOWN",
     "callback_target": "UNKNOWN",
     "runtime_verified": false,
-    "safe_to_invoke": false
+    "safe_to_invoke": false,
+    "phase4_12_indirection": {
+      "table_slot_vma": "0x1032238",
+      "table_slot_relocation": "R_ARM_RELATIVE",
+      "table_slot_initial_value": "0x10a8930",
+      "bss_cell_vma": "0x10a8930",
+      "bss_file_backed": false,
+      "bss_runtime_value": "UNKNOWN",
+      "indirection_level": 2
+    },
+    "init_array": {
+      "vma": "0xfd25a4",
+      "size": 1052,
+      "entry_count": 263,
+      "unique_entries": 263,
+      "relocation": "R_ARM_RELATIVE",
+      "confirmed_constructor_writers": [],
+      "initializeConfig_excluded_writer": "stores 0x10a8a90, not 0x10a8930",
+      "bounded_store_destinations_examined": 780,
+      "analysis": "entry plus 100-byte Capstone pass; no complete CFG"
+    },
+    "store_dataflow_scan": {
+      "mode": "THUMB",
+      "decoded_instruction_count": 160,
+      "explicit_target_store_candidates": [],
+      "coverage": "bounded; register-derived aliases and external writers unresolved"
+    }
   }
 }
