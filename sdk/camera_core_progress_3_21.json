@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.39: direct im.elf static proof of optional target= override, absent-pointer fallback default, and cho -> 0x4000 conditional config flag.",
+  "latest_checkpoint": "Phase 4.41 direct im.elf load-path proof: type 0x20000001..03 with nonzero packed upper half dlopen /usr/lib/libObj.so, while appFw type 0x20000004 uses dlopen(NULL); default 0x101 loader flags are copied into loader state.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -866,6 +866,31 @@
     "actual_flag_state": "UNKNOWN",
     "appfw_runtime_binding_to_libobj": "UNKNOWN",
     "core_edges_added": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_41_direct_libobj_loader": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "imdb_source_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "evidence": "sdk/im_loader_alias_3_21.json",
+    "report": "reports/PHASE4_41_IM_LOADER_LIBOBJ_FALLBACK.md",
+    "loader_types": [
+      "0x20000001",
+      "0x20000002",
+      "0x20000003"
+    ],
+    "predicate": "record+0x0e high 16 bits != 0",
+    "hardcoded_path": "/usr/lib/libObj.so",
+    "generic_dlopen_callsite": "0xb278",
+    "generic_loader_start": "0xb25c",
+    "default_loader_flags": "0x00000101",
+    "appfw_special_type": "0x20000004",
+    "appfw_null_dlopen_callsite": "0xb1ec",
+    "eligible_prior_records_before_appfw": 31,
+    "default_mask": "0x1",
+    "runtime_load_success": "UNKNOWN",
+    "runtime_symbol_binding": "UNKNOWN",
+    "camera_core_new_edges": 0,
     "primary_static_core_edges": 74,
     "tracked_core_edges": 84
   }
