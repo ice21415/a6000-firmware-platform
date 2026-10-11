@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.46 original osal_uipc.ko confirms four ioctl dispatch destinations; successful im dynamic ID (0x2a, 0x94) is in 0x946000..0x946fff and provably not fixed sender destination 0x94016a. Forwarding/OSAL delivery remains unverified.",
+  "latest_checkpoint": "Phase 4.47 original im.elf sync callback 0x95b0 has explicit ID cases excluding 0x940036/037; its only direct re-send uses same fixed dest 0x94016a, not runtime dynamic receive 0x946000..fff. Kernel ordinary sender uses low16 queue lookup. Forwarding path remains unproven.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1067,5 +1067,35 @@
     "primary_static_core_edges": 74,
     "tracked_core_edges": 84,
     "runtime_verified_apis": 0
+  },
+  "phase4_47_fixed_uipc_callback_audit": {
+    "source_im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "source_kernel_sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "evidence": "sdk/im_ipc_forwarder_boundary_3_21.json",
+    "report": "reports/PHASE4_47_FIXED_QUEUE_FORWARDER_AUDIT.md",
+    "sync_callback": "0x95b0",
+    "message_id_load": "0x95ba",
+    "directly_matched_event_ids": [
+      "0x9400e1",
+      "0x940021",
+      "0x940022",
+      "0x920143",
+      "0x92015a",
+      "0x92014b",
+      "0x92014d",
+      "0x92014f",
+      "0x920152",
+      "0x92015c"
+    ],
+    "stage_36_37_directly_matched": false,
+    "sync_callback_forward_destination": "0x94016a",
+    "dynamic_main_receiver_range": [
+      "0x946000",
+      "0x946fff"
+    ],
+    "confirmed_direct_bridge_to_dynamic_receiver": false,
+    "core_graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_static_core_edges": 74
   }
 }
