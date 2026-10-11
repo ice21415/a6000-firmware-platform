@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.37 user 649-ELF sweep: bin/im.elf uniquely imports IMDB_find_entry, IMDB_find_target_bit, IMDB_get_entries and DT_NEEDED libIMDB.so; im.elf raw code pending. No execution, loader or branch proven.",
+  "latest_checkpoint": "Phase 4.39: direct im.elf static proof of optional target= override, absent-pointer fallback default, and cho -> 0x4000 conditional config flag.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -849,5 +849,24 @@
     "primary_elf_verified_edges": 74,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
+  },
+  "phase4_39_offline_update": {
+    "im_source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_39_IM_STARTUP_DEFAULT_TARGET.md",
+    "structured_evidence": "sdk/im_bootstrap_3_21.json",
+    "default_target_if_unset": "default",
+    "override_option": "target=",
+    "default_mask": "0x1",
+    "imdb_target_id": "0x83",
+    "matching_row_index_if_default": 99,
+    "nonmatching_row_index_if_default": 100,
+    "config_flag_prefix": "cho",
+    "config_flag_bit": "0x4000",
+    "actual_boot_argv": "UNKNOWN",
+    "actual_flag_state": "UNKNOWN",
+    "appfw_runtime_binding_to_libobj": "UNKNOWN",
+    "core_edges_added": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
   }
 }
