@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.42 direct SHA-pinned im.elf event handler and libIMDB rows prove marker-delimited stage traversal: event 0x940036 processes stage5→7 with 30 conditional libObj candidates, event 0x940037 processes stage7→8 containing appFw row99; no event timing/success proof.",
+  "latest_checkpoint": "Phase 4.43 uploaded original im.elf: main conditionally sends stage event 0x940031..37 via osal_snd_msg(0x94016a,..) with ascending code order; boot= CLI selects phases, bootall enables 0x7f0000, but runtime queue reception/dispatch/load success unverified.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -930,6 +930,43 @@
     ],
     "key_limit": "Physical ordering in IMDB does not prove successful earlier dlopen or event ordering.",
     "new_camera_core_edges": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_43_im_internal_event_source": {
+    "report": "reports/PHASE4_43_IM_INTERNAL_EVENT_SENDER.md",
+    "primary_evidence": "sdk/im_event_sender_3_21.json",
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "message_queue_destination": "0x0094016a",
+    "send_wrapper": "0x91a4",
+    "message_send_plt": "osal_snd_msg@0x8fc8",
+    "message_send_call": "0x91dc",
+    "boot_param_prefix": "boot=",
+    "bootall_mask": "0x7f0000",
+    "target_events": [
+      {
+        "event": "0x940036",
+        "required_flag": "0x200000",
+        "option": "boot=i",
+        "publisher_callsite": "0x9d72",
+        "stage_interval": "5->7"
+      },
+      {
+        "event": "0x940037",
+        "required_flag": "0x400000",
+        "option": "boot=a",
+        "publisher_callsite": "0x9d88",
+        "stage_interval": "7->8"
+      }
+    ],
+    "single_thread_send_call_order": "0x940036 before 0x940037 if both flags set",
+    "registered_queue_callback": "0x95b1",
+    "separate_stage_handler_callback": "0xa06d",
+    "queue_delivery_guarantee": "UNKNOWN",
+    "stage_handler_called_by_these_messages": "UNKNOWN",
+    "actual_boot_arguments": "UNKNOWN",
+    "actual_successful_dlopen_libobj": "UNKNOWN",
+    "original_core_graph_edges_promoted": 0,
     "primary_static_core_edges": 74,
     "tracked_core_edges": 84
   }
