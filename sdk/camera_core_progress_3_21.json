@@ -2,8 +2,8 @@
   "firmware_version": "3.21",
   "scope": "Camera Core tracked relations only",
   "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
-  "tracked_core_edges": 70,
-  "primary_elf_verified_edges": 60,
+  "tracked_core_edges": 73,
+  "primary_elf_verified_edges": 63,
   "static_inferred_edges": 5,
   "unresolved_edges": 5,
   "receiver_candidates": 2,
@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase 4.22 direct SHA-pinned private ELF return-to-add and ModelManager descriptor/tree provenance",
+  "latest_checkpoint": "Phase 4.23 directly replayed IdSoTable duplicate guard, configuration node fields, descriptor-key lookup",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -376,5 +376,31 @@
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0,
     "source": "direct SHA-matched local ELF read-only LLVM Thumb disassembly and ELF relocations"
+  },
+  "phase4_23_delta": {
+    "baseline": {
+      "tracked_core_edges": 70,
+      "primary_elf_verified_edges": 60,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 73,
+      "primary_elf_verified_edges": 63,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.idso_duplicate_guard",
+      "registry.camera.idso_node_constructor",
+      "registry.modelmanager.descriptor_key_lookup"
+    ],
+    "new_verified_store_observations": 3,
+    "significant_finding": "IdSoTable configuration nodes use +4 integer ID +8/+0xc copied name payload, distinct from ModelManager event record +8 state and +0x1c runtime instance",
+    "modelidso_to_modelmanager_link": "UNKNOWN",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "original local Sony A6000 FW3.21 SHA pinned read-only LLVM Thumb disassembly and symbol structure"
   }
 }
