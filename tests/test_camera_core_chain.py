@@ -107,6 +107,24 @@ class CameraCoreChainTests(unittest.TestCase):
         self.assertEqual(edges["event_manager.owner.push"]["callsite_vma"], "0x7ef35a")
         self.assertIsNone(edges["event_manager.init.callback_factory"]["target_vma"])
 
+    def test_phase4_23_idso_config_node_separate_from_routing_record(self):
+        report = _report()
+        edges = {row["id"]: row for row in report["edges"]}
+        expected = {
+            "registry.camera.idso_duplicate_guard": ("0x7f08b0", "0x7f063c"),
+            "registry.camera.idso_node_constructor": ("0x7f08ee", "0x7f0394"),
+            "registry.modelmanager.descriptor_key_lookup": ("0x7eb956", "0x7eb8fa"),
+        }
+        for edge_id, (callsite, target) in expected.items():
+            self.assertIn(edge_id, edges)
+            self.assertEqual(edges[edge_id]["callsite_vma"], callsite)
+            self.assertEqual(edges[edge_id]["target_vma"], target)
+            self.assertEqual(edges[edge_id]["verification_status"], "PRIMARY_ELF_VERIFIED")
+        self.assertEqual(report["chain_summary"]["tracked_core_edges"], 73)
+        self.assertEqual(report["chain_summary"]["primary_elf_verified_edges"], 63)
+        self.assertEqual(report["chain_summary"]["event_consumer_model_camera"], "UNKNOWN")
+        self.assertFalse(report["verification"]["runtime_verified"])
+
     def test_phase4_22_direct_elf_keyflow_keeps_runtime_identity_unknown(self):
         report = _report()
         edges = {row["id"]: row for row in report["edges"]}
