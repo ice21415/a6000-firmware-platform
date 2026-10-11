@@ -1562,6 +1562,48 @@
         "confidence": "HIGH"
       },
       "note": "0x7f11d6 loads [record+0x10] into dlopen r0; if nonzero, 0x7f11e2 loads [record+0x14] into dlsym r1 at 0x7f11e6. Neither successful resolution nor module alias is proven."
+    },
+    {
+      "id": "registry.modelmanager.provider_constructor_handoff",
+      "source": "Bootstrap configuration provider from 0x7ef1e4",
+      "target": "ModelManager constructor provider argument r2",
+      "target_vma": "0x7ec384",
+      "source_vma": "0x7ef254",
+      "callsite_vma": "0x7ef302",
+      "relation": "PASSES_PROVIDER_OBJECT",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ef302",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_INTERFUNCTION_AND_VIRTUAL_CALL_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ef268 obtains bootstrap provider; 0x7ef270 stores to bootstrap+0x14; 0x7ef2fe loads it as r2 and 0x7ef302 invokes ModelManager constructor; ctor 0x7ec398 preserves received r2 as r5. Runtime provider type remains UNKNOWN."
+    },
+    {
+      "id": "registry.modelmanager.provider_vtable_to_idso_field",
+      "source": "ModelManager constructor provider vtable slot+0x1c",
+      "target": "ModelManager owner IdSoTable field +0x8",
+      "target_vma": null,
+      "source_vma": "0x7ec384",
+      "callsite_vma": "0x7ec3c4",
+      "relation": "STORES_PROVIDER_VIRTUAL_RESULT",
+      "address_space": "ELF_VMA",
+      "verification_status": "PRIMARY_ELF_VERIFIED",
+      "confidence": "HIGH",
+      "evidence": {
+        "source_binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+        "source_locator": "ELF_VMA:0x7ec3c4",
+        "address_space": "ELF_VMA",
+        "evidence_method": "ELF_THUMB_INTERFUNCTION_AND_VIRTUAL_CALL_DATAFLOW",
+        "verification_status": "PRIMARY_ELF_VERIFIED",
+        "confidence": "HIGH"
+      },
+      "note": "0x7ec3b4 supplies provider this in r0; 0x7ec3b6 loads provider vptr; 0x7ec3be loads virtual target vptr+0x1c; 0x7ec3c0 blx r3 and 0x7ec3c4 stores return r0 to manager+0x8. Target function and identity of ModelIdSoTable::getInstance's singleton still UNKNOWN."
     }
   ],
   "unresolved_edges": [
@@ -2234,8 +2276,8 @@
     "selector_0f01_to_action_set_init": "PRIMARY_ELF_VERIFIED",
     "action_set_init_to_ee_neutral": "PRIMARY_ELF_VERIFIED",
     "ee_neutral_receiver_and_completion": "UNKNOWN",
-    "tracked_core_edges": 77,
-    "primary_elf_verified_edges": 67
+    "tracked_core_edges": 79,
+    "primary_elf_verified_edges": 69
   },
   "verification": {
     "primary_elf_sha256_verified": true,
@@ -3795,6 +3837,35 @@
       "inferred": 5,
       "unresolved": 5
     },
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_26_provider_table_provenance": {
+    "status": "DIRECT_SHA_PINNED_ELF_BOOTSTRAP_TO_VIRTUAL_GETTER",
+    "primary_new": [
+      "registry.modelmanager.provider_constructor_handoff",
+      "registry.modelmanager.provider_vtable_to_idso_field"
+    ],
+    "bootstrap": "0x7ef254",
+    "provider_factory_call": "0x7ef268 -> 0x7ef1e4",
+    "bootstrap_provider_field": "+0x14",
+    "constructor": "0x7ef302 -> 0x7ec384",
+    "constructor_provider_register": "r2 -> r5 at 0x7ec398",
+    "provider_vtable_slot": "+0x1c",
+    "virtual_callsite": "0x7ec3c0",
+    "modelmanager_idso_field_store": "0x7ec3c4 [manager+8] = virtual return r0",
+    "unproven": [
+      "vtable concrete target at provider virtual slot +0x1c",
+      "provider target returns ModelIdSoTable::getInstance singleton",
+      "descriptor key 11 & runtime Module alias"
+    ],
+    "graph": {
+      "tracked": 79,
+      "primary": 69,
+      "inferred": 5,
+      "unresolved": 5
+    },
+    "resolved_blockers": 0,
     "runtime_verified_apis": 0,
     "safe_to_invoke_apis": 0
   }
