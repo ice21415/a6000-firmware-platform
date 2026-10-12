@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.49 original bootin.elf SHA d2bc...: bootin receives 0x940031..37 on its fixed 0x94020a inbox, launches im.elf {s,g,r,u,l,i,a} & through system@0x9b3a; original im.elf parser accepts single chars i/a. Separate background launches do not share RTLD_GLOBAL. Also im row type 0x40000001 sends control message 0x940005 to bootin 0x94020a, whose handler matches it. Stage producer to bootin still unknown. Confirmed libIMDB type 0x40000001 rows136..139 form four terminal commands sent by im.elf to bootin as 0x940005, distinct from stage 0x940036/037.",
+  "latest_checkpoint": "Phase4.50 original bootin.elf mode input /setting/mode/dmode -> mode digit 0/1/2/3 -> stage string s / s g r u / s g r u l / s g r u l i a -> composed command -> system@0x9a54. This conditional single-im-process startup path coexists with per-event separate system('im.elf i &') / ('im.elf a &') commands. Prior phase4.49 cross-stage RTLD_GLOBAL separation must be scoped only to distinct event-launched children.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1181,5 +1181,28 @@
     ],
     "imdb_optional_qsi_arg": "noevent0",
     "qualified_proof": "Four registry records plus im.elf 0x940005 sender to bootin 0x94020a establish matching static service-command IPC contract, not runtime execution"
+  },
+  "phase4_50_bootin_single_process_multistage": {
+    "source_bootin_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "source_im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "evidence": "sdk/bootin_multistage_launch_3_21.json",
+    "report": "reports/PHASE4_50_BOOTIN_MULTI_STAGE_PROCESS_SCOPE.md",
+    "mode_file_source": "/setting/mode/dmode",
+    "mode_file_open": "0x948e open",
+    "mode_file_read": "0x949a read",
+    "mode_3_stage_args": "s g r u l i a ",
+    "selector": "0x9738..0x975a",
+    "command_builder": "0x9930..0x9a54",
+    "stage_args_append": "0x99c2..0x99c6",
+    "system_launch": "0x9a54 system@GLIBC_2.4",
+    "separate_event_child_launcher": "0x9b3a system@GLIBC_2.4",
+    "cross_stage_global_loader_possible_if_same_process": true,
+    "real_cold_boot_dmode": "UNKNOWN",
+    "actual_dlopen_libobj_before_appfw": "UNKNOWN",
+    "actual_dlsym_Application_System_Init": "UNKNOWN",
+    "prior_phase_4_49_correction": "Process isolation applies to per-event individual im.elf child commands, but not conditional combined multi-stage bootin command.",
+    "core_graph_edges_added": 0,
+    "core_primary_elf_edges": 74,
+    "core_tracked_edges": 84
   }
 }
