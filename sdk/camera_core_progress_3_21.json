@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.47: im sync cb 0x95b0 explicitly omits 0x940036/37 and its only send targets fixed 0x94016a, not dynamically allocated im receive 0x946xxx. Independently, libObj.so helper 0x19d418 sends caller-supplied message codes to fixed 0x94016a via osal_snd_msg PLT, without proven stage-ID producer or forwarder.",
+  "latest_checkpoint": "Phase4.48 user-run 649-ELF read-only literal+dynsym scan: 2 HIGH candidates (im.elf previously verified; bootin.elf newly identified with stage 0x940036/037 and dest 0x94016a literals plus osal send import). bootin not yet uploaded/disassembled, so no callsite proof or core edge promotion.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1109,5 +1109,31 @@
       "message_id_source": "caller-supplied parameter",
       "direct_stage_events_proven": false
     }
+  },
+  "phase4_48_bootin_stage_candidate": {
+    "structured_scan": "sdk/bootin_stage_event_scan_3_21.json",
+    "report": "reports/PHASE4_48_BOOTIN_SCAN_CANDIDATE.md",
+    "basis": "user-provided scanner stdout, not primary bootin ELF",
+    "elf_scanned": 649,
+    "literal_bearing": 19,
+    "high_candidates": 2,
+    "bootin_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/bootin.elf",
+    "bootin_literals": {
+      "stage_036": "0x9c28",
+      "stage_037": "0x9c30",
+      "fixed_destination": "0x9c50"
+    },
+    "bootin_imports": [
+      "osal_rcv_msg_tmo",
+      "osal_reg_sync_msg_queue_cb",
+      "osal_snd_msg",
+      "osal_snd_sync_msg"
+    ],
+    "bootin_primary_sha256": "UNKNOWN",
+    "bootin_sender_callsite": "UNKNOWN",
+    "new_camera_core_edges": 0,
+    "core_elf_static_primary": 74,
+    "core_tracked": 84,
+    "additional_kernel_et_rel_caveat": "upm.ko appears LITERAL_ONLY because scanner checks .dynsym and ET_REL .ko uses .symtab/relocations"
   }
 }
