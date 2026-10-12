@@ -48,6 +48,21 @@ class BootinStageLauncherEvidenceTests(unittest.TestCase):
         self.assertEqual(ipc["bootin_event_compare"], "0x9ba8..0x9bac (literal 0x9c54 = 0x940005)")
         self.assertNotIn(ipc["message_code"], [self.e["dispatcher"]["literal_pairs"][i]["event"] for i in (5, 6)])
 
+    def test_terminal_registry_command_rows_are_separate_from_stage_events(self):
+        registry = self.e["terminal_imdb_service_records"]
+        self.assertEqual(registry["sha256"],
+                         "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea")
+        self.assertEqual(registry["type"], "0x40000001")
+        self.assertEqual(registry["number_of_records"], 4)
+        self.assertEqual([r["index"] for r in registry["rows"]], [136, 137, 138, 139])
+        self.assertEqual([r["command_name"] for r in registry["rows"]],
+                         ["/usr/bin/WebApiLauncher.sh", "/usr/bin/qsi.elf",
+                          "/usr/bin/qsi.elf", "/usr/bin/network.sh"])
+        self.assertEqual(registry["rows"][1]["optional_argument"], "noevent0")
+        self.assertTrue(registry["all_after_marker8"])
+        self.assertEqual(self.e["cross_elf_confirmed_im_to_bootin_control_message"]["message_code"],
+                         "0x00940005")
+
     def test_distinct_processes_not_shared_loader_scope(self):
         self.assertEqual(self.e["cross_binary"]["im_single_letter_i_flag"], "0x200000")
         self.assertEqual(self.e["cross_binary"]["im_single_letter_a_flag"], "0x400000")
