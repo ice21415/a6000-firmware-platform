@@ -119,7 +119,8 @@
     "im_stage_sender_fixed_dest": "0x0094016a",
     "im_main_dynamic_receiver_success_range": "0x00946000..0x00946fff",
     "all_distinct": true,
-    "consequence": "bootin stage messages are received on 0x94020a, not the im.elf fixed stage-send destination 0x94016a and not the im main dynamic 0x946xxx ID; prior sender==bootin hypothesis unsupported"
+    "consequence": "bootin stage messages are received on 0x94020a, not the im.elf fixed stage-send destination 0x94016a and not the im main dynamic 0x946xxx ID; prior sender==bootin hypothesis unsupported",
+    "extra_note": "The im 0x940005 control-message path really targets bootin's fixed 0x94020a inbox, whereas its stage event sender 0x940036/037 still targets fixed 0x94016a. Do not conflate the two."
   },
   "unknowns": [
     "Who posts stage 0x940036/037 into bootin inbox 0x94020a in actual startup",
@@ -136,5 +137,25 @@
     "core_edges_added": 0
   },
   "runtime_verified_apis": 0,
-  "safe_to_invoke_apis": 0
+  "safe_to_invoke_apis": 0,
+  "cross_elf_confirmed_im_to_bootin_control_message": {
+    "status": "DIRECT_STATIC_TWO_ELF_MESSAGE_SEND_AND_DISPATCH_MATCH",
+    "message_code": "0x00940005",
+    "message_destination": "0x0094020a",
+    "im_source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "im_dispatch_type": "0x40000001",
+    "im_record_type_literal": "0xb514",
+    "im_record_type_compare": "0xb47c..0xb480",
+    "im_destination_literal": "0xb518",
+    "im_msgcode_literal": "0xb51c",
+    "im_alloc_site": "0xb494 (osal_valloc_msg_wait)",
+    "im_msgcode_write": "0xb4a2 str r3,[r0],#4",
+    "im_payload_format_if_optional_string": "0xc3ea: %s %s &",
+    "im_payload_format_default": "0xc3ed: %s &",
+    "im_message_send": "0xb4d8 (osal_snd_msg PLT 0x8fc8)",
+    "bootin_event_compare": "0x9ba8..0x9bac (literal 0x9c54 = 0x940005)",
+    "bootin_message_payload": "0x9bae adds r0+4",
+    "bootin_message_handler": "0x9bae..0x9bea (includes string comparison and conditional command-processing/fork paths)",
+    "limit": "The matching send/receive message code and destination prove a compatible static cross-ELF IPC interface, NOT that the OSAL send, delivery, command execution or startup path actually succeeds."
+  }
 }
