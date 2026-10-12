@@ -77,3 +77,18 @@ This is a stronger *correction of a potential over-inference* than simply counti
 All findings are static verified ARM instructions, .rodata words, .rel.plt, and independently examined sources. No code was executed, no firmware image/kernel module was altered, and no device was accessed.
 
 Original Camera Core graph remains **74 primary static / 5 inferred / 5 unresolved = 84 tracked**, and both runtime-verified and safe-to-invoke API counts remain **0**. This cross-ELF startup architecture is recorded separately in `sdk/bootin_stage_launcher_3_21.json`.
+
+
+## 6. New genuine im.elf → bootin.elf IPC path for a *different* control message
+
+Further ELF xref inspection found that **im.elf itself embeds destination 0x94020a** at **0xb518**, resolving a second meaningful cross-ELF connection:
+
+- **im.elf 0xb47c..0xb480** compares IMDB row type with literal **0x40000001** at **0xb514**.
+- For that type, **0xb488** loads the fixed bootin inbox destination **0x94020a**, and **0xb494** calls `osal_valloc_msg_wait`.
+- The allocated message's first word at **0xb4a2** is written from literal **0x940005** at **0xb51c**. An optional command description is formatted using embedded `"%s %s &"` (literal string at 0xc3ea) or `"%s &"` (at 0xc3ed), into the message payload region.
+- **0xb4d8** calls `osal_snd_msg` (PLT 0x8fc8) with **r0=0x94020a**, **r1=the allocated message**.
+- **bootin.elf** directly checks the same **0x940005** at **0x9ba8..0x9bac** (literal 0x9c54), then processes the message's string payload starting at message+4, including branch-dependent string checks and command-processing paths.
+
+This constitutes a **SHA-pinned, relocation-backed, direct static inter-process IPC protocol match**: a message type 0x940005 with destination 0x94020a is **constructed and sent in im.elf**, and bootin.elf has a corresponding handler on the same inbox. No assumption about indirect queue-ID rewriting is needed for these particular IDs. Still **not** proven: actual send success, delivery, boot execution, or command behavior under specific runtime inputs.
+
+**Crucial distinction:** the im.elf **0x940005** control message goes to **bootin 0x94020a**, whereas im.elf's **0x940036/037** stage-emission code uses **0x94016a**. Therefore this new matching message does **not** close the stage-message path or justify transferring `RTLD_GLOBAL` state between independently launched `im.elf` processes.
