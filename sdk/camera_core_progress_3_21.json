@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.50 default is now file-backed as .data pointer 0x12aa0→.rodata string '3 ', selecting s g r u l i a bundle absent override. Actual /setting/mode/dmode or boot override still UNKNOWN. Main reaches command builder, and one-system-call multi-stage process path corrects Phase4.49 isolation generalization.",
+  "latest_checkpoint": "Phase4.51 original bootin.elf SHA d2bc...: /setting/mode/dmode open@0x948e negative fd branches 0x9494->0x950e->0x9728 without mode pointer overwrite; read 0/negative preserves prior mode at 0x949e/0x9506. Original .data +0xc 0x12aa0->rodata 0xa695 '3 ', then 0x9738..0x975a selects 's g r u l i a '. User scan says no *dmode* filename in offline unpacked tree only, NOT live rootfs. CLI args/flags may override or bypass. Runtime unverified.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1216,5 +1216,23 @@
     "file_initialized_mode_pointer": "0x12aa0 -> 0xa695 ('3 ')",
     "mode_if_no_override": "3 -> s g r u l i a ",
     "mode_default_evidence_grade": "DIRECT_FILE_BACKED_ELF_DATA"
+  },
+  "phase4_51_missing_dmode_fallback": {
+    "evidence": "sdk/bootin_dmode_fallback_3_21.json",
+    "report": "reports/PHASE4_51_BOOTIN_DMODE_MISSING_FALLBACK.md",
+    "source_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "user_offline_dir_search": "File Not Found",
+    "live_file_absence_known": false,
+    "open_negative_test": "0x9494",
+    "open_failure_branch": "0x950e->0x9728",
+    "mode_field_preserved_if_open_fails": true,
+    "mode_field_preserved_if_read_count_nonpositive": true,
+    "initial_mode_pointer": "0x12aa0 -> 0xa695 ('3 ')",
+    "mode3_stage_args": "s g r u l i a ",
+    "command_reachability": "0x9c64 main->0x97d0 parser->0x9460 dmode->0x9914 builder->0x9a54 system",
+    "actual_boot_argv_or_mode": "UNKNOWN",
+    "possible_cli_override_or_bit0_bypass": true,
+    "added_core_graph_edges": 0,
+    "runtime_verified_apis": 0
   }
 }
