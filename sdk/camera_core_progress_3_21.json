@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.50 original bootin.elf mode input /setting/mode/dmode -> mode digit 0/1/2/3 -> stage string s / s g r u / s g r u l / s g r u l i a -> composed command -> system@0x9a54. This conditional single-im-process startup path coexists with per-event separate system('im.elf i &') / ('im.elf a &') commands. Prior phase4.49 cross-stage RTLD_GLOBAL separation must be scoped only to distinct event-launched children.",
+  "latest_checkpoint": "Phase4.50 default is now file-backed as .data pointer 0x12aa0→.rodata string '3 ', selecting s g r u l i a bundle absent override. Actual /setting/mode/dmode or boot override still UNKNOWN. Main reaches command builder, and one-system-call multi-stage process path corrects Phase4.49 isolation generalization.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1212,6 +1212,9 @@
       "0x9ca2 -> 0x9914 combined command builder",
       "0x9a54 -> system@GLIBC_2.4"
     ],
-    "usage_claim": "Programmatically reachable from real main conditional branch, not just strings; runtime mode/child result unknown"
+    "usage_claim": "Programmatically reachable from real main conditional branch, not just strings; runtime mode/child result unknown",
+    "file_initialized_mode_pointer": "0x12aa0 -> 0xa695 ('3 ')",
+    "mode_if_no_override": "3 -> s g r u l i a ",
+    "mode_default_evidence_grade": "DIRECT_FILE_BACKED_ELF_DATA"
   }
 }
