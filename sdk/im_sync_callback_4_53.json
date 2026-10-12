@@ -1,0 +1,25 @@
+{
+  "phase": "4.53",
+  "firmware_version": "Sony A6000 3.21",
+  "verification": "CONDITIONAL_PRIMARY_ELF_STATIC_ONLY",
+  "source": {
+    "name": "bin/im.elf",
+    "sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a"
+  },
+  "queue": "0x94016a",
+  "callback_entry": "0x95b0",
+  "message_tested": "0x94001a",
+  "direct_compared_codes": ["0x9400e1", "0x940021", "0x940022"],
+  "derived_compared_codes": ["0x920143", "0x92015a", "0x92014b", "0x92014d", "0x92014f", "0x920152", "0x92015c"],
+  "unmatched_path": {
+    "branch": "0x961a -> 0x962e",
+    "format_ptr_literal": "0x9660 = 0xc009",
+    "diagnostic_format": "imelf_sync_api_cb: err: cmd:0x%x\n",
+    "tailcall": "0x963a -> printf PLT 0x8fe0"
+  },
+  "interpretation": "The tested code is not handled by the callback's known direct branches and instead takes the default diagnostic path.",
+  "external_handler_unknown": true,
+  "runtime_delivery_verified": false,
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}
