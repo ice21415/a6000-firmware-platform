@@ -1,0 +1,125 @@
+{
+  "phase": "4.50",
+  "verification": "DIRECT_SHA_PINNED_THUMB_MACHINE_CODE_AND_PLT_STATIC",
+  "firmware": "Sony A6000 3.21",
+  "source": {
+    "file": "bootin_fw321.elf",
+    "sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "size_bytes": 13384,
+    "elf": "ELF32 LE ARM EABI5 ET_EXEC"
+  },
+  "secondary_source": {
+    "file": "im-vendor-original.elf",
+    "sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a"
+  },
+  "bootin_stage_mode_selector": {
+    "function_context": "0x9460..0x9792",
+    "mode_from_control_state": "0x9738 loads pointer in global+0x0c; 0x973a ldrb of its first byte",
+    "character_branches": [
+      {
+        "input_first_char": "0",
+        "byte": "0x30",
+        "branch": "0x973c -> 0x9758",
+        "chosen_rodata_vma": "0xa5af",
+        "stage_string": "s "
+      },
+      {
+        "input_first_char": "1",
+        "byte": "0x31",
+        "branch": "0x9740..0x9746",
+        "pointer_literal": "0x97b0",
+        "chosen_rodata_vma": "0xa4e6",
+        "stage_string": "s g r u "
+      },
+      {
+        "input_first_char": "2",
+        "byte": "0x32",
+        "branch": "0x9748..0x974e",
+        "pointer_literal": "0x97b4",
+        "chosen_rodata_vma": "0xa4ef",
+        "stage_string": "s g r u l "
+      },
+      {
+        "input_first_char": "3",
+        "byte": "0x33",
+        "branch": "0x9750..0x9756",
+        "pointer_literal": "0x97b8",
+        "chosen_rodata_vma": "0xa4fa",
+        "stage_string": "s g r u l i a "
+      }
+    ],
+    "selected_pointer_write": "0x975a stores selection in global+0x0c",
+    "select_default_unrecognized": "unrecognized mode also falls through to 0xa5af 's '",
+    "input_provenance_limit": "Actual camera mode byte not obtained from runtime observation; code contains additional controls that can bypass branch."
+  },
+  "bootin_composed_command": {
+    "builder": "0x9930..0x9a54",
+    "command_buffer": "0x00012ab8 (from 0x9abc literal)",
+    "initial_copy": "0x9974..0x997c strncpy command prefix into buffer, bound 0x400",
+    "append_helper": "0x9260 -> strncat@0x8cdc",
+    "argv_stage_append": "0x99c2..0x99c6: loads r4+0x0c chosen stage string and appends to command",
+    "initial_im_prefix_options": [
+      "im.elf ",
+      "gdb --args im.elf "
+    ],
+    "initial_im_prefix_literal_vmas": [
+      "0xa57d",
+      "0xa572"
+    ],
+    "control_option_strings": [
+      " app_argv=adj ",
+      " app_argv=usbj ",
+      " target=resub ",
+      " target=qemu ",
+      "target=usbj "
+    ],
+    "command_executor": "0x9a54 BLX 0x8c30 (system@GLIBC_2.4; GOT R_ARM_JUMP_SLOT 0x12a04)",
+    "important_semantics": "A selected combined-stage string is appended to one command buffer and sent to one system() call; a successful command launches one im.elf process whose argument vector can contain multiple stage selector tokens.",
+    "limits": [
+      "Command buffer and app arguments depend on mode and options; exact camera cold-boot argv unknown.",
+      "System() status/child success unverified.",
+      "Presence of multiple CLI selector tokens alone does not prove every initialization stage is consumed or any dlopen succeeds."
+    ]
+  },
+  "separate_event_stage_path": {
+    "dispatcher": "0x9b20",
+    "stage_event_range": "0x940031..0x940037",
+    "event_i": "0x940036 -> system('im.elf i &') at 0x9b3a",
+    "event_a": "0x940037 -> system('im.elf a &') at 0x9b3a",
+    "receiving_fixed_destination": "0x0094020a",
+    "contrast": "Each individual event launch is a separate system() command invocation and cannot assume an earlier one's RTLD_GLOBAL state."
+  },
+  "im_cli_stage_flag_path": {
+    "stage_i_flag": "0x200000",
+    "stage_i_or": "0xa760",
+    "stage_a_flag": "0x400000",
+    "stage_a_or": "0xa77e",
+    "parser": "0xa628",
+    "same_process_combined_arguments": "Individual arguments handled within a single main invocation so selected stage bits can coexist in its parser flag word",
+    "stage_message_sender_fixed_id": "0x0094016a",
+    "still_unverified": "Whether same-process stage 5->7 and stage 7->8 loader calls actually both execute with a usable Application_System_Init binding."
+  },
+  "ld_preload_debug_only": {
+    "rodata": "0xa459",
+    "literal": " LD_PRELOAD=/usr/tool/LeakTracer.so ",
+    "source_select": "0x9774..0x9786 when option bit 0x2 selected",
+    "note": "This optional debug-tool literal is NOT evidence that normal startup preloads libObj.so or makes its Application_System_Init visible."
+  },
+  "architecture_correction": "The Phase4.49 separate-process argument applies to the per-event seven launch commands, NOT the other bootin combined-stage command path. In mode character 3 a single launched im.elf may receive all s/g/r/u/l/i/a tokens, so one-process RTLD_GLOBAL scope is possible if requisite loader operations execute; this remains unobserved.",
+  "unresolved": [
+    "actual bootin mode byte and successful system child process",
+    "whether IMDB group/stage callbacks run and in which process",
+    "sender to bootin fixed inbox 0x94020a",
+    "dlsym(Application_System_Init) runtime binding and libObj earlier loader success",
+    "Model ID11 ModelCamera registry/DSO"
+  ],
+  "core_original_counts": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "added": 0
+  },
+  "runtime_verified": 0,
+  "safe_to_invoke": 0
+}
