@@ -57,6 +57,14 @@ class BootinDmodeFallbackTests(unittest.TestCase):
         self.assertEqual(o["output"], "File Not Found")
         self.assertIn("does NOT prove", o["interpretation"])
 
+    def test_combined_cli_bits_do_not_claim_late_imdb_execution(self):
+        gate = self.e["same_process_late_stage_guard"]
+        self.assertEqual(gate["early_marker_arguments"], [1, 2, 3, 4, 5])
+        self.assertEqual(len(gate["early_marker_iterator_calls"]), 5)
+        self.assertEqual(gate["flag_mask_getters"]["0xabb0"], "0x200000")
+        self.assertEqual(gate["flag_mask_getters"]["0xabc4"], "0x400000")
+        self.assertIn("do not by themselves prove", gate["meaning"])
+
     def test_camera_core_evidence_stays_static(self):
         self.assertEqual(self.e["runtime_verified_apis"], 0)
         self.assertEqual(self.e["safe_to_invoke_apis"], 0)
