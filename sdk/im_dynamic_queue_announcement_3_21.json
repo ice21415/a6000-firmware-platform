@@ -1,0 +1,124 @@
+{
+  "phase": "4.52",
+  "firmware_version": "Sony A6000 3.21",
+  "verification": "ORIGINAL_SHA256_PINNED_ARM_THUMB_STATIC_DFLOW",
+  "source": {
+    "file": "im-vendor-original.elf",
+    "sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "size_bytes": 23108,
+    "kind": "ELF32 little-endian ARM EABI5 ET_EXEC",
+    "note": "All addresses below are original ELF VMAs, no live runtime evidence"
+  },
+  "related_sources": {
+    "userspace_uipc_sha256": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef",
+    "kernel_uipc_sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1"
+  },
+  "dynamic_id_allocator": {
+    "wrapper": "0x92bc",
+    "args": [
+      "r0=0x2a",
+      "r1=0x94",
+      "r2=output_ptr"
+    ],
+    "plt_call": "0x92c6 osal_dynamic_id",
+    "kernel_pool_if_success": "0x946000..0x946fff",
+    "global_store": "0xa570 writes to global 0x153e4+0x2c",
+    "global_getter": "0xa580 reads global 0x153e4+0x2c"
+  },
+  "message_constructor": {
+    "entry": "0x91a4",
+    "arguments": "r0=destination_id, r1=event_code, r2=payload_word_1, r3=payload_word_2, stack_arg_at_caller_sp0=payload_word_3, stack_arg_at_caller_sp4=extra_plausibly_handle (checked wrapper loads sp+0x28)",
+    "allocate": "0x91bc BLX 0x8f98 osal_valloc_msg_wait for 16 bytes",
+    "word0": "0x91d2 str r6,[r1]",
+    "word1": "0x91d4 str r5,[r1,#4]",
+    "word2": "0x91d6 str r8,[r1,#8]",
+    "word3": "0x91da str r3,[r1,#0xc]",
+    "send": "0x91dc BLX 0x8fc8 osal_snd_msg",
+    "result": "0x91e0..0x91e8 frees message on send error",
+    "note": "Caller-supplied extra at sp+4 is read at 0x91c6 and propagated to helper 0x9198; not treated as message word."
+  },
+  "main_id_advertisement": {
+    "allocated_at": "0x9e30..0x9e3a: 0x92bc then global store a570",
+    "prior_callback_mode": "0x9e4a..0x9e4e: ac08(state=5,callback=0x9339)",
+    "destination_id": "0x0094016a",
+    "message_code": "0x0094001a",
+    "send_callsite": "0x9e6c BL 0x91a4",
+    "caller_fields": {
+      "r0": "0x9e68 literal @0x9f18 = 0x94016a",
+      "r1": "0x9e60 literal @0x9f14 = 0x94001a",
+      "r2": "0x9e5a a600 global+0x24 getter result -> 0x9e66 mov r2,r0",
+      "r3": "0x9e64 ldr [r7,#0x28], fresh dynamically allocated receiver queue ID",
+      "stack0": "0x9e5e..0x9e62 movs r3,#3; str r3,[sp]",
+      "stack4": "0x9e6a str r0=[0x94016a],[sp,#4]"
+    },
+    "constructed_message_words": [
+      "0x0094001a",
+      "value returned by a600(global+0x24)",
+      "allocated receiver ID 0x946000..0x946fff if successful",
+      "0x00000003"
+    ],
+    "information_boundary": "Constructs a registration-like ID announcement through fixed 0x94016a, but external recipient/handler/delivery and actual success unknown."
+  },
+  "alternate_id_advertisement": {
+    "function_entry": "0x9698",
+    "trigger": "0x96c4..0x96cc conditional path checks imports then requests dynamic ID",
+    "allocation": "0x96cc..0x96d4 0x92bc osal_dynamic_id -> 0xa570 global+0x2c",
+    "state": "0x96d8..0x96e2 ac08(state=5,callback=0x9339)",
+    "message_code": "0x0094001a",
+    "fixed_dest": "0x0094016a",
+    "send_callsite": "0x96f8 BL 0x91a4",
+    "caller_fields": {
+      "r0": "0x96f4 literal @0x972c = 0x94016a",
+      "r1": "0x96ec literal @0x9728 = 0x94001a",
+      "r2": "0x96e6 previous PLT return r0",
+      "r3": "0x96f0 dynamic ID from [r7,#4]",
+      "stack0": "0x96ea movs r3,#2; str r3,[sp]",
+      "stack4": "0x96f6 str dest id"
+    },
+    "constructed_message_words": [
+      "0x0094001a",
+      "PLT return value from 0x96e6",
+      "freshly allocated dynamic ID if successful",
+      "0x00000002"
+    ],
+    "limit": "This second message constructor is reachable only under the 0x9698 helper's input/environment gates, not proof of an observed message."
+  },
+  "callback_fsm": {
+    "config_global": "0x153e4; callback pointer at +0x08 = 0x153ec",
+    "setter": "0xac08 stores callback Thumb pointer in global+0x08 and state r0 in global+0",
+    "getter": "0xac18 reads global+0x08",
+    "initial": "0x9ade..0x9ae2 calls ac08(state=3,callback=0xa06d)",
+    "post_init_wait": "0x9e4a..0x9e4e calls ac08(state=5,callback=0x9339)",
+    "late_event_reactivation": "0x9edc..0x9ef2 conditionally calls ac08(state=3,callback=0xa06d), then 0x9ef6 calls ad0c(state=2)",
+    "state5_handler": {
+      "entry": "0x9338",
+      "message1": "0x00940007 at 0x939c",
+      "message1_comparison": "0x933e",
+      "guard": "0x934c checks current state==5",
+      "action": "0x936a..0x9386 calls dynamic_id release/free and ac08(state=1,callback=0x9265), then acf4",
+      "message2": "0x00940001 at 0x93a4",
+      "message2_comparison": "0x9362",
+      "other_events": "0x938e..0x9396 falls back without stage dispatch"
+    },
+    "main_loop": "0x9e94 a580 gets dynamic queue ID; 0x9e9a ac18 gets callback ptr; 0x9eaa receives via osal_rcv_msg_tmo; on status 0, 0x9eb2 BLX r5 callback then frees message; 0x9eca checks continuation and branches 0x9e94",
+    "stage_handler": "0xa06c used only when pointer is a06d",
+    "stage_event_processing_condition": "A successful receive on dynamic ID AND callback currently a06d AND recognized stage ID; presence of combined CLI tokens does not alone satisfy.",
+    "state3_activation_guard": "Main 0x9cb0 send via wrapper to non-0x94016a destination, success branch 0x9cb6→0x9edc; actual successful call unknown."
+  },
+  "cross_phase_correction": "Phase4.46 proved fixed ID 0x94016a differs from dynamic receive ID. Phase4.52 proves im explicitly publishes that dynamically allocated ID as message word2 under event 0x94001a to fixed ID 0x94016a; so an external actor could learn return-address information. No handler/forwarder is yet shown, and these facts cannot be promoted to successful event delivery.",
+  "unresolved": [
+    "Subscriber of 0x94001a fixed-queue control announcement and its use of published dynamic receiver ID",
+    "Delivery of 0x940036/037 into im dynamic receiver while callback a06d",
+    "Startup flags/IMDB stage runtime execution and libObj same-process visibility",
+    "Application_System_Init binding and ModelCamera ID11 provider identity"
+  ],
+  "original_camera_core_counts": {
+    "verified_static": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "new_original_core_relations": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}

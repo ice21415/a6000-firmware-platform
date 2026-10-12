@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "type": "PrmNumberList",
+  "verification": "PRIMARY_ELF_VERIFIED machine facts; source-level return types and runtime safety UNKNOWN",
+  "discriminator": 10,
+  "layout": {
+    "object_size_bytes": 24,
+    "payload_offset": 12,
+    "payload": {
+      "begin_address": "+0x0c",
+      "end_address": "+0x10",
+      "capacity_address": "+0x14",
+      "element_width_bytes": 4,
+      "element_type": "uint32_t candidate supported by the Ej symbol and word stores"
+    },
+    "key_initialization": "not observed in the constructors; ParamList::add key setter 0x7eda84 remains the primary witness"
+  },
+  "methods": [
+    {
+      "name": "getList",
+      "entry": "0xeccf4",
+      "symbol": "_ZN13PrmNumberList7getListEv",
+      "abi": "r0=PrmNumberList*; return=r0+0x0c",
+      "evidence": ["ELF_SYMBOL:0xeccf5:size=8", "ELF_VMA:0xeccf6"],
+      "return_type": "UNKNOWN; pointer-shaped storage address",
+      "safe_to_call": false
+    },
+    {
+      "name": "getNumber",
+      "entry": "0xecd26",
+      "symbol": "_ZN13PrmNumberList9getNumberEj",
+      "abi": "r0=PrmNumberList*; r1=unsigned int index",
+      "return": "word at begin + index*4",
+      "bounds_check": "none in observed local body",
+      "evidence": ["ELF_SYMBOL:0xecd27:size=14", "ELF_VMA:0xecd28", "ELF_VMA:0xecd2c", "ELF_VMA:0xecd30"],
+      "return_type": "UNKNOWN; word-shaped result",
+      "safe_to_call": false
+    },
+    {
+      "name": "getLength",
+      "entry": "0xecd42",
+      "symbol": "_ZN13PrmNumberList9getLengthEv",
+      "abi": "r0=PrmNumberList*",
+      "return": "(end-begin)>>2",
+      "evidence": ["ELF_SYMBOL:0xecd43:size=14", "ELF_VMA:0xecd44", "ELF_VMA:0xecd4c"],
+      "return_type": "UNKNOWN; source return type is not encoded",
+      "safe_to_call": false
+    },
+    {
+      "name": "addNumber",
+      "entry": "0xed1a2",
+      "symbol": "_ZN13PrmNumberList9addNumberEj",
+      "abi": "r0=PrmNumberList*; r1=unsigned int value",
+      "effect": "forwards receiver+0x0c and a value slot to local vector append helper 0xed174",
+      "evidence": ["ELF_SYMBOL:0xed1a3:size=30", "ELF_VMA:0xed1ac", "ELF_VMA:0xed1b4"],
+      "return_type": "UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "vector_append_helper_candidate",
+      "entry": "0xed174",
+      "abi": "vector-like storage in r0; value slot in r1",
+      "effect": "if end != capacity, stores one word and advances end; full path branches to growth/rebuild code",
+      "evidence": ["ELF_VMA:0xed17c", "ELF_VMA:0xed180", "ELF_VMA:0xed182", "ELF_VMA:0xed186", "ELF_VMA:0xed18e"],
+      "identity": "local helper identity UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "PrmNumberList::C1",
+      "entry": "0xecdb8",
+      "symbol": "_ZN13PrmNumberListC1Ev",
+      "abi": "r0=destination object",
+      "effect": "passes discriminator 10 to local base/initializer target, stores vptr, initializes vector-like payload",
+      "evidence": ["ELF_SYMBOL:0xecdb9:size=52", "ELF_VMA:0xecdbA", "ELF_VMA:0xecdc2", "ELF_VMA:0xecdd0", "ELF_VMA:0xecdd6", "ELF_VMA:0xecddc"],
+      "key_initialization": "not observed",
+      "safe_to_call": false
+    },
+    {
+      "name": "PrmNumberList::C1_vector",
+      "entry": "0xed35c",
+      "symbol": "_ZN13PrmNumberListC1ESt6vectorIjSaIjEE",
+      "abi": "r0=destination; r1=source vector-like argument; exact C++ reference/value ABI UNKNOWN",
+      "effect": "initializes destination and forwards to local vector copy path 0xed29a",
+      "evidence": ["ELF_SYMBOL:0xed35d:size=72", "ELF_VMA:0xed362", "ELF_VMA:0xed368", "ELF_VMA:0xed37c", "ELF_VMA:0xed384"],
+      "safe_to_call": false
+    },
+    {
+      "name": "PrmNumberList::D1",
+      "entry": "0xece64",
+      "symbol": "_ZN13PrmNumberListD1Ev",
+      "abi": "r0=destination object",
+      "effect": "destroys vector-like storage then calls local ParamBase destruction path 0xe4734",
+      "evidence": ["ELF_SYMBOL:0xece65:size=52", "ELF_VMA:0xece76", "ELF_VMA:0xece7c", "ELF_VMA:0xece82", "ELF_VMA:0xece88"],
+      "ownership": "allocator and exception behavior UNKNOWN",
+      "safe_to_call": false
+    },
+    {
+      "name": "PrmNumberList::D0_candidate",
+      "entry": "0xece98",
+      "abi": "r0=object",
+      "effect": "calls local destruction target 0xe2a10 and operator-delete PLT 0xdd620",
+      "evidence": ["ELF_VMA:0xece9e", "ELF_VMA:0xecea4", "ELF_RELOCATION:0x102d6bc"],
+      "identity": "deleting-destructor slot identity is STATIC_INFERRED",
+      "safe_to_call": false
+    }
+  ],
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "No runtime execution or device validation",
+    "Vector allocator, iterator, exception and synchronization behavior remain UNKNOWN",
+    "getNumber has no observed bounds check; invalid index behavior is not a safety guarantee",
+    "Local helper names and source-level base identities are not inferred as confirmed C++ names",
+    "This is a descriptive ABI evidence record, not a native wrapper"
+  ]
+}

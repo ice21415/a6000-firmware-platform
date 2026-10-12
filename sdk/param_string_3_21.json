@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "verification": "PRIMARY_ELF_VERIFIED bounded constructor/destructor/clone observations",
+  "type": {
+    "name": "PrmString",
+    "source_level_constructor_symbol": "UNKNOWN",
+    "discriminator": 2,
+    "vtable_vma": "0xfe9638",
+    "rtti_vma": "0xfe9650",
+    "vtable_slots": {
+      "+0x08_clone": "0xffa18",
+      "+0x0c_destructor": "0xff954",
+      "+0x10_deleting_destructor": "0xff980"
+    },
+    "allocation_size_bytes": 16,
+    "payload": {
+      "+0x0c": "owned NUL-terminated byte buffer pointer candidate",
+      "encoding": "UNKNOWN"
+    },
+    "constructor": {
+      "entry": "0xff9c8",
+      "r0": "receiver candidate",
+      "r1": "source byte-string pointer candidate",
+      "behavior": "strlen, new[](length + 1), store pointer, strncpy(length + 1)",
+      "safe_to_call": false
+    },
+    "destructor": {
+      "entry": "0xff954",
+      "null_payload_guard": true,
+      "delete_array_plt": "0xdf098",
+      "base_path": "0xe4734",
+      "safe_to_call": false
+    },
+    "deleting_destructor": {
+      "entry": "0xff980",
+      "delete_object_plt": "0xdd620",
+      "safe_to_call": false
+    },
+    "clone_candidate": {
+      "entry": "0xffa18",
+      "allocates": 16,
+      "source_level_return": "UNKNOWN",
+      "safe_to_call": false
+    }
+  },
+  "bindings": {
+    "param_base_constructor": {"plt": "0xe11a4", "got": "0x102e984", "symbol": "_ZN9ParamBaseC2Em", "runtime_binding": "UNKNOWN"},
+    "strlen": {"plt": "0xdd7b8", "got": "0x102d73c", "symbol": "strlen", "runtime_binding": "UNKNOWN"},
+    "new_array": {"plt": "0xe0e00", "got": "0x102e85c", "symbol": "_Znaj", "runtime_binding": "UNKNOWN"},
+    "strncpy": {"plt": "0xdce00", "got": "0x102d428", "symbol": "strncpy", "runtime_binding": "UNKNOWN"},
+    "delete_array": {"plt": "0xdf098", "got": "0x102df10", "symbol": "_ZdaPv", "runtime_binding": "UNKNOWN"},
+    "new_object": {"plt": "0xdc100", "got": "0x102cffc", "symbol": "_Znwj", "runtime_binding": "UNKNOWN"},
+    "delete_object": {"plt": "0xdd620", "got": "0x102d6bc", "symbol": "_ZdlPv", "runtime_binding": "UNKNOWN"}
+  },
+  "ownership": {
+    "payload": "constructor allocates a private copy and destructor conditionally delete[]s it",
+    "transfer_aliasing": "UNKNOWN",
+    "null_invalid_input": "No local null guard before strlen; exact runtime behavior UNKNOWN"
+  },
+  "limitations": [
+    "Encoding, source-level qualifiers and complete C++ ABI UNKNOWN",
+    "Allocator/exception behavior, aliases, synchronization and runtime loader binding UNKNOWN",
+    "Static evidence is not runtime verification or callability"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

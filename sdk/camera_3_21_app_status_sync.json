@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "kind": "app_model_status_gate_and_semaphore_triangulation",
+  "status": "SAVED_STATUS_BOOLEAN_PATH_OBSERVED_SEMAPHORE_WRAPPERS_SECONDARY_REPORT",
+  "elf_name": "libObj.so",
+  "elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "source_artifacts": {
+    "instruction_report": "app-event-functions.txt",
+    "status_wait_report": "app-status-wait-chain.json",
+    "narrative_audit": "BOOT-APPLICATION-STATUS-WAIT-AUDIT.zh-TW.md",
+    "source_elf_redecoded_this_session": false
+  },
+  "model_manager_status_reader": {
+    "entry_vma": "0x7eaa14",
+    "reported_field_offset": "0xa4",
+    "semantic_scope": "LOCAL_NONZERO_BOOLEAN_OF_WORD_AT_R0_PLUS_0xA4",
+    "observed_sites": [
+      {
+        "vma": "0x7eaa14",
+        "match": "ldr.w    r0, [r0, #0xa4]"
+      },
+      {
+        "vma": "0x7eaa1a",
+        "match": "subs     r0, #0"
+      },
+      {
+        "vma": "0x7eaa1e",
+        "match": "it       ne"
+      },
+      {
+        "vma": "0x7eaa20",
+        "match": "movne    r0, #1"
+      },
+      {
+        "vma": "0x7eaa22",
+        "match": "pop      {r7, pc}"
+      }
+    ]
+  },
+  "queue_gate": {
+    "entry_vma": "0x7eeec8",
+    "observed_sites": [
+      {
+        "vma": "0x7eeed0",
+        "match": "bl       #0x7f29ec"
+      },
+      {
+        "vma": "0x7eeed4",
+        "match": "cbnz     r0, #0x7eeee4"
+      },
+      {
+        "vma": "0x7eeed8",
+        "match": "bl       #0x7eaa14"
+      },
+      {
+        "vma": "0x7eeedc",
+        "match": "eor      r0, r0, #1"
+      },
+      {
+        "vma": "0x7eeee0",
+        "match": "uxtb     r0, r0"
+      },
+      {
+        "vma": "0x7eeee4",
+        "match": "movs     r0, #0"
+      }
+    ],
+    "conditional_model_status_path": {
+      "if_prior_guard_result_nonzero": "immediate return 0",
+      "else": "logical_inversion_of_status_nonzero_result_using_eor_1_then_zero_extend",
+      "observed_truth_table_for_only_this_guard_path": [
+        {
+          "model_status_plus_a4_zero": true,
+          "status_reader_r0": 0,
+          "queue_gate_r0": 1
+        },
+        {
+          "model_status_plus_a4_zero": false,
+          "status_reader_r0": 1,
+          "queue_gate_r0": 0
+        }
+      ]
+    }
+  },
+  "loop_use": {
+    "entry_vma": "0x7eeee8",
+    "callsite": "0x7ef180",
+    "branch_site": "0x7ef188",
+    "zero_result_branch": "0x7eeefa",
+    "interpretation": "QUEUE_GATE_R0_EQUAL_ZERO_CAUSES_SAVED_LOOP_SLEEP_BRANCH; not a physical camera-ready predicate",
+    "observed_sites": [
+      {
+        "vma": "0x7ef180",
+        "match": "bl       #0x7eeec8"
+      },
+      {
+        "vma": "0x7ef186",
+        "match": "cmp      r0, #0"
+      },
+      {
+        "vma": "0x7ef188",
+        "match": "beq.w    #0x7eeefa"
+      }
+    ]
+  },
+  "adjacent_state_selection_lead": {
+    "vma": "0x7eaa68",
+    "source_window": "same saved app_event_wait_or_check disassembly scan, NOT same entry/function as 0x7eaa14",
+    "reported_state_comparisons": [
+      "0x50000",
+      "0x70000",
+      "0x40000"
+    ],
+    "semantic_relation_to_status_reader": "UNRESOLVED",
+    "observed_sites": [
+      {
+        "vma": "0x7eaa68",
+        "match": "ldr.w    r3, [r0, #0xa4]"
+      },
+      {
+        "vma": "0x7eaa6e",
+        "match": "cmp.w    r3, #0x50000"
+      },
+      {
+        "vma": "0x7eaa76",
+        "match": "cmp.w    r3, #0x70000"
+      },
+      {
+        "vma": "0x7eaa7c",
+        "match": "cmp.w    r3, #0x40000"
+      }
+    ]
+  },
+  "secondary_report_sync_wrappers": [
+    {
+      "vma": "0x7f21e8",
+      "label": "event_dispatch_wait",
+      "wait_call": "osal_wai_sem_tmo",
+      "semaphore": "0x830451",
+      "timeout": -1,
+      "completion_helper": "0x7f0aa0",
+      "caller_sites": [
+        "0x7eecb6"
+      ],
+      "primary_opcode_reverified": false
+    },
+    {
+      "vma": "0x7f2210",
+      "label": "application_event_candidate",
+      "wait_call": "osal_wai_sem_tmo",
+      "semaphore": "0x830451",
+      "timeout": -1,
+      "completion_helper": "0x7f099c",
+      "caller_sites": [
+        "0x7ef0c6",
+        "0x7ef15a"
+      ],
+      "primary_opcode_reverified": false
+    },
+    {
+      "vma": "0x7f2238",
+      "label": "event_callback_wait",
+      "wait_call": "osal_wai_sem_tmo",
+      "semaphore": "0x830451",
+      "timeout": -1,
+      "completion_helper": "0x7f0aac",
+      "caller_sites": [
+        "0x10b144"
+      ],
+      "primary_opcode_reverified": false
+    }
+  ],
+  "secondary_report_status_setter": {
+    "vma": "0x7eb118",
+    "field": "0xa4",
+    "callsite_to_reported_new_state": [
+      {
+        "callsite": "0x7ec9b6",
+        "state": "0x40000"
+      },
+      {
+        "callsite": "0x7ed038",
+        "state": "0x30000"
+      },
+      {
+        "callsite": "0x7ed1d2",
+        "state": "0x70000"
+      },
+      {
+        "callsite": "0x7ed250",
+        "state": "0x50000"
+      },
+      {
+        "callsite": "0x7ed47c",
+        "state": "0x40000"
+      }
+    ],
+    "entry_opcode_reverified": false
+  },
+  "unverified": {
+    "event_0x11004003_consumed_by_this_loop": false,
+    "event_keys_7_and_8_extracted_here": false,
+    "model_camera_action_dispatch_link": false,
+    "wait_wrappers_0x7f21e8_0x7f2238_redecoded_from_original_elf": false,
+    "status_field_exact_CPP_type_or_object_owner": false,
+    "camera_ready_semantics": false,
+    "runtime_event_frequency": false,
+    "actual_boot_delay_caused_by_semaphore": false,
+    "sony_abi_or_callable_sdk": false
+  },
+  "safe_scope": "Read-only static research; do not bypass wait, mutate +0xa4, or assume 11.615s cold-boot gap has uniquely identified cause."
+}

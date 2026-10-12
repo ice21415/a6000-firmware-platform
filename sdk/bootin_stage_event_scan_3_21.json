@@ -1,0 +1,131 @@
+{
+  "phase": "4.48",
+  "source": "USER_EXECUTED_OFFLINE_FIRMWARE_SCAN_OUTPUT",
+  "source_kind": "stdout_with_scanner_code_review",
+  "scanner": "scan_a6000_stage_event_producers.py",
+  "scanner_sha256": null,
+  "firmware": "Sony A6000 3.21",
+  "status": "CANDIDATE_DISCOVERY_NOT_PRIMARY_XREF_VERIFICATION",
+  "stats": {
+    "elf_read": 649,
+    "skipped_over_256mib": 0,
+    "literal_bearing_elf": 19,
+    "high": 2,
+    "medium": 16,
+    "literal_only": 1
+  },
+  "word_definitions": {
+    "stage_036": "0x00940036",
+    "stage_037": "0x00940037",
+    "fixed_dest": "0x0094016a"
+  },
+  "high_candidates": [
+    {
+      "path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/bootin.elf",
+      "exists_in_user_unpack": true,
+      "uploaded_to_chat": false,
+      "stage_036_literal_vma": "0x00009c28",
+      "stage_037_literal_vma": "0x00009c30",
+      "fixed_dest_literal_vma": "0x00009c50",
+      "imports": [
+        "osal_rcv_msg_tmo",
+        "osal_reg_sync_msg_queue_cb",
+        "osal_snd_msg",
+        "osal_snd_sync_msg"
+      ],
+      "next_action": "Acquire bootin.elf exact bytes and trace PC-relative literal xrefs to OSAL send calls and dispatch."
+    },
+    {
+      "path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/im.elf",
+      "stage_036_literal_vmas": [
+        "0x00009e14",
+        "0x0000a31c"
+      ],
+      "stage_037_literal_vmas": [
+        "0x00009e18",
+        "0x0000a320"
+      ],
+      "fixed_dest_sample_vma": "0x00009dd0",
+      "imports": [
+        "osal_dynamic_id",
+        "osal_rcv_msg_tmo",
+        "osal_reg_sync_msg_queue_cb",
+        "osal_snd_msg",
+        "osal_snd_sync_msg"
+      ],
+      "previous_primary_analysis": "sdk/im_event_sender_3_21.json"
+    }
+  ],
+  "medium_special": [
+    {
+      "file": "libmpr.so",
+      "literal": "0x00940036",
+      "vma": "0x0075c994",
+      "caveat": "Prior Phase4.42 Thumb xref was a formatting/logging literal; not directly proven stage event send."
+    },
+    {
+      "file": "libObj.so",
+      "literal": "0x0094016a",
+      "first_vma": "0x0019d460",
+      "previous_primary_analysis": "sdk/im_ipc_forwarder_boundary_3_21.json",
+      "caveat": "Known real sender helper to fixed destination, stage event code caller-provided and not directly proven."
+    }
+  ],
+  "medium_paths": [
+    "bin/WS_SubProcess.elf",
+    "lib/libGOConnectionManager.so",
+    "lib/libInfraExtCmdSvc.so",
+    "lib/libInfraMtpServer.so",
+    "lib/libInfraNetFunctionManager.so",
+    "lib/libInfraRemote.so",
+    "lib/libInfraRemoteControlNet.so",
+    "lib/libInfraWebApi.so",
+    "lib/libmpr.so",
+    "lib/libmprctrl.so",
+    "lib/libNetCommon.so",
+    "lib/libNetService.so",
+    "lib/libObj.so",
+    "lib/libSyncAndroid.so",
+    "lib/libtestcmd.so",
+    "lib/libUsbAppDlSvr.so"
+  ],
+  "literal_only": [
+    {
+      "path": "kmod/upm.ko",
+      "fixed_dest_literal_vmas": [
+        "0x0000f368",
+        "0x0000f88c",
+        "0x00010450",
+        "0x0001098c"
+      ],
+      "caveat": "Kernel .ko is ET_REL and imports are in .symtab plus .rel.text, not .dynsym. Scanner's imports=none is not evidence that this module never calls an OSAL send function."
+    }
+  ],
+  "limitations": [
+    "All addresses printed as section VMA + match offset for aligned words in allocated SHT_PROGBITS, not proven instruction literal references.",
+    "High rank means matching words coexist with an undefined osal_snd_msg dynamic symbol; no PLT xref, callsite or execution demonstrated.",
+    "ELF list only covers binaries in unpacked tree; absence of matching word does not rule out computed event IDs or indirect calls.",
+    "bootin.elf not uploaded; no SHA-256 or ELF disassembly independently available yet.",
+    "Do not assert fixed-to-dynamic queue forwarding from raw scan output.",
+    "Kernel ET_REL .ko files have .symtab/.rel sections; dynsym-only import filter underranks upm.ko."
+  ],
+  "next_required_source": "User's original bootin.elf from same unpacked Sony A6000 v3.21 firmware",
+  "original_core_graph": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "new_core_edges": 0
+  },
+  "runtime_verified_apis": 0,
+  "bootin_local_copy_report": {
+    "provenance": "user CMD copy, certutil and dir output; hash and size reported by user, not independently verified from bytes",
+    "filename": "bootin_fw321.elf",
+    "reported_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "reported_size_bytes": 13384,
+    "copy_status_reported": "1 file copied",
+    "original_relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/bootin.elf",
+    "bytes_received_for_disassembly": false,
+    "next_step": "Attach bootin_fw321.elf binary to the conversation for independent SHA256 and instruction-level disassembly"
+  }
+}

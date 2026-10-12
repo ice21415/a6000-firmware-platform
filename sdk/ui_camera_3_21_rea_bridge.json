@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "model": "Sony ILCE-6000",
+  "status": "ENDPOINTS_OBSERVED_MESSAGE_ROUTE_UNRESOLVED",
+  "provenance_note": "Extracted from already-saved private REA/Ghidra 12.1.4 static work and independent local raw-ELF Capstone audit. Raw binaries and decompiled pseudocode are not included. Neither endpoint proves a complete message route.",
+  "ui": {
+    "binary": "viewUnified2.so",
+    "sha256": "7fbfa8539717ba3dca0cb5a82cf976b50a2b97443972fe321a064cbb09a75588",
+    "function": "CmnViewBigModelUtil::setInitForRec",
+    "ghidra_vma": "0x1b2504",
+    "ghidra_image_bias": "0x10000",
+    "elf_vma": "0x1a2504",
+    "selector": "0x0f01",
+    "destination": "model/CAMERA",
+    "also_observed_destination": "model/STILL_REC",
+    "source_artifact": "0x1b2504.c",
+    "rea_evidence_id": "ev_816bea3002eac3bf155723d8554c23c6087e58c8c1cfec8db7c7078636feb8c7",
+    "source_evidence_operation": "decompile procedures",
+    "runtime_frequency_unknown": true,
+    "observed_call_sites_in_saved_decompile": 20,
+    "other_destination_call_sites_in_saved_decompile": 6,
+    "notify_zero_conditional_early_exit_in_decompile": true
+  },
+  "camera": {
+    "binary": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "dispatcher": "ModelCamera::ActionGpSetSetting",
+    "dispatcher_elf_vma": "0x4cfb9c",
+    "source_bytes_elf_vma": "0x4cfe8a",
+    "compare_selector_instruction_elf_vma": "0x4cfe8a",
+    "selector": "0x0f01",
+    "branch_instruction_elf_vma": "0x4cfe98",
+    "callee": "ModelCamera::pvt_ActionSetInit",
+    "callee_elf_vma": "0x4cf7a8",
+    "source_artifact": "audit_obj_selectors.json",
+    "source_type": "saved_raw_elf_capstone_audit_not_rea",
+    "saved_instruction_bytes_independently_decodable": true
+  },
+  "boundary": {
+    "unverified": [
+      "ViewBase::requestModelExecute -> message namespace transform",
+      "app model event queue and EventFilter normalization",
+      "delivery of UI request to ModelCamera::ActionGpSetSetting",
+      "ParamList ABI ownership and error semantics",
+      "execution frequency or safety on physical camera"
+    ],
+    "proven_end_to_end": false,
+    "abi_verified": false,
+    "runtime_callable": false,
+    "ui_ghidra_bias_applies_to_camera_binary": false
+  }
+}

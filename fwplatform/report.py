@@ -8,7 +8,7 @@ from .constants import DOMAINS
 from .db import Database, utc_now
 
 
-def coverage(db: Database) -> dict[str, Any]:
+def coverage(db: Database, domain: str | None = None) -> dict[str, Any]:
     def count(table: str, where: str = "", args: list[Any] | None = None) -> int:
         sql = f"SELECT COUNT(*) FROM {table}" + (f" WHERE {where}" if where else "")
         return int(db.connection.execute(sql, args or []).fetchone()[0])
@@ -18,13 +18,14 @@ def coverage(db: Database) -> dict[str, Any]:
     elf = count("binary", "format='elf_executable_or_shared_library'")
     analyzed_elf = count("binary", "format='elf_executable_or_shared_library' AND analysis_status LIKE 'ANALYZED%'")
     modules_by_domain = {}
-    for domain in DOMAINS:
-        module_count = count("module", "domain=?", [domain])
-        evidence_count = count("module", "domain=? AND source_evidence_id IS NOT NULL", [domain])
-        modules_by_domain[domain] = {"modules": module_count, "evidence_backed": evidence_count,
-                                     "status": "INFERRED" if evidence_count else "UNKNOWN"}
+    selected_domains = [d for d in DOMAINS if not domain or d == domain or d.startswith(domain + "_")]
+    for domain_name in selected_domains:
+        module_count = count("module", "domain=?", [domain_name])
+        evidence_count = count("module", "domain=? AND source_evidence_id IS NOT NULL", [domain_name])
+        modules_by_domain[domain_name] = {"modules": module_count, "evidence_backed": evidence_count,
+                                          "status": "INFERRED" if evidence_count else "UNKNOWN"}
     return {
-        "generated_at": utc_now(),
+        "generated_at": utc_now(), "domain_filter": domain,
         "definitions": {
             "inventory_known_format": "known-format binary rows / all binary rows",
             "elf_analyzed": "ELF rows with analysis_status ANALYZED* / all ELF rows",

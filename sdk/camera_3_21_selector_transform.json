@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "entry": "0x12d780",
+  "verification": "PRIMARY_ELF_VERIFIED branch, register and local transform facts; C++ identity, return type and runtime safety UNKNOWN",
+  "abi_observation": {
+    "r0": "model/name token pointer candidate; byte at [r0] is tested",
+    "r1": "selector input preserved in r6",
+    "return": "transformed word or -1 on visible failure branches",
+    "safe_to_call": false
+  },
+  "branches": [
+    {
+      "guard": "byte [r0] == 0x40",
+      "evidence": ["ELF_VMA:0x12d78a", "ELF_VMA:0x12d78c", "ELF_VMA:0x12d78e"],
+      "model_id": "calls relocation-bound IdGenerator::Get PLT 0xdffb8",
+      "second_byte_cases": {
+        "0x4d_M": "selected base 0x12000000",
+        "0x56_V": "selected base 0x13000000",
+        "other": "r4=-1"
+      },
+      "transform_call": "0x120168 receives r1=model_id, r2=original selector, selected base in r0",
+      "evidence_transform": ["ELF_VMA:0x12d824", "ELF_VMA:0x12d828", "ELF_VMA:0x12d830", "ELF_VMA:0x12d836", "ELF_VMA:0x12d83a", "ELF_VMA:0x12d840", "ELF_VMA:0x12d848"]
+    },
+    {
+      "guard": "byte [r0] != 0x40",
+      "preparation": "multiple local helper calls construct temporary objects",
+      "dispatch": "non-null object loads vtable slot +8 and invokes it through r4",
+      "null_path": "r4=-1 when prepared object pointer is null",
+      "evidence": ["ELF_VMA:0x12d79a", "ELF_VMA:0x12d7ec", "ELF_VMA:0x12d7fa", "ELF_VMA:0x12d808", "ELF_VMA:0x12d816"],
+      "helper_and_virtual_semantics": "UNKNOWN"
+    }
+  ],
+  "transform": {
+    "entry": "0x120168",
+    "size": 26,
+    "verification": "PRIMARY_ELF_VERIFIED",
+    "guard": "(r2 & 0xfff) != 0 returns the original r2 word",
+    "aligned_path": "(r2 & 0xfff) == 0 returns r2 + (r1 << 12) + r0",
+    "registers": {
+      "r0": "selected base copied to r3",
+      "r1": "model ID candidate",
+      "r2": "original selector candidate"
+    },
+    "evidence": ["ELF_VMA:0x120168", "ELF_VMA:0x12016a", "ELF_VMA:0x12016e", "ELF_VMA:0x120176", "ELF_VMA:0x120178", "ELF_VMA:0x12017a", "ELF_VMA:0x12017c", "ELF_VMA:0x12017e"]
+  },
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "No runtime or device execution",
+    "0x120168 C++ identity, return type and selector domain remain UNKNOWN",
+    "Normal-branch helper identities and virtual target semantics remain UNKNOWN",
+    "This is descriptive evidence, not a Camera control wrapper"
+  ]
+}

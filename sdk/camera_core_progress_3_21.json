@@ -1,0 +1,1270 @@
+{
+  "firmware_version": "3.21",
+  "scope": "Camera Core tracked relations only",
+  "source": "reports/CAMERA_END_TO_END_STATUS.md and private SHA-pinned chain probe",
+  "tracked_core_edges": 84,
+  "primary_elf_verified_edges": 74,
+  "static_inferred_edges": 5,
+  "unresolved_edges": 5,
+  "receiver_candidates": 2,
+  "callback_candidates": 3,
+  "abi_candidate_functions": 13,
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0,
+  "new_evidence_added": 30,
+  "primary_edges_added": 1,
+  "inferred_edges_added": 0,
+  "unresolved_edges_reduced": 0,
+  "candidates_excluded": 0,
+  "blockers_narrowed": 6,
+  "blockers_resolved": 0,
+  "blockers_removed": 0,
+  "blockers_removed_definition": "Deprecated aggregate; no blocker was fully removed in Phase 4.9. Use blockers_narrowed and blockers_resolved.",
+  "loader_alias": {
+    "configured_library": "modelCamera.so",
+    "factory_symbol_present": true,
+    "separate_filesystem_candidate_count": 0,
+    "resolved_binary_identity": "UNKNOWN",
+    "alias_proven": false,
+    "evidence_level": "PRIMARY_ELF_VERIFIED_FOR_STRINGS_ONLY",
+    "dataflow": {
+      "loader_entry": "0x7f11ca",
+      "dlopen_callsite": "0x7f11d8",
+      "dlsym_callsite": "0x7f11e6",
+      "factory_callsite": "0x7f11f2",
+      "instance_storage": "+0x1c",
+      "runtime_identity": "UNKNOWN"
+    }
+  },
+  "event_manager_callback": {
+    "slot_vma": "0x1031894",
+    "stored_thumb_value": "0x7eeb25",
+    "callback_entry_vma": "0x7eeb24",
+    "consumer_callsite": "0x7ef9ce",
+    "verification": "STATIC_INFERRED",
+    "semantic_identity": "error/termination callback candidate; not a ModelCamera consumer",
+    "runtime_verified": false
+  },
+  "progress_definition": "verified_edges / tracked_core_edges; this is not whole-firmware SDK completion",
+  "verification": {
+    "primary_elf_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "runtime_verified": false,
+    "safe_to_invoke": false
+  },
+  "evidence_enrichment": 4,
+  "latest_checkpoint": "Phase4.52 original im.elf has TWO separate conditional sends of event 0x94001a to fixed UIPC 0x94016a containing the dynamically allocated main receive ID (0x946000..0x946fff on success) at message word+8, tag=3 from main 0x9e6c and tag=2 from alternate 0x96f8. State5 callback 0x9338 recognizes 0x940007 and 0x940001, not late-stage ids; main only switches callback back to stage handler 0xa06d in guarded 0x9edc..0x9ef2 path. No external 0x94001a consumer or delivered stage event proven.",
+  "phase4_16_delta": {
+    "baseline": {
+      "tracked_core_edges": 60,
+      "primary_elf_verified_edges": 50,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 62,
+      "primary_elf_verified_edges": 52,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_verified_store_edges": 1,
+    "new_verified_pointer_flow_edges": 0,
+    "new_registry_relations": 1,
+    "upgraded_edges": 0,
+    "unresolved_edges_reduced": 0,
+    "candidates_excluded": [
+      "record[+8] as Model ID; it is only a bounded range gate in observed consumer code"
+    ],
+    "blockers_narrowed": [
+      "receiver +0xa4 writer path",
+      "registry record validity predicate"
+    ],
+    "blockers_resolved": 0,
+    "model_id_11_record_identity": "UNKNOWN",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "private SHA-pinned receiver/registry probe; unique edge IDs"
+  },
+  "phase4_13_delta": {
+    "primary_edges_added": 0,
+    "inferred_edges_added": 0,
+    "unresolved_edges_reduced": 0,
+    "confirmed_target_bss_writers": 0,
+    "disproven_hypotheses": [
+      "provider getter depends on 0x10a8930"
+    ],
+    "conditional_callback_target": "0x11130c",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "cfg_coverage": {
+      "init_entries": 263,
+      "functions": 266,
+      "instructions": 3631,
+      "stores": 287,
+      "bounded_without_symbol_size": 264,
+      "writer_target": "0x10a8930",
+      "confirmed_target_writers": 0,
+      "proven_singleton_store": "0x106dbc -> 0x10a8a9c"
+    }
+  },
+  "phase4_14_delta": {
+    "baseline": {
+      "tracked_core_edges": 51,
+      "primary_elf_verified_edges": 41,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 57,
+      "primary_elf_verified_edges": 47,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_tracked_edges": 6,
+    "primary_edges_added": 6,
+    "inferred_edges_added": 0,
+    "upgraded_edges": 0,
+    "unresolved_edges_reduced": 0,
+    "blockers_resolved": 0,
+    "blockers_narrowed": [
+      "callback semantics and ABI",
+      "queue-to-router transport"
+    ],
+    "confirmed_callback_function": "0x11130c conditionally selected",
+    "router_callsite_not_entry": "0x7eedf0",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "SHA-pinned probe + unique edge IDs; summarizes declared graph facts"
+  },
+  "phase4_15_delta": {
+    "baseline": {
+      "tracked_core_edges": 57,
+      "primary_elf_verified_edges": 47,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 60,
+      "primary_elf_verified_edges": 50,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_direct_call_edges": 1,
+    "new_pointer_flow_edges": 2,
+    "upgraded_edges": 0,
+    "conditional_edges_added": 0,
+    "unresolved_edges_reduced": 0,
+    "evidence_enrichment": [
+      "Event +8/+9 initialization",
+      "receiver +0xa4 gate",
+      "destination mask snapshot",
+      "transfer single-step and append refusal guards"
+    ],
+    "request_event_eligibility": "CONDITIONAL_STATIC_REQUEST_PATH_QUEUE0",
+    "blockers_narrowed": [
+      "initial request queue selection",
+      "destination and consumer eligibility"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "summarize_core_graph; unique relation IDs; synthetic tests excluded"
+  },
+  "legacy_statistics_note": "new_evidence_added, evidence_enrichment and blockers_removed are historical preserved counters; current graph accounting uses unique IDs and phase4_15_delta.",
+  "phase4_17_delta": {
+    "baseline": {
+      "tracked_core_edges": 62,
+      "primary_elf_verified_edges": 52,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 66,
+      "primary_elf_verified_edges": 56,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "primary_edges_added": [
+      "registry.camera.id_generator",
+      "consumer.router_owner_receiver_flow",
+      "consumer.lookup_record_state_machine",
+      "registry.state_machine.forwarder"
+    ],
+    "new_verified_store_edges": 3,
+    "new_verified_pointer_flow_edges": 2,
+    "new_registry_relations": 2,
+    "upgraded_edges": 0,
+    "unresolved_edges_reduced": 0,
+    "candidates_excluded": [
+      "record +8 offset stores without record identity are not promoted",
+      "IdGenerator return is not assumed numeric 11"
+    ],
+    "blockers_narrowed": [
+      "request receiver owner +4 provenance",
+      "registry lookup result record identity through state machine",
+      "record +8 state transition domain",
+      "@M00B registration dataflow",
+      "factory result and forwarder field flow",
+      "runtime DSO alias"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "unique evidence graph IDs from SHA-pinned probe",
+    "new_primary_edges": [
+      "registry.camera.id_generator",
+      "consumer.router_owner_receiver_flow",
+      "consumer.lookup_record_state_machine",
+      "registry.state_machine.forwarder"
+    ]
+  },
+  "phase4_18_delta": {
+    "baseline": {
+      "tracked_core_edges": 66,
+      "primary_elf_verified_edges": 56,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.model_id_parser"
+    ],
+    "verified_store_observations": 3,
+    "new_pointer_flow_edges": 0,
+    "new_call_edges": 0,
+    "record_state_machine": "PRIMARY_ELF_VERIFIED_POINTER_FLOW",
+    "numeric_model_id": "@M00B parser yields 11",
+    "registration_lookup_record_identity": "UNKNOWN",
+    "blockers_narrowed": [
+      "Model ID numeric mapping"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_19_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "primary_edges_added": [],
+    "inferred_edges_added": [],
+    "unresolved_edges_reduced": 0,
+    "verified_store_observations": [
+      "0x7eaf4a",
+      "0x7eafce",
+      "0x7eb016 with four predecessor values"
+    ],
+    "evidence_enrichment": [
+      "record +8 writer CFG and lookup-record provenance",
+      "0x7ec874 excluded as container store",
+      "router owner +4 remains conditional receiver identity",
+      "IdSoTable integer-key tree comparison and node key +0x4",
+      "selector @M/@V bounded paths and request key 7/8 register flow",
+      "main dispatch/completion callback separation and 0x7eeb24 exclusion"
+    ],
+    "candidates_excluded": [
+      "0x7ec874 is not lookup-record state store",
+      "setter caller objects not proven identical to router owner +4",
+      "0x7eeb24 is completion error/termination candidate, not ModelCamera consumer",
+      "0x11130c is pre-enqueue callback, not 0x7ef988 target"
+    ],
+    "blockers_narrowed": [
+      "event.consumer.model_camera record identity remains missing",
+      "event_manager dispatch/completion callback identity remains missing",
+      "completion callback producer/ABI remains unresolved",
+      "selector noncompact and malformed branches"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "count_source": "unique evidence graph IDs; observations are not graph edges"
+  },
+  "phase4_20_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "unresolved_edges_reduced": 0,
+    "changes": [
+      "Corrected 0x11130c conditional main-dispatch callback exclusion",
+      "Added fail-closed cross-file graph/ledger/progress audit with synthetic mutation tests",
+      "Made blocker ledger tests forward-compatible with future evidence-backed resolution"
+    ],
+    "public_metadata_audit": "python -m fwplatform.camera_core_blocker_audit",
+    "new_primary_elf_analysis": false,
+    "private_elf_available_in_current_session": false,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "public GitHub source-level and evidence metadata inspection only"
+  },
+  "phase4_21_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "unresolved_edges_reduced": 0,
+    "new_analysis_capability": "fwplatform.camera_registry_keyflow_probe; targeted SHA-pinned readonly local ELF CFG/register provenance",
+    "local_private_elf_replay": "NOT_RUN_ELF_NOT_ACCESSIBLE_IN_ASSISTANT_ENVIRONMENT",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "public_metadata_audit": "python -m fwplatform.camera_core_blocker_audit",
+    "source": "GitHub source and synthetic fixtures only; requires local private ELF for evidence"
+  },
+  "phase4_22_delta": {
+    "baseline": {
+      "tracked_core_edges": 67,
+      "primary_elf_verified_edges": 57,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 70,
+      "primary_elf_verified_edges": 60,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.return_key_to_add",
+      "registry.modelmanager.descriptor_key_to_record",
+      "registry.modelmanager.common_owner_tree_offset"
+    ],
+    "id_generator_static_return_for_M00B": 11,
+    "model_id11_to_modelmanager_runtime_record": "UNKNOWN",
+    "runtime_dso_identity": "UNKNOWN",
+    "new_verified_store_observations": 0,
+    "blockers_narrowed": [
+      "IdGenerator return passed to ModelIdSoTable::add",
+      "ModelManager descriptor +8 passed to record initializer +0",
+      "ModelManager registration and lookup share owner field offset +0x88"
+    ],
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "direct SHA-matched local ELF read-only LLVM Thumb disassembly and ELF relocations"
+  },
+  "phase4_23_delta": {
+    "baseline": {
+      "tracked_core_edges": 70,
+      "primary_elf_verified_edges": 60,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.camera.idso_duplicate_guard",
+      "registry.camera.idso_node_constructor",
+      "registry.modelmanager.descriptor_key_lookup",
+      "registry.record.state_machine_loader"
+    ],
+    "new_verified_store_observations": 3,
+    "significant_finding": "IdSoTable configuration nodes use +4 integer ID +8/+0xc copied name payload, distinct from ModelManager event record +8 state and +0x1c runtime instance; state-machine record r1 preserved as r4 and conditionally passed into loader 0x7f11ca which stores factory instance to same record +0x1c on success",
+    "modelidso_to_modelmanager_link": "UNKNOWN",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0,
+    "source": "original local Sony A6000 FW3.21 SHA pinned read-only LLVM Thumb disassembly and symbol structure",
+    "blockers_narrowed": [
+      "IdSoTable configuration node identity and duplicate guard",
+      "ModelManager descriptor+8 lookup key",
+      "state-machine record passed as loader input before conditional instance+0x1c storage"
+    ]
+  },
+  "phase4_24_delta": {
+    "baseline": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [],
+    "new_inferred_edges": [],
+    "blockers_resolved": 0,
+    "finding": "libObj.so depends directly on libBizFw/libBizFw2/libMWF/libmpr, each directly depends on libdl.so.2, whose uploaded ELF exports dlopen/dlsym/dlclose@GLIBC_2.4",
+    "source_sha256": {
+      "libdl": "baabb47959f633f0a5e80ad8179b87c8d74ab6b52e731ef543a1141822d92d20",
+      "ld": "2d94f54d77ee3ac87fd73e145e1a4eb7f1663cc7492562479c16f01c279310a5"
+    },
+    "runtime_symbol_binding": "UNKNOWN",
+    "modelcamera_runtime_loader_alias": "UNKNOWN",
+    "report": "reports/PHASE4_24_GLIBC_LOADER_DEPENDENCY_AUDIT.md",
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_25_delta": {
+    "baseline": {
+      "tracked_core_edges": 74,
+      "primary_elf_verified_edges": 64,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 77,
+      "primary_elf_verified_edges": 67,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.modelmanager.idso_library_to_record",
+      "registry.modelmanager.idso_factory_to_record",
+      "registry.record.config_strings_to_loader"
+    ],
+    "key_provenance": "ModelManager descriptor +8 integer key is reused in IdSoTable lookup; owner+8 stores table pointer",
+    "library_provenance": "IdSoTable node +8 -> Registry record +0x10 -> loader dlopen",
+    "factory_provenance": "IdSoTable node +0xc or conditional fallback -> Registry record +0x14 -> loader dlsym",
+    "modelidso_singleton_to_modelmanager_owner_table": "UNKNOWN",
+    "modelmanager_descriptor_key11_identity": "UNKNOWN",
+    "runtime_module_alias": "UNKNOWN",
+    "user_reported_fs_scan": "No modelCamera.so filename or symlink in /usr,/system,/rootfs LZPT images; not complete mounted namespace inventory",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_26_delta": {
+    "baseline": {
+      "tracked_core_edges": 77,
+      "primary_elf_verified_edges": 67,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 79,
+      "primary_elf_verified_edges": 69,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.modelmanager.provider_constructor_handoff",
+      "registry.modelmanager.provider_vtable_to_idso_field"
+    ],
+    "new_static_proof": "0x7ef268 provider factory -> bootstrap+0x14 -> ctor r2/r5 -> provider vptr+0x1c -> manager+0x8",
+    "still_unknown": "concrete provider vtable function and its equality with @M00B ModelIdSoTable singleton; descriptor model ID11; loader alias",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_27_delta": {
+    "baseline": {
+      "tracked_core_edges": 79,
+      "primary_elf_verified_edges": 69,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 82,
+      "primary_elf_verified_edges": 72,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "registry.provider.bootstrap_selector_bss",
+      "registry.provider.modelconfig_vptr_construction",
+      "registry.provider.modelconfig_slot_to_modelidso_singleton"
+    ],
+    "conditional_proof": "non-AppConfig.so provider vptr 0x1007528 slot+0x1c -> Thumb 0x45ef28 -> 0xdbc58 PLT for ModelIdSoTable::getInstance",
+    "startup_selector": "UNKNOWN; source BSS 0x10df828, runtime bytes not supplied",
+    "nflasha16": "Android /system image: 485 filesystem entries, 53 symlinks, no modelCamera.so match; user's read-only scan",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_29_wbi_fingerprint_observation": {
+    "user_run": true,
+    "original_wbi": "nflasha5 WBI1 warmboot (42,293,120 bytes, 1164 sections)",
+    "elf_sha256_confirmed": true,
+    "hypothesized_bias": "0x40000000",
+    "code_probes": [
+      {
+        "vma": "0x007ec384",
+        "result": "UNMAPPED"
+      },
+      {
+        "vma": "0x007ef254",
+        "result": "UNMAPPED"
+      },
+      {
+        "vma": "0x0045ef28",
+        "result": "MISMATCH",
+        "section": 8
+      },
+      {
+        "vma": "0x007eaae8",
+        "result": "UNMAPPED"
+      }
+    ],
+    "exact_matches": 0,
+    "mapped_checked": 1,
+    "selector_at_hypothesized_address": "EMPTY_OR_NUL",
+    "actual_runtime_elf_address": "UNKNOWN",
+    "bias_identity_supported": false,
+    "modelconfig_vs_appconfig_selected": "UNKNOWN",
+    "impact_on_static_edge_counts": 0
+  },
+  "phase4_30_delta": {
+    "baseline": {
+      "tracked_core_edges": 82,
+      "primary_elf_verified_edges": 72,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "after": {
+      "tracked_core_edges": 84,
+      "primary_elf_verified_edges": 74,
+      "static_inferred_edges": 5,
+      "unresolved_edges": 5
+    },
+    "new_primary_edges": [
+      "startup.application_init_default_appconfig",
+      "startup.application_init_explicit_selector"
+    ],
+    "proven": "Application_System_Init(null) selects static AppConfig.so string and strncpy to BSS 0x010df828; Application_System_Init(nonnull) copies external r0 selector to same BSS; later bootstrap reads same BSS",
+    "unknown": "external caller and actual runtime argument; ModelConfig branch selection, descriptor key11 and runtime modelCamera.so alias",
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_31_reference_sweep": {
+    "user_reported": true,
+    "scanned_elfs": 649,
+    "large_files_skipped": 0,
+    "occurrences": 2,
+    "defined_export": [
+      "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libObj.so"
+    ],
+    "literal_only": [
+      "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libIMDB.so"
+    ],
+    "undefined_dynamic_imports": 0,
+    "limitations": [
+      "indirect function pointers/dlsym without matching literal",
+      "alternative executable loaders outside scanned ELF set",
+      "section-header-limited ELF32 dynamic symbol parsing"
+    ],
+    "libimdb_literal_section": "PENDING targeted local scanner",
+    "initializer_runtime_caller": "UNKNOWN",
+    "provider_runtime_selector": "UNKNOWN",
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "blockers_resolved": 0,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_32_imdb_name_pointer": {
+    "source": "user read-only ELF local scanner output",
+    "elf": "libIMDB.so",
+    "token": "Application_System_Init",
+    "token_file_offset": "0x3672",
+    "token_vma": "0x00003672",
+    "token_section": ".rodata",
+    "pointer_vma": "0x0000d200",
+    "pointer_section": ".data.rel.ro",
+    "pointer_value": "0x00003672",
+    "pointer_role": "STRING_NAME_POINTER_CANDIDATE",
+    "symbol_imports_of_interest": "none in targeted scanner",
+    "pending": [
+      "neighboring .data.rel.ro words near 0xd200",
+      "relocation entries for name pointer and neighbors",
+      "consumer or generic dispatcher xref to record",
+      "actual init caller argument"
+    ],
+    "proven_invocation": false,
+    "runtime_branch_proven": false,
+    "model_camera_alias_proven": false,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_33_imdb_candidate_record": {
+    "source": "user-reported inspect_a6000_imdb_record.py output",
+    "record_start": "0x0000d1ec",
+    "record_stride_hypothesis": "0x2c",
+    "next_record_marker": "0x0000d218",
+    "same_marker_value": "0x20000004",
+    "module_name": {
+      "field": "+0x10",
+      "address": "0x0000d1fc",
+      "string": "appFw.so"
+    },
+    "initializer_name": {
+      "field": "+0x14",
+      "address": "0x0000d200",
+      "string": "Application_System_Init",
+      "relocation": "R_ARM_RELATIVE"
+    },
+    "additional_fields": [
+      {
+        "field": "+0x24",
+        "string": "AdjChkConfig.so"
+      },
+      {
+        "field": "+0x28",
+        "string": "AppConfig.so"
+      }
+    ],
+    "next_record_names": [
+      "subapp.so",
+      "subapp_init",
+      "subapp_exit"
+    ],
+    "unproven": [
+      "full 44-byte row structure",
+      "consumer of .data.rel.ro descriptor table",
+      "runtime caller and r0 argument to Application_System_Init",
+      "alias of appFw.so to libObj.so",
+      "ModelConfig/AppConfig startup branch"
+    ],
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_34_imdb_stride_and_relocation_audit": {
+    "source": "user read-only inspect_a6000_imdb_table.py output",
+    "row_starts": [
+      "0x0000d1c0",
+      "0x0000d1ec",
+      "0x0000d218",
+      "0x0000d244"
+    ],
+    "stride": "0x2c",
+    "first_words": [
+      "0x00000007",
+      "0x20000004",
+      "0x20000004",
+      "0x00000008"
+    ],
+    "typed_values_conjecture": "first field can encode descriptor type; not proven",
+    "appfw_row": {
+      "address": "0x0000d1ec",
+      "module_name": "appFw.so",
+      "init_symbol": "Application_System_Init",
+      "trailing_configs": [
+        "AdjChkConfig.so",
+        "AppConfig.so"
+      ]
+    },
+    "subapp_row": {
+      "address": "0x0000d218",
+      "module_name": "subapp.so",
+      "init_symbol": "subapp_init",
+      "exit_symbol": "subapp_exit",
+      "trailing_configs": [
+        "AdjChkConfig.so",
+        "AppConfig.so"
+      ]
+    },
+    "previous_raw_reference_correction": {
+      "addresses": [
+        "0x000019d4",
+        "0x000019dc",
+        "0x000019fc",
+        "0x00001a04"
+      ],
+      "actual_role": "SHT_REL .rel.dyn r_offset relocation targets, not consumers",
+      "valid_code_xrefs_observed": 0
+    },
+    "libobj_dt_soname": "libObj.so",
+    "actual_loader_or_descriptor_consumption": "UNKNOWN",
+    "real_init_parameter": "UNKNOWN",
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74
+  },
+  "phase4_35_imdb_reloc_boundary": {
+    "source": "user-provided inspect_a6000_imdb_xrefs.py output",
+    "row_stride": "0x2c",
+    "four_rows": [
+      "0xd1c0",
+      "0xd1ec",
+      "0xd218",
+      "0xd244"
+    ],
+    "named_descriptors": [
+      {
+        "row": "0xd1ec",
+        "module": "appFw.so",
+        "init": "Application_System_Init",
+        "additional": [
+          "AdjChkConfig.so",
+          "AppConfig.so"
+        ]
+      },
+      {
+        "row": "0xd218",
+        "module": "subapp.so",
+        "init": "subapp_init",
+        "exit": "subapp_exit",
+        "additional": [
+          "AdjChkConfig.so",
+          "AppConfig.so"
+        ]
+      }
+    ],
+    "relocation_metadata_entries": 7,
+    "relocation_type": "R_ARM_RELATIVE",
+    "loaded_progbits_raw_pointer_matches": 0,
+    "interpretation": "No direct 32-bit pointer to selected record/name location; cannot exclude PC-relative/GOT/arithmetic references or references to table base.",
+    "libobj_appfw_literal": {
+      "elf_vma": "0x00cbc829",
+      "context": "near initialize, @M001, modelRoot.so, ModelRootToInstance; proximity only",
+      "loader_alias": "UNKNOWN"
+    },
+    "consumer_code_xref": "UNKNOWN",
+    "runtime_init_argument": "UNKNOWN",
+    "runtime_provider_choice": "UNKNOWN",
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74
+  },
+  "phase4_36_imdb_direct_elf": {
+    "source_binary_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "evidence_export": "sdk/imdb_registry_3_21.json",
+    "report": "reports/PHASE4_36_IMDB_ELF_RECORD_QUERY_REVERSE.md",
+    "static_exports": {
+      "IMDB_find_entry": "0x24b1",
+      "IMDB_get_entries": "0x2501",
+      "IMDB_find_target_bit": "0x2519",
+      "imdb_raw": "0xc064"
+    },
+    "descriptor_array": "0xc0e8",
+    "record_stride": "0x2c",
+    "record_count": 143,
+    "sentinel_vma": "0xd97c",
+    "sentinel_type": "0x28",
+    "appfw_row": {
+      "index": 99,
+      "address": "0xd1ec",
+      "name": "appFw.so",
+      "init_name": "Application_System_Init",
+      "id_low16": "0x83",
+      "target_mask": "0xffffff9f"
+    },
+    "subapp_row": {
+      "index": 100,
+      "address": "0xd218",
+      "name": "subapp.so",
+      "init_name": "subapp_init",
+      "id_low16": "0x83",
+      "target_mask": "0x40"
+    },
+    "target_names": [
+      "default",
+      "qemu",
+      "sim",
+      "nfs",
+      "set",
+      "usbj",
+      "resub"
+    ],
+    "confirmed": "IMDB_find_entry compares row+0x0c uint16 ID, row+0x08 mask, iterates 0x2c to sentinel and returns row ptr; IMDB_get_entries returns imdb_raw+0x84",
+    "remaining_unknown": [
+      "dynamic consumer of IMDB query API",
+      "loader mapping for appFw.so vs libObj.so",
+      "actual Application_System_Init r0 argument",
+      "runtime ModelConfig vs AppConfig choice",
+      "runtime ModelCamera factory DSO"
+    ],
+    "graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_37_im_elf_linkage": {
+    "source": "user-run scan_a6000_imdb_consumers.py, private extracted A6000 3.21 tree",
+    "scan_count_elf": 649,
+    "skipped_oversize": 0,
+    "matching_modules": 2,
+    "importer": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/im.elf",
+    "imports": [
+      "IMDB_find_entry",
+      "IMDB_find_target_bit",
+      "IMDB_get_entries"
+    ],
+    "needed": [
+      "libIMDB.so"
+    ],
+    "exporter": "0700_part_image/dev/nflasha15_unpacked_unpacked/lib/libIMDB.so",
+    "exported_names": [
+      "IMDB_find_entry",
+      "IMDB_find_target_bit",
+      "IMDB_get_entries",
+      "imdb_raw"
+    ],
+    "importer_sha256": "UNKNOWN - binary not uploaded",
+    "caller_plt_and_register_dataflow": "UNKNOWN - raw im.elf required",
+    "init_row_consumer": "UNKNOWN",
+    "appfw_to_libobj_alias": "UNKNOWN",
+    "runtime_Application_System_Init_argument": "UNKNOWN",
+    "verification_level": "USER_ELF_DYNAMIC_SYMBOL_SCAN_NOT_DIRECT_CALL",
+    "new_camera_core_graph_edges": 0,
+    "tracked_core_edges": 84,
+    "primary_elf_verified_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_39_offline_update": {
+    "im_source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_39_IM_STARTUP_DEFAULT_TARGET.md",
+    "structured_evidence": "sdk/im_bootstrap_3_21.json",
+    "default_target_if_unset": "default",
+    "override_option": "target=",
+    "default_mask": "0x1",
+    "imdb_target_id": "0x83",
+    "matching_row_index_if_default": 99,
+    "nonmatching_row_index_if_default": 100,
+    "config_flag_prefix": "cho",
+    "config_flag_bit": "0x4000",
+    "actual_boot_argv": "UNKNOWN",
+    "actual_flag_state": "UNKNOWN",
+    "appfw_runtime_binding_to_libobj": "UNKNOWN",
+    "core_edges_added": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_41_direct_libobj_loader": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "imdb_source_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "evidence": "sdk/im_loader_alias_3_21.json",
+    "report": "reports/PHASE4_41_IM_LOADER_LIBOBJ_FALLBACK.md",
+    "loader_types": [
+      "0x20000001",
+      "0x20000002",
+      "0x20000003"
+    ],
+    "predicate": "record+0x0e high 16 bits != 0",
+    "hardcoded_path": "/usr/lib/libObj.so",
+    "generic_dlopen_callsite": "0xb278",
+    "generic_loader_start": "0xb25c",
+    "default_loader_flags": "0x00000101",
+    "appfw_special_type": "0x20000004",
+    "appfw_null_dlopen_callsite": "0xb1ec",
+    "eligible_prior_records_before_appfw": 31,
+    "default_mask": "0x1",
+    "runtime_load_success": "UNKNOWN",
+    "runtime_symbol_binding": "UNKNOWN",
+    "camera_core_new_edges": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_42_staged_eligible_loader_correction": {
+    "report": "reports/PHASE4_42_IM_STAGE_EVENT_GATES.md",
+    "evidence": "sdk/im_stage_dispatch_3_21.json",
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "imdb_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "stage_markers": [
+      0,
+      9,
+      19,
+      31,
+      33,
+      94,
+      98,
+      101
+    ],
+    "event_for_30_candidate_rows": "0x940036",
+    "event_for_appfw_row99": "0x940037",
+    "prior_31_loader_candidates_by_stage": [
+      {
+        "stage_interval": "3->4",
+        "count": 1
+      },
+      {
+        "stage_interval": "5->7",
+        "count": 30
+      }
+    ],
+    "startup_option_mask_initial": "0x00000003",
+    "main_phase_gates": [
+      "0x20000",
+      "0x40000",
+      "0x80000",
+      "0x100000"
+    ],
+    "key_limit": "Physical ordering in IMDB does not prove successful earlier dlopen or event ordering.",
+    "new_camera_core_edges": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_43_im_internal_event_source": {
+    "report": "reports/PHASE4_43_IM_INTERNAL_EVENT_SENDER.md",
+    "primary_evidence": "sdk/im_event_sender_3_21.json",
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "message_queue_destination": "0x0094016a",
+    "send_wrapper": "0x91a4",
+    "message_send_plt": "osal_snd_msg@0x8fc8",
+    "message_send_call": "0x91dc",
+    "boot_param_prefix": "boot=",
+    "bootall_mask": "0x7f0000",
+    "target_events": [
+      {
+        "event": "0x940036",
+        "required_flag": "0x200000",
+        "option": "boot=i",
+        "publisher_callsite": "0x9d72",
+        "stage_interval": "5->7"
+      },
+      {
+        "event": "0x940037",
+        "required_flag": "0x400000",
+        "option": "boot=a",
+        "publisher_callsite": "0x9d88",
+        "stage_interval": "7->8"
+      }
+    ],
+    "single_thread_send_call_order": "0x940036 before 0x940037 if both flags set",
+    "registered_queue_callback": "0x95b1",
+    "separate_stage_handler_callback": "0xa06d",
+    "queue_delivery_guarantee": "UNKNOWN",
+    "stage_handler_called_by_these_messages": "UNKNOWN",
+    "actual_boot_arguments": "UNKNOWN",
+    "actual_successful_dlopen_libobj": "UNKNOWN",
+    "original_core_graph_edges_promoted": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84
+  },
+  "phase4_44_direct_im_callback_receiver": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_44_IM_OSAL_CALLBACK_BRIDGE.md",
+    "evidence": "sdk/im_callback_bridge_3_21.json",
+    "original_stage_handler": "0xa06c",
+    "pointer": "0xa06d",
+    "store_state_and_callback": "0x9ae2 -> 0xac08 -> global+0x8",
+    "getter": "0xac18",
+    "receive": "0x9eaa osal_rcv_msg_tmo",
+    "success_gate": "0x9eae cbnz r0 (skip handler on nonzero status)",
+    "indirect_stage_callback_callsite": "0x9eb2 blx r5",
+    "other_callback_state": "0x9e4e sets state5 handler 0x9339",
+    "registered_sync_callback": "0x95b1",
+    "registered_sync_handle_global": "0x1540c",
+    "receive_loop_handle_global": "0x15410",
+    "actual_message_delivery_to_stage_handler": "UNKNOWN",
+    "osal_queue_routing": "UNKNOWN (libosal_uipc.so not yet analyzed)",
+    "core_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_static_core_edges": 74,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_45_osal_uipc": {
+    "source_file": "libosal_uipc_fw321.so",
+    "source_sha256": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef",
+    "new_evidence": "sdk/osal_uipc_routing_3_21.json",
+    "report": "reports/PHASE4_45_OSAL_UIPC_KERNEL_ROUTING.md",
+    "device": "/dev/uipc",
+    "os_interface": "ioctl",
+    "send": {
+      "fn": "osal_snd_msg",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_snd_msg",
+      "request": "0x80000004"
+    },
+    "receive": {
+      "fn": "osal_rcv_msg_tmo",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_rcv_msg_tmo",
+      "request": "0x80000007"
+    },
+    "register_sync": {
+      "fn": "osal_reg_sync_msg_queue_cb",
+      "remote_if_bit_clear": "0x8000",
+      "remote_call": "u_osal_reg_sync_msg_queue_cb",
+      "request": "0x80000008"
+    },
+    "dynamic_id": {
+      "im_request_r0": "0x2a",
+      "remote_if": "r0 & 0x2 != 0",
+      "request": "0x8000000c",
+      "returned_id": "RUNTIME_ALLOCATED_UNKNOWN"
+    },
+    "im_sender_destination": "0x0094016a",
+    "sender_id_bit0x8000": false,
+    "proven": "Userspace sender, sync registration and dynamic receiver use UIPC kernel-driver abstraction",
+    "not_proven": [
+      "kernel ID map from 0x94016a to generated receiver ID",
+      "actual event delivery",
+      "actual callback state on arrival",
+      "driver queue ordering",
+      "successful runtime load and symbol binding"
+    ],
+    "original_core_edges_added": 0,
+    "primary_core_edges": 74,
+    "tracked_core_edges": 84,
+    "runtime_verified_apis": 0,
+    "safe_to_invoke_apis": 0
+  },
+  "phase4_46_kernel_uipc_queue_identity": {
+    "source_sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "elf": "ET_REL ARM kernel module; offsets section-relative",
+    "evidence": "sdk/uipc_kernel_dispatch_3_21.json",
+    "report": "reports/PHASE4_46_UIPC_KERNEL_IDENTITY.md",
+    "kernel_handlers": {
+      "0x80000004": "__k_4u_snd_msg",
+      "0x80000007": "__k_4u_rcv_msg_tmo",
+      "0x80000008": "__k_4u_reg_msg_queue_cb",
+      "0x8000000c": "__k_4u_dynamic_id"
+    },
+    "im_sender_destination": "0x0094016a",
+    "im_receiver_allocation_args": [
+      "0x2a",
+      "0x94"
+    ],
+    "im_receiver_possible_success_range": [
+      "0x00946000",
+      "0x00946fff"
+    ],
+    "static_identity_result": "FIXED_SENDER_ID_DIFFERENT_FROM_DYNAMIC_RECEIVER_ID",
+    "requires_forwarder_or_alternative_sender": true,
+    "actual_callback_delivery": "UNKNOWN",
+    "core_graph_edges_added": 0,
+    "primary_static_core_edges": 74,
+    "tracked_core_edges": 84,
+    "runtime_verified_apis": 0
+  },
+  "phase4_47_fixed_uipc_callback_audit": {
+    "source_im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "source_kernel_sha256": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "evidence": "sdk/im_ipc_forwarder_boundary_3_21.json",
+    "report": "reports/PHASE4_47_FIXED_QUEUE_FORWARDER_AUDIT.md",
+    "sync_callback": "0x95b0",
+    "message_id_load": "0x95ba",
+    "directly_matched_event_ids": [
+      "0x9400e1",
+      "0x940021",
+      "0x940022",
+      "0x920143",
+      "0x92015a",
+      "0x92014b",
+      "0x92014d",
+      "0x92014f",
+      "0x920152",
+      "0x92015c"
+    ],
+    "stage_36_37_directly_matched": false,
+    "sync_callback_forward_destination": "0x94016a",
+    "dynamic_main_receiver_range": [
+      "0x946000",
+      "0x946fff"
+    ],
+    "confirmed_direct_bridge_to_dynamic_receiver": false,
+    "core_graph_edges_added": 0,
+    "tracked_core_edges": 84,
+    "primary_static_core_edges": 74,
+    "libobj_uses_fixed_destination": {
+      "source_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+      "helper_entry": "0x0019d418",
+      "literal_vma": "0x0019d460",
+      "literal_word": "0x0094016a",
+      "send_callsite": "0x0019d446",
+      "send_plt": "0x000e2a28",
+      "got": "0x0102f144",
+      "import": "osal_snd_msg",
+      "message_id_source": "caller-supplied parameter",
+      "direct_stage_events_proven": false
+    }
+  },
+  "phase4_48_bootin_stage_candidate": {
+    "structured_scan": "sdk/bootin_stage_event_scan_3_21.json",
+    "report": "reports/PHASE4_48_BOOTIN_SCAN_CANDIDATE.md",
+    "basis": "user-provided scanner stdout, not primary bootin ELF",
+    "elf_scanned": 649,
+    "literal_bearing": 19,
+    "high_candidates": 2,
+    "bootin_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/bootin.elf",
+    "bootin_literals": {
+      "stage_036": "0x9c28",
+      "stage_037": "0x9c30",
+      "fixed_destination": "0x9c50"
+    },
+    "bootin_imports": [
+      "osal_rcv_msg_tmo",
+      "osal_reg_sync_msg_queue_cb",
+      "osal_snd_msg",
+      "osal_snd_sync_msg"
+    ],
+    "bootin_primary_sha256": "UNKNOWN",
+    "bootin_sender_callsite": "UNKNOWN",
+    "new_camera_core_edges": 0,
+    "core_elf_static_primary": 74,
+    "core_tracked": 84,
+    "additional_kernel_et_rel_caveat": "upm.ko appears LITERAL_ONLY because scanner checks .dynsym and ET_REL .ko uses .symtab/relocations"
+  },
+  "phase4_49_bootin_original_elf": {
+    "bootin_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "bootin_size_bytes": 13384,
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_49_BOOTIN_STAGE_LAUNCHER.md",
+    "evidence": "sdk/bootin_stage_launcher_3_21.json",
+    "bootin_event_inbox": "0x0094020a",
+    "bootin_receiver": "0x9cd0 osal_rcv_msg_tmo",
+    "bootin_stage_handler": "0x9b20",
+    "shell_launcher": "0x9b3a system",
+    "all_stage_ends": [
+      "s",
+      "g",
+      "r",
+      "u",
+      "l",
+      "i",
+      "a"
+    ],
+    "im_cli_i_stage_flag": "0x200000",
+    "im_cli_a_stage_flag": "0x400000",
+    "im_different_event_send_destination": "0x0094016a",
+    "confirmed_other_message_im_to_bootin": "0x940005 (im type 0x40000001 at 0xb4d8 -> bootin case 0x9baa)",
+    "process_isolation_correction": "bootin background-launches distinct im.elf processes; libObj.so RTLD_GLOBAL in i process cannot alone satisfy dlsym in a process",
+    "unverified_event_036_037_producer_for_bootin": "UNKNOWN",
+    "unverified_im_a_same_process_libobj_provider": "UNKNOWN",
+    "camera_core_graph_delta": 0,
+    "primary_elf_verified_edges": 74,
+    "tracked_core_edges": 84,
+    "imdb_type_0x40000001_service_rows": [
+      136,
+      137,
+      138,
+      139
+    ],
+    "imdb_service_records_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "imdb_service_record_type": "0x40000001",
+    "imdb_commands": [
+      "/usr/bin/WebApiLauncher.sh",
+      "/usr/bin/qsi.elf",
+      "/usr/bin/qsi.elf",
+      "/usr/bin/network.sh"
+    ],
+    "imdb_optional_qsi_arg": "noevent0",
+    "qualified_proof": "Four registry records plus im.elf 0x940005 sender to bootin 0x94020a establish matching static service-command IPC contract, not runtime execution"
+  },
+  "phase4_50_bootin_single_process_multistage": {
+    "source_bootin_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "source_im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "evidence": "sdk/bootin_multistage_launch_3_21.json",
+    "report": "reports/PHASE4_50_BOOTIN_MULTI_STAGE_PROCESS_SCOPE.md",
+    "mode_file_source": "/setting/mode/dmode",
+    "mode_file_open": "0x948e open",
+    "mode_file_read": "0x949a read",
+    "mode_3_stage_args": "s g r u l i a ",
+    "selector": "0x9738..0x975a",
+    "command_builder": "0x9930..0x9a54",
+    "stage_args_append": "0x99c2..0x99c6",
+    "system_launch": "0x9a54 system@GLIBC_2.4",
+    "separate_event_child_launcher": "0x9b3a system@GLIBC_2.4",
+    "cross_stage_global_loader_possible_if_same_process": true,
+    "real_cold_boot_dmode": "UNKNOWN",
+    "actual_dlopen_libobj_before_appfw": "UNKNOWN",
+    "actual_dlsym_Application_System_Init": "UNKNOWN",
+    "prior_phase_4_49_correction": "Process isolation applies to per-event individual im.elf child commands, but not conditional combined multi-stage bootin command.",
+    "core_graph_edges_added": 0,
+    "core_primary_elf_edges": 74,
+    "core_tracked_edges": 84,
+    "real_entrypoint_static_chain": [
+      "0x8dc0 _start",
+      "0x8de2 __libc_start_main(main=0x9c65)",
+      "0x9c64 main",
+      "0x9c7a -> 0x97d0 options/mode parser",
+      "0x9ca2 -> 0x9914 combined command builder",
+      "0x9a54 -> system@GLIBC_2.4"
+    ],
+    "usage_claim": "Programmatically reachable from real main conditional branch, not just strings; runtime mode/child result unknown",
+    "file_initialized_mode_pointer": "0x12aa0 -> 0xa695 ('3 ')",
+    "mode_if_no_override": "3 -> s g r u l i a ",
+    "mode_default_evidence_grade": "DIRECT_FILE_BACKED_ELF_DATA"
+  },
+  "phase4_51_missing_dmode_fallback": {
+    "evidence": "sdk/bootin_dmode_fallback_3_21.json",
+    "report": "reports/PHASE4_51_BOOTIN_DMODE_MISSING_FALLBACK.md",
+    "source_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "user_offline_dir_search": "File Not Found",
+    "live_file_absence_known": false,
+    "open_negative_test": "0x9494",
+    "open_failure_branch": "0x950e->0x9728",
+    "mode_field_preserved_if_open_fails": true,
+    "mode_field_preserved_if_read_count_nonpositive": true,
+    "initial_mode_pointer": "0x12aa0 -> 0xa695 ('3 ')",
+    "mode3_stage_args": "s g r u l i a ",
+    "command_reachability": "0x9c64 main->0x97d0 parser->0x9460 dmode->0x9914 builder->0x9a54 system",
+    "actual_boot_argv_or_mode": "UNKNOWN",
+    "possible_cli_override_or_bit0_bypass": true,
+    "added_core_graph_edges": 0,
+    "runtime_verified_apis": 0
+  },
+  "phase4_52_im_queue_id_announcement": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_52_IM_DYNAMIC_QUEUE_ANNOUNCEMENT.md",
+    "evidence": "sdk/im_dynamic_queue_announcement_3_21.json",
+    "scanner": "tools/scan_a6000_uipc_registration.py",
+    "event": "0x0094001a",
+    "fixed_destination": "0x0094016a",
+    "dynamic_receiver_if_allocated": "0x00946000..0x00946fff",
+    "main_callsite": "0x9e6c",
+    "main_message_words": [
+      "0x94001a",
+      "a600 global+0x24 value",
+      "allocated dynamic receiver ID",
+      "3"
+    ],
+    "alternate_callsite": "0x96f8",
+    "alternate_message_words": [
+      "0x94001a",
+      "value of previous PLT call",
+      "allocated dynamic receiver ID",
+      "2"
+    ],
+    "wrapper": "0x91a4 stores four words +0,4,8,12 then 0x91dc osal_snd_msg",
+    "callback_state5": "0x9338 recognizes 0x940007 / 0x940001, not late-stage 0x940036/037",
+    "callback_reactivation": "conditional main 0x9edc..0x9ef2 ac08(state3,callback a06d)",
+    "consumer_of_0x94001a": "UNKNOWN",
+    "actual_osal_send_receive_success": "UNKNOWN",
+    "camera_core_graph_delta": 0,
+    "core_primary": 74,
+    "tracked_core": 84,
+    "runtime_verified": 0
+  }
+}

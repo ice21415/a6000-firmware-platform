@@ -51,8 +51,8 @@ class Database:
             if version <= current:
                 continue
             script = migration.read_text(encoding="utf-8")
-            if version == 3:
-                # v3 rebuilds the module/evidence tables while preserving row
+            if version in (3, 7):
+                # v3 and v7 rebuild the module/evidence tables while preserving row
                 # IDs. SQLite only accepts this pragma outside a transaction;
                 # foreign_key_check is run by the caller before promotion.
                 self.connection.commit()
@@ -68,13 +68,25 @@ class Database:
                     elif version == 4:
                         from .migration_v4 import apply_v4
                         apply_v4(self.connection)
+                    elif version == 5:
+                        from .migration_v5 import apply_v5
+                        apply_v5(self.connection)
+                    elif version == 6:
+                        from .migration_v6 import apply_v6
+                        apply_v6(self.connection)
+                    elif version == 7:
+                        # executescript() commits implicitly; make the data
+                        # migration and schema version update one transaction.
+                        self.connection.execute("BEGIN IMMEDIATE")
+                        from .migration_v7 import apply_v7
+                        apply_v7(self.connection)
                     self.connection.execute(
                         "INSERT OR REPLACE INTO schema_migration(version, applied_at, tool_version) VALUES(?,?,?)",
                         (version, utc_now(), __version__),
                     )
                     self.connection.execute(f"PRAGMA user_version={version}")
             finally:
-                if version == 3:
+                if version in (3, 7):
                     self.connection.commit()
                     self.connection.execute("PRAGMA foreign_keys=ON")
             current = version

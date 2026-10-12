@@ -1,9 +1,13 @@
 /* Stable, evidence-oriented Ghidra export for one imported program. */
 import ghidra.app.script.GhidraScript;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressRange;
+import ghidra.program.model.address.AddressRangeIterator;
 import ghidra.program.model.block.BasicBlockModel;
 import ghidra.program.model.block.CodeBlock;
 import ghidra.program.model.block.CodeBlockIterator;
+import ghidra.program.model.block.CodeBlockReference;
+import ghidra.program.model.block.CodeBlockReferenceIterator;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionIterator;
 import ghidra.program.model.listing.Instruction;
@@ -25,6 +29,7 @@ public class AnalyzeBinary extends GhidraScript {
     private String runId;
     private String sha256;
     private String ghidraVersion;
+    private long recordsWritten;
 
     private static String json(String value) {
         if (value == null) return "null";
@@ -76,6 +81,12 @@ public class AnalyzeBinary extends GhidraScript {
     private void emit(String kind, String fields) {
         out.printf("{\"kind\":%s,\"run_id\":%s,\"binary_sha256\":%s,%s}%n",
             json(kind), json(runId), json(sha256), fields);
+        recordsWritten++;
+    }
+
+    private void emitComplete() {
+        out.printf("{\"kind\":\"complete\",\"run_id\":%s,\"binary_sha256\":%s,\"record_count\":%d,\"export_status\":\"complete\"}%n",
+            json(runId), json(sha256), recordsWritten);
     }
 
     private String programIdentity() {
@@ -94,6 +105,14 @@ public class AnalyzeBinary extends GhidraScript {
         emit("function", String.format("\"entry_vma\":%s,\"name\":%s,\"prototype\":%s,\"body_bytes\":%d,\"generated\":%s,\"confidence\":\"VERIFIED_STATIC\"",
             json(address(f.getEntryPoint())), json(f.getName()), json(prototype), f.getBody().getNumAddresses(),
             f.getSymbol().isDynamic() ? "true" : "false"));
+        AddressRangeIterator ranges = f.getBody().getAddressRanges();
+        while (ranges.hasNext()) {
+            AddressRange range = ranges.next();
+            emit("function_body_range", String.format("\"function_entry\":%s,\"start_vma\":%s,\"end_vma\":%s,\"address_space\":%s,\"status\":\"VERIFIED_STATIC\"",
+                json(address(f.getEntryPoint())), json(address(range.getMinAddress())),
+                json(address(range.getMaxAddress())),
+                json(currentProgram.getAddressFactory().getDefaultAddressSpace().getName())));
+        }
     }
 
     @Override
@@ -130,9 +149,11 @@ public class AnalyzeBinary extends GhidraScript {
                         String kind = type.isCall() ? (callee == null ? "indirect_call_candidate" : "direct_call") :
                                       (type.isData() ? "data_reference" : "control_flow");
                         emit(type.isCall() ? "callsite" : "cross_reference", String.format(
-                            "\"from_address\":%s,\"to_address\":%s,\"target\":%s,\"callee_entry\":%s,\"relation_kind\":%s,\"status\":%s,\"confidence\":\"VERIFIED_STATIC\"",
+                            "\"function_entry\":%s,\"from_address\":%s,\"to_address\":%s,\"target\":%s,\"callee_entry\":%s,\"address_space\":%s,\"relation_kind\":%s,\"status\":%s,\"confidence\":\"VERIFIED_STATIC\"",
+                            json(address(function.getEntryPoint())),
                             json(from), json(address(target)), json(callee == null ? null : callee.getName()),
-                            json(callee == null ? null : address(callee.getEntryPoint())), json(kind),
+                            json(callee == null ? null : address(callee.getEntryPoint())),
+                            json(currentProgram.getAddressFactory().getDefaultAddressSpace().getName()), json(kind),
                             json(callee == null && type.isCall() ? "CANDIDATE" : "VERIFIED_STATIC")));
                     }
                 }
@@ -146,6 +167,18 @@ public class AnalyzeBinary extends GhidraScript {
                 emit("basic_block", String.format("\"function_entry\":%s,\"start_vma\":%s,\"end_vma\":%s,\"confidence\":\"VERIFIED_STATIC\"",
                     json(owner == null ? null : address(owner.getEntryPoint())), json(address(block.getFirstStartAddress())),
                     json(address(block.getMaxAddress()))));
+                CodeBlockReferenceIterator destinations = block.getDestinations(monitor);
+                while (destinations.hasNext() && !monitor.isCancelled()) {
+                    CodeBlockReference destination = destinations.next();
+                    CodeBlock targetBlock = destination.getDestinationBlock();
+                    if (targetBlock == null) continue;
+                    emit("cfg_edge", String.format("\"function_entry\":%s,\"from_address\":%s,\"to_address\":%s,\"source_instruction\":%s,\"edge_kind\":%s,\"address_space\":%s,\"confidence\":\"VERIFIED_STATIC\"",
+                        json(owner == null ? null : address(owner.getEntryPoint())),
+                        json(address(block.getFirstStartAddress())), json(address(targetBlock.getFirstStartAddress())),
+                        json(address(destination.getSourceAddress())),
+                        json(destination.getFlowType() == null ? "control_flow" : destination.getFlowType().toString()),
+                        json(currentProgram.getAddressFactory().getDefaultAddressSpace().getName())));
+                }
             }
 
             SymbolIterator symbols = currentProgram.getSymbolTable().getAllSymbols(true);
@@ -160,6 +193,7 @@ public class AnalyzeBinary extends GhidraScript {
                         json(address(symbol.getAddress())), json(symbol.getName())));
                 }
             }
+            if (!monitor.isCancelled()) emitComplete();
         } finally {
             out.flush();
             out.close();

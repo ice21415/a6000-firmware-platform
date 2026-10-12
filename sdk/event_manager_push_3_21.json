@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "symbol": "_ZN12EventManager4pushEP5Eventb",
+  "entry": "0x7ef960",
+  "size": 156,
+  "verification": "PRIMARY_ELF_VERIFIED bounded control flow and AAPCS32 register observations",
+  "abi_observation": {
+    "r0": "EventManager* receiver candidate",
+    "r1": "Event* candidate",
+    "r2": "bool candidate",
+    "return": "visible zero on observed exits",
+    "safe_to_call": false
+  },
+  "control_flow": {
+    "pre_dispatch": "0x7ef970 -> 0x7ef88c; branch on status == 1",
+    "success_path": "indirect dispatch through [this+8], helper calls and cleanup",
+    "zero_status_path": "cleanup helper sequence",
+    "completion": "non-zero r2 invokes indirect callback at [this+4] after cleanup"
+  },
+  "evidence": ["ELF_VMA:0x7ef960", "ELF_VMA:0x7ef96a", "ELF_VMA:0x7ef96e", "ELF_VMA:0x7ef970", "ELF_VMA:0x7ef974", "ELF_VMA:0x7ef988", "ELF_VMA:0x7ef9ca", "ELF_VMA:0x7ef9ce", "ELF_VMA:0x7ef9ea"],
+  "limitations": [
+    "Helper identities and their queue/thread semantics remain UNKNOWN",
+    "Indirect targets at [this], [this+4] and [this+8] are not selected without object/vtable evidence",
+    "Event ownership, status meanings and completion result are UNKNOWN",
+    "No runtime or device execution"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

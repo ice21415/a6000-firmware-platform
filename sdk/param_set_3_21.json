@@ -1,0 +1,447 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "type": "PrmSet",
+  "discriminator": 7,
+  "allocation_size_bytes": 36,
+  "verification": "PRIMARY_ELF_VERIFIED bounded PrmSet lifecycle, one-word node value/copy/comparator facts, ELF-local tree-helper facts, ARM EHABI cleanup metadata, and the separate libScalarDaemon cross-ELF call chain; source container alias remains UNKNOWN",
+  "cross_module_usage_contract": "sdk/paramset_cross_elf_3_21.json",
+  "layout": {
+    "+0x00": "ParamBase vptr address point",
+    "+0x04": "ParamBase discriminator candidate, initialized to 7 through ParamBaseC2",
+    "+0x08": "ParamBase key; not written by the bounded PrmSet constructor",
+    "+0x0c": "embedded 24-byte payload region",
+    "payload_relative": {
+      "+0x00": "not written by the bounded default initializer; UNKNOWN",
+      "+0x04": "zeroed field",
+      "+0x08": "zeroed field",
+      "+0x0c": "pointer to payload +0x04 sentinel",
+      "+0x10": "pointer to payload +0x04 sentinel",
+      "+0x14": "zeroed field"
+    },
+    "container_identity": "layout-compatible with a libstdc++ _Rb_tree header/node family; exact PrmSet source alias and element type UNKNOWN",
+    "header_layout": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "base_offset": "+0x04",
+      "fields": {
+        "+0x04": "header word; initialized to zero",
+        "+0x08": "root/parent link candidate; initialized to zero",
+        "+0x0c": "header link candidate; initialized to header +0x04",
+        "+0x10": "header link candidate; initialized to header +0x04",
+        "+0x14": "node count candidate; initialized to zero"
+      },
+      "compatibility": "STATIC_INFERRED; matches the 20-byte libstdc++ _Rb_tree_node_base plus count shape",
+      "evidence": "payload_header_accessors, payload_sentinel_init, payload_tree_destroy_recursive"
+    },
+    "tree_evidence": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "node_size_bytes": 20,
+      "node_value_offset": 16,
+      "header_sentinel_offset": 4,
+      "node_count_offset": 20,
+      "insert_rebalance_binding": {
+        "plt": "0xdc63c",
+        "got": "0x102d1b0",
+        "symbol": "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
+        "runtime_binding": "UNKNOWN"
+      },
+      "erase_rebalance_binding": {
+        "plt": "0xdd17c",
+        "got": "0x102d544",
+        "symbol": "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_",
+        "runtime_binding": "UNKNOWN"
+      },
+      "source_type": "UNKNOWN",
+      "likely_source_family": "STATIC_INFERRED; libstdc++ _Rb_tree-like ordered container",
+      "prmset_operation_path": "UNKNOWN; bounded PrmSet lifecycle reaches shared helpers, not a named insert method",
+      "node_value_width_bytes": 4,
+      "node_layout": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "+0x00": "node header word candidate",
+        "+0x04": "node link candidate",
+        "+0x08": "node link candidate; accessor observed at 0xffc68",
+        "+0x0c": "node link candidate; accessor observed at 0xffc60",
+        "+0x10": "one-word value storage",
+        "compatibility": "STATIC_INFERRED; compatible with libstdc++ _Rb_tree_node_base plus value storage"
+      },
+      "value_type": "UNKNOWN; one-word storage with an unsigned-order comparator candidate",
+      "insert_callers": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_metadata_contract": "sdk/param_set_tree_callers_3_21.json",
+        "caller_metadata_summary": "Ghidra caller ranges are recorded separately from Capstone callsite facts; all eight normalized callsites agree across the two sources, generated labels are non-semantic, and the generic helper's PrmSet ownership remains UNKNOWN",
+        "target": "0xffe70",
+        "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+        "direct_callsite_addresses": [
+          "0xfff4e",
+          "0xfff86",
+          "0x7f4402"
+        ],
+        "direct_callsite_count": 3,
+        "prmset_mutator_entry": "UNKNOWN",
+        "prmset_relation": "UNKNOWN within libObj.so; the separate cross-ELF contract proves a libScalarDaemon caller but does not identify this generic insertion helper as its mutator",
+        "function_boundary_resolution": "UNKNOWN; stripped local helper callers are not promoted from nearest-address heuristics",
+        "address_space": "ELF_VMA"
+      },
+      "value_copy_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0xecd7a",
+        "width_bytes": 4,
+        "source_type": "UNKNOWN"
+      },
+      "value_compare_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0xefe6c",
+        "width_bytes": 4,
+        "ordering": "unsigned word less-than candidate; exact source comparator type UNKNOWN"
+      },
+      "node_copy_evidence": {
+        "status": "PRIMARY_ELF_VERIFIED",
+        "entry": "0x63e796",
+        "source_value_offset": 16,
+        "value_width_bytes": 4
+      }
+    }
+  },
+  "methods": {
+    "getSet": {
+      "entry": "0x7efae8",
+      "symbol": "_ZN6PrmSet6getSetEv",
+      "machine_return": "r0 + 0x0c",
+      "source_return_type": "UNKNOWN",
+      "ownership": "borrowed pointer candidate; no retain operation observed",
+      "cross_module_callsite_contract": "sdk/paramset_cross_elf_3_21.json",
+      "safe_to_call": false
+    },
+    "GET": {
+      "entry": "0x7efaf0",
+      "symbol": "_ZN6PrmSet3GETEPK9ParamListm",
+      "inputs": [
+        "const ParamList* candidate in r0",
+        "unsigned long key candidate in r1"
+      ],
+      "lookup_discriminator": 7,
+      "target": "ParamList::get via interworking veneer",
+      "return_semantics": "delegated result; source return and ownership UNKNOWN",
+      "cross_module_callsite_contract": "sdk/paramset_cross_elf_3_21.json",
+      "safe_to_call": false
+    },
+    "constructor": {
+      "entry": "0x7efb00",
+      "inputs": [
+        "PrmSet receiver candidate in r0"
+      ],
+      "effects": "initializes ParamBase discriminator 7, vptr and embedded payload",
+      "safe_to_call": false
+    },
+    "destructor": {
+      "entry": "0x7efb2c",
+      "effects": "releases embedded payload through 0xffe0c and calls ParamBase destruction path 0xe4734",
+      "safe_to_call": false
+    },
+    "clone_candidate": {
+      "entry": "0x7efbb4",
+      "effects": "allocates 0x24-byte object and copies source payload through 0x63e8a6",
+      "source_return_type": "UNKNOWN",
+      "safe_to_call": false,
+      "exception_cleanup": {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efbce",
+        "calls": [
+          "0xdd620",
+          "0xdd4f8"
+        ],
+        "delete_symbol": "_ZdlPv",
+        "end_cleanup_symbol": "__cxa_end_cleanup",
+        "ehabi_target": "exception_unwind.targets.clone_candidate",
+        "limitation": "copy-constructor throw source and exception object semantics UNKNOWN"
+      }
+    },
+    "payload_tree_helpers": {
+      "entries": {
+        "header_accessors": "0xffc40",
+        "recursive_destroy": "0xffd80",
+        "node_size": "0xffe1c",
+        "node_construct": "0xffe4c",
+        "insert": "0xffe70",
+        "copy": "0x63e83a",
+        "value_copy": "0xecd7a",
+        "value_compare": "0xefe6c",
+        "insert_unique": "0xffed0",
+        "copy_node": "0x63e796"
+      },
+      "verification": "PRIMARY_ELF_VERIFIED for bounded instruction and relocation facts",
+      "insert_scope": "generic ELF-local helper; direct PrmSet method identity UNKNOWN",
+      "safe_to_call": false,
+      "value_semantics": "The bounded node construction/copy path transfers one 32-bit word at node +0x10; the local comparator orders two such words with an unsigned comparison. Header/link accessors observe payload +0x04, +0x08, +0x0c and +0x10, compatible with the imported _Rb_tree node-base ABI. The exact PrmSet source element type remains UNKNOWN."
+    },
+    "copy_constructor_candidate": {
+      "entry": "0x7efb6c",
+      "normal_path": "initializes ParamBase/payload and copies the source payload through 0x63e8a6",
+      "exception_cleanup": {
+        "status": "STATIC_INFERRED",
+        "landing_pad_candidate": "0x7efb9c",
+        "calls": [
+          "0xffe0c",
+          "0xe4734",
+          "0xdd4f8"
+        ],
+        "end_cleanup_symbol": "__cxa_end_cleanup",
+        "ehabi_target": "exception_unwind.targets.copy_constructor_candidate",
+        "limitation": "complete throw edge, exception object and allocator contract UNKNOWN"
+      },
+      "safe_to_call": false
+    }
+  },
+  "bindings": {
+    "param_base_constructor": {
+      "plt": "0xe11a4",
+      "got": "0x102e984",
+      "symbol": "_ZN9ParamBaseC2Em",
+      "runtime_binding": "UNKNOWN"
+    },
+    "memset": {
+      "plt": "0xde37c",
+      "got": "0x102dae4",
+      "symbol": "memset",
+      "runtime_binding": "UNKNOWN"
+    },
+    "allocator": {
+      "plt": "0xdc100",
+      "got": "0x102cffc",
+      "symbol": "_Znwj",
+      "runtime_binding": "UNKNOWN"
+    },
+    "delete": {
+      "plt": "0xdd620",
+      "got": "0x102d6bc",
+      "symbol": "_ZdlPv",
+      "runtime_binding": "UNKNOWN"
+    },
+    "paramlist_get": {
+      "plt": "0xe2894",
+      "got": "0x102f0c8",
+      "symbol": "_ZNK9ParamList3getEmm",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_increment_const": {
+      "plt": "0xdbb6c",
+      "got": "0x102ce3c",
+      "symbol": "_ZSt18_Rb_tree_incrementPKSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_insert_rebalance": {
+      "plt": "0xdc63c",
+      "got": "0x102d1b0",
+      "symbol": "_ZSt29_Rb_tree_insert_and_rebalancebPSt18_Rb_tree_node_baseS0_RS_",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_erase_rebalance": {
+      "plt": "0xdd17c",
+      "got": "0x102d544",
+      "symbol": "_ZSt28_Rb_tree_rebalance_for_erasePSt18_Rb_tree_node_baseRS_",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_decrement_const": {
+      "plt": "0xde038",
+      "got": "0x102d9e0",
+      "symbol": "_ZSt18_Rb_tree_decrementPKSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_increment": {
+      "plt": "0xe0b00",
+      "got": "0x102e774",
+      "symbol": "_ZSt18_Rb_tree_incrementPSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "rb_tree_decrement": {
+      "plt": "0xe186c",
+      "got": "0x102eba8",
+      "symbol": "_ZSt18_Rb_tree_decrementPSt18_Rb_tree_node_base",
+      "runtime_binding": "UNKNOWN"
+    },
+    "end_cleanup": {
+      "plt": "0xdd4f8",
+      "got": "0x102d660",
+      "symbol": "__cxa_end_cleanup",
+      "runtime_binding": "UNKNOWN"
+    }
+  },
+  "ownership": {
+    "payload": "embedded storage is released by the destructor; container allocator and element ownership UNKNOWN",
+    "getSet": "returns an interior pointer candidate; alias invalidation and synchronization UNKNOWN",
+    "clone": "fresh allocation and payload-copy path observed; exception and failure cleanup UNKNOWN",
+    "status": "STATIC_INFERRED"
+  },
+  "limitations": [
+    "The payload header/node offsets are compatible with libstdc++ _Rb_tree, but there is no source-level proof that it is std::set or another named container",
+    "payload +0x00 is not written by the bounded default initializer",
+    "The helper copies and compares one 32-bit word, but the exact PrmSet element typedef and source comparator remain UNKNOWN",
+    "No unique PrmSet mutation caller for 0xffe70 is proven; direct Thumb callsites are preserved as helper evidence only. A separate libScalarDaemon caller now consumes GET followed by getSet, but its mutation relationship is unknown",
+    "Allocator pairing, exception paths, runtime loader binding, external aliases, locks and concurrent behavior UNKNOWN",
+    "No runtime execution or device validation",
+    "The 0x14-byte node shape and +0x10 value offset do not prove an exact std::set<uint32_t> source declaration",
+    "The imported _Rb_tree symbols prove static PLT/GOT references only; runtime loader resolution remains UNKNOWN",
+    "Direct lifecycle caller scan covers immediate Thumb BL encodings in libObj.so .text only; absent direct BL does not exclude BLX/register/vtable dispatch or callers in another ELF"
+  ],
+  "safety_boundaries": {
+    "get_set_null_receiver": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "observation": "the bounded 0x7efae8 body has no local null check before adding +0x0c",
+      "scope": "bounded body only; caller preconditions and runtime fault behavior UNKNOWN"
+    },
+    "get_set_lifetime": {
+      "status": "STATIC_INFERRED",
+      "observation": "the getter returns an interior payload address and performs no retain operation",
+      "alias_invalidation": "UNKNOWN"
+    },
+    "destructor_payload_guard": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "observation": "the short 0x7efb2c wrapper has no local null branch before delegating payload release",
+      "delegate_semantics": "UNKNOWN"
+    },
+    "invalid_element": {
+      "status": "UNKNOWN",
+      "observation": "recursive release observes null child-link termination only; invalid node behavior is not recovered"
+    },
+    "concurrency": {
+      "status": "UNKNOWN",
+      "observation": "the bounded PrmSet targets do not prove a lock, atomic counter or scheduler contract"
+    },
+    "runtime_safe": false
+  },
+  "runtime_verified": false,
+  "callable": false,
+  "evidence_revision": "param-set-direct-call-scan-2026-10-10",
+  "inheritance": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "base_type": "ParamBase",
+    "rtti_name": "6PrmSet",
+    "rtti_vma": "0x1019d08",
+    "vtable_prefix_vma": "0x1019d18",
+    "vtable_address_point": "0x1019d20",
+    "relation": "direct RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relation",
+    "source": "sdk/param_base_3_21.json direct_derived; exact source class declaration remains descriptive",
+    "vtable_slots": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "vtable_prefix_vma": "0x1019d18",
+      "address_point_vma": "0x1019d20",
+      "prefix": {
+        "offset_to_top": "0x0",
+        "typeinfo_pointer": "0x1019d08",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "slots": {
+        "+0x00": {
+          "role": "clone_candidate",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efbb4",
+          "raw_thumb_value": "0x7efbb5",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded clone allocation/copy body"
+        },
+        "+0x04": {
+          "role": "nondeleting_destructor",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efb2c",
+          "raw_thumb_value": "0x7efb2d",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded payload-release destructor body"
+        },
+        "+0x08": {
+          "role": "deleting_destructor",
+          "role_status": "STATIC_INFERRED",
+          "entry_vma": "0x7efb58",
+          "raw_thumb_value": "0x7efb59",
+          "thumb_tag": true,
+          "status": "PRIMARY_ELF_VERIFIED",
+          "address_space": "ELF_VMA",
+          "evidence": "bounded destructor-plus-delete body"
+        }
+      },
+      "source_level_semantics": "slot positions and target bodies are statically observed; exact source virtual declarations and runtime dispatch remain UNKNOWN"
+    }
+  },
+  "exception_unwind": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "format": "ARM EHABI .ARM.exidx metadata",
+    "targets": {
+      "copy_constructor_candidate": {
+        "entry_vma": "0x7efb6c",
+        "exidx_entry_vma": "0xfb2a74",
+        "extab_vma": "0xf19718",
+        "unwind_kind": "EXTAB",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA"
+      },
+      "clone_candidate": {
+        "entry_vma": "0x7efbb4",
+        "exidx_entry_vma": "0xfb2a7c",
+        "extab_vma": "0xf19730",
+        "unwind_kind": "EXTAB",
+        "status": "PRIMARY_ELF_VERIFIED",
+        "address_space": "ELF_VMA"
+      }
+    },
+    "semantic_limit": "EHABI coverage and bounded cleanup calls do not prove every throw edge, exception object type or allocator contract"
+  },
+  "direct_call_scan": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "address_space": "ELF_VMA",
+    "scan": "executable .text Thumb BL immediate encodings, Capstone-confirmed",
+    "targets": {
+      "get_set": {
+        "target": "0x7efae8",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "get": {
+        "target": "0x7efaf0",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "constructor": {
+        "target": "0x7efb00",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "destructor": {
+        "target": "0x7efb2c",
+        "direct_callsite_addresses": [
+          "0x7efb5e"
+        ],
+        "direct_callsite_count": 1,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "deleting_destructor": {
+        "target": "0x7efb58",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      },
+      "clone": {
+        "target": "0x7efbb4",
+        "direct_callsite_addresses": [],
+        "direct_callsite_count": 0,
+        "status": "PRIMARY_ELF_VERIFIED",
+        "caller_identity": "UNKNOWN; no nearest-address function attribution"
+      }
+    },
+    "scope_limit": "absence of a direct BL does not exclude BLX/register/vtable dispatch or callers in another ELF"
+  }
+}

@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_EVENT_MANAGER_CONSTRUCTOR_CANDIDATE",
+  "firmware_version": "3.21",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "target": {
+    "name": "EventManager constructor-like owner initializer",
+    "entry": 8319572,
+    "bounded_size": 296,
+    "symbol": null
+  },
+  "name_helper": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "input": "r0 receiver candidate, r1 pointer-like source used by strlen/strncpy",
+    "receiver_name_storage": "+0x2c through bounded strncpy, terminator byte at +0x3f",
+    "length_limit": "0x14 bytes",
+    "provider_result": "return register from this helper is stored by the owner at +0x14",
+    "plt_bindings": {
+      "strlen": {
+        "entry_vma": "0xdd7b8",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d73c",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "strlen",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "strncpy": {
+        "entry_vma": "0xdce00",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d428",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "strncpy",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "strncmp": {
+        "entry_vma": "0xdfbb8",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102e298",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "strncmp",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    }
+  },
+  "constructor": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "bounded_scope": "0x7ef254..0x7ef373; constructor-like field initialization and cleanup landing pads are not a source-level boundary",
+    "input_registers": {
+      "r0": "owner receiver candidate",
+      "r1": "pointer-like name/source candidate consumed by strlen/strncpy in 0x7ef1e4",
+      "r2_r3": "not assigned a source-level constructor meaning"
+    },
+    "field_initialization": {
+      "+0x00": {
+        "allocation_size": "0x7c",
+        "initializer": "0x7f3b00"
+      },
+      "+0x04": {
+        "allocation_size": "0xac",
+        "initializer": "0x7ec384"
+      },
+      "+0x08": {
+        "allocation_size": "0x38",
+        "initializer": "0x7f4fcc"
+      },
+      "+0x0c": {
+        "allocation_size": "0x28",
+        "initializer": "0x7f4934"
+      },
+      "+0x10": {
+        "allocation_size": "0x24",
+        "initializer": "0x7ef894"
+      },
+      "+0x14": {
+        "initializer": "0x7ef1e4 return value"
+      },
+      "+0x18": {
+        "initializer": "0x10afb8 return value"
+      },
+      "+0x1c": {
+        "initializer": "virtual call through [owner+0x14] vtable +0x3c"
+      },
+      "+0x20": {
+        "initializer": "virtual call through [owner+0x14] vtable +0x2c"
+      },
+      "+0x24": {
+        "value": "zero"
+      },
+      "+0x28": {
+        "value": "0x80000000 sentinel via MVN"
+      }
+    },
+    "provider": {
+      "field": "+0x14",
+      "source": "return register from 0x7ef1e4",
+      "type": "UNKNOWN; no RTTI/vtable source-level identity recovered"
+    },
+    "lifetime": {
+      "exception_landing_pads": "present after the bounded normal body; exact EHABI ownership/cleanup semantics remain UNKNOWN",
+      "owner_destructor": "UNKNOWN; separate cleanup witness deletes selected subobjects but does not prove this constructor pair"
+    }
+  },
+  "method_identity": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "push": {
+      "name": "_ZN12EventManager4pushEP5Eventb",
+      "entry": 8321376,
+      "size": 156
+    },
+    "count": {
+      "name": "_ZN12EventManager5countEj",
+      "entry": 8321532,
+      "size": 34
+    },
+    "constructor_symbol_candidates": [],
+    "constructor_identity": "UNKNOWN; no nonzero EventManager constructor symbol in available symbol tables",
+    "layout_relation": "STATIC_INFERRED; candidate initializes fields consumed by the symbol-bound push/count methods"
+  },
+  "allocator_binding": {
+    "entry_vma": "0xdc100",
+    "address_space": "ELF_VMA",
+    "got_slot": "0x102cffc",
+    "status": "VERIFIED_STATIC",
+    "runtime_binding": "UNKNOWN",
+    "candidates": [
+      {
+        "symbol": "_Znwj",
+        "symbol_value": "0x0",
+        "relocation_type": 22,
+        "section": ".rel.plt"
+      }
+    ]
+  },
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC",
+    "tool": "Ghidra",
+    "version": "12.1.3",
+    "profile": "event-manager-constructor",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "program_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "language": "ARM:LE:32:v8",
+    "compiler_spec": "default",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "execution": {
+      "exit_code": 0,
+      "completion_marker": true,
+      "analysis_mode": "targeted_noanalysis_bounded_export",
+      "auto_analysis_completed": false
+    },
+    "target_count": 5,
+    "instruction_count": 260,
+    "basic_block_count": 18,
+    "cfg_edge_count": 65,
+    "target_records": [
+      {
+        "elf_vma": "0x7ef1e4",
+        "ghidra_address": "0x7ff1e4",
+        "instruction_count": 38,
+        "basic_block_count": 7,
+        "cfg_edge_count": 14
+      },
+      {
+        "elf_vma": "0x7ef254",
+        "ghidra_address": "0x7ff254",
+        "instruction_count": 118,
+        "basic_block_count": 1,
+        "cfg_edge_count": 20
+      },
+      {
+        "elf_vma": "0x7ef894",
+        "ghidra_address": "0x7ff894",
+        "instruction_count": 31,
+        "basic_block_count": 1,
+        "cfg_edge_count": 6
+      },
+      {
+        "elf_vma": "0x7ef960",
+        "ghidra_address": "0x7ff960",
+        "instruction_count": 60,
+        "basic_block_count": 8,
+        "cfg_edge_count": 22
+      },
+      {
+        "elf_vma": "0x7ef9fc",
+        "ghidra_address": "0x7ff9fc",
+        "instruction_count": 13,
+        "basic_block_count": 1,
+        "cfg_edge_count": 3
+      }
+    ],
+    "raw_export_private": true,
+    "runtime_verified": false,
+    "callable": false,
+    "semantic_names_verified": false
+  },
+  "semantic_status": "STATIC_INFERRED",
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "No source-level constructor name, RTTI record or EventManager vtable ownership was found",
+    "The +0x14 provider type and virtual-call targets remain UNKNOWN",
+    "Allocation success, exception cleanup, concurrent access and loader binding remain UNKNOWN",
+    "Static layout compatibility is not a proof of C++ class identity or safe invocation",
+    "The ELF was not executed and no camera was accessed"
+  ]
+}

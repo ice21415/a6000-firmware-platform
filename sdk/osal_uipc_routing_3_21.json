@@ -1,0 +1,114 @@
+{
+  "phase": "4.45",
+  "firmware_version": "Sony A6000 3.21",
+  "source": "libosal_uipc_fw321.so",
+  "sha256": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef",
+  "size_bytes": 26636,
+  "format": "ELF32 little-endian ARM EABI5 shared DYN",
+  "soname": "libosal_uipc.so",
+  "verification": "ORIGINAL_ELF_READONLY_INSTRUCTION_AND_RELOCATION",
+  "api_dispatch": [
+    {
+      "api": "osal_snd_msg",
+      "thumb_symbol": "0x421d",
+      "entry": "0x421c",
+      "bit_test": "0x4220 tst.w r0,#0x8000",
+      "if_clear": "0x423e tail branch to u_osal_snd_msg PLT",
+      "if_set": "0x4260 local endpoint table lookup"
+    },
+    {
+      "api": "osal_rcv_msg_tmo",
+      "thumb_symbol": "0x3b69",
+      "entry": "0x3b68",
+      "bit_test": "0x3b78 tst.w r3,#0x8000",
+      "if_clear": "0x3b7e BLX u_osal_rcv_msg_tmo PLT",
+      "if_set": "0x3bb8 local endpoint lookup"
+    },
+    {
+      "api": "osal_reg_sync_msg_queue_cb",
+      "thumb_symbol": "0x3915",
+      "entry": "0x3914",
+      "bit_test": "0x3928 tst.w r5,#0x8000",
+      "if_clear": "0x3932 branch to u_osal_reg_sync_msg_queue_cb PLT",
+      "if_set": "0x3944+ local registration"
+    }
+  ],
+  "kernel_device": {
+    "literal": "/dev/uipc",
+    "literal_vma": "0x51e4",
+    "init_function": "do_init@0x1f84",
+    "open_call": "0x1f94 via open@GLIBC_2.4",
+    "initial_open_flags": "0x2 (O_RDWR)",
+    "ioctl_plt": "0x1740",
+    "ioctl_relocation": "R_ARM_JUMP_SLOT ioctl@GLIBC_2.4 GOT 0xe1c4"
+  },
+  "remote_uipc_ioctl": [
+    {
+      "api": "u_osal_snd_msg",
+      "thumb_symbol": "0x2431",
+      "entry": "0x2430",
+      "ioctl_call": "0x2450",
+      "request": "0x80000004",
+      "argument": "stack pair {queue id, message pointer}"
+    },
+    {
+      "api": "u_osal_rcv_msg_tmo",
+      "thumb_symbol": "0x256d",
+      "entry": "0x256c",
+      "ioctl_call": "0x2594",
+      "request": "0x80000007",
+      "argument": "stack-based recv message pointer/timeout descriptor"
+    },
+    {
+      "api": "u_osal_reg_sync_msg_queue_cb",
+      "thumb_symbol": "0x2625",
+      "entry": "0x2624",
+      "ioctl_call": "0x2650",
+      "request": "0x80000008",
+      "argument": "stack-based sync callback registration descriptor; callback stored as part of input"
+    },
+    {
+      "api": "u_osal_dynamic_id",
+      "thumb_symbol": "0x278d",
+      "entry": "0x278c",
+      "ioctl_call": "0x27b8",
+      "request": "0x8000000c",
+      "argument": "stack-based allocation params/output id"
+    }
+  ],
+  "cross_elf": {
+    "im_elf_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "im_destination": "0x0094016a",
+    "destination_low16": "0x016a",
+    "destination_0x8000_bit_set": false,
+    "sender": "im.elf main -> 0x91a4 -> osal_snd_msg; event0x940036 at 0x9d72 and event0x940037 at 0x9d88",
+    "register": "im.elf 0x9ba2 osal_reg_sync_msg_queue_cb(dest=0x94016a, callback=0x95b1)",
+    "receiver_creation": "im.elf 0x92bc passes option r0=0x2a and namespace r1=0x94 to osal_dynamic_id",
+    "receiver_dynamic_dispatch_condition": "osal_dynamic_id at 0x4720 and 0x4742 tests r0 & 0x2, and for r0=0x2a takes 0x489c -> u_osal_dynamic_id; obtains remote-allocated ID using ioctl 0x8000000c",
+    "receiver": "im.elf 0x9eaa invokes osal_rcv_msg_tmo on the returned dynamically allocated ID",
+    "stage_callback": "im.elf callback state+8 may contain 0xa06d, then 0x9eb2 BLX r5 after successful receive",
+    "proven": "All im event send, remote sync callback registration and dynamically allocated receiver participate in the OSAL UIPC kernel-device abstraction, not solely local in-library queues.",
+    "not_proven": "Kernel /dev/uipc destination-to-dynamic-ID mapping, sync callback forwarding for 0x940036/37, receive delivery, current callback state and ordering."
+  },
+  "important_distinction": {
+    "same_kernel_subsystem_does_not_imply_same_queue": true,
+    "registered_queue_callback_thumb": "0x95b1",
+    "stage_handler_thumb": "0xa06d",
+    "registered_callback_explicit_stage_id_cases": "Not found in directly inspected 0x95b0 callback code",
+    "kernel_module_binary": "NOT PROVIDED"
+  },
+  "next_evidence": [
+    "Identify implementing kernel uipc driver from offline decompressed kernel or module and inspect queue ID mapping",
+    "Find boot argv and runtime stages from offline startup config",
+    "Do not claim event delivery until source+destination ID mapping is proven"
+  ],
+  "graph_counts": {
+    "camera_core_primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "additional_core_edges": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke": 0
+}

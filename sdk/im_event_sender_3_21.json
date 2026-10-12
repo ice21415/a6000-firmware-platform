@@ -1,0 +1,197 @@
+{
+  "phase": "4.43",
+  "analysis_mode": "OFFLINE_STATIC_PRIMARY_ELF",
+  "firmware_version": "3.21",
+  "source": {
+    "name": "im-vendor-original.elf",
+    "sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "elf_size_bytes": 23108
+  },
+  "new_discovery": "im.elf main includes exact event producer calls for 0x940031..0x940037, each conditionally routed through message send wrapper to osal_snd_msg; same ELF contains handler comparisons, but delivery/order are not proved",
+  "send_wrapper": {
+    "entry": "0x91a4",
+    "parameters": "r0 destination id, r1 event code, r2 and r3 message fields",
+    "allocation_plt": "0x8f98",
+    "allocation_symbol": "osal_valloc_msg_wait",
+    "message_type_word_at": "0x91d2",
+    "message_fields_at": [
+      "0x91d4",
+      "0x91d6",
+      "0x91da"
+    ],
+    "send_plt": "0x8fc8",
+    "send_symbol": "osal_snd_msg",
+    "send_callsite": "0x91dc",
+    "free_plt": "0x910c",
+    "free_symbol": "osal_free_msg"
+  },
+  "destination": {
+    "literal_slot": "0x9dd0",
+    "value": "0x0094016a",
+    "register": "r0",
+    "callback_registered": {
+      "callsite": "0x9ba2",
+      "plt": "0x8ea8",
+      "symbol": "osal_reg_sync_msg_queue_cb",
+      "callback_pointer_literal": "0x9dcc",
+      "callback_thumb": "0x95b1"
+    },
+    "registration_caveat": "The registered callback at 0x95b0 is distinct from stage handler 0xa06c; this does NOT prove the stage handler consumes the messages posted to this queue."
+  },
+  "event_send_sites": [
+    {
+      "event": "0x00940031",
+      "flag": "0x10000",
+      "getter": "0xab4c",
+      "test": "0x9cf2",
+      "call": "0x9d04",
+      "literal": "0x9e00"
+    },
+    {
+      "event": "0x00940032",
+      "flag": "0x20000",
+      "getter": "0xab60",
+      "test": "0x9d08",
+      "call": "0x9d1a",
+      "literal": "0x9e04"
+    },
+    {
+      "event": "0x00940033",
+      "flag": "0x40000",
+      "getter": "0xab74",
+      "test": "0x9d1e",
+      "call": "0x9d30",
+      "literal": "0x9e08"
+    },
+    {
+      "event": "0x00940034",
+      "flag": "0x80000",
+      "getter": "0xab88",
+      "test": "0x9d34",
+      "call": "0x9d46",
+      "literal": "0x9e0c"
+    },
+    {
+      "event": "0x00940035",
+      "flag": "0x100000",
+      "getter": "0xab9c",
+      "test": "0x9d4a",
+      "call": "0x9d5c",
+      "literal": "0x9e10"
+    },
+    {
+      "event": "0x00940036",
+      "flag": "0x200000",
+      "getter": "0xabb0",
+      "test": "0x9d60",
+      "call": "0x9d72",
+      "literal": "0x9e14"
+    },
+    {
+      "event": "0x00940037",
+      "flag": "0x400000",
+      "getter": "0xabc4",
+      "test": "0x9d76",
+      "call": "0x9d88",
+      "literal": "0x9e18"
+    }
+  ],
+  "producer_facts": {
+    "option_global_base": "0x153e4",
+    "option_flag_offset": "+0x0c",
+    "initial_elf_flag_word": "0x00000003",
+    "main_checks_all_7_options": "0x9cc2..0x9cee",
+    "if_all_gates_clear_branch": "0x9cee -> 0x9efe",
+    "ascending_call_order_in_single_main_control_flow": true,
+    "send_return_values_for_seven_calls": "IGNORED",
+    "callee_execution_success": "UNKNOWN"
+  },
+  "local_handler": {
+    "entry": "0xa06c",
+    "address_thumb": "0xa06d",
+    "registered_as_phase3_callback": {
+      "callsite": "0x9ae2",
+      "setter": "0xac08",
+      "handler_literal": "0x9b2c"
+    },
+    "event_comparison_literals": [
+      "0xa308",
+      "0xa30c",
+      "0xa310",
+      "0xa314",
+      "0xa318",
+      "0xa31c",
+      "0xa320"
+    ],
+    "event_0x940036_range": "stage 5->7 (30 earlier libObj conditional loader candidates)",
+    "event_0x940037_range": "stage 7->8 (includes appFw row99)",
+    "same_elf_not_proof_of_message_delivery": true
+  },
+  "strict_limitations": [
+    "Main static call order ascends by numeric event ID, but each call is gated by different parsed flags and some events may be absent.",
+    "A call to osal_snd_msg is not proof of success, arrival, queue delivery, or callback processing.",
+    "Main queue callback is 0x95b0, while stage event handler 0xa06c is installed in a separate callback state; the bridge must still be proven.",
+    "Even if 0x940036 is sent before 0x940037, successful libObj load is not established.",
+    "Actual camera boot argv and post-parser flags are unknown."
+  ],
+  "next_proof": [
+    "Resolve phase3 state callback to event handler 0xa06c and exact receiving queue/service semantics",
+    "Find actual boot arguments or flags enabling 0x200000 and 0x400000",
+    "Prove loader/symbol success and ModelCamera registry identity"
+  ],
+  "core_counts_unchanged": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84
+  },
+  "runtime_verified": 0,
+  "safe_to_invoke": 0,
+  "boot_option_parser": {
+    "prefix": "boot=",
+    "prefix_literal_vma": "0xc2a9",
+    "prefix_length": 5,
+    "compare_vma": "0xa640",
+    "dispatch_char": "argv[5]",
+    "case_insensitive_single_char": true,
+    "options": [
+      {
+        "selector": "s",
+        "flag": "0x10000",
+        "or_vma": "0xa6b2"
+      },
+      {
+        "selector": "u",
+        "flag": "0x80000",
+        "or_vma": "0xa724"
+      },
+      {
+        "selector": "l",
+        "flag": "0x100000",
+        "or_vma": "0xa742"
+      },
+      {
+        "selector": "i",
+        "flag": "0x200000",
+        "or_vma": "0xa760"
+      },
+      {
+        "selector": "a",
+        "flag": "0x400000",
+        "or_vma": "0xa77e"
+      }
+    ],
+    "special_all": {
+      "selector": "bootall",
+      "literal_vma": "0xc2b9",
+      "comparison_length": 7,
+      "or_vma": "0xa794",
+      "flag_mask": "0x7f0000"
+    },
+    "other_selector_notes": "g,d,r and uppercase variants are accepted by this char dispatch but do not set stage bits in this part of the parser; do not infer 0x20000/0x40000 mapping.",
+    "limitations": [
+      "Argument parser syntax is a static code result, not proof of actual camera startup argv.",
+      "Delivery to the stage handler still unverified."
+    ]
+  }
+}

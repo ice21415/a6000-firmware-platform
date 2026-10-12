@@ -35,6 +35,16 @@ if ($exitCode -ne 0) { throw "Ghidra headless failed with exit code $exitCode (r
 if (!(Test-Path -LiteralPath $outputPath)) { throw "Ghidra completed without output: $outputPath" }
 $lineCount = (Get-Content -LiteralPath $outputPath | Measure-Object -Line).Lines
 if ($lineCount -lt 1) { throw "Ghidra produced an empty output: $outputPath" }
+$lastRecord = Get-Content -LiteralPath $outputPath -Tail 1 | ConvertFrom-Json
+if ($lastRecord.kind -ne "complete" -or $lastRecord.export_status -ne "complete") {
+  throw "Ghidra output is missing the complete marker (run=$RunId)"
+}
+if ([int]$lastRecord.record_count -ne ($lineCount - 1)) {
+  throw "Ghidra output record count mismatch (run=$RunId expected=$($lineCount - 1) actual=$($lastRecord.record_count))"
+}
+if ($lastRecord.binary_sha256 -ne $sha256) {
+  throw "Ghidra output binary hash mismatch (run=$RunId)"
+}
 Write-Output "run_id=$RunId"
 Write-Output "binary_sha256=$sha256"
 Write-Output "ghidra_version=$ghidraVersion"

@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "firmware": "3.21",
+  "status": "EVENT_PAYLOAD_PARAMLIST_COMPATIBLE_USE_OBSERVED_CXX_TYPE_UNVERIFIED",
+  "elf": {
+    "name": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "source": "previous private offline model-camera-methods.txt",
+    "redecoded_this_session": false
+  },
+  "opaque_getter": {
+    "target_vma": "0x13200a",
+    "candidate_role": "event_action_payload_accessor",
+    "cpp_return_type": "UNKNOWN",
+    "paramlist_pointer_cpp_type_verified": false
+  },
+  "observations": [
+    {
+      "entry": "0x4aea00",
+      "context": "ActionExeTest",
+      "kind": "PAYLOAD_WRAPPED_FOR_PARSING",
+      "sites": [
+        {
+          "vma": "0x4aea1c",
+          "snippet": "mov      r0, r4"
+        },
+        {
+          "vma": "0x4aea1e",
+          "snippet": "bl       #0x13200a"
+        },
+        {
+          "vma": "0x4aea22",
+          "snippet": "mov      r1, r0"
+        },
+        {
+          "vma": "0x4aea24",
+          "snippet": "add.w    r0, r7, #0x10"
+        },
+        {
+          "vma": "0x4aea28",
+          "snippet": "bl       #0x42abcc"
+        },
+        {
+          "vma": "0x4aea34",
+          "snippet": "_ZN9ParamListC1Ev"
+        }
+      ],
+      "inference": "getter result passed as pointer-like argument r1 to wrapper 0x42abcc; independent explicit ParamList construction is observed later but not proof of getter return type"
+    },
+    {
+      "entry": "0x4bac78",
+      "context": "ActionExeAfRangeLimitDrive",
+      "kind": "WRAPPED_PAYLOAD_KEY_LOOKUP_WITH_PARAMLIST_ERROR",
+      "sites": [
+        {
+          "vma": "0x4bac92",
+          "snippet": "mov      r0, r4"
+        },
+        {
+          "vma": "0x4bac94",
+          "snippet": "bl       #0x13200a"
+        },
+        {
+          "vma": "0x4bac98",
+          "snippet": "mov      r1, r0"
+        },
+        {
+          "vma": "0x4bac9a",
+          "snippet": "add.w    r0, r7, #0x20"
+        },
+        {
+          "vma": "0x4bac9e",
+          "snippet": "bl       #0x42abcc"
+        },
+        {
+          "vma": "0x4baca6",
+          "snippet": "movw     r1, #0x3fe"
+        },
+        {
+          "vma": "0x4bacb4",
+          "snippet": "bl       #0x42ac00"
+        },
+        {
+          "vma": "0x4bacb8",
+          "snippet": "cbz      r0, #0x4bacc4"
+        },
+        {
+          "vma": "0x4bacc0",
+          "snippet": "'Invalid ParamList'"
+        },
+        {
+          "vma": "0x4bacc8",
+          "snippet": "movw     r1, #0x3ff"
+        },
+        {
+          "vma": "0x4bacd2",
+          "snippet": "bl       #0x42ac00"
+        },
+        {
+          "vma": "0x4bacde",
+          "snippet": "'Invalid ParamList'"
+        }
+      ],
+      "observed_keys": [
+        "0x3fe",
+        "0x3ff"
+      ],
+      "inference": "object constructed by 0x42abcc is queried under two numeric keys with explicit Invalid ParamList error on selected branches; structural ParamList-like payload"
+    },
+    {
+      "entry": "0x4afc9c",
+      "context": "ActionObjectFocusPosDisplayEvent",
+      "kind": "WRAPPED_PAYLOAD_KEY_LOOKUP",
+      "sites": [
+        {
+          "vma": "0x4afcba",
+          "snippet": "mov      r0, r4"
+        },
+        {
+          "vma": "0x4afcbc",
+          "snippet": "bl       #0x13200a"
+        },
+        {
+          "vma": "0x4afcc0",
+          "snippet": "mov      r1, r0"
+        },
+        {
+          "vma": "0x4afcc2",
+          "snippet": "mov      r0, r7"
+        },
+        {
+          "vma": "0x4afcc4",
+          "snippet": "bl       #0x42abcc"
+        },
+        {
+          "vma": "0x4afcd8",
+          "snippet": "bl       #0x42ac00"
+        }
+      ],
+      "inference": "distinct action uses the same opaque getter then the same two helper targets"
+    },
+    {
+      "entry": "0x4ae930",
+      "context": "ActionObjectNotifyMfDistance",
+      "kind": "PAYLOAD_FORWARDED_TO_MESSAGE_CONSTRUCTOR",
+      "sites": [
+        {
+          "vma": "0x4ae94a",
+          "snippet": "mov      r0, r4"
+        },
+        {
+          "vma": "0x4ae94c",
+          "snippet": "bl       #0x13200a"
+        },
+        {
+          "vma": "0x4ae950",
+          "snippet": "mov      r1, r0"
+        },
+        {
+          "vma": "0x4ae952",
+          "snippet": "mov.w    r2, #0x3100"
+        },
+        {
+          "vma": "0x4ae958",
+          "snippet": "movw     r3, #0x8517"
+        },
+        {
+          "vma": "0x4ae95c",
+          "snippet": "bl       #0x44a284"
+        }
+      ],
+      "inference": "getter output forwarded into message-construction helper, but caller does not determine declared getter return type"
+    },
+    {
+      "entry": "0x4cf7a8",
+      "context": "ModelCamera_pvt_ActionSetInit",
+      "kind": "CALLER_SUPPLIED_PAYLOAD_TO_SHARED_WRAPPER",
+      "sites": [
+        {
+          "vma": "0x4cf7ac",
+          "snippet": "mov      sl, r1"
+        },
+        {
+          "vma": "0x4cf7ea",
+          "snippet": "add.w    r0, r7, #0x6a0"
+        },
+        {
+          "vma": "0x4cf7ee",
+          "snippet": "mov      r1, sl"
+        },
+        {
+          "vma": "0x4cf7f0",
+          "snippet": "bl       #0x42abcc"
+        },
+        {
+          "vma": "0x4cf814",
+          "snippet": "bl       #0x4b1a20"
+        },
+        {
+          "vma": "0x4cf81a",
+          "snippet": "bl       #0x4b096c"
+        }
+      ],
+      "inference": "ActionSetInit r1 is also input to 0x42abcc wrapper, consistent with other action payload uses"
+    }
+  ],
+  "action_selector_provenance": {
+    "dispatcher": "0x4cfb9c",
+    "selector_value": "0x0f01",
+    "selected_callsite": "0x4cfe98",
+    "callee": "0x4cf7a8",
+    "getter": "0x13200a",
+    "argument_register_at_callee": "r1",
+    "event_0x11004003_direct_mapping_verified": false
+  },
+  "candidate_contract": {
+    "getter_input": "action/event context pointer candidate r0",
+    "getter_return_category": "OPAQUE_ACTION_PAYLOAD_CONSUMED_BY_PARAMLIST_LIKE_WRAPPER",
+    "getter_return_cpp_type": "UNKNOWN",
+    "wrapper_0x42abcc_signature": "UNKNOWN",
+    "lookup_0x42ac00_signature": "UNKNOWN",
+    "callable_sony_camera_api": false
+  },
+  "missing_evidence": [
+    "Primary bytes and implementation of 0x13200a",
+    "Primary bytes and implementation of 0x42abcc / 0x42ac00",
+    "Actual ParamList/ObjMsg class identity of 0x13200a return",
+    "Error/return ownership and object lifetime",
+    "Event 0x11004003 handler to ModelCamera and ABI route"
+  ]
+}

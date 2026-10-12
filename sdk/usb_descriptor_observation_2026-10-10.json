@@ -1,0 +1,20 @@
+{
+  "status": "READ_ONLY_VERIFIED",
+  "evidence_source": "libusb-win32 read-only GET_DESCRIPTOR",
+  "verification_level": "PRIMARY_DESCRIPTOR_VERIFIED",
+  "timestamp_utc": "2026-10-10T12:10:43Z",
+  "vendor_id": 1356,
+  "product_id": 1988,
+  "usb_version_bcd": 512,
+  "device_class": 0,
+  "configurations": 1,
+  "interfaces": [
+    {"configuration": 0, "number": 0, "alternate": 0, "interface_class": 8, "subclass": 6, "protocol": 80, "ptp_compatible": false}
+  ],
+  "endpoints": [
+    {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 129, "direction": "IN", "transfer_type": "BULK", "max_packet_size": 512},
+    {"configuration": 0, "interface_number": 0, "alternate": 0, "address": 2, "direction": "OUT", "transfer_type": "BULK", "max_packet_size": 512}
+  ],
+  "error": null,
+  "limitations": ["Sanitized observation; no serial, instance ID, string descriptor or raw bytes.", "Static interface evidence does not prove PTP communication."]
+}

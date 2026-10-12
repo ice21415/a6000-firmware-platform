@@ -1,0 +1,146 @@
+{
+  "phase": "4.44",
+  "firmware_version": "3.21",
+  "verification_level": "PRIMARY_ELF_INSTRUCTION_STATIC",
+  "source_elf": "im-vendor-original.elf",
+  "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+  "binary_size": 23108,
+  "main_register_stage_handler": {
+    "callback_literal_vma": "0x9b2c",
+    "callback_literal_word": "0x0000a06d",
+    "stage_handler_thumb_entry": "0xa06d",
+    "actual_function_entry": "0xa06c",
+    "state_value": 3,
+    "main_r0_value": "0x9ae0",
+    "main_r1_load": "0x9ade",
+    "store_call": "0x9ae2",
+    "state_store_function": "0xac08",
+    "state_global_base": "0x000153e4",
+    "store_state_instruction": "0xac10: str r0, [r3]",
+    "store_callback_instruction": "0xac0e: str r1, [r3,#0x8]",
+    "callback_field_address": "0x000153ec",
+    "read_callback_helper": "0xac18",
+    "getter_instruction": "0xac1e: ldr r0,[r3,#0x8]"
+  },
+  "main_receive_and_indirect_dispatch": {
+    "queue_handle_getter_call": "0x9e94: bl 0xa580",
+    "queue_handle_getter": "0xa580",
+    "queue_handle_field_address": "0x00015410",
+    "queue_handle_field_offset": "+0x2c",
+    "callback_getter_call": "0x9e9a: bl 0xac18",
+    "callback_register_save": "0x9ea6: mov r5,r0",
+    "receive_message": "0x9eaa: blx 0x8f80",
+    "receive_import": "osal_rcv_msg_tmo",
+    "receive_message_pointer_argument": "sp+0x24",
+    "receive_timeout_argument": "0xffffffff",
+    "receive_success_gate": "0x9eae: cbnz r0,0x9ec0 (skip callback on nonzero status)",
+    "message_pointer_read": "0x9eb0: ldr r0,[r7,#0x24]",
+    "indirect_handler_call": "0x9eb2: blx r5",
+    "message_free_import": "osal_free_msg",
+    "message_free_call": "0x9eba: blx 0x910c",
+    "loop_condition": "0x9eca: bl 0xaa30; bne 0x9e94",
+    "meaning": "If stored callback is 0xa06d and OSAL receive returns success, im main invokes the actual stage handler 0xa06c with the received message pointer. This proves function pointer dispatch, not arrival of a specific event."
+  },
+  "callback_state_variants": [
+    {
+      "state": 3,
+      "callback_thumb": "0x0000a06d",
+      "store_callsite": "0x9ae2",
+      "note": "initial stage callback"
+    },
+    {
+      "state": 5,
+      "callback_thumb": "0x00009339",
+      "literal_vma": "0x9f10",
+      "store_callsite": "0x9e4e",
+      "note": "later state uses different callback"
+    },
+    {
+      "state": 3,
+      "callback_thumb": "0x0000a06d",
+      "literal_vma": "0x9f30",
+      "store_callsite": "0x9ef2",
+      "note": "alternate branch restores stage callback"
+    },
+    {
+      "state": 1,
+      "callback_thumb": "0x00009265",
+      "literal_vma": "0x93a8",
+      "store_callsite": "0x9382",
+      "note": "internal handler reassigns callback"
+    }
+  ],
+  "distinct_queue_facts": {
+    "sync_callback_registration": {
+      "call": "0x9ba2: blx 0x8ea8",
+      "import": "osal_reg_sync_msg_queue_cb",
+      "id_vma": "0x9dd0",
+      "id_word": "0x0094016a",
+      "callback_ptr_vma": "0x9dcc",
+      "callback_thumb": "0x000095b1",
+      "output_handle_via_stack": "0x9bb8: ldr r0,[r7,#0x2c]",
+      "saved_by": "0x9bbc: bl 0xa590",
+      "saved_global_field": "+0x28",
+      "saved_global_address": "0x1540c"
+    },
+    "async_receive_queue": {
+      "dynamic_id_helper": "0x92bc",
+      "used_by_main": "0x9e34: bl 0x92bc",
+      "helper_import": "osal_dynamic_id",
+      "helper_import_plt": "0x9074",
+      "saved_by_main": "0x9e3a: bl 0xa570",
+      "global_field": "+0x2c",
+      "global_address": "0x15410",
+      "used_by_receive": "0x9e94: bl 0xa580"
+    },
+    "limit": "Separate queue-handle storage and a registered synchronous callback do not prove they are different OSAL destinations, nor how stage messages from 0x94016a reach a recv loop."
+  },
+  "queue_callback_at_0x95b0": {
+    "message_id_read": "0x95ba: ldr r1,[r0]",
+    "identity": "a different callback 0x95b0 (Thumb 0x95b1), not stage handler 0xa06c",
+    "direct_case_literals": [
+      {
+        "vma": "0x9648",
+        "value": "0x009400e1"
+      },
+      {
+        "vma": "0x9650",
+        "value": "0x00940021"
+      },
+      {
+        "vma": "0x9654",
+        "value": "0x00940022"
+      },
+      {
+        "vma": "0x9658",
+        "value": "0x00920143"
+      }
+    ],
+    "forwarder": "0x9628: bl 0x91a4 on a selected event family",
+    "forward_destination": "0x965c: 0x0094016a",
+    "specific_events_0x940036_037_directly_dispatched_by_callback": "NOT_OBSERVED",
+    "limit": "Seeing 0x94016a in callback forwarding does not prove main's stage event delivery. The callback's obvious comparison group is different from event IDs 0x940036 and 0x940037."
+  },
+  "producer_existing_evidence": {
+    "path": "sdk/im_event_sender_3_21.json",
+    "event_36_sender_callsite": "0x9d72",
+    "event_37_sender_callsite": "0x9d88",
+    "send_wrapper": "0x91a4",
+    "message_send_import": "osal_snd_msg"
+  },
+  "unresolved": [
+    "Actual camera startup argv and state callback selected when stage messages arrive",
+    "OSAL destination/message queue routing and actual event delivery",
+    "Successful earlier dlopen libObj and symbol visibility before appFw dispatcher",
+    "Model ID11 to concrete ModelCamera registry record/runtime DSO"
+  ],
+  "camera_core_graph": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "changed": false
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}

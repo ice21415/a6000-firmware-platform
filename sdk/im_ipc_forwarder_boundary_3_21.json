@@ -1,0 +1,120 @@
+{
+  "phase": "4.47",
+  "firmware_version": "Sony A6000 3.21",
+  "evidence_level": "PRIMARY_OFFLINE_ELF_INSTRUCTION",
+  "source_sha256": {
+    "im": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "uipc_module": "82a92bd4bd00d7e28237b647c93278f57d53dee241f96075798fad8a87926ab1",
+    "osal_userspace": "0c6b87a012eb757dbe0a5b9b7b19fb91fc27c1dafc0e78facb126114416cf1ef"
+  },
+  "sync_callback": {
+    "thumb_ptr": "0x95b1",
+    "entry": "0x95b0",
+    "registration_site": "im.elf 0x9b9e/0x9ba2",
+    "fixed_queue_id": "0x0094016a",
+    "load_message_id": "0x95ba ldr r1,[r0]",
+    "direct_cases": [
+      {
+        "message_id": "0x009400e1",
+        "compare": "0x95bc",
+        "outcome": "0x95c4 local call 0xabf8"
+      },
+      {
+        "message_id": "0x00940021",
+        "compare": "0x95ce",
+        "outcome": "0x95d8 call 0xb530"
+      },
+      {
+        "message_id": "0x00940022",
+        "compare": "0x95e0",
+        "outcome": "0x95ea call 0xb740"
+      }
+    ],
+    "forward_family_base": "0x00920143",
+    "forward_case_values": [
+      "0x00920143",
+      "0x0092015a",
+      "0x0092014b",
+      "0x0092014d",
+      "0x0092014f",
+      "0x00920152",
+      "0x0092015c"
+    ],
+    "forward_compare_spans": "0x95f2..0x961a",
+    "forward_call": "0x9628 bl 0x91a4",
+    "forward_destination_literal_vma": "0x965c",
+    "forward_destination_id": "0x0094016a",
+    "unknown_default": "0x962e..0x963a calls printf via 0x8fe0/0x8fe4",
+    "unknown_format_literal_pointer_at": "0x9660",
+    "unknown_format_string_vma": "0x0000c009",
+    "unknown_format_string": "imelf_sync_api_cb: err: cmd:0x%x\\n",
+    "explicit_compare_event_36": false,
+    "explicit_compare_event_37": false,
+    "condition": "If this callback is invoked directly with event ID 0x940036 or 0x940037, those IDs fail all displayed direct equality checks and reach the default printf branch, unless code/state outside this function intervenes."
+  },
+  "kernel_sender": {
+    "function": "osal_snd_msg",
+    "module_text_offset": "0x3bd4",
+    "destination_bit_test": "0x3be4",
+    "low16_extraction": "0x3bf4 uxth r8,r0",
+    "direct_queue_lookup": [
+      "0x3c08",
+      "0x3c18"
+    ],
+    "queue_link_enqueue": [
+      "0x3cb0",
+      "0x3d24"
+    ],
+    "queued_callback_handling": [
+      "0x3d38",
+      "0x3d48"
+    ],
+    "observed_generic_mapping_to_dynamic_id": "NONE_IN_NORMAL_SEND_PATH",
+    "limit": "No raw pointer translation from fixed low16 0x016a into any dynamic 0x6000..0x6fff pool identifier was found in this local sender routine. Registered callbacks may perform other actions and external module code may send differently."
+  },
+  "main_receive": {
+    "runtime_alloc_arguments": [
+      "0x2a",
+      "0x94"
+    ],
+    "success_id_range": "0x00946000..0x00946fff",
+    "recv_callsite": "0x9eaa",
+    "stage_handler_callback": "0xa06d",
+    "indirect_callsite": "0x9eb2",
+    "unknown_connection": "No instruction-supported message transfer from original fixed destination 0x94016a to the dynamically allocated main receive ID via 0x95b0."
+  },
+  "strict_unknowns": [
+    "If or when the stage messages 0x940036/037 are delivered to fixed destination",
+    "Whether an external producer sends corresponding stage messages to dynamically allocated receiver ID",
+    "Whether callback 0x95b0 is invoked by actual OSAL registration at startup",
+    "Actual state and presence of messages in the dynamic receive loop",
+    "Actual libObj load, symbol visibility, boot flags and ModelCamera mapping"
+  ],
+  "next_target": "Seek cross-module producers / forwarding onto dynamic ID rather than treating the fixed-queue sync callback as the stage handler.",
+  "core_tracking": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "total": 84,
+    "graph_count_delta": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0,
+  "cross_elf_libobj_finding": {
+    "source": "libObj.so",
+    "sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "word": "0x0094016a",
+    "literal_in_allocated_text": "0x0019d460",
+    "literal_loads": [
+      "0x0019d422 ldr r0,[pc,#0x3c]",
+      "0x0019d43c ldr r0,[pc,#0x20]"
+    ],
+    "allocator": "0x0019d42a blx 0x000e13d8 (osal_valloc_msg_wait PLT)",
+    "send": "0x0019d446 blx 0x000e2a28",
+    "send_plt_got": "0x0102f144",
+    "send_symbol": "osal_snd_msg (R_ARM_JUMP_SLOT)",
+    "message_code_source": "0x0019d41e mov r5,r0; 0x0019d442 str r5,[r1]",
+    "meaning": "Actual libObj executable helper uses the fixed queue ID 0x94016a and calls osal_snd_msg with caller-supplied message code; this neither establishes 0x940036/0x940037 sent from libObj nor any forwarding to dynamic im receiver.",
+    "scanner_preliminary_result": "Uploaded subset: im.elf includes stage_036 and stage_037 word literals; libmpr includes stage_036 only (previously identified format/log constant); libObj includes fixed_dest words and osal_snd_msg dynamic import but no aligned stage_036 or stage_037 words in allocated PROGBITS."
+  }
+}

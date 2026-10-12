@@ -1,0 +1,225 @@
+{
+  "schema_version": "param-set-tree-callers-1",
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "ghidra": {
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "language": "ARM:LE:32:v8",
+    "analysis_scope": "TARGET_CALLER_METADATA",
+    "analyzer_version": "target-callers-1",
+    "source_export_sha256": "2c16f585da16cb4fbd6287b348d874a15f75c31f8597df3930c2279cfa5ad325",
+    "raw_export_private": true
+  },
+  "capstone_crosscheck": {
+    "analyzer": "Capstone",
+    "version": "5.0.7",
+    "mode": "ARM_THUMB",
+    "method": "exact Thumb BL immediate target scan"
+  },
+  "targets": [
+    {
+      "target_vma": "0x7f4390",
+      "target_ghidra": "00804390",
+      "symbol": "FUN_00804390",
+      "symbol_semantic": false,
+      "xrefs": [
+        {
+          "callsite_elf_vma": "0x7f44fc",
+          "callsite_ghidra": "0x8044fc",
+          "caller_name": "FUN_008044ce",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0x7f44ce",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x8044ce",
+              "end_ghidra": "0x804519",
+              "start_elf_vma": "0x7f44ce",
+              "end_elf_vma": "0x7f4519"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        }
+      ]
+    },
+    {
+      "target_vma": "0xffe70",
+      "target_ghidra": "0010fe70",
+      "symbol": "FUN_0010fe70",
+      "symbol_semantic": false,
+      "xrefs": [
+        {
+          "callsite_elf_vma": "0x7f4402",
+          "callsite_ghidra": "0x804402",
+          "caller_name": "FUN_00804390",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0x7f4390",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x804390",
+              "end_ghidra": "0x8044cd",
+              "start_elf_vma": "0x7f4390",
+              "end_elf_vma": "0x7f44cd"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        },
+        {
+          "callsite_elf_vma": "0xfff4e",
+          "callsite_ghidra": "0x10ff4e",
+          "caller_name": "FUN_0010fed0",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0xffed0",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x10fed0",
+              "end_ghidra": "0x10ffb5",
+              "start_elf_vma": "0xffed0",
+              "end_elf_vma": "0xfffb5"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        },
+        {
+          "callsite_elf_vma": "0xfff86",
+          "callsite_ghidra": "0x10ff86",
+          "caller_name": "FUN_0010fed0",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0xffed0",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x10fed0",
+              "end_ghidra": "0x10ffb5",
+              "start_elf_vma": "0xffed0",
+              "end_elf_vma": "0xfffb5"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        }
+      ]
+    },
+    {
+      "target_vma": "0xffed0",
+      "target_ghidra": "0010fed0",
+      "symbol": "FUN_0010fed0",
+      "symbol_semantic": false,
+      "xrefs": [
+        {
+          "callsite_elf_vma": "0x7f4440",
+          "callsite_ghidra": "0x804440",
+          "caller_name": "FUN_00804390",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0x7f4390",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x804390",
+              "end_ghidra": "0x8044cd",
+              "start_elf_vma": "0x7f4390",
+              "end_elf_vma": "0x7f44cd"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        },
+        {
+          "callsite_elf_vma": "0x7f44a0",
+          "callsite_ghidra": "0x8044a0",
+          "caller_name": "FUN_00804390",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0x7f4390",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x804390",
+              "end_ghidra": "0x8044cd",
+              "start_elf_vma": "0x7f4390",
+              "end_elf_vma": "0x7f44cd"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        },
+        {
+          "callsite_elf_vma": "0x7f44c6",
+          "callsite_ghidra": "0x8044c6",
+          "caller_name": "FUN_00804390",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0x7f4390",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x804390",
+              "end_ghidra": "0x8044cd",
+              "start_elf_vma": "0x7f4390",
+              "end_elf_vma": "0x7f44cd"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        },
+        {
+          "callsite_elf_vma": "0xfffc0",
+          "callsite_ghidra": "0x10ffc0",
+          "caller_name": "FUN_0010ffb6",
+          "caller_name_semantic": false,
+          "caller_entry_elf_vma": "0xfffb6",
+          "caller_body_ranges": [
+            {
+              "start_ghidra": "0x10ffb6",
+              "end_ghidra": "0x10ffe5",
+              "start_elf_vma": "0xfffb6",
+              "end_elf_vma": "0xfffe5"
+            }
+          ],
+          "caller_identity_status": "GHIDRA_DERIVED",
+          "reference_type": "UNCONDITIONAL_CALL",
+          "ghidra_address_space": "ram",
+          "callsite_status": "PRIMARY_ELF_VERIFIED",
+          "evidence_method": "GHIDRA_DERIVED+CAPSTONE"
+        }
+      ]
+    }
+  ],
+  "capstone_only_callsites": [],
+  "counts": {
+    "ghidra_targets": 3,
+    "ghidra_references": 8,
+    "primary_verified_callsites": 8,
+    "unresolved_caller_count": 0,
+    "capstone_only_callsites": 0
+  },
+  "prmset_mutator_entry": "UNKNOWN",
+  "prmset_relation": "UNKNOWN; generic ordered-tree helper identity is not proven",
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Generated Ghidra labels are locators, not confirmed semantic names",
+    "Ghidra caller ranges are not proof that the helper belongs to PrmSet",
+    "Capstone-only callsites retain UNKNOWN caller identity",
+    "No runtime ownership, exception, locking or callable safety is inferred"
+  ]
+}

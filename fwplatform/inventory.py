@@ -226,8 +226,13 @@ def build_manifest(db: Database, root: Path, limit: int | None = None) -> dict[s
                         (header.get("class"), header.get("data"), header.get("machine"), header.get("entry"), binary_id))
                 except Exception as exc:  # an individual corrupt ELF must not stop the batch
                     LOG.warning("ELF parse failed for %s: %s", rel, exc)
+                    # Inventory errors describe this scan; they must not erase a
+                    # completed analyzer checkpoint such as Ghidra CFG import.
+                    current = db.connection.execute("SELECT analysis_status FROM binary WHERE id=?", (binary_id,)).fetchone()
+                    current_status = str(current[0] or "") if current else ""
+                    preserved = current_status if current_status.startswith("ANALYZED") else "INVENTORIED_WITH_ERROR"
                     db.connection.execute("UPDATE binary SET analysis_status=?,metadata_json=? WHERE id=?",
-                        ("INVENTORIED_WITH_ERROR", json.dumps({**metadata, "elf_error": str(exc)}), binary_id))
+                        (preserved, json.dumps({**metadata, "elf_error": str(exc)}), binary_id))
         except (OSError, ValueError) as exc:
             counts["errors"] += 1
             LOG.warning("inventory failed for %s: %s", path, exc)

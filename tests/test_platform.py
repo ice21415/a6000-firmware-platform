@@ -19,9 +19,9 @@ class PlatformTests(unittest.TestCase):
     def test_migrations_and_status_seed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             db = Database(Path(directory) / "test.db")
-            self.assertEqual(db.migrate(), 4)
+            self.assertEqual(db.migrate(), 7)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM confidence").fetchone()[0], 6)
-            self.assertEqual(db.connection.execute("PRAGMA user_version").fetchone()[0], 4)
+            self.assertEqual(db.connection.execute("PRAGMA user_version").fetchone()[0], 7)
             self.assertEqual(db.connection.execute("PRAGMA quick_check").fetchone()[0], "ok")
             self.assertEqual(len(db.connection.execute("PRAGMA foreign_key_check").fetchall()), 0)
             db.close()
@@ -98,6 +98,22 @@ class PlatformTests(unittest.TestCase):
             self.assertEqual(second["reused"], 2)
             self.assertEqual(db.connection.execute("SELECT COUNT(*) FROM binary").fetchone()[0], 2)
             self.assertEqual(db.connection.execute("SELECT analysis_status FROM binary WHERE path='sample.dex'").fetchone()[0], "ANALYZED_GHIDRA")
+            db.close()
+
+    def test_manifest_parse_error_does_not_lower_analyzer_status(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "input"
+            root.mkdir()
+            malformed = root / "malformed.so"
+            malformed.write_bytes(b"\\x7fELF\\x01\\x01\\x01" + b"\\0" * 57)
+            db = Database(Path(directory) / "test.db")
+            db.migrate()
+            build_manifest(db, root)
+            db.connection.execute("UPDATE binary SET analysis_status='ANALYZED_GHIDRA' WHERE path='malformed.so'")
+            db.commit()
+            build_manifest(db, root)
+            status = db.connection.execute("SELECT analysis_status FROM binary WHERE path='malformed.so'").fetchone()[0]
+            self.assertEqual(status, "ANALYZED_GHIDRA")
             db.close()
 
 

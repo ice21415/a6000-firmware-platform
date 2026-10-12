@@ -1,0 +1,1122 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_PARAMBASE_LIFECYCLE_AUDIT",
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "families": [
+    {
+      "name": "PrmBool",
+      "discriminator": 5,
+      "constructor": {
+        "entry_vma": "0xe50e8",
+        "bounded_extent_bytes": 32,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xe50f4",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe5100",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "strb",
+              "operands": "r6, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe5104",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r3, [r5]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe5100",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "strb",
+              "operands": "r6, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xe5110",
+        "bounded_extent_bytes": 24,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe511c",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldrb",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe511c",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldrb",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmNumber",
+      "discriminator": 1,
+      "constructor": {
+        "entry_vma": "0xf0fb0",
+        "bounded_extent_bytes": 32,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xf0fbc",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xf0fc8",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r6, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xf0fcc",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r3, [r5]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xf0fc8",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r6, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xf1034",
+        "bounded_extent_bytes": 24,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xf1040",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xf1040",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmString",
+      "discriminator": 2,
+      "constructor": {
+        "entry_vma": "0xff9c8",
+        "bounded_extent_bytes": 62,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xff9d4",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xff9e2",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4]"
+            },
+            {
+              "instruction_vma": "0xff9f0",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r0, [r4, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xff9f0",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r0, [r4, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xffa18",
+        "bounded_extent_bytes": 24,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xffa24",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xffa24",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmPoint",
+      "discriminator": 3,
+      "constructor": {
+        "entry_vma": "0xffa3c",
+        "bounded_extent_bytes": 42,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xffa4c",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xffa58",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xffa5c",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str.w",
+              "operands": "r8, [r4, #0x10]"
+            },
+            {
+              "instruction_vma": "0xffa60",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xffa58",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xffa5c",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str.w",
+              "operands": "r8, [r4, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xffa70",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xffa7c",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xffa7e",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xffa7c",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xffa7e",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmDimension",
+      "discriminator": 4,
+      "constructor": {
+        "entry_vma": "0xe5128",
+        "bounded_extent_bytes": 42,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xe5138",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe5144",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe5148",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str.w",
+              "operands": "r8, [r4, #0x10]"
+            },
+            {
+              "instruction_vma": "0xe514c",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe5144",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe5148",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str.w",
+              "operands": "r8, [r4, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xe515c",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe5168",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe516a",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe5168",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe516a",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmStruct",
+      "discriminator": 6,
+      "constructor": {
+        "entry_vma": "0xe7260",
+        "bounded_extent_bytes": 54,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xe7270",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe727e",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4]"
+            },
+            {
+              "instruction_vma": "0xe7288",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r0, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe728e",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0x10]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe7288",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r0, [r4, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe728e",
+              "kind": "STORE",
+              "offset": 16,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r6, [r4, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xe72a0",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xe72ac",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe72ae",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xe72ac",
+              "kind": "LOAD",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r1, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0xe72ae",
+              "kind": "LOAD",
+              "offset": 16,
+              "base_register": "r5",
+              "mnemonic": "ldr",
+              "operands": "r2, [r5, #0x10]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmSet",
+      "discriminator": 7,
+      "constructor": {
+        "entry_vma": "0x7efb00",
+        "bounded_extent_bytes": 36,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0x7efb0a",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0x7efb18",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r0",
+              "mnemonic": "str",
+              "operands": "r3, [r0], #0xc"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": false
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0x7efbb4",
+        "bounded_extent_bytes": 26,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0x7efbc0",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r5",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x7efbc0",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r5",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmNumberList",
+      "discriminator": 10,
+      "constructor": {
+        "entry_vma": "0xecdb8",
+        "bounded_extent_bytes": 44,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0xecdc2",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xecdd0",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r4",
+              "mnemonic": "str",
+              "operands": "r3, [r4], #0xc"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": false
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0xed3a4",
+        "bounded_extent_bytes": 46,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0xed3aa",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r0",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0xed3aa",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r0",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmCntInfoList",
+      "discriminator": 9,
+      "constructor": {
+        "entry_vma": "0x11d680",
+        "bounded_extent_bytes": 58,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0x11d696",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r3, [r5], #0xc"
+            },
+            {
+              "instruction_vma": "0x11d6a0",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 52,
+              "base_register": "r6",
+              "result_register": "r4",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x11d6a0",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 52,
+              "base_register": "r6",
+              "result_register": "r4",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0x11da18",
+        "bounded_extent_bytes": 72,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0x11da20",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r4",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            },
+            {
+              "instruction_vma": "0x11da2e",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 52,
+              "base_register": "r4",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x11da20",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 12,
+              "base_register": "r4",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            },
+            {
+              "instruction_vma": "0x11da2e",
+              "kind": "ADDRESS_OF_FIELD",
+              "offset": 52,
+              "base_register": "r4",
+              "result_register": "r1",
+              "mnemonic": "add.w"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    },
+    {
+      "name": "PrmObjMsg",
+      "discriminator": 8,
+      "constructor": {
+        "entry_vma": "0x12c754",
+        "bounded_extent_bytes": 32,
+        "termination": "RETURN_OBSERVED",
+        "base_constructor_calls": [
+          {
+            "instruction_vma": "0x12c760",
+            "target_vma": "0xe11a4",
+            "target_role": "ParamBaseC2 PLT",
+            "status": "PRIMARY_ELF_VERIFIED"
+          }
+        ],
+        "direct_field_access": {
+          "accesses": [
+            {
+              "instruction_vma": "0x12c76c",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r6, [r5, #0xc]"
+            },
+            {
+              "instruction_vma": "0x12c770",
+              "kind": "STORE",
+              "offset": 0,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r3, [r5]"
+            }
+          ],
+          "key_accesses": [],
+          "payload_accesses": [
+            {
+              "instruction_vma": "0x12c76c",
+              "kind": "STORE",
+              "offset": 12,
+              "base_register": "r5",
+              "mnemonic": "str",
+              "operands": "r6, [r5, #0xc]"
+            }
+          ],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": true
+        },
+        "key_initialization": "NOT_OBSERVED_IN_DIRECT_CONSTRUCTOR_BODY"
+      },
+      "clone": {
+        "entry_vma": "0x12c784",
+        "bounded_extent_bytes": 42,
+        "termination": "RETURN_OBSERVED",
+        "direct_field_access": {
+          "accesses": [],
+          "key_accesses": [],
+          "payload_accesses": [],
+          "key_directly_accessed": false,
+          "payload_directly_accessed": false
+        },
+        "key_copy": "NOT_OBSERVED_IN_DIRECT_CLONE_BODY",
+        "payload_source": "NO_DIRECT_RECEIVER_PAYLOAD_ACCESS_OBSERVED"
+      },
+      "evidence_level": "PRIMARY_ELF_VERIFIED",
+      "semantic_scope": "direct receiver-field accesses only; helper-internal accesses, source-level types, ownership and runtime behavior remain UNKNOWN"
+    }
+  ],
+  "aggregate": {
+    "family_count": 10,
+    "constructors_without_direct_key_access": 10,
+    "clones_without_direct_key_access": 10,
+    "clones_with_direct_payload_access": 9
+  },
+  "key_assignment_boundary": {
+    "setter_vma": "0x7eda84",
+    "operation": "stores caller-supplied key at ParamBase-derived object +0x08",
+    "verification": "PRIMARY_ELF_VERIFIED",
+    "scope": "separate ParamList::add path; not a constructor/clone proof"
+  },
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "Direct field accesses are shallow receiver-alias facts; calls are not inlined",
+    "No key copy through opaque helper or external container is inferred",
+    "Payload offsets do not establish source-level C++ types, ownership or alias safety",
+    "Bounded return discovery is not a complete exception/control-flow proof",
+    "No firmware code is executed and no camera is accessed"
+  ],
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC_METADATA_CROSSCHECK",
+    "tool": "Ghidra",
+    "version": "12.1.3",
+    "profile": "param-lifecycle-field-audit",
+    "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "program_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+    "language": "ARM:LE:32:v8",
+    "compiler_spec": "default",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "execution": {
+      "exit_code": 0,
+      "completion_marker": true,
+      "analysis_mode": "targeted_noanalysis_bounded_export",
+      "auto_analysis_completed": false
+    },
+    "target_count": 20,
+    "instruction_count": 312,
+    "basic_block_count": 20,
+    "cfg_edge_count": 52,
+    "target_records": [
+      {
+        "elf_vma": "0xe50e8",
+        "ghidra_address": "0x000f50e8",
+        "body_range": "[[000f50e8, 000f5107]]",
+        "instruction_count": 15,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xe5110",
+        "ghidra_address": "0x000f5110",
+        "body_range": "[[000f5110, 000f5127]]",
+        "instruction_count": 10,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xf0fb0",
+        "ghidra_address": "0x00100fb0",
+        "body_range": "[[00100fb0, 00100fcf]]",
+        "instruction_count": 15,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xf1034",
+        "ghidra_address": "0x00101034",
+        "body_range": "[[00101034, 0010104b]]",
+        "instruction_count": 10,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xff9c8",
+        "ghidra_address": "0x0010f9c8",
+        "body_range": "[[0010f9c8, 0010fa05]]",
+        "instruction_count": 26,
+        "basic_block_count": 1,
+        "cfg_edge_count": 5
+      },
+      {
+        "elf_vma": "0xffa18",
+        "ghidra_address": "0x0010fa18",
+        "body_range": "[[0010fa18, 0010fa2f]]",
+        "instruction_count": 10,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xffa3c",
+        "ghidra_address": "0x0010fa3c",
+        "body_range": "[[0010fa3c, 0010fa65]]",
+        "instruction_count": 17,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xffa70",
+        "ghidra_address": "0x0010fa70",
+        "body_range": "[[0010fa70, 0010fa89]]",
+        "instruction_count": 11,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xe5128",
+        "ghidra_address": "0x000f5128",
+        "body_range": "[[000f5128, 000f5151]]",
+        "instruction_count": 17,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0xe515c",
+        "ghidra_address": "0x000f515c",
+        "body_range": "[[000f515c, 000f5175]]",
+        "instruction_count": 11,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xe7260",
+        "ghidra_address": "0x000f7260",
+        "body_range": "[[000f7260, 000f7293]]",
+        "instruction_count": 22,
+        "basic_block_count": 1,
+        "cfg_edge_count": 3
+      },
+      {
+        "elf_vma": "0xe72a0",
+        "ghidra_address": "0x000f72a0",
+        "body_range": "[[000f72a0, 000f72b9]]",
+        "instruction_count": 11,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x7efb00",
+        "ghidra_address": "0x007ffb00",
+        "body_range": "[[007ffb00, 007ffb23]]",
+        "instruction_count": 15,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0x7efbb4",
+        "ghidra_address": "0x007ffbb4",
+        "body_range": "[[007ffbb4, 007ffbcd]]",
+        "instruction_count": 10,
+        "basic_block_count": 1,
+        "cfg_edge_count": 2
+      },
+      {
+        "elf_vma": "0xecdb8",
+        "ghidra_address": "0x000fcdb8",
+        "body_range": "[[000fcdb8, 000fcde3]]",
+        "instruction_count": 18,
+        "basic_block_count": 1,
+        "cfg_edge_count": 3
+      },
+      {
+        "elf_vma": "0xed3a4",
+        "ghidra_address": "0x000fd3a4",
+        "body_range": "[[000fd3a4, 000fd3d1]]",
+        "instruction_count": 17,
+        "basic_block_count": 1,
+        "cfg_edge_count": 4
+      },
+      {
+        "elf_vma": "0x11d680",
+        "ghidra_address": "0x0012d680",
+        "body_range": "[[0012d680, 0012d6b9]]",
+        "instruction_count": 22,
+        "basic_block_count": 1,
+        "cfg_edge_count": 5
+      },
+      {
+        "elf_vma": "0x11da18",
+        "ghidra_address": "0x0012da18",
+        "body_range": "[[0012da18, 0012da5f]]",
+        "instruction_count": 24,
+        "basic_block_count": 1,
+        "cfg_edge_count": 6
+      },
+      {
+        "elf_vma": "0x12c754",
+        "ghidra_address": "0x0013c754",
+        "body_range": "[[0013c754, 0013c773]]",
+        "instruction_count": 15,
+        "basic_block_count": 1,
+        "cfg_edge_count": 1
+      },
+      {
+        "elf_vma": "0x12c784",
+        "ghidra_address": "0x0013c784",
+        "body_range": "[[0013c784, 0013c7ad]]",
+        "instruction_count": 16,
+        "basic_block_count": 1,
+        "cfg_edge_count": 5
+      }
+    ],
+    "script_sha256": "7e78c7fd653863618b71cbb1620f1da3133b22a0e9054df2fc5093617d7a5ba9",
+    "source_export_sha256": "2dda3fcf15c7049f72bb1c5f314b3c808ede4fe325fa54e055a396c92dbdc5d0",
+    "raw_export_private": true,
+    "semantic_names_verified": false
+  }
+}

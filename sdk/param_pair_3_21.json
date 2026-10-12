@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "verification": "PRIMARY_ELF_VERIFIED bounded constructor/clone/destructor observations",
+  "types": {
+    "PrmPoint": {
+      "discriminator": 3,
+      "vtable_vma": "0xfe9610",
+      "rtti_vma": "0xfe9628",
+      "vtable_slots": {"+0x08_clone": "0xffa70", "+0x10_deleting_destructor": "0xff940"},
+      "allocation_size_bytes": 20,
+      "payload": {
+        "+0x0c": "first inline 32-bit word candidate",
+        "+0x10": "second inline 32-bit word candidate",
+        "semantic_names": "UNKNOWN"
+      },
+      "constructor": {"entry": "0xffa3c", "source_symbol": "UNKNOWN", "safe_to_call": false},
+      "destructor": {"entry": "0xff904", "base_path": "0xe4734", "safe_to_call": false},
+      "deleting_destructor": {"entry": "0xff940", "delete_plt": "0xdd620", "safe_to_call": false},
+      "clone_candidate": {"entry": "0xffa70", "source_level_return": "UNKNOWN", "safe_to_call": false}
+    },
+    "PrmDimension": {
+      "discriminator": 4,
+      "vtable_vma": "0xfe6e48",
+      "rtti_vma": "0xfe6e60",
+      "vtable_slots": {"+0x08_clone": "0xe515c", "+0x10_deleting_destructor": "0xe4868"},
+      "allocation_size_bytes": 20,
+      "payload": {
+        "+0x0c": "first inline 32-bit word candidate",
+        "+0x10": "second inline 32-bit word candidate",
+        "semantic_names": "UNKNOWN"
+      },
+      "constructor": {"entry": "0xe5128", "source_symbol": "UNKNOWN", "safe_to_call": false},
+      "destructor": {"entry": "0xe4774", "base_path": "0xe4734", "safe_to_call": false},
+      "deleting_destructor": {"entry": "0xe4868", "destructor_plt": "0xdfb30", "safe_to_call": false},
+      "clone_candidate": {"entry": "0xe515c", "source_level_return": "UNKNOWN", "safe_to_call": false}
+    }
+  },
+  "bindings": {
+    "param_base_constructor": {"plt": "0xe11a4", "got": "0x102e984", "symbol": "_ZN9ParamBaseC2Em", "runtime_binding": "UNKNOWN"},
+    "allocator": {"plt": "0xdc100", "got": "0x102cffc", "symbol": "_Znwj", "runtime_binding": "UNKNOWN"},
+    "delete": {"plt": "0xdd620", "got": "0x102d6bc", "symbol": "_ZdlPv", "runtime_binding": "UNKNOWN"},
+    "dimension_destructor": {"plt": "0xdfb30", "got": "0x102e26c", "symbol": "_ZN12PrmDimensionD1Ev", "runtime_binding": "UNKNOWN"}
+  },
+  "ownership": {
+    "payload": "inline words are contained in the 0x14-byte object; no separate payload release observed",
+    "clone": "fresh object allocation and two-word copy observed",
+    "aliases_and_synchronization": "UNKNOWN"
+  },
+  "limitations": [
+    "Constructors are not exported with source-level symbols in the inspected table",
+    "The two words are not assigned coordinate, size, unit or hardware meanings",
+    "Runtime loader binding, exception paths, aliases and synchronization UNKNOWN",
+    "Static ABI evidence is not runtime verification or callability"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

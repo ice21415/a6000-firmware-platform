@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "symbol": "_ZN22AbstractUtilityManager30createRequestModelExecuteEventEimP9ParamList",
+  "entry": "0x7f0b0c",
+  "symbol_value_thumb_tagged": "0x7f0b0d",
+  "size": 108,
+  "verification": "PRIMARY_ELF_VERIFIED bounded request-event factory control flow and unique PLT bindings",
+  "abi_observation": {
+    "r0": "AbstractUtilityManager receiver/context candidate",
+    "r1": "explicit int model identifier",
+    "r2": "explicit unsigned long selector",
+    "r3": "ParamList* candidate; null skips Event::setParamList",
+    "return": "Event allocation pointer candidate in r0; declared return type UNKNOWN",
+    "safe_to_call": false
+  },
+  "event": {
+    "id": "0x11004003",
+    "literal_address": "0x7f0b74",
+    "constructor_arguments": {"r2": 2, "r3": 0}
+  },
+  "parameters": [
+    {"key": 7, "value": "PrmNumber candidate from model identifier"},
+    {"key": 8, "value": "PrmNumber candidate from selector"}
+  ],
+  "bindings": {
+    "allocator": {"entry": "0xdc100", "symbol": "_Znwj", "status": "VERIFIED_STATIC"},
+    "event_constructor": {"entry": "0xdb66c", "symbol": "_ZN5EventC1Emhh", "status": "VERIFIED_STATIC"},
+    "set_param_list": {"entry": "0xde3a4", "symbol": "_ZN5Event12setParamListEP9ParamList", "status": "VERIFIED_STATIC"},
+    "add_parameter": {"entry": "0xdd194", "symbol": "_ZN5Event12addParameterEmP9ParamBase", "status": "VERIFIED_STATIC"},
+    "operator_delete": {"entry": "0xdd620", "symbol": "_ZdlPv", "status": "VERIFIED_STATIC"},
+    "exception_cleanup": {"entry": "0xdd4f8", "symbol": "__cxa_end_cleanup", "status": "VERIFIED_STATIC"}
+  },
+  "limitations": [
+    "The mangled symbol supplies explicit argument types but not the return type",
+    "PrmNumber constructor identity at local 0xf0fb0 is supported by family evidence but remains a local candidate in this body",
+    "Event ownership, exception table semantics, allocator pairing, consumer delivery and runtime binding remain UNKNOWN",
+    "Event ID 0x11004003 is a literal construction observation, not proof of runtime delivery or a specific consumer",
+    "No runtime or device execution"
+  ],
+  "runtime_verified": false,
+  "callable": false
+}

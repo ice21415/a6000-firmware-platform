@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "status": "LOCAL_PRIMARY_ELF_PARAMLIST_LIFETIME_EVIDENCE_ONLY",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian; source-level ownership and runtime ABI UNKNOWN",
+  "layout": {
+    "paramlist_container_pointer_offset": "0x0",
+    "shared_counter_pointer_offset": "0x4",
+    "container_begin_offset": "0x0",
+    "container_end_offset": "0x4",
+    "container_capacity_offset": "0x8",
+    "element_pointer_width_bytes": 4
+  },
+  "bindings": {
+    "allocator": {
+      "entry_vma": "0xdc100",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102cffc",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_Znwj",
+          "symbol_value": "0x0",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    },
+    "object_delete": {
+      "entry_vma": "0xdd620",
+      "address_space": "ELF_VMA",
+      "got_slot": "0x102d6bc",
+      "status": "VERIFIED_STATIC",
+      "runtime_binding": "UNKNOWN",
+      "candidates": [
+        {
+          "symbol": "_ZdlPv",
+          "symbol_value": "0x0",
+          "relocation_type": 22,
+          "section": ".rel.plt"
+        }
+      ]
+    }
+  },
+  "observations": {
+    "container_initializer": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "container_offsets": {
+        "begin": "0x0",
+        "end": "0x4",
+        "capacity": "0x8"
+      },
+      "initial_value": 0,
+      "source_level_container_type": "UNKNOWN"
+    },
+    "constructor": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "symbol_identity": {
+        "symbol": "_ZN9ParamListC1Ev",
+        "entry_vma": "0x7edc3e",
+        "thumb_value": "0x7edc3f",
+        "size_bytes": 42,
+        "address_space": "ELF_VMA",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "receiver": "r0 destination-shaped ParamList object",
+      "return": "r0 restored from receiver before return; source-level constructor safety UNKNOWN",
+      "container_allocation": {
+        "size_bytes": 12,
+        "allocator_plt": "0xdc100",
+        "binding": {
+          "entry_vma": "0xdc100",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102cffc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_Znwj",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "stored_at_object_offset": "0x0"
+      },
+      "container_initialization": {
+        "forwarder_vma": "0x7edc30",
+        "initializer_vma": "0x7edc14",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "shared_counter": {
+        "allocation_size_bytes": 4,
+        "initial_value": 1,
+        "stored_at_object_offset": "0x4",
+        "interpretation": "shared counter candidate; source-level type UNKNOWN"
+      },
+      "allocation_failure_handling": "UNKNOWN; no local failure guard observed in this bounded body",
+      "address_space": "ELF_VMA"
+    },
+    "clear": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "symbol_identity": {
+        "symbol": "_ZN9ParamList5clearEv",
+        "entry_vma": "0x7edb76",
+        "thumb_value": "0x7edb77",
+        "size_bytes": 12,
+        "address_space": "ELF_VMA",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "helper_vma": "0x7edb40",
+      "count_source": "(container end - container begin) >> 2 via 0x7edab0",
+      "element_width_bytes": 4,
+      "null_element": "null slot skips virtual deletion in this bounded loop",
+      "virtual_dispatch": {
+        "vptr_offset": "0x0",
+        "deleting_destructor_slot_offset": "0x8",
+        "target": "indirect/unresolved"
+      },
+      "reset": "container end is reset to begin through 0x7edb32",
+      "container_type": "pointer-array candidate; source-level type UNKNOWN",
+      "address_space": "ELF_VMA"
+    },
+    "container_release": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0x7edca2",
+      "range_source": "container begin/end difference, divided by four",
+      "deallocator_path": {
+        "conditional_helper": "0x7edc92",
+        "tail_path": "0x7edc84",
+        "final_runtime_binding": "UNKNOWN"
+      },
+      "source_level_allocator": "UNKNOWN",
+      "address_space": "ELF_VMA"
+    },
+    "shared_rebind_candidate": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0x7edcc6",
+      "source_level_identity": "UNKNOWN; unnamed shared-rebind/assignment candidate",
+      "receiver_roles": {
+        "r0": "destination ParamList candidate",
+        "r1": "source ParamList candidate"
+      },
+      "self_assignment": "equal r0/r1 returns destination without counter mutation",
+      "old_owner_release": {
+        "decrement_counter_at": "destination +0x04 -> *counter",
+        "last_owner_condition": "decremented counter is zero",
+        "clear_helper": "0x7edb40",
+        "container_release": "0x7edcb8",
+        "object_delete": {
+          "entry_vma": "0xdd620",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102d6bc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZdlPv",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        }
+      },
+      "new_owner_attach": {
+        "counter_increment": "source counter increments before copy",
+        "container_pointer_copy": "source +0x00 -> destination +0x00",
+        "counter_pointer_copy": "source +0x04 -> destination +0x04"
+      },
+      "return": "destination-shaped r0 observed; C++ operator/return declaration UNKNOWN",
+      "copy_on_write": "UNKNOWN; observed path shares container and counter pointers",
+      "concurrency": "UNKNOWN; no lock or atomic operation observed in bounded body",
+      "address_space": "ELF_VMA"
+    },
+    "destructor": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "symbol_identity": {
+        "symbol": "_ZN9ParamListD1Ev",
+        "entry_vma": "0x7edd08",
+        "thumb_value": "0x7edd09",
+        "size_bytes": 46,
+        "address_space": "ELF_VMA",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "counter_operation": "decrement *counter; nonzero skips container cleanup",
+      "last_owner_cleanup": {
+        "condition": "decremented counter == 0",
+        "clear_helper": "0x7edb40",
+        "container_null_guard": "null container skips the container release/delete branch",
+        "container_release": "0x7edcb8",
+        "container_delete_binding": {
+          "entry_vma": "0xdd620",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102d6bc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZdlPv",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        },
+        "counter_delete_binding": {
+          "entry_vma": "0xdd620",
+          "address_space": "ELF_VMA",
+          "got_slot": "0x102d6bc",
+          "status": "VERIFIED_STATIC",
+          "runtime_binding": "UNKNOWN",
+          "candidates": [
+            {
+              "symbol": "_ZdlPv",
+              "symbol_value": "0x0",
+              "relocation_type": 22,
+              "section": ".rel.plt"
+            }
+          ]
+        }
+      },
+      "return": "r0 restored from receiver; source-level destructor safety UNKNOWN",
+      "null_counter": "UNKNOWN; no local null guard before counter dereference/delete",
+      "concurrency": "UNKNOWN; no lock or atomic operation observed in bounded body",
+      "address_space": "ELF_VMA"
+    }
+  },
+  "lifetime": {
+    "shared_counter_model": "STATIC_INFERRED from increment/decrement and last-owner branches",
+    "container_aliasing": "STATIC_INFERRED; shared rebind copies container and counter pointers",
+    "copy_on_write": "UNKNOWN",
+    "borrowed_element_invalidation": "STATIC_INFERRED when clear/replacement destroys elements",
+    "concurrency_verified": false,
+    "runtime_verified": false,
+    "callable": false
+  },
+  "raw_instruction_bytes_published": false,
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "The shared rebind body has no source-level ParamList copy/assignment symbol",
+    "Container release at 0x7edc84/0x7edc92 has no uniquely resolved public allocator identity",
+    "Reference-count interpretation is static and does not prove thread safety or atomicity",
+    "Allocation failure, exception cleanup, loader interposition and runtime ABI remain UNKNOWN",
+    "No firmware code was executed and no device was accessed"
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "firmware_version": "3.21",
+  "binary_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian; C++ return type and runtime ABI UNKNOWN",
+  "status": "PRIMARY_ELF_VERIFIED_MUTATION_EVIDENCE_ONLY",
+  "runtime_verified": false,
+  "callable": false,
+  "targets": {
+    "paramlist_add": {
+      "entry": "0x7ee0e6",
+      "symbol_value_thumb_tagged": "0x7ee0e7",
+      "size_bytes": 48,
+      "symbol": "_ZN9ParamList3addEmP9ParamBase",
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "replacement_candidate": {
+      "entry": "0x7ededa",
+      "size_bytes": 144,
+      "source_level_identity": "UNKNOWN",
+      "verification": "PRIMARY_ELF_VERIFIED bounded body"
+    },
+    "key_setter": {
+      "entry": "0x7eda84",
+      "size_bytes": 8,
+      "effect": "stores the requested key at ParamBase-derived object +0x08",
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "remove_slot": {
+      "entry": "0x7ede7a",
+      "size_bytes": 96,
+      "effect": "removes one four-byte pointer slot and decrements the container end",
+      "verification": "PRIMARY_ELF_VERIFIED"
+    },
+    "storage_append": {
+      "entry": "0x7ee0b8",
+      "size_bytes": 46,
+      "effect": "appends a pointer in the non-full path or delegates to growth/rebuild",
+      "verification": "PRIMARY_ELF_VERIFIED"
+    }
+  },
+  "observations": {
+    "paramlist_add": {
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "registers": {
+        "r0": "ParamList receiver",
+        "r1": "key forwarded to the replacement candidate and key setter",
+        "r2": "ParamBase-derived object pointer saved in a local slot",
+        "r3": "no semantic use in the bounded body"
+      },
+      "sequence": [
+        "calls replacement candidate 0x7ededa",
+        "zero result returns without key write or append",
+        "nonzero result calls 0x7eda84, which writes object +0x08",
+        "passes the object slot to storage append candidate 0x7ee0b8"
+      ],
+      "payload_plus_0c": "not written by this add body",
+      "return_type": "UNKNOWN"
+    },
+    "replacement_candidate": {
+      "verification": "PRIMARY_ELF_VERIFIED instruction facts; STATIC_INFERRED composed semantics",
+      "null_new_object": "r2 == 0 returns zero before container traversal",
+      "same_object": "an existing pointer equal to the incoming pointer returns zero without deletion",
+      "match_predicate": "existing key at +0x08 and discriminator at +0x04 both equal the requested object",
+      "match_effect": "invokes the existing element vtable slot +8, removes its pointer slot, and returns nonzero",
+      "null_element_safety": "no guard precedes key/discriminator reads; a later null check only surrounds virtual deletion",
+      "source_level_name": "UNKNOWN",
+      "locking": "no lock or atomic operation observed in the bounded body; thread safety UNKNOWN"
+    },
+    "remove_slot": {
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "effect": "rebuilds the selected pointer range and decrements container end by four bytes",
+      "element_destructor": "caller performs virtual deletion before this body; no destructor call in the slot-removal body"
+    }
+  },
+  "lifetime": {
+    "new_element_key_initialized": true,
+    "payload_plus_0c_written_by_add": false,
+    "replacement_invalidates_previous_element": "STATIC_INFERRED",
+    "container_ownership_transfer": "UNKNOWN",
+    "allocator_pairing": "UNKNOWN",
+    "exception_paths": "UNKNOWN",
+    "concurrency_verified": false
+  },
+  "evidence_locators": [
+    "ELF_SYMBOL:0x7ee0e7:size=48",
+    "ELF_VMA:0x7ee0f2",
+    "ELF_VMA:0x7ee0fe",
+    "ELF_VMA:0x7ee102",
+    "ELF_VMA:0x7ee10a",
+    "ELF_VMA:0x7edee8",
+    "ELF_VMA:0x7edf0e",
+    "ELF_VMA:0x7edf18",
+    "ELF_VMA:0x7edf36",
+    "ELF_VMA:0x7edf3c",
+    "ELF_VMA:0x7eda88",
+    "ELF_VMA:0x7edece"
+  ],
+  "limitations": [
+    "The replacement helper is an unnamed stripped-ELF body, not a confirmed C++ method name",
+    "Static deletion-before-removal supports borrowed-pointer invalidation but not a complete owner contract",
+    "No runtime, device, locking, allocator interposition or exception verification",
+    "This contract is descriptive evidence and must not be used as a live firmware wrapper"
+  ]
+}

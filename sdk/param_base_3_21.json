@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_PARAMBASE_EVIDENCE_ONLY",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "abi": "ARM AAPCS32, Thumb, little endian",
+  "base": {
+    "rtti": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "vtable_vma": "0xfe6e30",
+      "vtable_address_point": "0xfe6e38",
+      "rtti_vma": "0xfe6e24",
+      "rtti_name": "9ParamBase",
+      "offset_to_top": 0,
+      "slot_plus_8_clone": {
+        "target": "__cxa_pure_virtual",
+        "verification": "PRIMARY_ELF_VERIFIED",
+        "source": "ELF relocation"
+      },
+      "slot_plus_12_destructor": "0xe4734",
+      "slot_plus_16_deleting_destructor": "0xe4854",
+      "address_space": "ELF_VMA"
+    },
+    "constructor": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0xe50b4",
+      "symbol": "_ZN9ParamBaseC2Em",
+      "vtable_got": "0x1033a60",
+      "vtable_target": "0xfe6e30",
+      "writes": {
+        "vptr_plus_00": "r3",
+        "discriminator_plus_04": "r1",
+        "key_plus_08": "NOT_WRITTEN_IN_BOUNDED_BASE_BODY",
+        "payload_plus_0c": "NOT_WRITTEN_IN_BOUNDED_BASE_BODY"
+      },
+      "address_space": "ELF_VMA",
+      "constructor_input": "r0 destination, r1 discriminator word candidate"
+    },
+    "destructor": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0xe4734",
+      "operation": "restores the ParamBase vptr to the base vtable address point and returns",
+      "vtable_got": "0x1033a60",
+      "vtable_target": "0xfe6e30",
+      "writes": {
+        "vptr_plus_00": "0xfe6e38"
+      },
+      "payload_release": "NONE_IN_BASE_BODY",
+      "address_space": "ELF_VMA"
+    },
+    "deleting_destructor": {
+      "status": "PRIMARY_ELF_VERIFIED",
+      "entry_vma": "0xe4854",
+      "operation": "calls the non-deleting base destructor then operator-delete",
+      "delete_binding": {
+        "entry_vma": "0xdd620",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102d6bc",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZdlPv",
+            "symbol_value": "0x0",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      },
+      "address_space": "ELF_VMA"
+    },
+    "key_setter": {
+      "entry_vma": "0x7eda84",
+      "operation": "stores r1 at receiver +0x08",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA"
+    }
+  },
+  "direct_derived": [
+    {
+      "name": "PrmBool",
+      "rtti_name": "7PrmBool",
+      "rtti_vma": "0xfe6e18",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe6e00",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmDimension",
+      "rtti_name": "12PrmDimension",
+      "rtti_vma": "0xfe6e60",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe6e48",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmStruct",
+      "rtti_name": "9PrmStruct",
+      "rtti_vma": "0xfe7418",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe7400",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmNumberList",
+      "rtti_name": "13PrmNumberList",
+      "rtti_vma": "0xfe7ed8",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe7ee8",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmNumber",
+      "rtti_name": "9PrmNumber",
+      "rtti_vma": "0xfe8938",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe8920",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmPoint",
+      "rtti_name": "8PrmPoint",
+      "rtti_vma": "0xfe9628",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe9610",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmString",
+      "rtti_name": "9PrmString",
+      "rtti_vma": "0xfe9650",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfe9638",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmCntInfoList",
+      "rtti_name": "14PrmCntInfoList",
+      "rtti_vma": "0xfeb5a4",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfeb5b0",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmObjMsg",
+      "rtti_name": "9PrmObjMsg",
+      "rtti_vma": "0xfec488",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0xfec498",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    },
+    {
+      "name": "PrmSet",
+      "rtti_name": "6PrmSet",
+      "rtti_vma": "0x1019d08",
+      "base_rtti_vma": "0xfe6e24",
+      "vtable_vma": "0x1019d18",
+      "relation": "DIRECT_SINGLE_INHERITANCE_CANDIDATE",
+      "verification": "PRIMARY_ELF_VERIFIED",
+      "address_space": "ELF_VMA",
+      "source": "RTTI +0x08 relocation to _ZTI9ParamBase and vtable typeinfo relocation"
+    }
+  ],
+  "expected_direct_derived_names": [
+    "PrmBool",
+    "PrmCntInfoList",
+    "PrmDimension",
+    "PrmNumber",
+    "PrmNumberList",
+    "PrmObjMsg",
+    "PrmPoint",
+    "PrmSet",
+    "PrmString",
+    "PrmStruct"
+  ],
+  "runtime_verified": false,
+  "callable": false,
+  "limitations": [
+    "No source-level class hierarchy beyond the direct RTTI relocation is claimed",
+    "No constructor ownership, copy, exception, lock or runtime-loader behavior is inferred",
+    "The absence of +0x08/+0x0c stores is bounded to the observed base constructor body",
+    "Derived payload types remain governed by their family-specific contracts",
+    "The offline probe does not execute firmware or access a camera"
+  ],
+  "ghidra_crosscheck": {
+    "status": "VERIFIED_STATIC",
+    "tool": "Ghidra 12.1.3 headless",
+    "language": "ARM:LE:32:v8",
+    "image_base": "0x10000",
+    "address_space": "ram",
+    "profile": "ParamBaseTargets.java base",
+    "process_exit": 0,
+    "analysis_mode": "-noanalysis targeted listing/CFG/decompiler",
+    "targets": 4,
+    "instruction_rows": 31,
+    "basic_blocks": 4,
+    "cfg_edges": 2,
+    "raw_export_private": true,
+    "export_completion_marker": "COMPLETE_PARAMBASE_EXPORT",
+    "limitations": [
+      "Targeted private cross-check; not whole-program Auto Analysis",
+      "Decompiler types and unresolved external libraries are not semantic proof"
+    ]
+  }
+}

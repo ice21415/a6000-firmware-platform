@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_PRIMARY_ELF_PARAMLIST_GET_EVIDENCE_ONLY",
+  "firmware_version": "3.21",
+  "binary_file_sha256": "8e8a937aed23c2783e7bbee8a4afa2fb4bcd897606f190b17dccadd207d05b6a",
+  "address_space": "ELF_VMA",
+  "target": {
+    "name": "ParamList::get",
+    "entry": 8313546,
+    "symbol_value": 8313547,
+    "size": 76,
+    "symbol": "_ZNK9ParamList3getEmm"
+  },
+  "element_layout": {
+    "vptr_plus_00": "concrete ParamBase-derived vtable address point",
+    "discriminator_plus_04": "constructor-supplied ParamBase family discriminator",
+    "key_plus_08": "ParamList lookup key written by the separate key setter",
+    "payload_plus_0c": "concrete-family payload word or storage; type depends on discriminator",
+    "status": "PRIMARY_ELF_VERIFIED for offsets/accesses; concrete payload type is family-specific"
+  },
+  "accessors": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "count": {
+      "entry": "0x7edab0",
+      "operation": "(storage_end - storage_begin) >> 2",
+      "element_width_bytes": 4
+    },
+    "element_at": {
+      "entry": "0x7edabe",
+      "operation": "storage_begin + (index * 4)",
+      "return": "address of element pointer slot"
+    },
+    "fields": {
+      "+0x04": {
+        "role": "discriminator/value-type word",
+        "accessor": "0x7eda8c",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "+0x08": {
+        "role": "lookup key word",
+        "accessor": "0x7eda94",
+        "status": "PRIMARY_ELF_VERIFIED"
+      },
+      "+0x0c": {
+        "role": "payload word returned by 0xe5b18",
+        "getter": "0xe5b18",
+        "status": "PRIMARY_ELF_VERIFIED"
+      }
+    },
+    "null_element_guard": "NONE_OBSERVED_IN_BOUNDED_GET_BODY"
+  },
+  "get": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "symbol": "_ZNK9ParamList3getEmm",
+    "symbol_value_thumb": "0x7edacb",
+    "entry_vma": "0x7edaca",
+    "size_bytes": 76,
+    "abi": {
+      "r0": "ParamList receiver candidate",
+      "r1": "lookup key; copied to r4 and compared with element +0x08",
+      "r2": "discriminator; copied to sb and compared with element +0x04",
+      "r3": "not observed as an explicit source-level parameter",
+      "return": "matching stored element pointer, or zero after exhausting the range"
+    },
+    "algorithm": {
+      "storage": "receiver +0x00 points to contiguous element-pointer storage",
+      "count": "(storage +0x04 - storage +0x00) >> 2",
+      "iteration": "index starts at zero and increments until count",
+      "match": "element +0x04 equals r2 and element +0x08 equals r1",
+      "success": "returns the matching element pointer without a local retain",
+      "failure": "returns zero"
+    },
+    "lifetime": {
+      "result_kind": "borrowed-pointer candidate; no retain/add-ref instruction observed",
+      "invalidation": "UNKNOWN; clear, replacement, shared ownership and concurrency are outside this body",
+      "null_element": "UNKNOWN; no element-pointer null guard is present before field reads"
+    },
+    "return_cpp_type_verified": false,
+    "ownership_verified": false
+  },
+  "forwarders": {
+    "status": "PRIMARY_ELF_VERIFIED",
+    "payload_getter": {
+      "entry": "0xe5b18",
+      "operation": "reads element +0x0c and returns the word"
+    },
+    "get_forwarder": {
+      "entry": "0xe5b20",
+      "operation": "sets discriminator r2=1 and tail-branches to ParamList::get PLT",
+      "plt_entry": "0xe2890",
+      "plt_binding": {
+        "entry_vma": "0xe2890",
+        "address_space": "ELF_VMA",
+        "got_slot": "0x102f0c8",
+        "status": "VERIFIED_STATIC",
+        "runtime_binding": "UNKNOWN",
+        "candidates": [
+          {
+            "symbol": "_ZNK9ParamList3getEmm",
+            "symbol_value": "0x7edacb",
+            "relocation_type": 22,
+            "section": ".rel.plt"
+          }
+        ]
+      }
+    },
+    "word_wrapper": {
+      "entry": "0x42ac00",
+      "inputs": {
+        "r0": "wrapper object; [r0+4] is the ParamList pointer candidate",
+        "r1": "lookup key",
+        "r2": "caller output address; preserved in r4"
+      },
+      "success": "nonzero element result -> read +0x0c, store one 32-bit word, return 0",
+      "failure": "null wrapper/list/output or null lookup result -> return 1"
+    }
+  },
+  "safety": {
+    "runtime_verified": false,
+    "callable": false,
+    "null_receiver": "UNKNOWN; no general runtime guard is established",
+    "invalid_index": "UNKNOWN; count/element range is assumed by the bounded loop",
+    "shared_container": "UNKNOWN; ParamList shared-counter/lifetime is tracked separately",
+    "concurrency": "UNKNOWN; no lock or atomic operation occurs in the bounded get body"
+  },
+  "limitations": [
+    "The concrete C++ return type is not encoded by the symbol and remains unverified",
+    "The payload type is selected by the discriminator and is not a universal uint32 ABI",
+    "No reference-count increment, lifetime extension or concurrency guarantee is observed",
+    "The ELF was not executed and no device was accessed"
+  ]
+}

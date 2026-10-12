@@ -1,0 +1,114 @@
+{
+  "phase": "4.51",
+  "firmware_version": "Sony A6000 3.21",
+  "verification": "PRIMARY_SHA_PINNED_ELF_THUMB_CONTROL_FLOW_AND_FILE_BACKED_POINTER",
+  "original_source": {
+    "file": "bootin_fw321.elf",
+    "sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "size_bytes": 13384,
+    "elf": "ELF32 little-endian ARM Thumb ET_EXEC"
+  },
+  "user_observation": {
+    "cmd": "dir /s /b \".\\firmware-analysis\\official-3.21-dat\\firmware.tar_unpacked\\*dmode*\"",
+    "output": "File Not Found",
+    "interpretation": "No matching basename was found in that local unpacked tree as scanned. This does NOT prove /setting/mode/dmode is missing in the mounted/live filesystem or absent from other partitions."
+  },
+  "exact_file_probe": {
+    "path_literal_vma": "0x9ef1",
+    "path": "/setting/mode/dmode",
+    "global_base_literal": "0x9674 -> 0x12a94",
+    "setting_path_literal": "0x9678 -> 0x9ef1",
+    "flag_or_before_open": "0x9478..0x9484 may OR 0x4 in flags based on helper 0x93b4; unrelated to mode file result",
+    "path_state_write": "0x948c stores path pointer in global+0x08",
+    "open_plt_call": "0x948e BLX 0x8ba0 (open@GLIBC_2.4)",
+    "fd_negative_guard": "0x9492 subs r6,r0,#0; 0x9494 blt 0x950e",
+    "read_success_path": "0x9496..0x949a passes fd, stack output, 0x1e to read@GLIBC_2.4 PLT0x8c88",
+    "read_default_pointer": "0x949e ldr r1,[r5,#0xc] loads preexisting selected mode pointer",
+    "read_length_loop": "0x94a2 r5=0; 0x94a4 branch 0x9500 cmp r5,r0(read length); 0x9502 blt 0x94a6",
+    "read_digits": "0x94a6..0x94fc compares bytes 0x30,0x31,0x32,0x33, overwriting r1 only on matched digits",
+    "read_length_nonpositive": "If read returns 0 or a negative value, loop does not run and 0x9506 stores preexisting r1; failure still proceeds to close(fd).",
+    "after_successful_read": "0x9506 stores final r1 to global+0xc, 0x9508 stores flags, 0x950a closes fd",
+    "open_failure_branch": "0x9494 -> 0x950e sets r6=1; jumps 0x9728, entirely bypassing the +0xc mode overwrite at 0x9506",
+    "argc_argv_loop": "0x9728 compares r6 with r9 (original argc); 0x972a loops to 0x9512 for any argv[1+] (can overwrite mode).",
+    "stage_bypass_guard": "0x972e/0x9732 checks flags bit0x1, branches past mode-string bundle rewrite to 0x9790 if set",
+    "stage_selector": "0x9738 loads global+0xc pointer; 0x973a reads its first byte, 0x975a stores selected stage-token pointer back to global+0xc"
+  },
+  "default_init": {
+    "global_base": "0x12a94",
+    "file_offset": "0x2a94",
+    "mode_pointer_field_vma": "0x12aa0",
+    "mode_pointer_field_offset": "0x2aa0",
+    "raw_pointer_word_little_endian": "95a60000",
+    "points_to": "0xa695",
+    "points_to_offset": "0x2695",
+    "raw_string_hex": "332000",
+    "raw_string": "3 ",
+    "bitfield_initial_word_at_global_base": "0x00000000",
+    "mode3_case": "0x9750 cmp byte '#0x33' -> 0x9754 loads word 0x97b8=0xa4fa; 0x975a writes to global+0xc",
+    "full_stage_string": "s g r u l i a ",
+    "full_stage_literal_vma": "0xa4fa",
+    "ascii_mode_choice_map": {
+      "0": "s ",
+      "1": "s g r u ",
+      "2": "s g r u l ",
+      "3": "s g r u l i a "
+    }
+  },
+  "parent_process_caller": {
+    "entry_main": "0x9c64",
+    "parser_call": "0x9c7a BL 0x97d0",
+    "parser_dispatch_to_probe": "0x97ec BL 0x9460",
+    "builder_call": "0x9ca2 BL 0x9914",
+    "stage_arg_append": "0x99c2 ldr r1,[r4,#0xc]; 0x99c6 BL 0x9260",
+    "shell_call": "0x9a54 BLX 0x8c30 (system@GLIBC_2.4)"
+  },
+  "conditional_conclusion": "If opening /setting/mode/dmode fails AND there are no overriding argv options or bypass flag, the original file-initialized '3 ' mode pointer survives and is transformed into s g r u l i a for a single assembled system() shell command. This is a static fallback conditional, NOT an observation of on-device boot mode or a successful child.",
+  "unresolved": [
+    "Actual /setting/mode/dmode availability/content in live rootfs or persistent mount",
+    "Bootin boot-time argc/argv, bit flags and successful shell command",
+    "Whether im.elf same process really loads libObj before appFw initialization",
+    "Who sends 0x940036/037 to bootin fixed 0x94020a",
+    "Successful runtime Application_System_Init lookup and Model ID11→ModelCamera binding"
+  ],
+  "core_graph": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "added": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0,
+  "same_process_late_stage_guard": {
+    "source": "im-vendor-original.elf",
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "early_marker_iterator_calls": [
+      "0x9b7e",
+      "0x9b8e",
+      "0x9bfe",
+      "0x9c0e",
+      "0x9c1e"
+    ],
+    "early_marker_arguments": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "flag_mask_getters": {
+      "0xab4c": "0x10000",
+      "0xab60": "0x20000",
+      "0xab74": "0x40000",
+      "0xab88": "0x80000",
+      "0xab9c": "0x100000",
+      "0xabb0": "0x200000",
+      "0xabc4": "0x400000"
+    },
+    "conditional_event_emits": "0x9d04..0x9d88 via im.elf 0x91a4 into 0x94016a",
+    "late_marker_handlers": "0xa06c stage handler uses b6e4 on events 0x940036/0x940037",
+    "main_dynamic_rcv": "0x9eaa osal_rcv_msg_tmo",
+    "callback_invoke": "0x9eb2 BLX r5",
+    "meaning": "Same-process CLI bits do not by themselves prove late marker 5->7/7->8 traversal or prior libObj visibility. Mutable callback state and dynamic queue event delivery are separate unproved gates."
+  }
+}
