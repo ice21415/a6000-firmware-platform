@@ -1,0 +1,140 @@
+{
+  "phase": "4.49",
+  "firmware": "Sony A6000 3.21",
+  "evidence_level": "SHA_PINNED_ORIGINAL_ELF_INSTRUCTION_AND_PLT_STATIC",
+  "binary": {
+    "original": "bootin_fw321.elf",
+    "sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "size_bytes": 13384,
+    "format": "ELF32 little-endian ARM EABI5 ET_EXEC",
+    "entry": "0x8dc1",
+    "machine_code_mode": "Thumb",
+    "note": "VMA references in original executable; no runtime execution"
+  },
+  "cross_binary": {
+    "im_elf_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "im_parser_entry": "0xa628",
+    "im_single_letter_i_cmp": "0xa748..0xa760",
+    "im_single_letter_i_flag": "0x200000",
+    "im_single_letter_a_cmp": "0xa766..0xa77e",
+    "im_single_letter_a_flag": "0x400000",
+    "im_stage_emit_callsite_i": "0x9d72",
+    "im_stage_emit_callsite_a": "0x9d88",
+    "im_stage_emit_destination": "0x0094016a"
+  },
+  "bootin_receive": {
+    "routine_entry": "0x9c64",
+    "loop_receive_call": "0x9cd0",
+    "recv_symbol": "osal_rcv_msg_tmo",
+    "recv_plt": "0x8c94",
+    "recv_destination_literal_vma": "0x9d18",
+    "recv_destination": "0x0094020a",
+    "recv_message_pointer_output": "sp+0x4",
+    "nonzero_status_branch": "0x9cd4 -> 0x9cd6 sleep(1)",
+    "received_message_dispatch": "0x9cde ldr r0,[r7,#4]; 0x9ce0 bl 0x9b20",
+    "recv_message_free": "0x9cf0 osal_free_msg",
+    "loop_exit_flag": "0x9cf4..0x9cfa checks global+4 ==3"
+  },
+  "bootin_sync_registration": {
+    "callsite": "0x9816",
+    "symbol": "osal_reg_sync_msg_queue_cb",
+    "plt": "0x8c14",
+    "fixed_id_literal": "0x9834",
+    "fixed_id": "0x0094020a",
+    "sync_callback_literal": "0x983c",
+    "sync_callback_thumb": "0x8e41",
+    "note": "The same fixed ID 0x94020a is used in the registration call and receive loop; exact queue role and registration success remain conditional"
+  },
+  "dispatcher": {
+    "entry": "0x9b20",
+    "load_message_word": "0x9b28 ldr r1,[r0]",
+    "launch_system_call": "0x9b3a",
+    "launch_system_symbol": "system@GLIBC_2.4",
+    "launch_system_plt": "0x8c30",
+    "literal_pairs": [
+      {
+        "event": "0x00940031",
+        "cmp_load": "0x9b24",
+        "literal_event_vma": "0x9c00",
+        "string_ptr_literal_vma": "0x9c04",
+        "command_vma": "0xa60e",
+        "command": "im.elf s &"
+      },
+      {
+        "event": "0x00940032",
+        "cmp_load": "0x9b32",
+        "literal_event_vma": "0x9c08",
+        "string_ptr_literal_vma": "0x9c0c",
+        "command_vma": "0xa619",
+        "command": "im.elf g &"
+      },
+      {
+        "event": "0x00940033",
+        "cmp_load": "0x9b42",
+        "literal_event_vma": "0x9c10",
+        "string_ptr_literal_vma": "0x9c14",
+        "command_vma": "0xa624",
+        "command": "im.elf r &"
+      },
+      {
+        "event": "0x00940034",
+        "cmp_load": "0x9b4c",
+        "literal_event_vma": "0x9c18",
+        "string_ptr_literal_vma": "0x9c1c",
+        "command_vma": "0xa62f",
+        "command": "im.elf u &"
+      },
+      {
+        "event": "0x00940035",
+        "cmp_load": "0x9b56",
+        "literal_event_vma": "0x9c20",
+        "string_ptr_literal_vma": "0x9c24",
+        "command_vma": "0xa63a",
+        "command": "im.elf l &"
+      },
+      {
+        "event": "0x00940036",
+        "cmp_load": "0x9b60",
+        "compare": "0x9b62 cmp r1,r3",
+        "literal_event_vma": "0x9c28",
+        "string_ptr_literal_vma": "0x9c2c",
+        "command_vma": "0xa645",
+        "command": "im.elf i &"
+      },
+      {
+        "event": "0x00940037",
+        "cmp_load": "0x9b6a",
+        "compare": "0x9b6c cmp r1,r3",
+        "literal_event_vma": "0x9c30",
+        "string_ptr_literal_vma": "0x9c34",
+        "command_vma": "0xa650",
+        "command": "im.elf a &"
+      }
+    ],
+    "system_status_handling": "0x9b3e movs r0,#0 after system return; launch branch does not check actual child init success",
+    "mode": "conditional_shell_background_launch_not_direct_OSAL_SEND"
+  },
+  "distinct_uipc_identity": {
+    "bootin_inbox": "0x0094020a",
+    "im_stage_sender_fixed_dest": "0x0094016a",
+    "im_main_dynamic_receiver_success_range": "0x00946000..0x00946fff",
+    "all_distinct": true,
+    "consequence": "bootin stage messages are received on 0x94020a, not the im.elf fixed stage-send destination 0x94016a and not the im main dynamic 0x946xxx ID; prior sender==bootin hypothesis unsupported"
+  },
+  "unknowns": [
+    "Who posts stage 0x940036/037 into bootin inbox 0x94020a in actual startup",
+    "Whether system() launches succeed, program arguments and process lifetimes on camera",
+    "Whether bootin stage messages guarantee ordering/completion across asynchronous shell children",
+    "OSAL delivery and actual boot settings",
+    "Successful libObj dlopen/dlsym and ModelCamera/ModelManager ID11 mapping"
+  ],
+  "camera_core_tracking": {
+    "primary": 74,
+    "inferred": 5,
+    "unresolved": 5,
+    "tracked": 84,
+    "core_edges_added": 0
+  },
+  "runtime_verified_apis": 0,
+  "safe_to_invoke_apis": 0
+}
