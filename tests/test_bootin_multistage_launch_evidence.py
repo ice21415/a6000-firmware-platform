@@ -55,7 +55,7 @@ class BootinMultistageModeEvidenceTests(unittest.TestCase):
     def test_actual_main_reaches_combined_command_builder(self):
         m = self.e["bootin_main_reachability"]
         self.assertEqual(m["main_entry"], "0x9c64")
-        self.assertIn("0x9c65", m["start_libc_main_pointer_literal"])
+        self.assertEqual(int(m["start_libc_main_pointer_literal"].split("->")[1].split()[0], 16), 0x9c65)
         self.assertEqual(m["main_parser_call"], "0x9c7a BL 0x97d0 (mode/options parser)")
         self.assertEqual(m["main_combined_command_caller"], "0x9ca2 BL 0x9914")
         self.assertEqual(m["combined_command_system_call"], "0x9a54 BLX 0x8c30 (system)")
