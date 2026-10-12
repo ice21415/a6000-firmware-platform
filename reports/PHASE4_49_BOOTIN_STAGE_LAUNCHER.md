@@ -92,3 +92,19 @@ Further ELF xref inspection found that **im.elf itself embeds destination 0x9402
 This constitutes a **SHA-pinned, relocation-backed, direct static inter-process IPC protocol match**: a message type 0x940005 with destination 0x94020a is **constructed and sent in im.elf**, and bootin.elf has a corresponding handler on the same inbox. No assumption about indirect queue-ID rewriting is needed for these particular IDs. Still **not** proven: actual send success, delivery, boot execution, or command behavior under specific runtime inputs.
 
 **Crucial distinction:** the im.elf **0x940005** control message goes to **bootin 0x94020a**, whereas im.elf's **0x940036/037** stage-emission code uses **0x94016a**. Therefore this new matching message does **not** close the stage-message path or justify transferring `RTLD_GLOBAL` state between independently launched `im.elf` processes.
+
+
+## 7. Four original IMDB type-0x40000001 records supplying the bootin control channel
+
+Cross-reading the **separate user-uploaded original `libIMDB.so`** SHA256 `9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea`, descriptor base `0xc0e8`, stride `0x2c`, 143 records, shows precisely **four** records with type `0x40000001` (all located after marker 8):
+
+| Row | Original row VMA | Target mask | Command name (record+0x10) | Optional arg (record+0x14) |
+| --- | --- | --- | --- | --- |
+| 136 | 0xd848 | `0x7fffffff` | `/usr/bin/WebApiLauncher.sh` | empty |
+| 137 | 0xd874 | `0xfffffff9` | `/usr/bin/qsi.elf` | `noevent0` |
+| 138 | 0xd8a0 | `0x00000006` | `/usr/bin/qsi.elf` | empty |
+| 139 | 0xd8cc | `0x7fffffff` | `/usr/bin/network.sh` | empty |
+
+The generic type-specific branch at im.elf `0xb47c..0xb4d8` can format `"%s &"` or `"%s %s &"` using these source record fields and submit a **0x940005 command-message** to bootin fixed **0x94020a**. Bootin's exact 0x940005 case at `0x9ba8..0x9bea` is the other endpoint of that static protocol.
+
+This helps explain the purpose of the newly proven control message: **service-command dispatch**, separate from bootin's **0x940031..37 event-to-im-stage launch** mechanism. Do not assume all four records run; their target masks differ, and no real boot arguments or message delivery were observed. Importantly, a name appearing in this registry is not proof of an executed shell command.
