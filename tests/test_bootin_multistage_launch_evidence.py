@@ -43,6 +43,15 @@ class BootinMultistageModeEvidenceTests(unittest.TestCase):
         self.assertIn("read@GLIBC_2.4", m["read_instruction"])
         self.assertTrue(m["user_file_content_not_provided"])
 
+    def test_original_file_backed_default_mode_is_three(self):
+        d = self.e["bootin_compiled_mode_default"]
+        self.assertEqual(d["selector_pointer_vma"], "0x00012aa0")
+        self.assertEqual(d["file_initialized_pointer"], "0x0000a695")
+        self.assertEqual(d["literal_string_value"], "3 ")
+        self.assertEqual(d["literal_string_vma"], "0x0000a695")
+        self.assertTrue(d["source_data_verified"])
+        self.assertFalse(d["runtime_mode_observed"])
+
     def test_actual_main_reaches_combined_command_builder(self):
         m = self.e["bootin_main_reachability"]
         self.assertEqual(m["main_entry"], "0x9c64")
