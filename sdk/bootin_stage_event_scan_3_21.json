@@ -117,5 +117,15 @@
     "tracked": 84,
     "new_core_edges": 0
   },
-  "runtime_verified_apis": 0
+  "runtime_verified_apis": 0,
+  "bootin_local_copy_report": {
+    "provenance": "user CMD copy, certutil and dir output; hash and size reported by user, not independently verified from bytes",
+    "filename": "bootin_fw321.elf",
+    "reported_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "reported_size_bytes": 13384,
+    "copy_status_reported": "1 file copied",
+    "original_relative_path": "0700_part_image/dev/nflasha15_unpacked_unpacked/bin/bootin.elf",
+    "bytes_received_for_disassembly": false,
+    "next_step": "Attach bootin_fw321.elf binary to the conversation for independent SHA256 and instruction-level disassembly"
+  }
 }
