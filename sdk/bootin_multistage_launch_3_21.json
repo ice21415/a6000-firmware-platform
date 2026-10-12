@@ -141,5 +141,17 @@
     "mode_selector_uses_first_byte": "0x9738..0x975a",
     "user_file_content_not_provided": true,
     "limitation": "This proves read and parsing code for path /setting/mode/dmode, NOT the camera's actual file contents or that the file exists/opens during real boot."
+  },
+  "bootin_main_reachability": {
+    "source_elf_entry": "0x8dc1",
+    "start_libc_main_pointer_literal": "0x8df0 -> 0x00009c65 (Thumb)",
+    "libc_start_main_call": "0x8de2 BLX 0x8be0 (__libc_start_main)",
+    "main_entry": "0x9c64",
+    "main_parser_call": "0x9c7a BL 0x97d0 (mode/options parser)",
+    "parser_failure_conditional": "0x9c80 cbz r0,0x9c8e; nonzero takes different/error branch",
+    "main_combined_command_caller": "0x9ca2 BL 0x9914",
+    "combined_command_system_call": "0x9a54 BLX 0x8c30 (system)",
+    "post_builder_return_gate": "0x9ca6 cbz r0,0x9cac; nonzero exit branch",
+    "meaning": "The composed multi-stage launch is reachable directly from bootin's actual main function, not an unused routine or mere rodata. No boot branch success or selected mode observed."
   }
 }
