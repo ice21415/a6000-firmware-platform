@@ -121,5 +121,25 @@
     "added": 0
   },
   "runtime_verified": 0,
-  "safe_to_invoke": 0
+  "safe_to_invoke": 0,
+  "bootin_mode_source": {
+    "source": "original bootin.elf SHA d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "configuration_path": "/setting/mode/dmode",
+    "literal_string_vma": "0x9ef1",
+    "literal_pointer_load": "0x9486 from pointer literal at 0x9678",
+    "open_plt": "0x8ba0 (open@GLIBC_2.4)",
+    "open_instruction": "0x948e blx 0x8ba0",
+    "read_instruction": "0x949a blx 0x8c88 (read@GLIBC_2.4)",
+    "read_max_bytes": "0x1e",
+    "parsed_ascii_mode_chars": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "mode_parse_instruction_range": "0x94a6..0x9506",
+    "mode_selector_uses_first_byte": "0x9738..0x975a",
+    "user_file_content_not_provided": true,
+    "limitation": "This proves read and parsing code for path /setting/mode/dmode, NOT the camera's actual file contents or that the file exists/opens during real boot."
+  }
 }
