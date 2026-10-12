@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.48 user-run 649-ELF read-only literal+dynsym scan: 2 HIGH candidates (im.elf previously verified; bootin.elf newly identified with stage 0x940036/037 and dest 0x94016a literals plus osal send import). bootin not yet uploaded/disassembled, so no callsite proof or core edge promotion.",
+  "latest_checkpoint": "Phase4.49 original bootin.elf SHA d2bc...: bootin receives 0x940031..37 on its fixed 0x94020a inbox, launches im.elf {s,g,r,u,l,i,a} & through system@0x9b3a; original im.elf parser accepts single chars i/a. Separate background launches do not share RTLD_GLOBAL. Also im row type 0x40000001 sends control message 0x940005 to bootin 0x94020a, whose handler matches it. Stage producer to bootin still unknown.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1135,5 +1135,35 @@
     "core_elf_static_primary": 74,
     "core_tracked": 84,
     "additional_kernel_et_rel_caveat": "upm.ko appears LITERAL_ONLY because scanner checks .dynsym and ET_REL .ko uses .symtab/relocations"
+  },
+  "phase4_49_bootin_original_elf": {
+    "bootin_sha256": "d2bc0c51d4523052170520607fb60709020e48811e5d5ad65843f5e97ffaa983",
+    "bootin_size_bytes": 13384,
+    "im_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_49_BOOTIN_STAGE_LAUNCHER.md",
+    "evidence": "sdk/bootin_stage_launcher_3_21.json",
+    "bootin_event_inbox": "0x0094020a",
+    "bootin_receiver": "0x9cd0 osal_rcv_msg_tmo",
+    "bootin_stage_handler": "0x9b20",
+    "shell_launcher": "0x9b3a system",
+    "all_stage_ends": [
+      "s",
+      "g",
+      "r",
+      "u",
+      "l",
+      "i",
+      "a"
+    ],
+    "im_cli_i_stage_flag": "0x200000",
+    "im_cli_a_stage_flag": "0x400000",
+    "im_different_event_send_destination": "0x0094016a",
+    "confirmed_other_message_im_to_bootin": "0x940005 (im type 0x40000001 at 0xb4d8 -> bootin case 0x9baa)",
+    "process_isolation_correction": "bootin background-launches distinct im.elf processes; libObj.so RTLD_GLOBAL in i process cannot alone satisfy dlsym in a process",
+    "unverified_event_036_037_producer_for_bootin": "UNKNOWN",
+    "unverified_im_a_same_process_libobj_provider": "UNKNOWN",
+    "camera_core_graph_delta": 0,
+    "primary_elf_verified_edges": 74,
+    "tracked_core_edges": 84
   }
 }
