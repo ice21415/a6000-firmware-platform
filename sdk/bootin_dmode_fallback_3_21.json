@@ -78,5 +78,37 @@
     "added": 0
   },
   "runtime_verified_apis": 0,
-  "safe_to_invoke_apis": 0
+  "safe_to_invoke_apis": 0,
+  "same_process_late_stage_guard": {
+    "source": "im-vendor-original.elf",
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "early_marker_iterator_calls": [
+      "0x9b7e",
+      "0x9b8e",
+      "0x9bfe",
+      "0x9c0e",
+      "0x9c1e"
+    ],
+    "early_marker_arguments": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "flag_mask_getters": {
+      "0xab4c": "0x10000",
+      "0xab60": "0x20000",
+      "0xab74": "0x40000",
+      "0xab88": "0x80000",
+      "0xab9c": "0x100000",
+      "0xabb0": "0x200000",
+      "0xabc4": "0x400000"
+    },
+    "conditional_event_emits": "0x9d04..0x9d88 via im.elf 0x91a4 into 0x94016a",
+    "late_marker_handlers": "0xa06c stage handler uses b6e4 on events 0x940036/0x940037",
+    "main_dynamic_rcv": "0x9eaa osal_rcv_msg_tmo",
+    "callback_invoke": "0x9eb2 BLX r5",
+    "meaning": "Same-process CLI bits do not by themselves prove late marker 5->7/7->8 traversal or prior libObj visibility. Mutable callback state and dynamic queue event delivery are separate unproved gates."
+  }
 }
