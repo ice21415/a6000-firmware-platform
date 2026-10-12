@@ -64,3 +64,12 @@ Original Camera Core graph **unchanged**: 74 primary static + 5 inferred + 5 unr
 ## Next offline line of investigation
 
 For Phase 4.52, the best next *new* proof is to trace the actual `im.elf` same-process IMDB stage flag iteration around event/queue callbacks and `Application_System_Init` symbol scope, rather than rescanning for a `dmode` filename. Further directory search may help establish settings mount provenance, but current uploaded sources do not contain the live file.
+
+
+## 5. Guardrail from the original im.elf: multi-stage CLI arguments are not direct proof of late-stage IMDB execution
+
+The independently SHA-pinned original `im-vendor-original.elf` (SHA256 `f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a`) was re-disassembled after establishing the compiled bootin fallback. The main flow calls the guarded `b6e4` IMDB iterator at **0x9b7e, 0x9b8e, 0x9bfe, 0x9c0e, 0x9c1e**, with stage-marker arguments **1 through 5**. The main code then checks seven flag getters at **0xab4c, 0xab60, 0xab74, 0xab88, 0xab9c, 0xabb0, 0xabc4** for bits **0x10000, 0x20000, 0x40000, 0x80000, 0x100000, 0x200000, 0x400000** and conditionally invokes **`0x91a4`**, producing event messages through **0x9d04..0x9d88** to fixed queue **0x94016a**.
+
+By contrast, the independently identified callback at **0xa06c** (when active in the dynamic receiver and successfully invoked) branches on stage message IDs and uses **`b6e4` for later marker ranges**, notably the 0x940036 and 0x940037 cases (Phase4.42). The main dynamic receive at **0x9eaa** and callback dispatch at **0x9eb2** remain contingent on kernel queue routing and mutable callback state.
+
+Consequently even when `bootin`'s compiled mode 3 provides `im.elf s g r u l i a` **in one command/process**, the argument bits on their own **do not prove the program directly traverses later IMDB marker ranges 5→7 and 7→8**. It must still reach the relevant handler / event path; a matching stage producer-to-receiver bridge is unproven. This sharp distinction prevents wrongly upgrading the conditional `libObj.so`-before-`Application_System_Init` scenario to a verified execution chain.
