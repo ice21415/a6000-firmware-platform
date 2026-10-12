@@ -32,7 +32,7 @@ class ImDynamicAnnouncementEvidenceTests(unittest.TestCase):
         self.assertEqual(m["send_callsite"], "0x9e6c BL 0x91a4")
         self.assertEqual(m["destination_id"], "0x0094016a")
         self.assertEqual(m["message_code"], "0x0094001a")
-        self.assertIn("dynamic receiver queue ID", m["caller_fields"]["r3"])
+        self.assertIn("allocated receiver queue ID", m["caller_fields"]["r3"])
         self.assertEqual(m["constructed_message_words"][2], "allocated receiver ID 0x946000..0x946fff if successful")
         self.assertEqual(m["constructed_message_words"][-1], "0x00000003")
 
