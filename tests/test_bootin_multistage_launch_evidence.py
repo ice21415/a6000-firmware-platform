@@ -43,6 +43,14 @@ class BootinMultistageModeEvidenceTests(unittest.TestCase):
         self.assertIn("read@GLIBC_2.4", m["read_instruction"])
         self.assertTrue(m["user_file_content_not_provided"])
 
+    def test_actual_main_reaches_combined_command_builder(self):
+        m = self.e["bootin_main_reachability"]
+        self.assertEqual(m["main_entry"], "0x9c64")
+        self.assertIn("0x9c65", m["start_libc_main_pointer_literal"])
+        self.assertEqual(m["main_parser_call"], "0x9c7a BL 0x97d0 (mode/options parser)")
+        self.assertEqual(m["main_combined_command_caller"], "0x9ca2 BL 0x9914")
+        self.assertEqual(m["combined_command_system_call"], "0x9a54 BLX 0x8c30 (system)")
+
     def test_event_launcher_is_distinct_path(self):
         s = self.e["separate_event_stage_path"]
         self.assertEqual(s["event_i"], "0x940036 -> system('im.elf i &') at 0x9b3a")
