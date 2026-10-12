@@ -83,3 +83,16 @@ The ELF `_start` at **0x8dc0** loads Thumb entry pointer **0x9c65** from PC-rela
 - The builder's return is checked at **0x9ca6**, with nonzero falling into an exit branch.
 
 This supplies a complete **static program-entry → parser → stage mode selection → command builder → one system()** caller chain. The mode and successful execution are still runtime-unverified. This path is separate from the event-driven callback at `bootin 0x9b20` that calls `system()` for *individual* stage messages.
+
+
+## 8. Original .data confirms a compiled-in mode-'3' default
+
+Independent read-only `readelf -SW` and direct little-endian ELF-byte inspection identified original `.data` base **0x12a8c**, which holds bootin's configuration struct at **0x12a94**. Specifically:
+
+- **`.data+0x14` / VMA `0x12aa0`** (configuration base **+0x0c**) is the original file-backed word **`0x0000a695`**.
+- `0xa695` falls within the original ELF `.rodata`, and points to the NUL-terminated short string **`"3 "`**.
+- The mode selector at **0x9738..0x975a** reads the first byte of exactly that global+0x0c pointer unless changed by the mode-file parser (or other config branches). ASCII `'3'` selects stage argument string **`s g r u l i a `** from pointer 0xa4fa.
+
+**Therefore mode 3 is the binary's file-initialized default**, not merely one of several random available settings. This materially increases the plausibility of a same-process multistage launch when bootin runs without a later mode override. It **does not** establish live default camera mode or runtime file contents: `/setting/mode/dmode`, startup argv, and other conditional code paths may override or bypass the default.
+
+The leading space in `"3 "` does not change the selector's first-byte comparison; preserve that distinction between **selector string** and **stage-token bundle**.
