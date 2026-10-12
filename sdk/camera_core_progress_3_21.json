@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.49 original bootin.elf SHA d2bc...: bootin receives 0x940031..37 on its fixed 0x94020a inbox, launches im.elf {s,g,r,u,l,i,a} & through system@0x9b3a; original im.elf parser accepts single chars i/a. Separate background launches do not share RTLD_GLOBAL. Also im row type 0x40000001 sends control message 0x940005 to bootin 0x94020a, whose handler matches it. Stage producer to bootin still unknown.",
+  "latest_checkpoint": "Phase4.49 original bootin.elf SHA d2bc...: bootin receives 0x940031..37 on its fixed 0x94020a inbox, launches im.elf {s,g,r,u,l,i,a} & through system@0x9b3a; original im.elf parser accepts single chars i/a. Separate background launches do not share RTLD_GLOBAL. Also im row type 0x40000001 sends control message 0x940005 to bootin 0x94020a, whose handler matches it. Stage producer to bootin still unknown. Confirmed libIMDB type 0x40000001 rows136..139 form four terminal commands sent by im.elf to bootin as 0x940005, distinct from stage 0x940036/037.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1164,6 +1164,22 @@
     "unverified_im_a_same_process_libobj_provider": "UNKNOWN",
     "camera_core_graph_delta": 0,
     "primary_elf_verified_edges": 74,
-    "tracked_core_edges": 84
+    "tracked_core_edges": 84,
+    "imdb_type_0x40000001_service_rows": [
+      136,
+      137,
+      138,
+      139
+    ],
+    "imdb_service_records_sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "imdb_service_record_type": "0x40000001",
+    "imdb_commands": [
+      "/usr/bin/WebApiLauncher.sh",
+      "/usr/bin/qsi.elf",
+      "/usr/bin/qsi.elf",
+      "/usr/bin/network.sh"
+    ],
+    "imdb_optional_qsi_arg": "noevent0",
+    "qualified_proof": "Four registry records plus im.elf 0x940005 sender to bootin 0x94020a establish matching static service-command IPC contract, not runtime execution"
   }
 }
