@@ -157,5 +157,55 @@
     "bootin_message_payload": "0x9bae adds r0+4",
     "bootin_message_handler": "0x9bae..0x9bea (includes string comparison and conditional command-processing/fork paths)",
     "limit": "The matching send/receive message code and destination prove a compatible static cross-ELF IPC interface, NOT that the OSAL send, delivery, command execution or startup path actually succeeds."
+  },
+  "terminal_imdb_service_records": {
+    "source": "libIMDB.so",
+    "sha256": "9ceb21092a4987ec782fd980818aee687cde649af0999608bd6c40e1f46a84ea",
+    "descriptor_base": "0xc0e8",
+    "record_stride": "0x2c",
+    "record_count": 143,
+    "type": "0x40000001",
+    "number_of_records": 4,
+    "all_after_marker8": true,
+    "rows": [
+      {
+        "index": 136,
+        "vma": "0xd848",
+        "target_mask": "0x7fffffff",
+        "group": "0xff",
+        "packed_id": "0x0000017c",
+        "command_name": "/usr/bin/WebApiLauncher.sh",
+        "optional_argument": ""
+      },
+      {
+        "index": 137,
+        "vma": "0xd874",
+        "target_mask": "0xfffffff9",
+        "group": "0xff",
+        "packed_id": "0x000000d3",
+        "command_name": "/usr/bin/qsi.elf",
+        "optional_argument": "noevent0"
+      },
+      {
+        "index": 138,
+        "vma": "0xd8a0",
+        "target_mask": "0x00000006",
+        "group": "0xff",
+        "packed_id": "0x000000d3",
+        "command_name": "/usr/bin/qsi.elf",
+        "optional_argument": ""
+      },
+      {
+        "index": 139,
+        "vma": "0xd8cc",
+        "target_mask": "0x7fffffff",
+        "group": "0xff",
+        "packed_id": "0x000007ed",
+        "command_name": "/usr/bin/network.sh",
+        "optional_argument": ""
+      }
+    ],
+    "code_path": "im.elf type 0x40000001 dispatches @0xb47c..0xb4d8, sends message 0x940005 with formatted command to bootin.elf fixed inbox 0x94020a; bootin handler @0x9ba8..0x9bea",
+    "caveat": "These are registry definitions, not evidence that any of these commands are invoked in real startup. Different rows have different target masks, and bootin command handling is conditional."
   }
 }
