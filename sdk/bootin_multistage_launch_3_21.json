@@ -153,5 +153,19 @@
     "combined_command_system_call": "0x9a54 BLX 0x8c30 (system)",
     "post_builder_return_gate": "0x9ca6 cbz r0,0x9cac; nonzero exit branch",
     "meaning": "The composed multi-stage launch is reachable directly from bootin's actual main function, not an unused routine or mere rodata. No boot branch success or selected mode observed."
+  },
+  "bootin_compiled_mode_default": {
+    "section": ".data",
+    "global_base": "0x00012a94",
+    "selector_pointer_field": "+0x0c",
+    "selector_pointer_vma": "0x00012aa0",
+    "file_initialized_pointer": "0x0000a695",
+    "pointer_target_section": ".rodata",
+    "literal_string_value": "3 ",
+    "literal_string_vma": "0x0000a695",
+    "meaning": "The initial ELF data chooses ASCII mode '3', which maps to the combined stage argument string 's g r u l i a ' when neither /setting/mode/dmode nor CLI parser flags replace/bypass it.",
+    "source_data_verified": true,
+    "runtime_mode_observed": false,
+    "note": "This is a FILE-INITIALIZED DEFAULT only; actual boot mode may be overridden by settings or launch arguments."
   }
 }
