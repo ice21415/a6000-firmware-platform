@@ -72,3 +72,14 @@ The original `bootin.elf` includes NUL-terminated **`/setting/mode/dmode`** at E
 This establishes a **concrete, code-backed source** of the bootin mode selection. The later comparison at 0x9738 reads that state and chooses the stage bundle. Importantly the contents of `/setting/mode/dmode` were **not supplied** by the user's unpacked directory, and `open/read` can fail. Hence this report does NOT claim a particular mode is the default or selected on the actual camera.
 
 Next efficient safe offline evidence: check whether `0700_part_image/dev/nflasha15_unpacked_unpacked/setting/mode/dmode` or a differently mounted overlay path exists in the unpacked image. Listing/copying or inspecting that file is read-only and does not require camera connection. Its offline bytes (if present) could be compared with the bootin mode parser, with care not to equate an update-image default with live camera state.
+
+
+## 7. This launcher is called from the real ELF `main`, not dead code
+
+The ELF `_start` at **0x8dc0** loads Thumb entry pointer **0x9c65** from PC-relative word **0x8df0** into r0 and calls `__libc_start_main` at **0x8de2** (PLT 0x8be0), establishing **0x9c64** as the actual `main` function. In that main:
+
+- **0x9c7a** calls options/mode parser **0x97d0** (whose flow reaches the original mode-file parser **0x9460**).
+- After conditional error handling, **0x9ca2** directly calls composed command builder **0x9914**, which contains the mode-stage string append at 0x99c2..0x99c6 and shell call at 0x9a54.
+- The builder's return is checked at **0x9ca6**, with nonzero falling into an exit branch.
+
+This supplies a complete **static program-entry → parser → stage mode selection → command builder → one system()** caller chain. The mode and successful execution are still runtime-unverified. This path is separate from the event-driven callback at `bootin 0x9b20` that calls `system()` for *individual* stage messages.
