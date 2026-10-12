@@ -40,7 +40,7 @@ class BootinDmodeFallbackTests(unittest.TestCase):
         self.assertEqual(bytes.fromhex(d["raw_pointer_word_little_endian"]), bytes.fromhex("95a60000"))
         self.assertEqual(d["mode_pointer_field_vma"], "0x12aa0")
         self.assertEqual(int.from_bytes(bytes.fromhex(d["raw_pointer_word_little_endian"]), "little"), 0xa695)
-        self.assertEqual(bytes.fromhex(d["raw_string_hex"]), b"3 \\x00".replace(b"\\x00", b"\x00"))
+        self.assertEqual(bytes.fromhex(d["raw_string_hex"]), bytes([0x33, 0x20, 0x00]))
         self.assertEqual(d["full_stage_string"], "s g r u l i a ")
         self.assertEqual(d["bitfield_initial_word_at_global_base"], "0x00000000")
         self.assertEqual(d["ascii_mode_choice_map"]["3"], "s g r u l i a ")
