@@ -63,3 +63,12 @@ Two conditional executable bootin architectures are now separately proved:
 Next: identify the actual offline bootin mode input (file/boot args) and prove whether its selected flags result in both the generic libObj candidate loader and row99 initialization within the same process, or instead the event stage path dominates. In parallel, find the real producer for stage 0x940036/37 to bootin's 0x94020a inbox. Neither is a runtime-observed claim.
 
 **Original Camera Core metrics unchanged:** 74 directly verified static, 5 inferred, 5 unresolved, 84 tracked; five end-to-end blockers open; runtime-verified APIs and safe-to-invoke APIs both zero. Structured witnesses: `sdk/bootin_multistage_launch_3_21.json`. Firmware ELFs are not uploaded to GitHub.
+
+
+## 6. Direct file-origin proof for bootin's mode byte
+
+The original `bootin.elf` includes NUL-terminated **`/setting/mode/dmode`** at ELF rodata **0x9ef1**, loaded through PC-relative literal **0x9678**. Inside function **0x9460**, **0x9486** loads this path, **0x948e** calls relocation-resolved `open@GLIBC_2.4` (PLT **0x8ba0**), and **0x949a** calls `read@GLIBC_2.4` (PLT **0x8c88**) into a bounded stack buffer of length **0x1e**. The byte loop from **0x94a6..0x9506** recognizes ASCII digit bytes **0/1/2/3** and stores a selected string pointer in bootin's configuration state.
+
+This establishes a **concrete, code-backed source** of the bootin mode selection. The later comparison at 0x9738 reads that state and chooses the stage bundle. Importantly the contents of `/setting/mode/dmode` were **not supplied** by the user's unpacked directory, and `open/read` can fail. Hence this report does NOT claim a particular mode is the default or selected on the actual camera.
+
+Next efficient safe offline evidence: check whether `0700_part_image/dev/nflasha15_unpacked_unpacked/setting/mode/dmode` or a differently mounted overlay path exists in the unpacked image. Listing/copying or inspecting that file is read-only and does not require camera connection. Its offline bytes (if present) could be compared with the bootin mode parser, with care not to equate an update-image default with live camera state.
