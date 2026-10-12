@@ -1203,6 +1203,15 @@
     "prior_phase_4_49_correction": "Process isolation applies to per-event individual im.elf child commands, but not conditional combined multi-stage bootin command.",
     "core_graph_edges_added": 0,
     "core_primary_elf_edges": 74,
-    "core_tracked_edges": 84
+    "core_tracked_edges": 84,
+    "real_entrypoint_static_chain": [
+      "0x8dc0 _start",
+      "0x8de2 __libc_start_main(main=0x9c65)",
+      "0x9c64 main",
+      "0x9c7a -> 0x97d0 options/mode parser",
+      "0x9ca2 -> 0x9914 combined command builder",
+      "0x9a54 -> system@GLIBC_2.4"
+    ],
+    "usage_claim": "Programmatically reachable from real main conditional branch, not just strings; runtime mode/child result unknown"
   }
 }
