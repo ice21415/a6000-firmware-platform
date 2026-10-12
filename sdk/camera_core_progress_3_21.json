@@ -52,7 +52,7 @@
     "safe_to_invoke": false
   },
   "evidence_enrichment": 4,
-  "latest_checkpoint": "Phase4.51 original bootin.elf SHA d2bc...: /setting/mode/dmode open@0x948e negative fd branches 0x9494->0x950e->0x9728 without mode pointer overwrite; read 0/negative preserves prior mode at 0x949e/0x9506. Original .data +0xc 0x12aa0->rodata 0xa695 '3 ', then 0x9738..0x975a selects 's g r u l i a '. User scan says no *dmode* filename in offline unpacked tree only, NOT live rootfs. CLI args/flags may override or bypass. Runtime unverified.",
+  "latest_checkpoint": "Phase4.52 original im.elf has TWO separate conditional sends of event 0x94001a to fixed UIPC 0x94016a containing the dynamically allocated main receive ID (0x946000..0x946fff on success) at message word+8, tag=3 from main 0x9e6c and tag=2 from alternate 0x96f8. State5 callback 0x9338 recognizes 0x940007 and 0x940001, not late-stage ids; main only switches callback back to stage handler 0xa06d in guarded 0x9edc..0x9ef2 path. No external 0x94001a consumer or delivered stage event proven.",
   "phase4_16_delta": {
     "baseline": {
       "tracked_core_edges": 60,
@@ -1234,5 +1234,37 @@
     "possible_cli_override_or_bit0_bypass": true,
     "added_core_graph_edges": 0,
     "runtime_verified_apis": 0
+  },
+  "phase4_52_im_queue_id_announcement": {
+    "source_sha256": "f0f181426af4add55a8510c5441ff86c3121678fd1f7e0467152070e870d803a",
+    "report": "reports/PHASE4_52_IM_DYNAMIC_QUEUE_ANNOUNCEMENT.md",
+    "evidence": "sdk/im_dynamic_queue_announcement_3_21.json",
+    "scanner": "tools/scan_a6000_uipc_registration.py",
+    "event": "0x0094001a",
+    "fixed_destination": "0x0094016a",
+    "dynamic_receiver_if_allocated": "0x00946000..0x00946fff",
+    "main_callsite": "0x9e6c",
+    "main_message_words": [
+      "0x94001a",
+      "a600 global+0x24 value",
+      "allocated dynamic receiver ID",
+      "3"
+    ],
+    "alternate_callsite": "0x96f8",
+    "alternate_message_words": [
+      "0x94001a",
+      "value of previous PLT call",
+      "allocated dynamic receiver ID",
+      "2"
+    ],
+    "wrapper": "0x91a4 stores four words +0,4,8,12 then 0x91dc osal_snd_msg",
+    "callback_state5": "0x9338 recognizes 0x940007 / 0x940001, not late-stage 0x940036/037",
+    "callback_reactivation": "conditional main 0x9edc..0x9ef2 ac08(state3,callback a06d)",
+    "consumer_of_0x94001a": "UNKNOWN",
+    "actual_osal_send_receive_success": "UNKNOWN",
+    "camera_core_graph_delta": 0,
+    "core_primary": 74,
+    "tracked_core": 84,
+    "runtime_verified": 0
   }
 }
